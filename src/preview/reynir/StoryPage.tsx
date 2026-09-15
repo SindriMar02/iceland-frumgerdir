@@ -21,14 +21,15 @@
  * to edit, and this page reads whatever he sets.
  */
 
+import { useModalFocus } from './useModalFocus'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import Chrome from './Chrome'
 import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
-import { T, type GalleryPhoto, LOGO, STORY_ART } from './data'
+import { type GalleryPhoto, LOGO } from './data'
 import { useLang } from './useLang'
-import { SiteContentProvider, useSiteContent } from './sanity'
+import { SiteContentProvider, usePageText, useSiteArt, useSiteContent } from './sanity'
 import {
   ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT,
   GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, IVORY, LETTERPRESS,
@@ -106,13 +107,16 @@ const CSS = `
 `
 
 function StoryPageInner() {
+  const {STORY_ART} = useSiteArt()
   const [lang, setLang] = useLang()
   /* Every internal link, in the language of the URL we are on: from /en the
      nav must lead to /en/panta, not back into Icelandic. */
   const P = pathsFor(lang)
-  const t = T[lang]
-  const { GALLERY, statementQuote, statementWho, storyP1, storyP2 } = useSiteContent()
+  const t = usePageText(lang)
+  const { mainName, GALLERY, statementQuote, statementWho, storyP1, storyP2 } = useSiteContent()
   const [lightbox, setLightbox] = useState<number | null>(null)
+  const modalRef = useModalFocus(lightbox !== null && !!GALLERY[lightbox])
+  useEffect(() => { if (lightbox !== null && !GALLERY[lightbox]) setLightbox(null) }, [lightbox, GALLERY])
 
   useEffect(() => { setThemeColor(INK) }, [])
 
@@ -151,6 +155,7 @@ function StoryPageInner() {
         </div>
       </div>
 
+      <main id="reynir-story-content">
       {/* the opening frame, full width — the same oven that opens the story
           section on the landing page, given the room it deserves here */}
       <section style={{ position: 'relative', height: 'clamp(300px,52vh,560px)', overflow: 'hidden', background: INK_DEEP }}>
@@ -247,15 +252,16 @@ function StoryPageInner() {
         </div>
       </section>
 
+      </main>
       <footer style={{ background: INK_DEEP, borderTop: `1px solid ${HAIR_SOFT}`, padding: '48px clamp(20px,4.5vw,72px)' }}>
         <div style={{ ...wrap, display: 'flex', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
           <Link to={P.home} className="rb-st-back">{t.storyBack}</Link>
-          <div style={{ fontSize: 13, color: FAINT }}>Dalvegur 4, 201 Kópavogur</div>
+          <div style={{ fontSize: 13, color: FAINT }}>{mainName}</div>
         </div>
       </footer>
 
       {lightbox !== null && GALLERY[lightbox] && (
-        <div className="rb-lightbox" role="dialog" aria-modal="true" aria-label={GALLERY[lightbox].caption[lang]} onClick={() => setLightbox(null)}>
+        <div ref={modalRef} tabIndex={-1} className="rb-lightbox" role="dialog" aria-modal="true" aria-label={GALLERY[lightbox].caption[lang]} onClick={() => setLightbox(null)}>
           <button type="button" className="rb-lb-btn rb-lb-close" onClick={() => setLightbox(null)} aria-label={t.galleryClose}>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M2 2L16 16M16 2L2 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
           </button>

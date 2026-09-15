@@ -23,8 +23,8 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-const dist = 'dist-reynir'
-const serverEntry = resolve('dist-reynir-server/reynir-entry-server.js')
+const dist = process.env.REYNIR_BUILD_DIR || 'dist-reynir'
+const serverEntry = resolve(process.env.REYNIR_SERVER_ENTRY || 'dist-reynir-server/reynir-entry-server.js')
 
 if (!existsSync(serverEntry)) {
   console.error(

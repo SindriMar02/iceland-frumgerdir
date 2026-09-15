@@ -288,10 +288,30 @@ export function sizeChoiceOf(
  * number this form must never put in front of a customer.
  */
 export function choicePriceOf(product: OrderProduct, choice: OrderChoice): number | null {
-  if (product.pricePerPerson) {
-    return typeof choice.serves === 'number' ? product.pricePerPerson * choice.serves : null
+  if (choice.quoteOnly) return null
+  const positive = (n: unknown): n is number => typeof n === 'number' && Number.isSafeInteger(n) && n > 0
+  if (product.pricePerPerson !== undefined) {
+    const price = positive(product.pricePerPerson) && positive(choice.serves) ? product.pricePerPerson * choice.serves : NaN
+    return positive(price) ? price : null
   }
-  return typeof choice.price === 'number' ? choice.price : null
+  return positive(choice.price) ? choice.price : null
+}
+
+/** Reject incomplete CMS pricing rather than displaying a zero-price product. */
+export function isProductOrderable(product: OrderProduct): boolean {
+  if (!Number.isInteger(product.leadDays) || product.leadDays < 0 || product.leadDays > 30) return false
+  const ids = product.groups.map(g => g.id)
+  if (ids.some(id => !id) || new Set(ids).size !== ids.length) return false
+  for (const group of product.groups) {
+    if (!group.choices.length || new Set(group.choices.map(c => c.id)).size !== group.choices.length) return false
+    if (group.choices.some(c => !c.id || !Number.isSafeInteger(c.priceDelta) || c.priceDelta < 0)) return false
+  }
+  if (product.pricePerPerson !== undefined && (!Number.isSafeInteger(product.pricePerPerson) || product.pricePerPerson <= 0)) return false
+  const size = product.groups.find(g => g.id === product.sizeGroupId)
+  if (product.sizeGroupId || product.pricePerPerson !== undefined) {
+    return !!size && size.kind === 'single' && size.required === true && size.choices.every(c => c.quoteOnly || choicePriceOf(product, c) !== null)
+  }
+  return Number.isSafeInteger(product.basePrice) && product.basePrice > 0
 }
 
 /**
@@ -442,6 +462,7 @@ export interface OrderProduct {
    */
   occasionId?: string
   /** Minimum days of notice. Drives the earliest selectable pickup date. */
+  noticeMode?: 'hours' | 'calendarDays'
   leadDays: number
   /** Free-text line piped onto the product, e.g. writing on a cake. */
   inscription?: { label: Bilingual; placeholder: Bilingual; maxLength: number }

@@ -27,7 +27,7 @@ import { existsSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSyn
 import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
-const dist = 'dist-reynir'
+const dist = process.env.REYNIR_BUILD_DIR || 'dist-reynir'
 if (!existsSync(dist)) {
   console.error('reynir-post: dist-reynir missing — run the vite build first')
   process.exit(1)

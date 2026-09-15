@@ -16,12 +16,11 @@ import { Link, useSearchParams } from 'react-router-dom'
 import Chrome from './Chrome'
 import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
-import { LOGO, T } from './data'
-import { ORDER_T } from './order'
+import { LOGO } from './data'
 import OrderSection from './OrderSection'
 import { useLang } from './useLang'
 import { BODY, DIM, EASE, FAINT, GOLD, GOLD_LIGHT, HAIR_SOFT, INK, INK_DEEP, IVORY } from './tokens'
-import { SiteContentProvider, useSiteContent } from './sanity'
+import { SiteContentProvider, usePageText, useOrderText, useSiteContent } from './sanity'
 
 
 const PAGE_CSS = `
@@ -69,8 +68,8 @@ function ReynirOrderPageInner() {
   /* Every internal link, in the language of the URL we are on: from /en the
      nav must lead to /en/panta, not back into Icelandic. */
   const P = pathsFor(lang)
-  const t = T[lang]
-  const ot = ORDER_T[lang]
+  const t = usePageText(lang)
+  const ot = useOrderText(lang)
   const { LINKS, hoursRows, mainName } = useSiteContent()
   const [params] = useSearchParams()
   const preselect = params.get('vara') ?? undefined
@@ -110,7 +109,9 @@ function ReynirOrderPageInner() {
         </div>
       </header>
 
+      <main id="reynir-order-content">
       <OrderSection lang={lang} standalone initialProductId={preselect} initialOccasionId={preselectOccasion} />
+      </main>
 
       {/* only what supports the task: where to collect, and a human to call */}
       <footer className="rb-op-foot">

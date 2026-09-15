@@ -12,9 +12,9 @@
 
 import { Link } from 'react-router-dom'
 import type { Lang } from './data'
-import { ORDER_T, isk, fromPriceOf, columnsFor } from './order'
+import { isk, fromPriceOf, columnsFor } from './order'
 import { DIM, DISPLAY, EASE, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, INK_DEEP, IVORY } from './tokens'
-import { useSiteContent } from './sanity'
+import { useOrderText, useSiteContent } from './sanity'
 
 const TEASER_CSS = `
   /* The column count is CHOSEN, not fixed at three, because the owner adds
@@ -57,11 +57,13 @@ const TEASER_CSS = `
   @media (prefers-reduced-motion: reduce) {
     .rb-tease-card { transition:none; }
     .rb-tease-card:hover { transform:none; }
+    .rb-tease-pic img { transition:none; }
+    .rb-tease-card:hover .rb-tease-pic img { transform:none; filter:none; }
   }
 `
 
 export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath: string }) {
-  const t = ORDER_T[lang]
+  const t = useOrderText(lang)
   const { ORDER_PRODUCTS } = useSiteContent()
   /* The teaser spans the full container, so it can carry four across. */
   const cols = columnsFor(ORDER_PRODUCTS.length, 4)
@@ -104,7 +106,7 @@ export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath
               <span className="rb-tease-from">
                 {p.pricePerPerson
                   ? `${isk(p.pricePerPerson)} ${t.perPerson}`
-                  : `${lang === 'is' ? 'frá' : 'from'} ${isk(fromPriceOf(p))}`}
+                  : fromPriceOf(p) > 0 ? `${lang === 'is' ? 'frá' : 'from'} ${isk(fromPriceOf(p))}` : (lang === 'is' ? 'Tilboð' : 'Quote')}
               </span>
               <span className="rb-tease-blurb">{p.blurb[lang]}</span>
             </Link>

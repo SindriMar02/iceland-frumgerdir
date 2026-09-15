@@ -16,18 +16,19 @@
  * a medallion). Section reveals are IntersectionObserver + CSS transitions.
  */
 
+import type { DateException } from './availability'
+import { useModalFocus } from './useModalFocus'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import Chrome from './Chrome'
 import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { useIsomorphicLayoutEffect } from './ssr'
-import { T, type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, type CakeArt, LOGO, FEATURE_IMG, PRODUCT_IMG, SHOP_IMG, MENU_ART, CAKE_ART, STORY_ART } from './data'
+import { type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, type CakeArt, LOGO } from './data'
 import { ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY, LETTERPRESS } from './tokens'
 import OrderTeaser from './OrderTeaser'
-import { ORDER_T } from './order'
 import { useLang } from './useLang'
-import { SiteContentProvider, useSiteContent, type DayHours } from './sanity'
+import { SiteContentProvider, usePageText, useOrderText, useSiteArt, useSiteContent, type DayHours } from './sanity'
 
 
 
@@ -36,6 +37,8 @@ import { SiteContentProvider, useSiteContent, type DayHours } from './sanity'
 const MED_BASE = 440
 
 const PAGE_CSS = `
+  .rb-skip { position:fixed; top:8px; left:8px; z-index:1000; padding:14px 20px; background:#F3EAD3; color:#131313; transform:translateY(-200%); }
+  .rb-skip:focus { transform:none; }
   /* ── paper grain ────────────────────────────────────────────────────────
      The single cheapest thing that separates "dark website" from "printed on
      something". A fixed, non-interactive noise plate over the whole page, at
@@ -523,8 +526,7 @@ const fmtHMPad = (mins: number) => `${pad2(Math.floor(mins / 60))}:${pad2(mins %
  *  reads. It states the opening hours rather than guessing open/closed,
  *  because a build-time "Lokað" would be frozen into the page for every
  *  search engine and AI assistant that quotes it. */
-function staticStatus(lang: Lang, hoursByDay: readonly DayHours[]) {
-  const t = T[lang]
+function staticStatus(hoursByDay: readonly DayHours[], t: ReturnType<typeof usePageText>) {
   const days = hoursByDay.filter((d) => !d.closed)
   const uniform =
     days.length === hoursByDay.length &&
@@ -535,15 +537,16 @@ function staticStatus(lang: Lang, hoursByDay: readonly DayHours[]) {
   }
 }
 
-function openStatus(now: number, lang: Lang, hoursByDay: readonly DayHours[]) {
+function openStatus(now: number, lang: Lang, hoursByDay: readonly DayHours[], exceptions: DateException[], t: ReturnType<typeof usePageText>) {
   const d = new Date(now)
-  const day = d.getUTCDay()
+  const hours = (date: Date) => exceptions.find(e => e.date === date.toISOString().slice(0, 10)) ?? hoursByDay[date.getUTCDay()]
+  const today = hours(d)
   const mins = d.getUTCHours() * 60 + d.getUTCMinutes()
-  const today = hoursByDay[day]
-  const t = T[lang]
-  if (!today.closed && mins >= today.open && mins < today.close) return { open: true, label: t.statusOpen(fmtHM(today.close)) }
-  if (today.closed || mins < today.open) return { open: false, label: t.statusOpensToday(fmtHM(today.open)) }
-  return { open: false, label: t.statusOpensTomorrow(fmtHM(hoursByDay[(day + 1) % 7].open)) }
+  if (today.closed || today.open < 0 || today.close <= today.open) return {open: false, label: lang === 'is' ? 'Lokað í dag' : 'Closed today'}
+  if (mins >= today.open && mins < today.close) return {open: true, label: t.statusOpen(fmtHM(today.close))}
+  if (mins < today.open) return {open: false, label: t.statusOpensToday(fmtHM(today.open))}
+  const tomorrow = hours(new Date(now + 86_400_000))
+  return {open: false, label: tomorrow.closed || tomorrow.open < 0 ? t.statusHoursVaried : t.statusOpensTomorrow(fmtHM(tomorrow.open))}
 }
 
 const revealInit = (reduced: boolean, delay = 0) =>
@@ -740,18 +743,20 @@ function GalleryTile({ photo, lang, onOpen, style }: { photo: GalleryPhoto; lang
 function TestimonialRotator({ lang, reduced, reviews }: { lang: Lang; reduced: boolean; reviews: Review[] }) {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [manualPause, setManualPause] = useState(false)
 
   useEffect(() => {
-    if (reduced || paused || reviews.length <= 1) return
+    if (reduced || paused || manualPause || reviews.length <= 1) return
     const id = window.setInterval(() => setIndex((i) => (i + 1) % reviews.length), 6500)
     return () => window.clearInterval(id)
-  }, [reduced, paused, reviews])
+  }, [reduced, paused, manualPause, reviews])
 
   useEffect(() => {
     if (index >= reviews.length) setIndex(0)
   }, [reviews, index])
 
   const r = reviews[index] ?? reviews[0]
+  if (!r) return null
 
   return (
     <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
@@ -770,14 +775,14 @@ function TestimonialRotator({ lang, reduced, reviews }: { lang: Lang; reduced: b
         {r.who}
       </figcaption>
 
+      {reviews.length > 1 && <button type="button" aria-pressed={manualPause} onClick={() => setManualPause(value => !value)} style={{background: 'transparent', color: IVORY, border: `1px solid ${HAIR}`, padding: '10px 16px', marginTop: 16, minHeight: 44}}>{manualPause ? (lang === 'is' ? 'Halda áfram' : 'Resume reviews') : (lang === 'is' ? 'Stöðva umsagnir' : 'Pause reviews')}</button>}
       {reviews.length > 1 && (
-        <div role="tablist" aria-label={lang === 'en' ? 'Reviews' : 'Umsagnir'} style={{ display: 'flex', gap: 0, justifyContent: 'center', marginTop: 4 }}>
+        <div role="group" aria-label={lang === 'en' ? 'Reviews' : 'Umsagnir'} style={{ display: 'flex', gap: 0, justifyContent: 'center', marginTop: 4 }}>
           {reviews.map((_, i) => (
             <button
               key={i}
               type="button"
-              role="tab"
-              aria-selected={i === index}
+              aria-pressed={i === index}
               aria-label={`${lang === 'en' ? 'Review' : 'Umsögn'} ${i + 1}`}
               data-active={i === index}
               className="rb-testi-dot"
@@ -791,15 +796,17 @@ function TestimonialRotator({ lang, reduced, reviews }: { lang: Lang; reduced: b
 }
 
 function ReynirPageInner() {
+  const {FEATURE_IMG, PRODUCT_IMG, SHOP_IMG, MENU_ART, CAKE_ART, STORY_ART} = useSiteArt()
   // English on a first visit, but shared with the order route so a visitor
   // reading in Icelandic does not land back in English after ordering.
   const [lang, setLang] = useLang()
   /* Every internal link, in the language of the URL we are on: from /en the
      nav must lead to /en/panta, not back into Icelandic. */
   const P = pathsFor(lang)
-  const t = T[lang]
+  const t = usePageText(lang)
+  const ot = useOrderText(lang)
   const {
-    LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES, GALLERY, REVIEWS,
+    images, dateExceptions, LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES, GALLERY, REVIEWS,
     hoursRows, mainName, trustLine,
     heroTitle, heroSub, heroLine, statementQuote, statementWho, storyP1, storyP2,
   } = useSiteContent()
@@ -827,8 +834,8 @@ function ReynirPageInner() {
     return () => window.clearInterval(id)
   }, [])
   const status = useMemo(
-    () => (now === null ? staticStatus(lang, HOURS_BY_DAY) : openStatus(now, lang, HOURS_BY_DAY)),
-    [now, lang, HOURS_BY_DAY],
+    () => (now === null ? staticStatus(HOURS_BY_DAY, t) : openStatus(now, lang, HOURS_BY_DAY, dateExceptions, t)),
+    [now, lang, HOURS_BY_DAY, dateExceptions, t],
   )
 
   useEffect(() => {
@@ -1007,6 +1014,8 @@ function ReynirPageInner() {
 
   // Gallery lightbox: null when closed, otherwise the open photo's index.
   const [lightbox, setLightbox] = useState<number | null>(null)
+  const modalRef = useModalFocus(lightbox !== null && !!GALLERY[lightbox])
+  useEffect(() => { if (lightbox !== null && !GALLERY[lightbox]) setLightbox(null) }, [lightbox, GALLERY])
 
   // The sticky bar appears once the cover has scrolled out of view. Watching
   // the cover with an observer rather than polling scrollY keeps this off the
@@ -1016,8 +1025,6 @@ function ReynirPageInner() {
 
   useEffect(() => {
     if (lightbox === null) return
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeLightbox()
       if (e.key === 'ArrowRight') stepLightbox(1)
@@ -1025,7 +1032,6 @@ function ReynirPageInner() {
     }
     window.addEventListener('keydown', onKey)
     return () => {
-      document.body.style.overflow = prevOverflow
       window.removeEventListener('keydown', onKey)
     }
   }, [lightbox])
@@ -1042,6 +1048,7 @@ function ReynirPageInner() {
     >
       <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 
+      <a className="rb-skip" href="#reynir-content">{lang === 'is' ? 'Fara í efni' : 'Skip to content'}</a>
       {intro && (
         <div className="rb-intro" onClick={() => setIntro(false)} aria-hidden="true">
           <div className="rb-intro-logo">
@@ -1082,7 +1089,7 @@ function ReynirPageInner() {
             <span className="rb-sticky-dot" style={{ background: status.open ? GOLD : 'rgba(243,234,211,.4)' }} />
             <span className="rb-sticky-status">{status.label}</span>
           </span>
-          <Link to={P.order} className="rb-sticky-cta">{ORDER_T[lang].navOrder}</Link>
+          <Link to={P.order} className="rb-sticky-cta">{ot.navOrder}</Link>
           <button
             type="button"
             className="rb-burger rb-burger-bar"
@@ -1170,13 +1177,14 @@ function ReynirPageInner() {
             </div>
           </div>
           <Link to={P.order} className="rb-menu-cta" onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}>
-            {ORDER_T[lang].navOrder}
+            {ot.navOrder}
           </Link>
         </div>
       </div>
 
 
       {/* ===================== COVER ===================== */}
+      <main id="reynir-content" tabIndex={-1}>
       <section className="rb-cover" style={{ position: 'relative', display: 'flex', flexDirection: 'column', padding: '0 clamp(20px,4.5vw,72px)' }}>
         <div className="rb-cover-grid" style={{ ...wrap, flex: 1, width: '100%', display: 'grid', gridTemplateColumns: '1fr', alignItems: 'center', position: 'relative', padding: 'clamp(24px,5vh,56px) 0' }}>
           {/* the pistachio snúður, a transparent cutout floating on the dark hero,
@@ -1185,7 +1193,7 @@ function ReynirPageInner() {
             <img
               className="rb-hero-spin"
               src={FEATURE_IMG}
-              alt={lang === 'en' ? 'A Reynir pistachio snúður, glazed and topped with pistachios' : 'Pistasíusnúður frá Reyni, gljáður og toppaður með pistasíum'}
+              alt={images.hero?.caption[lang] ?? (lang === 'en' ? 'A Reynir pistachio snúður, glazed and topped with pistachios' : 'Pistasíusnúður frá Reyni, gljáður og toppaður með pistasíum')}
               width={1004}
               height={1100}
               decoding="async"
@@ -1309,7 +1317,7 @@ function ReynirPageInner() {
                 <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio: '1 / 1' }}>
                   <img
                     src={PRODUCT_IMG}
-                    alt={lang === 'en' ? 'A Reynir pistachio snúður torn open, gooey pistachio glaze stretching between the halves' : 'Pistasíusnúður frá Reyni rifinn í sundur, pistasíugljái teygist á milli helminganna'}
+                    alt={images.featured?.caption[lang] ?? (lang === 'en' ? 'A Reynir pistachio snúður torn open, gooey pistachio glaze stretching between the halves' : 'Pistasíusnúður frá Reyni rifinn í sundur, pistasíugljái teygist á milli helminganna')}
                     loading="lazy"
                     decoding="async"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
@@ -1594,7 +1602,7 @@ function ReynirPageInner() {
               <figure style={{ margin: 0, borderRadius: 4, overflow: 'hidden', border: `1px solid ${HAIR}` }}>
                 <img
                   src={SHOP_IMG}
-                  alt={lang === 'en' ? 'Inside Reynir bakari on Dalvegur: a wall of framed black-and-white bakery photographs above the tables' : 'Inni í Reyni bakara á Dalvegi: veggur með innrömmuðum svarthvítum myndum úr bakaríinu fyrir ofan borðin'}
+                  alt={images.shop?.caption[lang] ?? (lang === 'en' ? 'Inside Reynir bakari on Dalvegur: a wall of framed black-and-white bakery photographs above the tables' : 'Inni í Reyni bakara á Dalvegi: veggur með innrömmuðum svarthvítum myndum úr bakaríinu fyrir ofan borðin')}
                   width={1900}
                   height={1400}
                   loading="lazy"
@@ -1638,6 +1646,7 @@ function ReynirPageInner() {
         </a>
       </section>
 
+      </main>
       {/* ===================== FOOTER ===================== */}
       {/* No borderTop: the map band above ends in a veil that has already
           reached INK_DEEP, so a hairline here would draw the seam the veil
@@ -1662,8 +1671,8 @@ function ReynirPageInner() {
         </div>
       </footer>
 
-      {lightbox !== null && (
-        <div className="rb-lightbox" role="dialog" aria-modal="true" aria-label={GALLERY[lightbox].caption[lang]} onClick={closeLightbox}>
+      {lightbox !== null && GALLERY[lightbox] && (
+        <div ref={modalRef} tabIndex={-1} className="rb-lightbox" role="dialog" aria-modal="true" aria-label={GALLERY[lightbox].caption[lang]} onClick={closeLightbox}>
           <button type="button" className="rb-lb-btn rb-lb-close" onClick={closeLightbox} aria-label={t.galleryClose}>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M2 2L16 16M16 2L2 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
           </button>

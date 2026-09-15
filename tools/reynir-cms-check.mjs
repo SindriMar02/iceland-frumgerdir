@@ -205,8 +205,8 @@ check('Sanity unreachable: order catalogue survives', c?.ORDER_PRODUCTS.length >
 let raw = clone(LIVE)
 raw.menuItems = []; raw.reviews = []; raw.gallery = []; raw.orderProducts = []; raw.pickupLocations = []
 c = run('all collections emptied', () => merge(raw))
-check('every collection emptied: falls back rather than showing nothing',
-  c?.MENU.length > 0 && c?.REVIEWS.length > 0 && c?.GALLERY.length > 0 && c?.ORDER_PRODUCTS.length > 0)
+check('every collection emptied: respects the owner empty state',
+  c?.MENU.length === 0 && c?.REVIEWS.length === 0 && c?.GALLERY.length === 0 && c?.ORDER_PRODUCTS.length === 0)
 
 raw = clone(LIVE)
 const keep = raw.menuItems.filter((m) => m.category === 'bread').slice(0, 3)
@@ -225,7 +225,7 @@ function fbLen(a) { return a.length }
 
 raw = clone(LIVE); raw.orderProducts = raw.orderProducts.map((p) => ({ ...p, groups: [] }))
 c = run('order products broken', () => merge(raw))
-check('order products stripped of options fall back to the bundled catalogue', c?.ORDER_PRODUCTS.length > 0)
+check('broken sized products are unavailable, never resurrected', c?.ORDER_PRODUCTS.length === 0)
 
 for (const [name, payload] of Object.entries({
   'menuItems as an object': { ...clone(LIVE), menuItems: {} },
@@ -250,10 +250,7 @@ raw = clone(LIVE)
   const g = p && (p.groups || []).find((x) => x.id === p.sizeGroupId)
   if (g) g.choices = g.choices.map((ch) => ({ ...ch, serves: undefined }))
   c = run('per-person edit', () => merge(raw))
-  const merged = c?.ORDER_PRODUCTS.find((x) => x.pricePerPerson)
-  const sizeGroup = merged && merged.groups.find((x) => x.id === merged.sizeGroupId)
-  check('a size stripped of its headcount stays unpriced rather than becoming free',
-    !!sizeGroup && sizeGroup.choices.every((ch) => ch.serves === undefined))
+  check('a product with missing serving counts is unavailable', !c?.ORDER_PRODUCTS.some(x => x.id === p?.id))
 }
 
 /* The same edit on a flat-priced product: someone clears the price off a size
@@ -287,9 +284,7 @@ raw = clone(LIVE)
   raw.orderProducts = [...(raw.orderProducts || []), flatProduct(false)]
   c = run('flat-price edit', () => merge(raw))
   const merged = c?.ORDER_PRODUCTS.find((x) => x.id === 'flattest')
-  const sizeGroup = merged && merged.groups.find((x) => x.id === merged.sizeGroupId)
-  check('a flat size stripped of its price stays unpriced rather than becoming free',
-    !!sizeGroup && sizeGroup.choices.every((ch) => typeof ch.price !== 'number'))
+  check('a product with missing size prices is unavailable', !merged)
 }
 
 raw = clone(LIVE)

@@ -35,9 +35,6 @@ import {
   choicePriceOf,
   fromPriceOf,
   occasionsFor,
-  ORDER_EXTRAS,
-  VEISLUKJOR,
-  extrasTotal,
   extraUnitPrice,
   columnsFor,
   type OrderGroup,
@@ -45,7 +42,8 @@ import {
   type OrderChoice,
 } from './order'
 import { BODY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, IVORY } from './tokens'
-import { useSiteContent } from './sanity'
+import { useOrderText, useSiteContent } from './sanity'
+import { bakeryDate, noticeAt, pickupSlots } from './availability'
 
 const ORDER_CSS = `
   /* layout: functional split, the slip reacts to the choices */
@@ -443,7 +441,7 @@ const ORDER_CSS = `
   .rb-ord-extra-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
   .rb-ord-extra-sum { text-align:right; font-size:13.5px; color:${GOLD}; font-variant-numeric:tabular-nums; }
   .rb-ord-qty[data-small] { margin-top:0; }
-  .rb-ord-qty[data-small] button { width:34px; height:34px; }
+  .rb-ord-qty[data-small] button { width:44px; height:44px; }
   .rb-ord-qty[data-small] .rb-ord-qty-val { min-width:30px; font-size:16px; }
   .rb-ord-kjornudge { font-size:12.5px; color:${GOLD_LIGHT}; margin:12px 0 0; line-height:1.5;
     padding:9px 11px; border:1px dashed rgba(200,168,119,.35); border-radius:4px; }
@@ -583,14 +581,6 @@ const ORDER_CSS = `
   }
 `
 
-const pad2 = (n: number) => String(n).padStart(2, '0')
-
-/** Local-date ISO string. Never toISOString(), which is UTC and can shift the day. */
-function isoPlusDays(days: number): string {
-  const d = new Date()
-  d.setDate(d.getDate() + days)
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
-}
 
 /** 2026-08-07 -> 7. ágúst (is) / 7 August (en). Built by hand, no ICU. */
 const MONTHS: Record<Lang, string[]> = {
@@ -622,20 +612,6 @@ function prettyDateFull(iso: string, lang: Lang): string {
   return `${wd} ${prettyDate(iso, lang)}`
 }
 
-/** Collection slots, every half hour inside opening hours.
- *
- *  A free `type="time"` input lets someone ask for 18:30, which the bakery
- *  cannot do — and answering that costs an email. A closed list cannot express
- *  a time they are shut. Last slot is 16:30 so there is a real half hour to
- *  hand the order over before the doors close at 17:00. */
-const PICKUP_SLOTS: string[] = (() => {
-  const out: string[] = []
-  for (let mins = 7 * 60; mins <= 16 * 60 + 30; mins += 30) {
-    out.push(`${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`)
-  }
-  return out
-})()
-
 const Check = () => (
   <svg width="9" height="7" viewBox="0 0 9 7" fill="none" aria-hidden="true">
     <path d="M1 3.4L3.3 5.7L8 1" stroke="#131313" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
@@ -654,7 +630,17 @@ interface SlipLine {
   pending?: boolean
 }
 
-export default function OrderSection({
+export default function OrderSection(props: Parameters<typeof OrderForm>[0]) {
+  const { ORDER_PRODUCTS, PICKUP_LOCATIONS, ordersPaused, ordersPauseMessage, LINKS } = useSiteContent()
+  if (ordersPaused || !ORDER_PRODUCTS.length || !PICKUP_LOCATIONS.length) return <section style={{padding: '80px 24px', color: IVORY, background: INK}}>
+    <h1>{props.lang === 'is' ? 'Sérpantanir' : 'Custom orders'}</h1>
+    <p>{ordersPaused ? ordersPauseMessage[props.lang] : props.lang === 'is' ? 'Sérpantanir eru ekki í boði á vefnum í bili. Hafðu samband við okkur.' : 'Online custom orders are currently unavailable. Please contact the bakery.'}</p>
+    <a href={`tel:${LINKS.phone}`}>{LINKS.phoneLabel}</a>
+  </section>
+  return <OrderForm {...props} />
+}
+
+function OrderForm({
   lang,
   /** On its own route the section carries the page's h1 and needs no top rule. */
   standalone = false,
@@ -667,8 +653,8 @@ export default function OrderSection({
   initialProductId?: string
   initialOccasionId?: string
 }) {
-  const t = ORDER_T[lang]
-  const { LINKS, ORDER_PRODUCTS, OCCASIONS, PICKUP_LOCATIONS, hoursRows } = useSiteContent()
+  const t = useOrderText(lang)
+  const { LINKS, ORDER_PRODUCTS, OCCASIONS, PICKUP_LOCATIONS, hoursRows, HOURS_BY_DAY, dateExceptions, ORDER_EXTRAS, VEISLUKJOR } = useSiteContent()
 
   const [productId, setProductId] = useState(
     () => (initialProductId && ORDER_PRODUCTS.some((p) => p.id === initialProductId) ? initialProductId : ORDER_PRODUCTS[0].id),
@@ -706,6 +692,7 @@ export default function OrderSection({
     total: number
     quote: boolean
     wantsPhoto: boolean
+    photo: File | null
     size: OrderChoice | null
   }
   const [cakes, setCakes] = useState<CakeInOrder[]>([])
@@ -774,14 +761,17 @@ export default function OrderSection({
   const [photoUrl, setPhotoUrl] = useState('')
   const [photoErr, setPhotoErr] = useState('')
 
-  const earliest = useMemo(() => isoPlusDays(product.leadDays), [product.leadDays])
+  const [now, setNow] = useState(0)
+  useEffect(() => { setNow(Date.now()); const timer = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(timer) }, [])
+  const requiredNotice = [...cakes.map(c => c.product), ...(draftActive ? [product] : [])]
+  const minimumPickup = noticeAt(requiredNotice, now)
+  const earliest = now ? bakeryDate(minimumPickup) : ''
+  const slots = pickupSlots(customer.date, HOURS_BY_DAY, dateExceptions, minimumPickup)
 
   /* Refs the product-switch effect reads without re-firing on their changes:
    * the committed cakes (a photo one of them attached must survive the switch)
    * and a cake being loaded back in for editing (whose restored choices the
    * effect must not wipe). */
-  const cakesRef = useRef<CakeInOrder[]>(cakes)
-  cakesRef.current = cakes
   const restoreRef = useRef<CakeInOrder | null>(null)
 
   // Switching product invalidates every previous choice, so start that product clean.
@@ -797,10 +787,8 @@ export default function OrderSection({
     setPicked({})
     setInscription('')
     setExtras({})
-    /* The photo belongs to the ORDER now. Clearing it because the customer
-     * moved on to configuring their second cake would silently discard the
-     * picture their first, committed cake asked for. */
-    if (!cakesRef.current.some((c) => c.wantsPhoto)) clearPhoto()
+    // Committed cakes retain their own File; reset only this new draft.
+    clearPhoto()
     setTouched((prev) => {
       const next: Record<string, boolean> = {}
       for (const k of Object.keys(prev)) if (k.startsWith('c_')) next[k] = prev[k]
@@ -818,8 +806,8 @@ export default function OrderSection({
   const choosePhoto = (file: File | null) => {
     setPhotoErr('')
     if (!file) return
-    if (!file.type.startsWith('image/')) return setPhotoErr(t.errPhotoType)
-    if (file.size > MAX_PHOTO) return setPhotoErr(t.errPhotoSize)
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'].includes(file.type)) return setPhotoErr(t.errPhotoType)
+    if (file.size + cakes.reduce((sum, cake) => sum + (cake.photo?.size ?? 0), 0) > MAX_PHOTO) return setPhotoErr(lang === 'is' ? 'Myndir allra kaka mega samtals vera mest 5 MB.' : 'Photos for all cakes must total no more than 5 MB.')
     setPhoto(file)
     setPhotoUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev)
@@ -873,9 +861,7 @@ export default function OrderSection({
     ?? occasionList.find((o) => o.id === customer.occasion)
   const quote = useMemo(() => isQuoteRequest(product, picked), [product, picked])
   const draftWantsPhoto = useMemo(() => needsPhoto(product, picked), [product, picked])
-  /* The photo belongs to the ORDER (one attachment rides the email), so the
-   * upload section stays open if ANY cake in the basket asked for one — not
-   * just the cake currently being configured. */
+  // The order summary includes photo requirements from every cake.
   const wantsPhoto = cakes.some((c) => c.wantsPhoto) || (draftActive && draftWantsPhoto)
   /** The cake as configured, so the filling that swaps pears in for cocktail
    *  fruit shows the swap instead of hiding it in a footnote. */
@@ -976,7 +962,7 @@ export default function OrderSection({
   const anyQuote = cakes.some((c) => c.quote) || (draftActive && quote)
   const kjor = !anyQuote && cakesSubtotal >= VEISLUKJOR.threshold
   const kjorDiscount = kjor ? Math.round((cakesSubtotal * VEISLUKJOR.discountPct) / 100) : 0
-  const extrasSum = extrasTotal(extrasQty, kjor)
+  const extrasSum = ORDER_EXTRAS.reduce((sum, ex) => sum + (extrasQty[ex.id] ?? 0) * extraUnitPrice(ex, extrasQty[ex.id] ?? 0, kjor), 0)
   const orderTotal = cakesSubtotal - kjorDiscount + extrasSum
 
   /** What stands where the total goes when there is no number to put there. */
@@ -1006,9 +992,11 @@ export default function OrderSection({
      * order is extras floating free of the thing they accompany. */
     if (!draftActive && cakes.length === 0) e.g_product = t.errNoCake
     if (draftActive) {
+    if (product.sizeGroupId && !isQuoteRequest(product, picked) && !sizeChoiceOf(product, picked)) e[`g_${product.sizeGroupId}`] = t.errRequiredGroup
     for (const group of product.groups) {
-      if (!group.required) continue
-      if ((picked[group.id] ?? []).length === 0) {
+      const selected = picked[group.id] ?? []
+      const invalid = selected.some(id => !group.choices.some(choice => choice.id === id)) || new Set(selected).size !== selected.length || (group.kind === 'single' && selected.length > 1) || (group.max !== undefined && selected.length > group.max)
+      if (invalid || (group.required && selected.length === 0)) {
         e[`g_${group.id}`] = group.kind === 'single' ? t.errRequiredGroup : t.errRequiredMulti
       }
     }
@@ -1047,9 +1035,10 @@ export default function OrderSection({
     if (customer.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email.trim())) e.c_email = t.errEmail
     if (!customer.date) e.c_date = t.errDate
     else if (customer.date < earliest) e.c_date = t.errDateTooSoon(prettyDate(earliest, lang))
-    if (!customer.time) e.c_time = t.errTime
+    if (!customer.time || !pickupSlots(customer.date, HOURS_BY_DAY, dateExceptions, noticeAt(requiredNotice, Date.now())).includes(customer.time)) e.c_time = lang === 'is' ? 'Veldu lausan afhendingartíma.' : 'Choose an available collection time.'
+    if (!PICKUP_LOCATIONS.some(l => l.id === customer.location)) e.c_location = t.errRequiredGroup
     return e
-  }, [product, picked, customer, earliest, lang, t, who, extras, draftActive, cakes.length])
+  }, [product, picked, customer, earliest, lang, t, who, extras, draftActive, cakes, HOURS_BY_DAY, dateExceptions, now, PICKUP_LOCATIONS])
 
   const showErr = (key: string) => (touched[key] || triedSubmit ? errors[key] : undefined)
 
@@ -1071,9 +1060,11 @@ export default function OrderSection({
     total,
     quote,
     wantsPhoto: draftWantsPhoto,
+    photo: draftWantsPhoto ? photo : null,
     size,
   })
   const clearDraft = () => {
+    clearPhoto()
     setPicked({})
     setInscription('')
     setExtras({})
@@ -1085,7 +1076,7 @@ export default function OrderSection({
        * thing missing, rather than silently refusing the button. */
       setTouched((prev) => ({ ...prev, ...Object.fromEntries(draftErrorKeys.map((k) => [k, true])) }))
       const first = formRef.current?.querySelector<HTMLElement>('[data-invalid="true"]')
-      first?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      first?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
       return false
     }
     setCakes((prev) => [...prev, snapshotDraft()])
@@ -1112,6 +1103,8 @@ export default function OrderSection({
     setExtras(cake.extrasText)
     setInscription(cake.inscription)
     setQty(cake.qty)
+    setPhoto(cake.photo)
+    setPhotoUrl(previous => { if (previous) URL.revokeObjectURL(previous); return cake.photo ? URL.createObjectURL(cake.photo) : '' })
     setDraftActive(true)
   }
   const stepExtra = (id: string, dir: 1 | -1) => {
@@ -1124,26 +1117,32 @@ export default function OrderSection({
   }
 
   const formRef = useRef<HTMLFormElement>(null)
+  const submitting = useRef(false)
 
   const onSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault()
+    if (submitting.current || status === 'done') return
     setTriedSubmit(true)
+    if (!pickupSlots(customer.date, HOURS_BY_DAY, dateExceptions, noticeAt(requiredNotice, Date.now())).includes(customer.time)) {
+      setNow(Date.now())
+      setTouched(previous => ({...previous, c_time: true}))
+      formRef.current?.querySelector<HTMLElement>('#rb-ord-time')?.focus()
+      return
+    }
     if (Object.keys(errors).length > 0) {
       // Send focus to the first thing that needs fixing rather than leaving the
       // customer to hunt for it.
       const first = formRef.current?.querySelector<HTMLElement>('[data-invalid="true"]')
-      first?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      first?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
       first?.focus({ preventScroll: true })
       return
     }
+    submitting.current = true
     setStatus('sending')
     setSendError(false)
 
-    /* Reference for this order. Date-stamped so it sorts, with four random
-       digits so two orders on one day cannot collide. Generated here rather
-       than during render: a clock or a random number read while rendering
-       would differ between the prerendered HTML and the hydrated page. */
-    const ref = `RB-${customer.date.slice(5).replace('-', '')}-${Math.floor(1000 + Math.random() * 9000)}`
+    // Keep the same UUID across retries, without random values during SSR.
+    const ref = orderRef || `RB-${crypto.randomUUID()}`
     setOrderRef(ref)
 
     const L = ORDER_T.is // the bakery reads its own orders in Icelandic
@@ -1311,13 +1310,12 @@ export default function OrderSection({
     payload[`${n++}. Áætlað verð`] = anyQuote
       ? 'Tilboð óskast, ekkert verð gefið upp á vefnum'
       : `${isk(orderTotal)}${priceWorking}`
-    if (wantsPhoto) {
-      const note = photo
-        ? `Fylgir þessum pósti sem viðhengi (${photo.name})`
-        : `Viðskiptavinur ætlar að senda mynd og vísa í ${ref}`
-      payload[`${n++}. Mynd`] = note
-      mailRows.push({ label: 'Mynd', value: note })
-    }
+    const attachmentName = (cake: CakeInOrder, index: number) => `kaka-${index + 1}-${(cake.photo?.name || 'mynd.jpg').replace(/[^\w.\- ]+/g, '_').slice(0, 60)}`
+    allCakes.forEach((cake, index) => {
+      if (!cake.wantsPhoto) return
+      const note = cake.photo ? `Viðhengi: ${attachmentName(cake, index)}` : `Mynd verður send síðar með númerinu ${ref}, kaka ${index + 1}`
+      mailRows.push({label: `Mynd — kaka ${index + 1}`, value: note})
+    })
     /* NO total row here. The docket renders its own from `totalIsk`, so adding
      * one produced "SAMTALS 37.200 kr." twice in a row. Caught by rendering the
      * mail and looking at it, which is the only way that kind of duplication
@@ -1405,21 +1403,21 @@ export default function OrderSection({
       /* Only when a cake in the order still asks for it — a photo chosen for
        * an option later deselected must not ride along as a stray attachment
        * with no row explaining it. */
-      if (photo && wantsPhoto) fd.append('mynd', photo, photo.name)
+      allCakes.forEach((cake, index) => {
+        if (cake.wantsPhoto && cake.photo) fd.append(`mynd-${index + 1}`, cake.photo, attachmentName(cake, index))
+      })
 
       // No Content-Type header: the browser must set the multipart boundary
       // itself, and setting it by hand breaks the parse on the other side.
-      const res = await fetch(ORDER_ENDPOINT, { method: 'POST', body: fd })
+      const res = await fetch(ORDER_ENDPOINT, { method: 'POST', body: fd, signal: AbortSignal.timeout(45_000) })
       const body = (await res.json().catch(() => null)) as
         | { ok?: boolean; id?: string; attached?: boolean; reason?: string }
         | null
       if (!res.ok || !body?.ok || !body.id) {
         throw new Error(body?.reason ? String(body.reason) : `http-${res.status}`)
       }
-      /* Only now is it true. `attached` is the provider's own account of
-       * whether the picture went with it, so the confirmation screen says what
-       * happened rather than what we hoped. */
-      setPhotoDelivered(!!body.attached)
+      // The relay confirms attachment inclusion in the provider-accepted message.
+      setPhotoDelivered(!!body.attached && allCakes.filter(c => c.wantsPhoto).every(c => !!c.photo))
 
       setStatus('done')
     } catch {
@@ -1428,6 +1426,7 @@ export default function OrderSection({
       setSendError(true)
       setStatus('idle')
     }
+    submitting.current = false
     void L
   }
 
@@ -1481,7 +1480,7 @@ export default function OrderSection({
       <label className="rb-ord-photo-pick">
         <input
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
           onChange={(e) => choosePhoto(e.target.files?.[0] ?? null)}
         />
         <span className="rb-ord-photo-cta">{t.photoCta}</span>
@@ -1588,7 +1587,7 @@ export default function OrderSection({
       {/* The nudge only speaks past the halfway mark. A parent ordering one
           5.500 kr. barnaafmæliskaka must not be told to spend 44.500 kr.
           more; someone at 40.000 kr. is genuinely one kransakaka away. */}
-      {!kjor && !anyQuote && cakesSubtotal >= VEISLUKJOR.nudgeFrom && cakesSubtotal < VEISLUKJOR.threshold && (
+      {VEISLUKJOR.discountPct > 0 && !kjor && !anyQuote && cakesSubtotal >= VEISLUKJOR.nudgeFrom && cakesSubtotal < VEISLUKJOR.threshold && (
         <p className="rb-ord-kjornudge">
           {t.kjorNudge(isk(VEISLUKJOR.threshold - cakesSubtotal), VEISLUKJOR.discountPct)}
         </p>
@@ -1596,7 +1595,7 @@ export default function OrderSection({
       {/* Below the nudge band the rule is simply STATED, so the threshold is
           knowable from the start rather than appearing out of nowhere once an
           order happens to get big enough. The nudge takes over from halfway. */}
-      {!kjor && !anyQuote && cakesSubtotal < VEISLUKJOR.nudgeFrom && (
+      {VEISLUKJOR.discountPct > 0 && !kjor && !anyQuote && cakesSubtotal < VEISLUKJOR.nudgeFrom && (
         <p className="rb-ord-kjorinfo">
           {t.kjorRule(isk(VEISLUKJOR.threshold), VEISLUKJOR.discountPct)}
         </p>
@@ -1817,7 +1816,7 @@ export default function OrderSection({
                       <span className="rb-ord-prod-from">
                         {p.pricePerPerson
                           ? `${isk(p.pricePerPerson)} ${t.perPerson}`
-                          : `${lang === 'is' ? 'frá' : 'from'} ${isk(fromPriceOf(p))}`}
+                          : fromPriceOf(p) > 0 ? `${lang === 'is' ? 'frá' : 'from'} ${isk(fromPriceOf(p))}` : (lang === 'is' ? 'Tilboð' : 'Quote')}
                       </span>
                     </label>
                   ))}
@@ -2037,9 +2036,9 @@ export default function OrderSection({
                   <div className="rb-ord-field">
                     <span className="rb-ord-label" id="rb-ord-qty-label">{t.fieldQty}</span>
                     <div className="rb-ord-qty" role="group" aria-labelledby="rb-ord-qty-label">
-                      <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} aria-label="−">−</button>
+                      <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} aria-label={lang === 'is' ? 'Fækka kökum' : 'Remove one cake'}>−</button>
                       <span className="rb-ord-qty-val" aria-live="polite">{qty}</span>
-                      <button type="button" onClick={() => setQty((q) => Math.min(99, q + 1))} disabled={qty >= 99} aria-label="+">+</button>
+                      <button type="button" onClick={() => setQty((q) => Math.min(99, q + 1))} disabled={qty >= 99} aria-label={lang === 'is' ? 'Bæta við köku' : 'Add one cake'}>+</button>
                     </div>
                     <p className="rb-ord-hint">{t.fieldQtyHint}</p>
                   </div>
@@ -2068,7 +2067,7 @@ export default function OrderSection({
                   <span className="rb-ord-stepnum" aria-hidden="true">02</span>
                   <span className="rb-ord-steplabel">{t.stepExtras}</span>
                 </div>
-                <p className="rb-ord-help" style={{ marginTop: 10 }}>{kjor ? t.extrasKjorIntro : t.extrasIntro}</p>
+                <p className="rb-ord-help" style={{ marginTop: 10 }}>{kjor ? t.extrasKjorIntro : lang === 'is' ? 'Bættu bakkelsi við pöntunina ef þú vilt.' : 'Add pastries to your order if you like.'}</p>
                 {/* Photo cards, not text rows — the sweetgreen add-on
                     pattern: the product is the photograph and the stepper
                     lives ON the card it counts. Skinned to this page's
@@ -2082,7 +2081,7 @@ export default function OrderSection({
                     return (
                       <div className="rb-ord-extra" key={ex.id} data-on={nQty > 0 || undefined}>
                         <span className="rb-ord-extra-pic">
-                          <img src={ex.image} alt="" loading="lazy" decoding="async" width={480} height={480} />
+                          <img src={ex.image || undefined} alt="" loading="lazy" decoding="async" width={480} height={480} />
                         </span>
                         <span className="rb-ord-extra-body">
                         <span className="rb-ord-extra-name">{ex.label[lang]}</span>
@@ -2101,13 +2100,13 @@ export default function OrderSection({
                             bulk for events, so the card sells the bulk. Once
                             the cut is live the line has done its job. */}
                         <span className="rb-ord-extra-bulk">
-                          {cut ? '\u00a0' : t.extrasBulkLine(ex.bulkAt, isk(ex.kjorPrice))}
+                          {cut || !Number.isFinite(ex.bulkAt) ? '\u00a0' : t.extrasBulkLine(ex.bulkAt, isk(ex.kjorPrice))}
                         </span>
                         <span className="rb-ord-extra-foot">
                           <span className="rb-ord-qty" data-small="true" role="group" aria-label={ex.label[lang]}>
-                            <button type="button" onClick={() => stepExtra(ex.id, -1)} disabled={nQty <= 0} aria-label="−">−</button>
+                            <button type="button" onClick={() => stepExtra(ex.id, -1)} disabled={nQty <= 0} aria-label={`${lang === 'is' ? 'Fækka' : 'Remove'} ${ex.label[lang]}`}>−</button>
                             <span className="rb-ord-qty-val" aria-live="polite">{nQty}</span>
-                            <button type="button" onClick={() => stepExtra(ex.id, 1)} disabled={nQty >= ex.max} aria-label="+">+</button>
+                            <button type="button" onClick={() => stepExtra(ex.id, 1)} disabled={nQty >= ex.max} aria-label={`${lang === 'is' ? 'Bæta við' : 'Add'} ${ex.label[lang]}`}>+</button>
                           </span>
                           <span className="rb-ord-extra-sum" aria-live="polite">{nQty > 0 ? isk(nQty * unit) : ''}</span>
                         </span>
@@ -2135,17 +2134,17 @@ export default function OrderSection({
                       id="rb-ord-date"
                       className="rb-ord-input"
                       type="date"
-                      min={earliest}
+                      min={earliest || undefined}
                       value={customer.date}
                       data-invalid={showErr('c_date') ? 'true' : undefined}
                       aria-invalid={!!showErr('c_date')}
                       aria-describedby={showErr('c_date') ? 'err_c_date' : 'hint_c_date'}
-                      onChange={(e) => setCustomer({ ...customer, date: e.target.value })}
+                      onChange={(e) => setCustomer({ ...customer, date: e.target.value, time: '' })}
                       onBlur={() => setTouched({ ...touched, c_date: true })}
                     />
                     {showErr('c_date')
                       ? <p className="rb-ord-err" id="err_c_date" role="alert">{showErr('c_date')}</p>
-                      : <p className="rb-ord-hint" id="hint_c_date">{t.fieldDateHelp(product.leadDays)}</p>}
+                      : <p className="rb-ord-hint" id="hint_c_date">{t.fieldDateHelp(Math.max(...requiredNotice.map(p => p.leadDays), 0))}</p>}
                   </div>
 
                   <div className="rb-ord-field">
@@ -2161,11 +2160,11 @@ export default function OrderSection({
                       onBlur={() => setTouched({ ...touched, c_time: true })}
                     >
                       <option value="">{t.fieldTimePlaceholder}</option>
-                      {PICKUP_SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
+                      {slots.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                     {showErr('c_time')
                       ? <p className="rb-ord-err" id="err_c_time" role="alert">{showErr('c_time')}</p>
-                      : <p className="rb-ord-hint" id="hint_c_time">{t.fieldTimeHelp}</p>}
+                      : <p className="rb-ord-hint" id="hint_c_time">{customer.date && !slots.length ? (lang === 'is' ? 'Engir afhendingartímar í boði þennan dag. Veldu annan dag.' : 'No collection times available on this date. Choose another day.') : (lang === 'is' ? 'Tímarnir miðast við opnun og fyrirvara pöntunarinnar.' : 'Times follow opening hours and the notice required for your order.')}</p>}
                   </div>
                 </div>
 
@@ -2268,15 +2267,7 @@ export default function OrderSection({
                   <span className="rb-ord-steplabel">{t.stepDetails}</span>
                 </div>
 
-                {/* A committed cake asked for a photo and the inline picker
-                    left with its configurator — the order still needs the
-                    picture, so it is asked for here instead. */}
-                {PHOTO_UPLOAD_ENABLED && cakes.some((c) => c.wantsPhoto) && !(draftActive && draftWantsPhoto) && (
-                  <div className="rb-ord-field" style={{ marginTop: 4 }}>
-                    <span className="rb-ord-label">{t.photoLabel}</span>
-                    {photoPicker}
-                  </div>
-                )}
+                {cakes.some(c => c.wantsPhoto && !c.photo) && <p className="rb-ord-hint">{lang === 'is' ? 'Til að bæta mynd við ákveðna köku skaltu velja Breyta við þá köku. Þú getur líka sent myndina síðar með pöntunarnúmerinu.' : 'Choose Edit on a cake to attach its photograph, or send it later with your order reference.'}</p>}
 
                 {who === 'company' && (
                   <>
@@ -2464,10 +2455,10 @@ export default function OrderSection({
                 {sendError && (
                   <p className="rb-ord-errsummary" role="alert">
                     {lang === 'is'
-                      ? 'Ekki tókst að senda pöntunina. Vinsamlegast hringdu í '
-                      : 'We could not send that order. Please call us on '}
+                      ? 'Ekki tókst að staðfesta móttöku beiðninnar. Reyndu aftur eða hringdu í '
+                      : 'We could not verify receipt of your request. Retry or call us on '}
                     <a href={`tel:${LINKS.phone}`} className="rb-ord-tel">{LINKS.phoneLabel}</a>
-                    {lang === 'is' ? ' og við klárum hana með þér.' : ' and we will take it down for you.'}
+                    {lang === 'is' ? ' og gefðu upp númerið ' : ' and quote reference '}{orderRef}
                   </p>
                 )}
                 <p className="rb-ord-hint" style={{ textAlign: 'center', marginTop: 4 }}>
