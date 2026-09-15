@@ -657,7 +657,7 @@ function OrderForm({
   const { LINKS, ORDER_PRODUCTS, OCCASIONS, PICKUP_LOCATIONS, hoursRows, HOURS_BY_DAY, dateExceptions, ORDER_EXTRAS, VEISLUKJOR } = useSiteContent()
 
   const [productId, setProductId] = useState(
-    () => (initialProductId && ORDER_PRODUCTS.some((p) => p.id === initialProductId) ? initialProductId : ORDER_PRODUCTS[0].id),
+    () => ORDER_PRODUCTS[0].id,
   )
   const product: OrderProduct = useMemo(
     () => ORDER_PRODUCTS.find((p) => p.id === productId) ?? ORDER_PRODUCTS[0],
@@ -729,12 +729,17 @@ function OrderForm({
     /* Preselected when the visitor arrived from the homepage lettering band
        having already picked an occasion. Validated against the list so a
        hand-typed ?tilefni= cannot put an unknown value on the order. */
-    occasion: initialOccasionId && OCCASIONS.some((o) => o.id === initialOccasionId) ? initialOccasionId : '',
+    occasion: '',
     occasionOther: '',
     guests: '',
     handover: 'pickup' as 'pickup' | 'delivery',
     address: '',
   })
+  // Static HTML has no search parameters. Apply deep links after hydration.
+  useEffect(() => {
+    if (initialProductId && ORDER_PRODUCTS.some(p => p.id === initialProductId)) setProductId(initialProductId)
+    if (initialOccasionId && OCCASIONS.some(o => o.id === initialOccasionId)) setCustomer(c => ({...c, occasion: initialOccasionId}))
+  }, [initialProductId, initialOccasionId])
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [triedSubmit, setTriedSubmit] = useState(false)
   const [status, setStatus] = useState<'idle' | 'sending' | 'done'>('idle')
