@@ -62,7 +62,7 @@ export default function PrivacyPage() {
             <span aria-hidden="true" className="font-fragment text-[13px]">&larr;</span>
             <span className="font-erode text-xl tracking-tight">Nýpugarðar</span>
           </Link>
-          <LangToggle lang={lang} setLang={setLang} t={t} className="-my-3 py-3" />
+          <LangToggle lang={lang} setLang={setLang} t={t} />
         </div>
       </header>
 

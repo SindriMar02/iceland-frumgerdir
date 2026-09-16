@@ -59,7 +59,7 @@ export const BOOKING_URL = 'https://www.booking.com/hotel/is/gistiheimilid-nypug
  *  booking call to action, since bookings now go direct through Godo. */
 export const REVIEWS_URL = 'https://www.booking.com/hotel/is/gistiheimilid-nypugordum.html'
 
-export const PHONE = '893 1826'
+export const PHONE = '+354 893 1826'
 export const PHONE_HREF = 'tel:+3548931826'
 export const EMAIL = 'nypu@simnet.is'
 export const ADDRESS = 'Nýpugarðar, 781 Höfn í Hornafirði'

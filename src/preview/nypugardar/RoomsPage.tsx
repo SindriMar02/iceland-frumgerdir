@@ -25,7 +25,7 @@ import BookingBar from "./BookingBar";
 import Footer from "./Footer";
 import PRICES from "./prices.json";
 import { leadFor, galleryFor } from "./photos";
-import { IMG, FEATURED_IDS, PHONE_HREF, CHECK_TIMES, HOUSE_RULES } from "./data";
+import { IMG, FEATURED_IDS, PHONE, PHONE_HREF, CHECK_TIMES, HOUSE_RULES } from "./data";
 import { GODO_ROOM_NAMES, GODO_ROOM_NAMES_IS, ROOM_SLEEPS } from "./godo";
 import { STANDALONE, homePath } from "./paths";
 import {
@@ -80,13 +80,13 @@ export default function RoomsPage() {
             <span className="font-erode text-xl tracking-tight">Nýpugarðar</span>
           </Link>
           <div className="flex items-center gap-6">
-            <LangToggle lang={lang} setLang={setLang} t={t} className="-my-3 py-3" />
+            <LangToggle lang={lang} setLang={setLang} t={t} />
             <a
               href={PHONE_HREF}
               className={`-my-2 hidden items-center gap-2 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/70 transition-colors duration-200 hover:text-[#F4EEE2] sm:inline-flex ${FOCUS}`}
             >
               <Phone className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
-              893 1826
+              {PHONE}
             </a>
           </div>
         </div>
@@ -164,35 +164,69 @@ export default function RoomsPage() {
                     key={k}
                     id={`room-${k}`}
                     className={`grid scroll-mt-14 items-center gap-8 border-b py-12 md:gap-14 md:py-16 ${
-                      flip ? 'md:grid-cols-[0.85fr_1.15fr]' : 'md:grid-cols-[1.15fr_0.85fr]'
+                      flip ? 'md:grid-cols-[0.7fr_1.3fr]' : 'md:grid-cols-[1.3fr_0.7fr]'
                     }`}
                     style={{ borderColor: HAIR }}
                   >
+                    {/* The photographs keep their own shape. Almost every room
+                      * photo is a portrait phone shot; cropped into a 4:3 tile it
+                      * kept the ceiling and lost the bed. Portrait rooms get a
+                      * 3:4 lead two columns wide with two photos stacked beside
+                      * it (a 2:1 column split makes those two land at 3:4 too,
+                      * so nothing is cut). Landscape rooms keep the 4:3 lead
+                      * over a pair. */}
                     <div className={flip ? 'md:order-2' : ''}>
-                      {lead ? (
-                        <ClipImg
-                          photo={lead}
-                          sizes="(min-width: 768px) 52vw, 92vw"
-                          alt={photoAlt(lead, t, lang)}
-                          aspect="aspect-[4/3]"
-                          zoom
-                        />
-                      ) : null}
-                      {rest.length ? (
-                        <div className="mt-3 grid grid-cols-2 gap-3 md:mt-4 md:gap-4">
+                      {lead && lead.portrait ? (
+                        <div className={`grid gap-3 md:gap-4 ${rest.length === 1 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                          <ClipImg
+                            photo={lead}
+                            sizes={rest.length === 1 ? "(min-width: 768px) 32vw, 46vw" : "(min-width: 768px) 42vw, 62vw"}
+                            alt={photoAlt(lead, t, lang)}
+                            aspect="aspect-[3/4]"
+                            className={rest.length >= 2 ? 'col-span-2 row-span-2' : rest.length === 1 ? '' : 'col-span-2'}
+                            zoom
+                          />
                           {rest.map((ph, i) => (
                             <ClipImg
                               key={ph.id}
                               photo={ph}
-                              sizes="(min-width: 768px) 26vw, 46vw"
+                              sizes={rest.length === 1 ? "(min-width: 768px) 32vw, 46vw" : "(min-width: 768px) 21vw, 31vw"}
                               alt={photoAlt(ph, t, lang)}
-                              aspect="aspect-[4/3]"
+                              aspect={rest.length === 1 ? 'aspect-[3/4]' : 'h-full'}
+                              className={rest.length === 1 ? '' : 'h-full'}
                               delay={90 + i * 80}
                               zoom
                             />
                           ))}
                         </div>
-                      ) : null}
+                      ) : (
+                        <>
+                          {lead ? (
+                            <ClipImg
+                              photo={lead}
+                              sizes="(min-width: 768px) 60vw, 92vw"
+                              alt={photoAlt(lead, t, lang)}
+                              aspect={lead.portrait ? 'aspect-[3/4]' : 'aspect-[4/3]'}
+                              zoom
+                            />
+                          ) : null}
+                          {rest.length ? (
+                            <div className="mt-3 grid grid-cols-2 gap-3 md:mt-4 md:gap-4">
+                              {rest.map((ph, i) => (
+                                <ClipImg
+                                  key={ph.id}
+                                  photo={ph}
+                                  sizes="(min-width: 768px) 30vw, 46vw"
+                                  alt={photoAlt(ph, t, lang)}
+                                  aspect={ph.portrait ? 'aspect-[3/4]' : 'aspect-[4/3]'}
+                                  delay={90 + i * 80}
+                                  zoom
+                                />
+                              ))}
+                            </div>
+                          ) : null}
+                        </>
+                      )}
                     </div>
 
                     <div className={flip ? 'md:order-1' : ''}>

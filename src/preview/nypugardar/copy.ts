@@ -32,6 +32,7 @@ export type Lang = 'is' | 'en'
 const en = {
   langName: 'EN',
   otherLangName: 'Íslenska',
+  langLabel: 'Language',
   switchTo: 'Skipta yfir á íslensku',
 
   nav: {
@@ -93,7 +94,7 @@ const en = {
 
   manifesto: {
     kicker: 'Quiet evenings on the farm',
-    text: 'We are four kilometres off the Ring Road, on a low hill above Mýrar. There are eleven rooms and two cottages here, with the mountains and outlet glaciers of Vatnajökull across the view and quiet around the farm when the day settles.',
+    text: 'Nýpugarðar is just four kilometres from the Ring Road, set on a low hill above Mýrar with open views towards the mountains and the outlet glaciers of Vatnajökull. With eleven rooms, two cottages and the countryside all around, evenings here feel calm, spacious and far removed from the road.',
   },
 
   facts: {
@@ -104,7 +105,7 @@ const en = {
 
   band: {
     heading: 'Glaciers beyond the windows',
-    body: 'From the guesthouse we look across Mýrar to the mountains and the outlet glaciers of Vatnajökull. On a clear day the view fills the dining room windows, and from September to April dark evenings can bring the northern lights above the farm.',
+    body: 'One of the first things you notice at Nýpugarðar is how much of the landscape comes inside with you. From the dining room, the view opens across Mýrar towards the mountains and the outlet glaciers of Vatnajökull, changing with the light throughout the day.\n\nIn clear weather, the glaciers sit bright on the horizon while you eat. From September to April, the same windows look out onto dark evening skies, with a chance of seeing the northern lights above the farm.',
     alt: 'Snow-covered peaks beyond the Mýrar lowlands, with the grass lit by a low sun',
     auroraN: 'Sept to April',
     aurora: 'northern lights season',
@@ -168,10 +169,10 @@ const en = {
   },
 
   dinner: {
-    heading: 'Dinner with the glacier in view',
+    heading: 'Dinner with a view',
     intro:
-      'In the evening we serve dinner from the menu in our dining room, with the windows facing the glacier. You do not need to reserve a table in advance. Just let us know when you arrive that you would like to eat with us.',
-    body: 'After dinner the farm settles into the evening, with the countryside quiet outside the windows.',
+      'In the evening, dinner is served in the dining room with the glacier views still in front of you. Choose from the menu, settle in at the table and enjoy the kind of meal that feels especially good after a day on the road.\n\nThere is no need to book dinner in advance. Just let us know when you arrive that you would like to join us.',
+    body: 'Afterwards, the pace slows naturally. The farm grows quiet, the light fades across the landscape and the rest of the evening is yours.',
     diningAlt:
       'The dining room at Nýpugarðar, with tables set beside full-height windows facing the glacier',
     diningCaption: 'The dining room',
@@ -221,8 +222,8 @@ const en = {
   },
 
   closing: {
-    heading: 'Stay for the night, stay for dinner',
-    body: 'Glaciers in the window, dinner at the farm, breakfast before the road and a quiet night surrounded by the sounds of nature.',
+    heading: 'Stay a little longer',
+    body: 'Some places are just stops along the way. Nýpugarðar is one you remember.',
     duskAlt:
       'The sun setting over the open fields at Nýpugarðar, with the mountains dark on the horizon',
   },
@@ -389,6 +390,7 @@ const en = {
 const is: typeof en = {
   langName: 'ÍS',
   otherLangName: 'English',
+  langLabel: 'Tungumál',
   switchTo: 'Switch to English',
 
   nav: {
@@ -447,7 +449,7 @@ const is: typeof en = {
 
   manifesto: {
     kicker: 'Kyrrlát kvöld á bænum',
-    text: 'Við erum fjóra kílómetra frá hringveginum, á lágum hól upp af Mýrum. Hér eru ellefu herbergi og tvö sumarhús, með fjöllin og skriðjökla Vatnajökuls fyrir augunum og kyrrðina allt í kring þegar líður á kvöldið.',
+    text: 'Nýpugarðar eru aðeins fjóra kílómetra frá hringveginum, á lágum hól upp af Mýrum, þaðan sem opið útsýni er til fjallanna og skriðjökla Vatnajökuls. Hér eru ellefu herbergi og tvö sumarhús, sveitin allt um kring og kvöldin kyrrlát og friðsæl, fjarri umferðinni.',
   },
 
   facts: {
@@ -458,7 +460,7 @@ const is: typeof en = {
 
   band: {
     heading: 'Jöklarnir handan við gluggana',
-    body: 'Frá gistihúsinu horfum við yfir Mýrarnar að fjöllunum og skriðjöklum Vatnajökuls. Á björtum degi fyllir útsýnið gluggana í matsalnum og frá september fram í apríl geta norðurljósin birst yfir bænum þegar kvöldin eru dimm.',
+    body: 'Eitt af því fyrsta sem gestir taka eftir á Nýpugörðum er hvernig landslagið fylgir þeim inn. Úr matsalnum opnast útsýnið yfir Mýrarnar að fjöllunum og skriðjöklum Vatnajökuls og tekur breytingum með birtunni yfir daginn.\n\nÍ björtu veðri skína jöklarnir við sjóndeildarhringinn á meðan þú borðar. Frá september fram í apríl dimmir fyrir utan sömu glugga á kvöldin og með smá heppni sjást norðurljósin yfir bænum.',
     alt: 'Snævi þaktir tindar handan Mýranna, með grasið upplýst af lágri sól',
     auroraN: 'September til apríl',
     aurora: 'norðurljósatíminn',
@@ -479,7 +481,7 @@ const is: typeof en = {
     places: {
       hofn: { name: 'Höfn', note: 'Næsti bær, með sundlaug, veitingastöðum og þjónustu' },
       thorbergssetur: { name: 'Þórbergssetur', note: 'Safn helgað Þórbergi Þórðarsyni rithöfundi, á Hala í Suðursveit' },
-      jokulsarlon: { name: 'Jökulsárlón', note: 'Jökullónið þar sem ísjakar brotna frá Breiðamerkurjökli' },
+      jokulsarlon: { name: 'Jökulsárlón', note: 'Jökullónið þar sem ísjakar brotna úr Breiðamerkurjökli' },
       diamondBeach: { name: 'Breiðamerkurfjara', note: 'Svarta fjaran þar sem ís úr lóninu rekur á land, rétt hinum megin við þjóðveg 1' },
       fjallsarlon: { name: 'Fjallsárlón', note: 'Minna jökullón undir Fjallsjökli' },
       stokksnes: { name: 'Stokksnes og Vestrahorn', note: 'Svartur sandur, opin strönd og Vestrahorn yfir nesinu austan Hafnar' },
@@ -520,10 +522,10 @@ const is: typeof en = {
   },
 
   dinner: {
-    heading: 'Kvöldmatur með jökulinn fyrir augunum',
+    heading: 'Kvöldmatur með útsýni',
     intro:
-      'Á kvöldin bjóðum við upp á mat af matseðli í matsalnum, þar sem gluggarnir snúa að jöklinum. Það þarf ekki að bóka borð fyrirfram. Láttu okkur bara vita við komu að þú viljir borða hjá okkur.',
-    body: 'Eftir kvöldmatinn færist ró yfir bæinn og kyrrðin tekur við fyrir utan gluggana.',
+      'Á kvöldin er borinn fram matur í matsalnum, með jöklana enn fyrir augunum. Veldu rétt af matseðlinum, komdu þér vel fyrir við borðið og njóttu máltíðar sem kemur sér sérstaklega vel eftir dag á ferðinni.\n\nÞað þarf ekki að bóka kvöldmat fyrirfram. Láttu okkur bara vita við komu að þú viljir borða hjá okkur.',
+    body: 'Eftir matinn hægist á öllu. Kyrrð færist yfir bæinn, birtan dofnar yfir landinu og það sem eftir er kvöldsins er þitt.',
     diningAlt:
       'Matsalurinn á Nýpugörðum, með borðum við gólfsíða glugga sem snúa að jöklinum',
     diningCaption: 'Matsalurinn',
@@ -532,13 +534,13 @@ const is: typeof en = {
     winterCaption: 'Húsið að vetri',
     breakfastHeading: 'Morgunmatur með sama útsýni',
     breakfastBody:
-      'Morgunverður er borinn fram sem hlaðborð í sama matsal. Gestir gefa honum háa einkunn og við getum boðið upp á grænmetisfæði, vegan og glútenlaust.',
+      'Morgunverður er borinn fram sem hlaðborð í sama matsal. Gestir gefa honum háa einkunn og við getum boðið upp á grænmetis-, vegan- og glútenlaust fæði.',
     breakfastAlt:
       'Morgunverðarhlaðborðið á Nýpugörðum, með brauði, áleggi, sultum og kaffi fyrir gesti',
     breakfastCaption: 'Morgunverðarborðið',
     served: 'Borið fram',
     weCanCover: 'Við ráðum við',
-    toGoLead: 'Leggurðu af stað að Jökulsárlóni áður en morgunmaturinn hefst?',
+    toGoLead: 'Leggurðu af stað að Jökulsárlóni áður en morgunmatur er borinn fram?',
     toGoTail: 'Láttu okkur vita kvöldið áður og við getum útbúið morgunmat með í nesti.',
   },
 
@@ -568,20 +570,20 @@ const is: typeof en = {
     address: 'Heimilisfangið',
     onTheProperty: 'Á staðnum',
     bookDirect:
-      'Bókaðu hér og bókunin kemur beint til okkar á bænum, með verð og laus herbergi í rauntíma í bókunarkerfinu okkar. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland ef þú kýst frekar að bóka þar. Ef eitthvað annað vantar er yfirleitt fljótlegast að hringja í okkur.',
+      'Bókaðu hér og bókunin kemur beint til okkar á bænum. Verð og laus herbergi sjást í rauntíma í bókunarkerfinu okkar. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland ef þú kýst frekar að bóka þar. Ef eitthvað annað vantar er yfirleitt fljótlegast að hringja í okkur.',
     mobile: 'Farsími',
   },
 
   closing: {
-    heading: 'Gistu hjá okkur og vertu í kvöldmat',
-    body: 'Jöklar í glugganum, kvöldmatur á bænum, morgunverður áður en haldið er af stað og kyrrlát nótt með náttúruna allt í kring.',
+    heading: 'Staldraðu aðeins lengur við',
+    body: 'Sumir staðir eru aðeins áningarstaðir á leiðinni. Nýpugarðar eru staður sem situr eftir í minningunni.',
     duskAlt:
       'Sólin sest yfir opnum túnum á Nýpugörðum, með fjöllin dökk við sjóndeildarhringinn',
   },
 
   footer: {
     tagline: 'Kyrrlátt, fjölskyldurekið gistiheimili á Mýrum, milli Hafnar og Jökulsárlóns.',
-    visit: 'Heimsókn',
+    visit: 'Staðsetning',
     directions: 'Leiðarlýsing',
     contact: 'Hafðu samband',
     pages: 'Á vefnum',
@@ -649,7 +651,7 @@ const is: typeof en = {
       },
       {
         q: 'Hvað er í morgunmat?',
-        a: 'Við bjóðum upp á hlaðborð í matsalnum, með sömu jöklasýn. Grænmetisfæði, vegan og glútenlausir kostir eru í boði. Ef þú leggur af stað að Jökulsárlóni áður en morgunmaturinn hefst getum við útbúið morgunmat með í nesti.',
+        a: 'Við bjóðum upp á hlaðborð í matsalnum, með sömu jöklasýn. Grænmetis-, vegan- og glútenlausir kostir eru í boði. Ef þú leggur af stað að Jökulsárlóni áður en morgunmatur er borinn fram getum við útbúið morgunmat með í nesti.',
       },
       {
         q: 'Hvenær er innritun og útritun?',

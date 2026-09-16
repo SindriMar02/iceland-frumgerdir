@@ -59,7 +59,7 @@ const B = {
   /* ferdalag.is listing, read 2026-09-01 */
   lat: 64.261553,
   lon: -15.438971,
-  phoneDisplay: '893 1826',
+  phoneDisplay: '+354 893 1826',
   phone: '+354 893 1826',
   email: 'nypu@simnet.is',
   checkin: '16:00',
@@ -105,7 +105,7 @@ const FAQ_EN = [
 const FAQ_IS = [
   ['Hvað er langt að Jökulsárlóni?', 'Jökulsárlón er í um 50 km fjarlægð frá bænum, tæpan klukkutíma eftir þjóðvegi 1. Til Hafnar eru 20 km og Nýpugarðar eru 4 km frá hringveginum.'],
   ['Er hægt að fá kvöldmat á bænum?', 'Já. Á kvöldin bjóðum við upp á mat af matseðli í matsalnum sem snýr að jöklinum. Það þarf ekki að bóka fyrirfram. Láttu okkur bara vita við komu að þú viljir kvöldmat.'],
-  ['Hvað er í morgunmat?', 'Við bjóðum upp á hlaðborð í matsalnum, með sömu jöklasýn. Grænmetisfæði, vegan og glútenlausir kostir eru í boði. Ef þú leggur af stað að Jökulsárlóni áður en morgunmaturinn hefst getum við útbúið morgunmat með í nesti.'],
+  ['Hvað er í morgunmat?', 'Við bjóðum upp á hlaðborð í matsalnum, með sömu jöklasýn. Grænmetis-, vegan- og glútenlausir kostir eru í boði. Ef þú leggur af stað að Jökulsárlóni áður en morgunmatur er borinn fram getum við útbúið morgunmat með í nesti.'],
   ['Hvenær er innritun og útritun?', 'Innritun er frá 16:00 til 23:30 og útritun frá 07:30 til 11:00.'],
   ['Mega gæludýr koma og eru börn velkomin?', 'Gæludýr eru ekki leyfð og gistihúsið er reyklaust. Börn eru velkomin og gestir 7 ára og eldri greiða sem fullorðnir.'],
   ['Get ég bókað beint hjá bænum?', 'Já. Bein bókun kemur beint til okkar á bænum og bókunarkerfið okkar sýnir verð og laus herbergi í rauntíma. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland.'],

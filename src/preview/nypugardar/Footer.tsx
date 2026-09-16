@@ -72,7 +72,7 @@ export default function Footer({
           <h2 className={`mt-10 ${LABEL}`}>{t.footer.contact}</h2>
           <ul className="mt-4 space-y-2">
             <li>
-              <a href={PHONE_HREF} className={`${LINK} tabular-nums`}>+354 {PHONE}</a>
+              <a href={PHONE_HREF} className={`${LINK} tabular-nums`}>{PHONE}</a>
             </li>
             <li>
               <a href={`mailto:${EMAIL}`} className={LINK}>{EMAIL}</a>

@@ -705,10 +705,15 @@ export function Eyebrow({
   );
 }
 
-/* Language switch. A single button, not a two-option segmented control: with
- * exactly two languages the current one is already visible in the page around
- * it, so the button names the language you would GET, which is the thing the
- * visitor is deciding. aria-label spells it out for screen readers. */
+/* Language switch: a two-option toggle, EN and ÍS side by side, the current
+ * language filled. Both options stay visible so the switch reads as a switch
+ * at a glance, in either language. Colour and background change instantly on
+ * press (a 150ms colour fade, no movement): it is a control, not a moment.
+ *
+ * On the client's own domain the other language is another ADDRESS, so the
+ * inactive option is a real link: crawlers follow it to the Icelandic pages
+ * and it works before any script has run. In the catalogue the language is a
+ * remembered choice on one route, so the options are pressed-state buttons. */
 export function LangToggle({
   lang,
   setLang,
@@ -720,43 +725,45 @@ export function LangToggle({
   setLang: (l: 'is' | 'en') => void
   t: (typeof COPY)['en']
   className?: string
-  /** 'dark' = ink text, for the landing bar over the mist ground. */
+  /** 'dark' = ink on the mist ground, for the landing bar over the manifesto. */
   tone?: 'light' | 'dark'
 }) {
-  const other: Lang = lang === 'is' ? 'en' : 'is'
   const { pathname, hash } = useLocation()
-  const ink =
-    tone === 'dark'
-      ? 'text-[#15130F]/70 hover:text-[#15130F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15130F]'
-      : `text-[#F4EEE2]/70 hover:text-[#F4EEE2] ${FOCUS}`
-  const cls = `-my-2 inline-block py-2 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors duration-200 ${ink} ${className}`
-  /* On the client's own domain the other language is another ADDRESS, so this
-     is a real link: crawlers can follow it to the Icelandic pages, and it
-     works before any script has run. In the catalogue the language is a
-     remembered toggle on one route, so it stays a button. */
-  if (STANDALONE) {
+  const dark = tone === 'dark'
+  const ring = dark
+    ? 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15130F]'
+    : FOCUS
+  const frame = dark ? 'border-[#15130F]/25' : 'border-[#F4EEE2]/25'
+  const on = dark ? 'bg-[#15130F] text-[#E9EAE5]' : 'bg-[#F4EEE2] text-[#15130F]'
+  const off = dark
+    ? 'text-[#15130F]/65 hover:text-[#15130F]'
+    : 'text-[#F4EEE2]/65 hover:text-[#F4EEE2]'
+  const option = (l: Lang, label: string) => {
+    const active = l === lang
+    const cls = `grid h-7 min-w-[2.25rem] touch-manipulation place-items-center px-2 font-mono text-[11px] uppercase leading-none tracking-[0.14em] transition-colors duration-150 ease-out ${active ? on : off} ${ring}`
+    const name = l === 'is' ? 'Íslenska' : 'English'
+    if (STANDALONE) {
+      return active ? (
+        <span key={l} lang={l} aria-current="true" aria-label={name} className={cls}>{label}</span>
+      ) : (
+        <Link key={l} to={counterpart(pathname, hash, l)} hrefLang={l} lang={l} aria-label={name} className={cls}>{label}</Link>
+      )
+    }
     return (
-      <Link
-        to={counterpart(pathname, hash, other)}
-        hrefLang={other}
-        lang={other}
-        aria-label={t.switchTo}
-        className={cls}
-      >
-        {t.otherLangName}
-      </Link>
+      <button key={l} type="button" lang={l} aria-label={name} aria-pressed={active} onClick={() => setLang(l)} className={cls}>
+        {label}
+      </button>
     )
   }
+  /* The visible box is 28px; the -my/py pair gives the row a 44px tap band
+     without pushing the bar taller. */
   return (
-    <button
-      type="button"
-      onClick={() => setLang(other)}
-      aria-label={t.switchTo}
-      lang={other}
-      className={cls}
-    >
-      {t.otherLangName}
-    </button>
+    <div role="group" aria-label={t.langLabel} className={`-my-2 inline-flex py-2 ${className}`}>
+      <span className={`inline-flex border p-px ${frame}`}>
+        {option('en', 'EN')}
+        {option('is', 'ÍS')}
+      </span>
+    </div>
   )
 }
 
@@ -806,21 +813,21 @@ export function RoomBookLink({
     <a
       href={href}
       aria-label={`${t.cta.bookRoom} ${name}`}
-      /* py-3 on a phone, not for the look but for the thumb: the label itself
-       * is only about 22px tall, which is half a tap target. The negative
-       * margin keeps the row height where the design put it. */
-      className={`group -my-2 inline-flex shrink-0 items-center gap-1.5 py-3 font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#F4EEE2]/60 transition-colors duration-200 hover:text-[#F4EEE2] md:my-0 md:py-1 ${FOCUS}`}
+      /* A quiet outline that commits on hover: the ember fills in from the
+       * left (transform only, 260ms strong ease-out) and the label turns to
+       * ink, so seven of these in a column read as buttons without seven
+       * solid orange blocks shouting over the prices. Hover is gated to real
+       * pointers; on touch the press scale is the feedback. 44px tall on a
+       * phone for the thumb, 40px from md. */
+      className={`group relative isolate inline-flex h-11 shrink-0 touch-manipulation items-center gap-2 overflow-hidden border border-[#D97D3D]/70 px-4 font-familjen text-[14px] font-medium tracking-[0.01em] text-[#F4EEE2] transition-[color,border-color,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] md:h-10 [@media(hover:hover)]:hover:border-[#D97D3D] [@media(hover:hover)]:hover:text-[#15130F] focus-visible:border-[#D97D3D] focus-visible:text-[#15130F] ${FOCUS}`}
     >
-      <span className="relative py-1">
-        {t.cta.bookRoom}
-        <span
-          aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 transition-transform duration-200 ease-out group-hover:scale-x-100"
-          style={{ background: ACCENT }}
-        />
-      </span>
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 origin-left scale-x-0 bg-[#D97D3D] transition-transform duration-[260ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-focus-visible:scale-x-100 motion-reduce:transition-none [@media(hover:hover)]:group-hover:scale-x-100"
+      />
+      {t.cta.bookRoom}
       <ArrowUpRight
-        className="h-3.5 w-3.5 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-px"
+        className="h-4 w-4 text-[#D97D3D] transition-[transform,color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-focus-visible:text-[#15130F] motion-reduce:transition-none [@media(hover:hover)]:group-hover:-translate-y-px [@media(hover:hover)]:group-hover:translate-x-0.5 [@media(hover:hover)]:group-hover:text-[#15130F]"
         strokeWidth={1.5}
         aria-hidden="true"
       />
@@ -1728,7 +1735,7 @@ export default function Page() {
           </ul>
         </nav>
         <div className="px-6 pb-[calc(1.75rem+env(safe-area-inset-bottom))] pt-4">
-          <LangToggle lang={lang} setLang={setLang} t={t} className="-my-3 mb-2 block py-3 text-[13px]" />
+          <LangToggle lang={lang} setLang={setLang} t={t} className="mb-4" />
           <BookLink lang={lang} stay={stay} className="w-full justify-between py-3 text-base" onClick={() => setMenuOpen(false)}>
             {t.cta.check}
           </BookLink>
@@ -1794,7 +1801,9 @@ export default function Page() {
             <div className="mx-auto max-w-6xl px-5 pb-16 md:px-8 md:pb-24">
               <MaskHeading text={t.band.heading} className={`max-w-3xl ${H2}`} />
               <Reveal delay={100}>
-                <p className="mt-6 max-w-[58ch] text-lg leading-relaxed text-[#F4EEE2]/85">{t.band.body}</p>
+                {t.band.body.split("\n\n").map((para, i) => (
+                <p key={i} className={`${i === 0 ? "mt-6" : "mt-4"} max-w-[58ch] text-lg leading-relaxed text-[#F4EEE2]/85`}>{para}</p>
+              ))}
               </Reveal>
               <Reveal delay={180}>
                 <ul className="mt-12 grid gap-6 border-t border-[#F4EEE2]/20 pt-8 sm:grid-cols-3">
@@ -1862,7 +1871,9 @@ export default function Page() {
               />
               <div className="lg:col-span-4 lg:pl-6">
                 <Reveal>
-                  <p className="text-lg leading-relaxed" style={{ color: BODY }}>{t.dinner.intro}</p>
+                  {t.dinner.intro.split("\n\n").map((para, i) => (
+                  <p key={i} className={`${i === 0 ? "" : "mt-5 "}text-lg leading-relaxed`} style={{ color: BODY }}>{para}</p>
+                ))}
                 </Reveal>
                 <Reveal delay={90}>
                   <p className="mt-5 leading-relaxed" style={{ color: BODY }}>{t.dinner.body}</p>
