@@ -56,8 +56,8 @@ const en = {
     eyebrow: 'Kvöldverðurinn á Mýrum',
     /** Second line of the h1: what the place is and where, in the words a
      *  traveller types into a search box. */
-    tagline: 'Sheep farm guesthouse between Höfn and Jökulsárlón',
-    sub: 'Glaciers in the window, lamb on the table, a bed for the night.',
+    tagline: 'A quiet guesthouse between Höfn and Jökulsárlón',
+    sub: 'Glaciers in the window, only the sounds of nature outside, and a bed for the night.',
   },
 
   booking: {
@@ -100,13 +100,13 @@ const en = {
 
   place: {
     heading: 'Four kilometres off the Ring Road, then quiet',
-    body: 'The farm sits a short drive off Route 1, a little east of the river Hólmsá. Close enough for a morning at Jökulsárlón, far enough that the evenings stay quiet. Hólmi Zoo is 5 km away, and Þórbergssetur museum and the Hornafjörður swimming pool are both within half an hour.',
+    body: 'The farm sits a short drive off Route 1, a little east of the river Hólmsá. Close enough for a morning at Jökulsárlón, far enough that the evenings stay quiet, with nothing to hear but nature. Höfn is only 20 km away and has plenty to do, the swimming pool among it, and Þórbergssetur museum is about 30 km from the farm.',
   },
 
   rooms: {
     eyebrow: 'Your room',
     heading: 'Thirteen places to sleep, one big view',
-    body: 'Nine rooms with a bathroom of their own, two that share, and two cottages beside the house. Plain, comfortable, and that view from the pillow.',
+    body: 'Eleven rooms in the house, two of them with a shared bathroom, and two cottages beside it, thirteen in all. Plain, comfortable, quiet, and that view from the pillow.',
     seeAll: 'See every room and photo',
     seeAllNote: 'Seven room types and the two cottages, each with its own photographs and its own price, on a page of their own.',
     /** The horizontal strip of room types under the counts. */
@@ -141,10 +141,10 @@ const en = {
 
   dinner: {
     eyebrow: 'Dinner is served',
-    heading: 'Lamb for dinner, the\u00a0glacier for company',
+    heading: 'Dinner from the menu, the\u00a0glacier for company',
     intro:
-      'This is what guests remember. Booking.com describes Nýpugarðar simply: a sheep farm with simple, fresh rooms, a home-cooked breakfast and a dinner buffet with lamb. Traditional Icelandic cooking with local ingredients, eaten in a dining room whose windows face the ice.',
-    body: 'Dinner is served here on the farm, in the dining room with the windows facing the glacier. There is nothing to book ahead and nothing to arrange online. Tell us when you arrive that you would like to eat, and a place is set for you.',
+      'This is what guests remember. In the evening you order from the menu and eat in a dining room whose windows face the ice. After dinner the farm goes quiet, and the only sounds outside are the sounds of nature.',
+    body: 'Dinner is served here on the farm, in the dining room with the windows facing the glacier. There is nothing to book ahead and nothing to arrange online. Tell us when you arrive that you would like to eat, and choose from the menu in the evening.',
     diningAlt:
       'The dining room at Nýpugarðar, tables set for about twenty guests in front of full-height windows facing the glacier',
     diningCaption: 'The dining room, windows facing the glacier',
@@ -203,7 +203,7 @@ const en = {
 
   info: {
     eyebrow: 'Finding us',
-    heading: 'Twenty five minutes from Höfn',
+    heading: 'Twenty kilometres from Höfn',
     callFarm: 'Call the farm',
     writeToUs: 'Write to us',
     address: 'The address',
@@ -215,7 +215,7 @@ const en = {
 
   closing: {
     heading: 'Stay the night, and stay for dinner',
-    body: 'A room with the horizon in the window, and a seat at the table when the lamb comes out of the kitchen.',
+    body: 'A room with the horizon in the window, a seat at the table for dinner, and a night with nothing to hear but nature.',
     heroAlt:
       'Low evening sun raking across the flats at Nýpugarðar, outlet glaciers and snow peaks along the whole horizon',
   },
@@ -244,11 +244,11 @@ const en = {
     items: [
       {
         q: 'How far is Jökulsárlón from the farm?',
-        a: 'Jökulsárlón is 47 km away, a little under an hour along Route 1. Höfn is a 25 minute drive, and the farm sits 4 km off the Ring Road.',
+        a: 'Jökulsárlón is 47 km away, a little under an hour along Route 1. Höfn is 20 km away, and the farm sits 4 km off the Ring Road.',
       },
       {
         q: 'Can I have dinner at the farm?',
-        a: 'Yes, a buffet with lamb and traditional Icelandic cooking, served in the dining room facing the glacier. There is nothing to book ahead, just tell us when you arrive.',
+        a: 'Yes, there is a dinner menu in the evening, served in the dining room facing the glacier. There is nothing to book ahead, just tell us when you arrive.',
       },
       {
         q: 'What do you serve for breakfast?',
@@ -270,8 +270,8 @@ const en = {
   },
 
   units: {
-    privateBath: 'rooms with private bathroom',
-    sharedBath: 'rooms with shared bathroom',
+    privateBath: 'rooms in the house',
+    sharedBath: 'of them with a shared bathroom',
     cottages: 'cottages for 2 to 4 guests',
     guestsFull: 'guests when the house is full',
   },
@@ -327,7 +327,7 @@ const en = {
 
   distances: {
     offRoute1: 'off Route 1, the Ring Road',
-    driveToHofn: 'drive to Höfn',
+    driveToHofn: 'to Höfn',
     toGlacierLagoon: 'to Jökulsárlón glacier lagoon',
   },
 
@@ -366,8 +366,8 @@ const is: typeof en = {
 
   hero: {
     eyebrow: 'Kvöldverðurinn á Mýrum',
-    tagline: 'Gistihús á sauðfjárbúi milli Hafnar og Jökulsárlóns',
-    sub: 'Jöklar í glugganum, lamb á borðinu og rúm fyrir nóttina.',
+    tagline: 'Kyrrlátt gistihús milli Hafnar og Jökulsárlóns',
+    sub: 'Jöklar í glugganum, aðeins náttúruhljóðin úti og rúm fyrir nóttina.',
   },
 
   booking: {
@@ -410,13 +410,13 @@ const is: typeof en = {
 
   place: {
     heading: 'Fjórir kílómetrar frá hringveginum, svo kyrrð',
-    body: 'Bærinn stendur stutt frá þjóðvegi 1, skammt austan við Hólmsá. Nógu nálægt til að eyða morgni við Jökulsárlón, nógu langt frá til að kvöldin haldist kyrrlát. Húsdýragarðurinn á Hólmi er í 5 km fjarlægð, og Þórbergssetur og sundlaugin á Höfn eru bæði í innan við hálftíma akstri.',
+    body: 'Bærinn stendur stutt frá þjóðvegi 1, skammt austan við Hólmsá. Nógu nálægt til að eyða morgni við Jökulsárlón, nógu langt frá til að kvöldin haldist kyrrlát og ekkert heyrist nema náttúran. Á Höfn, aðeins 20 km í burtu, er ýmis afþreying, til dæmis sundlaug, og Þórbergssetur er um 30 km frá okkur.',
   },
 
   rooms: {
     eyebrow: 'Herbergið þitt',
     heading: 'Þrettán vistarverur, eitt stórt útsýni',
-    body: 'Níu herbergi með eigin baði, tvö með sameiginlegu og tvö sumarhús við hlið hússins. Einfalt, notalegt, og útsýnið beint úr rúminu.',
+    body: 'Ellefu herbergi, þar af tvö með sameiginlegu baði, og tvö sumarhús við hlið hússins, samtals þrettán. Einfalt, notalegt, kyrrlátt og útsýnið beint úr rúminu.',
     seeAll: 'Skoða öll herbergi og myndir',
     seeAllNote: 'Sjö herbergisgerðir og sumarhúsin tvö, hver með sínum myndum og sínu verði, á sérsíðu.',
     stripLabel: 'Herbergisgerðir',
@@ -449,10 +449,10 @@ const is: typeof en = {
 
   dinner: {
     eyebrow: 'Kvöldmaturinn',
-    heading: 'Lamb í kvöldmat og jökullinn til borðs',
+    heading: 'Kvöldmatur af matseðli og jökullinn til borðs',
     intro:
-      'Þetta er það sem gestir muna. Booking.com lýsir Nýpugörðum einfaldlega svona: sauðfjárbú með einföldum og hreinlegum herbergjum, heimalöguðum morgunmat og kvöldhlaðborði með lambakjöti. Hefðbundin íslensk matargerð úr hráefni úr héraðinu, borðuð í matsal þar sem gluggarnir snúa að jöklinum.',
-    body: 'Kvöldmaturinn er borinn fram hér á bænum, í matsalnum þar sem gluggarnir snúa að jöklinum. Það þarf ekkert að panta fyrirfram og ekkert að ganga frá á netinu. Láttu okkur vita þegar þú kemur að þú viljir borða, og þá er lagt á borð fyrir þig.',
+      'Þetta er það sem gestir muna. Á kvöldin er pantað af matseðli og borðað í matsal þar sem gluggarnir snúa að jöklinum. Eftir matinn verður allt kyrrlátt og ekkert heyrist úti nema náttúran.',
+    body: 'Kvöldmaturinn er borinn fram hér á bænum, í matsalnum þar sem gluggarnir snúa að jöklinum. Það þarf ekkert að panta fyrirfram og ekkert að ganga frá á netinu. Láttu okkur vita þegar þú kemur að þú viljir borða, og þú velur svo af matseðlinum um kvöldið.',
     diningAlt:
       'Matsalurinn á Nýpugörðum, borð lögð fyrir um tuttugu gesti fyrir framan gólfsíða glugga sem snúa að jöklinum',
     diningCaption: 'Matsalurinn, gluggarnir snúa að jöklinum',
@@ -511,7 +511,7 @@ const is: typeof en = {
 
   info: {
     eyebrow: 'Að rata til okkar',
-    heading: 'Tuttugu og fimm mínútur frá Höfn',
+    heading: 'Tuttugu kílómetrar frá Höfn',
     callFarm: 'Hringdu í bæinn',
     writeToUs: 'Sendu okkur línu',
     address: 'Heimilisfangið',
@@ -523,7 +523,7 @@ const is: typeof en = {
 
   closing: {
     heading: 'Gistu nóttina og vertu í kvöldmat',
-    body: 'Herbergi með sjóndeildarhringinn í glugganum, og sæti við borðið þegar lambið kemur úr eldhúsinu.',
+    body: 'Herbergi með sjóndeildarhringinn í glugganum, sæti við borðið í kvöldmat og nótt þar sem ekkert heyrist nema náttúran.',
     heroAlt:
       'Lágstæð kvöldsól strýkur yfir flatlendið á Nýpugörðum, skriðjöklar og snævi þaktir tindar við sjóndeildarhringinn',
   },
@@ -546,11 +546,11 @@ const is: typeof en = {
     items: [
       {
         q: 'Hvað er langt að Jökulsárlóni?',
-        a: 'Jökulsárlón er í 47 km fjarlægð, tæpan klukkutíma eftir þjóðvegi 1. Til Hafnar er 25 mínútna akstur og bærinn stendur 4 km frá hringveginum.',
+        a: 'Jökulsárlón er í 47 km fjarlægð, tæpan klukkutíma eftir þjóðvegi 1. Til Hafnar eru 20 km og bærinn stendur 4 km frá hringveginum.',
       },
       {
         q: 'Er hægt að fá kvöldmat á bænum?',
-        a: 'Já, hlaðborð með lambakjöti og hefðbundinni íslenskri matargerð, borið fram í matsalnum sem snýr að jöklinum. Það þarf ekkert að panta fyrirfram, láttu bara vita þegar þú kemur.',
+        a: 'Já, á kvöldin er matseðill og maturinn er borinn fram í matsalnum sem snýr að jöklinum. Það þarf ekkert að panta fyrirfram, láttu bara vita þegar þú kemur.',
       },
       {
         q: 'Hvað er í morgunmat?',
@@ -572,8 +572,8 @@ const is: typeof en = {
   },
 
   units: {
-    privateBath: 'herbergi með eigin baði',
-    sharedBath: 'herbergi með sameiginlegu baði',
+    privateBath: 'herbergi í húsinu',
+    sharedBath: 'þar af með sameiginlegu baði',
     cottages: 'sumarhús fyrir 2 til 4 gesti',
     guestsFull: 'gestir þegar húsið er fullt',
   },
@@ -629,7 +629,7 @@ const is: typeof en = {
 
   distances: {
     offRoute1: 'frá hringveginum',
-    driveToHofn: 'akstur til Hafnar',
+    driveToHofn: 'til Hafnar',
     toGlacierLagoon: 'að Jökulsárlóni',
   },
 

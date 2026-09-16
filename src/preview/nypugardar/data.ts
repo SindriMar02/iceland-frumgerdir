@@ -84,10 +84,11 @@ export const NAV = [
   { id: 'info', label: 'Find us' },
 ] as const
 
-/** ferdalag.is unit breakdown, 2026-07-18 */
+/** Bogga's own count, email 2026-09-16: 11 rooms (2 of them share a bathroom)
+ *  plus 2 cottages, 13 in all. */
 export const UNITS = [
-  { n: '9', key: 'privateBath', label: 'rooms with private bathroom' },
-  { n: '2', key: 'sharedBath', label: 'rooms with shared bathroom' },
+  { n: '11', key: 'privateBath', label: 'rooms in the house' },
+  { n: '2', key: 'sharedBath', label: 'of them with a shared bathroom' },
   { n: '2', key: 'cottages', label: 'cottages for 2 to 4 guests' },
   { n: '24', key: 'guestsFull', label: 'guests when the house is full' },
 ] as const
@@ -128,10 +129,10 @@ export const BREAKFAST = {
   toGo: 'Breakfast to go',
 } as const
 
-/** Booking.com location facts, verified live 2026-08-21 */
+/** Location facts. Höfn distance is Bogga's own figure, email 2026-09-16. */
 export const DISTANCES = [
   { n: '4 km', key: 'offRoute1', label: 'off Route 1, the Ring Road' },
-  { n: '25 min', key: 'driveToHofn', label: 'drive to Höfn' },
+  { n: '20 km', key: 'driveToHofn', label: 'to Höfn' },
   { n: '47 km', key: 'toGlacierLagoon', label: 'to Jökulsárlón glacier lagoon' },
 ] as const
 
