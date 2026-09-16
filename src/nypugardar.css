@@ -17,6 +17,8 @@
 @theme {
   --font-supreme: "Supreme", system-ui, sans-serif;
   --font-erode: "Erode", Georgia, serif;
+  --font-familjen: "Familjen Grotesk", system-ui, sans-serif;
+  --font-fragment: "Fragment Mono", ui-monospace, monospace;
 }
 
 /* Erode (weathered serif, display) over Supreme (warm neutral grotesk,
@@ -25,6 +27,15 @@
 @font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Medium.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
 @font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Semibold.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+/* 2026-09-16 landing redesign (DESIGN.md in preview/nypugardar): Erode Light
+   and Light Italic for the wordmark and kickers, Familjen Grotesk for body and
+   UI, Fragment Mono for data. Supreme stays for the rooms page until it follows. */
+@font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Light.woff2") format("woff2"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-LightItalic.woff2") format("woff2"); font-weight: 300; font-style: italic; font-display: swap; }
+@font-face { font-family: "Familjen Grotesk"; src: url("./assets/fonts/familjen-grotesk-v11-latin_latin-ext-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Familjen Grotesk"; src: url("./assets/fonts/familjen-grotesk-v11-latin_latin-ext-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Familjen Grotesk"; src: url("./assets/fonts/familjen-grotesk-v11-latin_latin-ext-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Fragment Mono"; src: url("./assets/fonts/FragmentMono-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Bold.woff2") format("woff2"); font-weight: 600 700; font-style: normal; font-display: swap; }
 

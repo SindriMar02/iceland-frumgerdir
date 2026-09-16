@@ -18,6 +18,15 @@
          tint source, and this static rule also kills the white flash before
          the bundle's CSS arrives. -->
     <style>html, body { background-color: #15130F; }</style>
+    <!-- The hero intro hold (preview/nypugardar/Hero.tsx). The prerendered
+         wordmark would otherwise paint at rest, then drop and rise again when
+         the bundle hydrates. This marks the document BEFORE first paint so the
+         stylesheet in the hero holds the letters down until React plays the
+         arrival. No script, no hold: crawlers and failed bundles see the
+         resting page. The 3.5 s failsafe releases it if hydration never
+         comes, and tells Hero.tsx not to replay it late. Reduced motion and
+         deep links (#hash) never hold. -->
+    <script>try{var d=document.documentElement;if(!matchMedia('(prefers-reduced-motion: reduce)').matches&&!location.hash){history.scrollRestoration='manual';d.dataset.nypIntro='held';setTimeout(function(){if(d.dataset.nypIntro==='held')d.dataset.nypIntro='released'},3500)}}catch(e){}</script>
     <link rel="icon" href="/nypugardar/brand/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="icon" href="/nypugardar/brand/favicon-48.png" type="image/png" sizes="48x48" />
     <link rel="apple-touch-icon" href="/nypugardar/brand/apple-touch-icon.png" />

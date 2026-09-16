@@ -369,6 +369,13 @@ html.lenis body {
 @font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Semibold.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
 @font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: "Supreme"; src: url("./assets/fonts/Supreme-Bold.woff2") format("woff2"); font-weight: 600 700; font-style: normal; font-display: swap; }
+/* Nypugardar landing redesign 2026-09-16: Erode Light + Light Italic,
+   Familjen Grotesk body (Fragment Mono is already declared above). */
+@font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-Light.woff2") format("woff2"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Erode"; src: url("./assets/fonts/Erode-LightItalic.woff2") format("woff2"); font-weight: 300; font-style: italic; font-display: swap; }
+@font-face { font-family: "Familjen Grotesk"; src: url("./assets/fonts/familjen-grotesk-v11-latin_latin-ext-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Familjen Grotesk"; src: url("./assets/fonts/familjen-grotesk-v11-latin_latin-ext-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Familjen Grotesk"; src: url("./assets/fonts/familjen-grotesk-v11-latin_latin-ext-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
 @font-face { font-family: "Server Mono"; src: url("./assets/fonts/ServerMono-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
 
 /* Naustið (Gluggar) — Gambarino display serif (Fontshare FFL, local; Icelandic ✓

@@ -48,7 +48,8 @@ const B = {
   name: 'Nýpugarðar',
   altNames: ['Nypugardar', 'Guesthouse Nýpugarðar', 'Gistiheimilið Nýpugörðum', 'Glacier View Guesthouse'],
   legalName: 'Nýpugarðar ehf.',
-  vatID: '510805-0380',
+  /* A kennitala is a registry id, not a VSK (VAT) number: taxID, not vatID. */
+  taxID: '510805-0380',
   street: 'Nýpugarðar',
   area: 'Mýrar',
   locality: 'Höfn í Hornafirði',
@@ -64,12 +65,11 @@ const B = {
   checkin: '16:00',
   checkout: '11:00',
   rooms: 13,
-  guests: 24,
   facebook: 'https://www.facebook.com/nypugardar/',
   booking: 'https://www.booking.com/hotel/is/gistiheimilid-nypugordum.html',
-  /* Booking.com headline figures, read live 2026-08-25 */
+  /* Booking.com headline figures, read live 2026-09-16 */
   rating: 8.8,
-  reviewCount: 2268,
+  reviewCount: 2289,
 }
 
 /* Godo room types: id, name, sleeps. Mirrored from godo.ts; guarded below. */
@@ -94,7 +94,7 @@ const highest = Math.max(...ROOMS.map((r) => fromPrice(r.key)).filter((n) => typ
  * The rooms page renders these; the drift guard asserts they are still
  * there before the build may publish them as FAQPage structured data. */
 const FAQ_EN = [
-  ['How far is Jökulsárlón from the farm?', 'Jökulsárlón is 47 km away, a little under an hour along Route 1. Höfn is 20 km away, and the farm sits 4 km off the Ring Road.'],
+  ['How far is Jökulsárlón from the farm?', 'Jökulsárlón is about 50 km away, a little under an hour along Route 1. Höfn is 20 km away, and the farm sits 4 km off the Ring Road.'],
   ['Can I have dinner at the farm?', 'Yes, there is a dinner menu in the evening, served in the dining room facing the glacier. There is nothing to book ahead, just tell us when you arrive.'],
   ['What do you serve for breakfast?', 'A buffet in the same room, with the same view, and the kitchen covers vegetarian, vegan and gluten-free. Breakfast to go if you are leaving for the glacier lagoon before the room opens.'],
   ['What time can I check in and out?', 'Check in from 16:00 to 23:30, and check out from 07:30 to 11:00.'],
@@ -103,7 +103,7 @@ const FAQ_EN = [
 ]
 
 const FAQ_IS = [
-  ['Hvað er langt að Jökulsárlóni?', 'Jökulsárlón er í 47 km fjarlægð, tæpan klukkutíma eftir þjóðvegi 1. Til Hafnar eru 20 km og bærinn stendur 4 km frá hringveginum.'],
+  ['Hvað er langt að Jökulsárlóni?', 'Jökulsárlón er í um 50 km fjarlægð, tæpan klukkutíma eftir þjóðvegi 1. Til Hafnar eru 20 km og bærinn stendur 4 km frá hringveginum.'],
   ['Er hægt að fá kvöldmat á bænum?', 'Já, á kvöldin er matseðill og maturinn er borinn fram í matsalnum sem snýr að jöklinum. Það þarf ekkert að panta fyrirfram, láttu bara vita þegar þú kemur.'],
   ['Hvað er í morgunmat?', 'Hlaðborð í sama sal, með sama útsýni, og eldhúsið ræður við grænmetisfæði, vegan og glútenlaust. Morgunmat má fá með í nesti ef þú leggur af stað að Jökulsárlóni áður en salurinn opnar.'],
   ['Hvenær er innritun og útritun?', 'Innritun er frá 16:00 til 23:30 og útritun frá 07:30 til 11:00.'],
@@ -159,7 +159,7 @@ const COPY = {
   en: {
     home: {
       title: 'Nýpugarðar | Farm guesthouse between Höfn and Jökulsárlón',
-      desc: `Quiet guesthouse on Mýrar in Hornafjörður, 47 km from Jökulsárlón glacier lagoon and 20 km from Höfn. Rooms and cottages with glacier views, breakfast and dinner from the menu. Rated ${B.rating} on Booking.com. Book direct.`,
+      desc: `Quiet guesthouse on Mýrar in Hornafjörður, about 50 km from Jökulsárlón glacier lagoon and 20 km from Höfn. Rooms and cottages with glacier views, breakfast and dinner from the menu. Rated ${B.rating} on Booking.com. Book direct.`,
     },
     rooms: {
       title: 'Rooms, cottages and prices | Nýpugarðar',
@@ -172,7 +172,7 @@ const COPY = {
   is: {
     home: {
       title: 'Nýpugarðar | Sveitagisting milli Hafnar og Jökulsárlóns',
-      desc: `Kyrrlátt gistiheimili á Mýrum í Hornafirði, 47 km frá Jökulsárlóni og 20 km frá Höfn. Herbergi og sumarhús með jöklasýn, morgunverður og kvöldmatur af matseðli. Einkunn ${String(B.rating).replace('.', ',')} á Booking.com. Bókaðu beint.`,
+      desc: `Kyrrlátt gistiheimili á Mýrum í Hornafirði, um 50 km frá Jökulsárlóni og 20 km frá Höfn. Herbergi og sumarhús með jöklasýn, morgunverður og kvöldmatur af matseðli. Einkunn ${String(B.rating).replace('.', ',')} á Booking.com. Bókaðu beint.`,
     },
     rooms: {
       title: 'Herbergi, sumarhús og verð | Nýpugarðar',
@@ -210,12 +210,12 @@ function lodging(lang) {
     name: B.name,
     alternateName: B.altNames,
     legalName: B.legalName,
-    vatID: B.vatID,
+    taxID: B.taxID,
     url: urlFor(homeOf(lang)),
     inLanguage: lang === 'is' ? 'is' : 'en',
     description: en
-      ? 'Quiet, family-run guesthouse on Mýrar in Hornafjörður, between Höfn and Jökulsárlón glacier lagoon. Eleven rooms, two of them with shared bathroom, and two cottages, 24 guests when full. Home-cooked breakfast and dinner from the menu in a dining room facing the glacier. Open all year.'
-      : 'Kyrrlátt, fjölskyldurekið gistiheimili á Mýrum í Hornafirði, milli Hafnar og Jökulsárlóns. Ellefu herbergi, þar af tvö með sameiginlegu baði, og tvö sumarhús, 24 gestir þegar fullt er. Heimalagaður morgunmatur og kvöldmatur af matseðli í matsal sem snýr að jöklinum. Opið allt árið.',
+      ? 'Quiet, family-run guesthouse on Mýrar in Hornafjörður, between Höfn and Jökulsárlón glacier lagoon. Eleven rooms, two of them with shared bathroom, and two cottages. Home-cooked breakfast and dinner from the menu in a dining room facing the glacier.'
+      : 'Kyrrlátt, fjölskyldurekið gistiheimili á Mýrum í Hornafirði, milli Hafnar og Jökulsárlóns. Ellefu herbergi, þar af tvö með sameiginlegu baði, og tvö sumarhús. Heimalagaður morgunmatur og kvöldmatur af matseðli í matsal sem snýr að jöklinum.',
     image: [HERO, DINING, HOUSE],
     telephone: B.phone,
     email: B.email,
@@ -237,9 +237,8 @@ function lodging(lang) {
     currenciesAccepted: 'EUR',
     paymentAccepted: 'Credit card',
     priceRange: `€${lowest}–€${highest}`,
-    openingHoursSpecification: [
-      { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], opens: '00:00', closes: '23:59' },
-    ],
+    /* No openingHoursSpecification: "open every day, all year" is question 7
+     * for Bogga (Godo shows no rooms 22 to 31 December). */
     amenityFeature: FACILITIES.map((f) => ({ '@type': 'LocationFeatureSpecification', name: f, value: true })),
     servesCuisine: 'Icelandic',
     aggregateRating: {
@@ -387,11 +386,11 @@ function writeLlms() {
 
 ## Facts
 - Address: ${addr}, Iceland (${B.lat}, ${B.lon})
-- 4 km off Route 1 (the Ring Road). 20 km to Höfn. 47 km to Jökulsárlón glacier lagoon.
+- 4 km off Route 1 (the Ring Road). 20 km to Höfn. About 50 km to Jökulsárlón glacier lagoon.
 - Phone: ${B.phone}
 - Email: ${B.email}
-- Open all year. Check-in ${B.checkin} to 23:30, check-out 07:30 to ${B.checkout}.
-- ${B.rooms} places to sleep: 11 rooms (2 of them with shared bathroom) and 2 cottages for 2 to 4 guests. ${B.guests} guests when full.
+- Check-in ${B.checkin} to 23:30, check-out 07:30 to ${B.checkout}.
+- ${B.rooms} places to sleep: 11 rooms (2 of them with shared bathroom) and 2 cottages, one for three guests and one for four.
 - No pets. Non-smoking. Children welcome; guests aged 7 and over pay as adults.
 - Facilities: ${FACILITIES.join(', ')}.
 - Rated ${B.rating} out of 10 ("Fabulous") from over 2,200 guest reviews on Booking.com.
@@ -405,8 +404,8 @@ ${rooms}
 - Breakfast: buffet and continental in the same room, with vegetarian, vegan and gluten-free options. Breakfast to go for guests leaving before the room opens.
 
 ## The place
-- A quiet farm on a low hill above the lowlands of Mýrar, with only the sounds of nature around it, with views over Hornafjörður fjord and Hvannadalshnjúkur, Iceland's highest mountain. Wild reindeer come down onto the land in winter. Guests can watch the lambing in spring.
-- Nearby: Höfn (20 km, with a swimming pool and plenty to do), Þórbergssetur museum (about 30 km), Jökulsárlón (47 km).
+- A quiet farm on a low hill above the lowlands of Mýrar, with only the sounds of nature around it, looking out to the mountains and the outlet glaciers of Vatnajökull. From September to April it is a good place to watch for the northern lights.
+- Nearby: Höfn (20 km, with a swimming pool and plenty to do), Þórbergssetur museum (about 30 km), Jökulsárlón (about 50 km).
 
 ## Booking
 Book directly at ${urlFor(homeOf('en'))} (live dates and prices) or call ${B.phone}. Also listed on Booking.com, HeyIceland and Guide to Iceland.

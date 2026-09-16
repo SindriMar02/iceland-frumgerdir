@@ -104,11 +104,6 @@ export default function RoomsPage() {
               {t.rooms.body}
             </p>
           </Reveal>
-          <Reveal delay={160}>
-            <div className="mt-10">
-              <BookingBar t={t} lang={lang} stay={stay} onStay={setStay} today={today} />
-            </div>
-          </Reveal>
 
           {/* Room index: one chip per type, cheapest first, carrying its from-
             * price — the price scan the old table did well, without the OTA
@@ -421,10 +416,14 @@ export default function RoomsPage() {
           </div>
         </section>
 
-        {/* the way onward: book, or go back */}
-        <section className="border-t" style={{ borderColor: HAIR }}>
+        {/* the way onward: book, or go back. The booking bar sits here at the
+          * foot, never at the top of the page ([[booking-widget-at-the-bottom]]);
+          * each room band keeps its own Book link. */}
+        <section id="book" className="scroll-mt-16 border-t" style={{ borderColor: HAIR }}>
+          <div className="mx-auto max-w-6xl px-5 pt-14 md:px-8">
+            <BookingBar t={t} lang={lang} stay={stay} onStay={setStay} today={today} />
+          </div>
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-5 py-14 md:px-8">
-            <BookLink lang={lang} stay={stay}>{t.cta.check}</BookLink>
             <Link
               to={homePath(lang)}
               className={`-my-3 py-3 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/60 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS}`}

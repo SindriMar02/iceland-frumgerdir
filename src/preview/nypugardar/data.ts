@@ -1,9 +1,7 @@
 /**
- * Nýpugarðar — "Kvöldverðurinn á Mýrum"
- * One real evening at a working sheep farm on Mýrar in Hornafjörður:
- * arrive among the animals, watch the glacier catch the last light, then sit
- * down with everyone else to the lamb dinner buffet. The page itself darkens
- * from daylight to night as you scroll (the "evening arc" signature).
+ * Nýpugarðar, a quiet guesthouse on Mýrar in Hornafjörður.
+ * Landing redesign 2026-09-16 on Kleif v1 patterns: see DESIGN.md. Facts were
+ * re-checked the same day: _docs/NYPUGARDAR-FACT-CHECK-2026-09-16.md.
  *
  * Every fact below is sourced from the 2026-07-18 brief/dossier:
  * Booking.com property page (live), HeyIceland listing, ferdalag.is, Keldan.
@@ -25,33 +23,23 @@ import { photo } from './photos'
  */
 export const IMG = {
   /** Low sun raking across Mýrar, the outlet glaciers along the whole horizon.
-   *  Her largest file by some distance (5312×2988 as uploaded) and the one
-   *  frame that is the page's own premise: the glacier catching the last
-   *  light. */
+   *  Her largest file by some distance (5312×2988 as uploaded): the hero, with
+   *  the wordmark across its foot and the mist rising over it. */
   hero: photo('125645004'),
-  /** The same plain in the other direction, Vestrahorn under snow. */
+  /** The flats lit rust red under snow peaks: the glacier band. */
   glacier: photo('125645011'),
-  /** Snow ridge above the fields. */
-  ridge: photo('125644995'),
   /** The sun going down at the end of the scroll. */
   dusk: photo('125645022'),
-  /** Wild reindeer come down onto the land in winter. */
-  reindeer: photo('10523758'),
-  /** The guesthouse deck and the cottages under snow, glacier plain behind.
-   *  Runs beside the winter column in the seasons section. */
+  /** The guesthouse under snow, its deck and big windows facing white
+   *  mountains: the dining room's own windows, in the dinner section. */
   house: photo('258957593'),
-  /** The old turf-roofed outbuilding on green grass — the same farm in the
-   *  other half of the year, which is what the spring column needed. */
-  green: photo('10523864'),
-  /** The terrace, two benches, evening. */
-  deck: photo('510526816'),
   /** The dining room, windows the whole length of it. */
   dining: photo('305950064'),
   /** The breakfast buffet laid out. */
   breakfast: photo('259128011'),
-  /** The family cottage from outside. */
+  /** The family cottage from outside (rooms page). */
   cottage1: photo('510524232'),
-  /** The cottage for three. */
+  /** The cottage for three (rooms page). */
   cottage2: photo('510524306'),
 } as const
 
@@ -76,6 +64,8 @@ export const PHONE_HREF = 'tel:+3548931826'
 export const EMAIL = 'nypu@simnet.is'
 export const ADDRESS = 'Nýpugarðar, 781 Höfn í Hornafirði'
 
+/** Anchor ids are kept from the first build (links and muscle memory); #farm
+ *  now lands on the manifesto, the farm in words. */
 export const NAV = [
   { id: 'farm', label: 'The farm' },
   { id: 'rooms', label: 'Rooms' },
@@ -84,13 +74,13 @@ export const NAV = [
   { id: 'info', label: 'Find us' },
 ] as const
 
-/** Bogga's own count, email 2026-09-16: 11 rooms (2 of them share a bathroom)
- *  plus 2 cottages, 13 in all. */
-export const UNITS = [
-  { n: '11', key: 'privateBath', label: 'rooms in the house' },
-  { n: '2', key: 'sharedBath', label: 'of them with a shared bathroom' },
-  { n: '2', key: 'cottages', label: 'cottages for 2 to 4 guests' },
-  { n: '24', key: 'guestsFull', label: 'guests when the house is full' },
+/** The manifesto's three data rows. Rooms and cottages: Bogga's own count,
+ *  email 2026-09-16; sleeps from Godo's names and Booking's bed setup. Check-in
+ *  time: Booking.com and Guide to Iceland, re-read 2026-09-16. */
+export const FACTS = [
+  { n: '11', key: 'rooms' },
+  { n: '2', key: 'cottages' },
+  { n: '16:00', key: 'checkin' },
 ] as const
 
 /** Booking.com house rules, re-verified live 2026-08-21. The earlier
@@ -122,18 +112,20 @@ export const FACILITIES = [
  *  as one flat list, because these are three different kinds of fact: how it is
  *  served, which diets the kitchen covers, and the packed option for guests
  *  leaving before the room opens. That last one is a booking reason on a farm
- *  47 km from Jökulsárlón, so it gets its own line instead of a chip. */
+ *  about 50 km from Jökulsárlón, so it gets its own line instead of a chip. */
 export const BREAKFAST = {
   served: ['Buffet', 'Continental'],
   diets: ['Vegetarian', 'Vegan', 'Gluten-free'],
   toGo: 'Breakfast to go',
 } as const
 
-/** Location facts. Höfn distance is Bogga's own figure, email 2026-09-16. */
+/** Location facts. Höfn distance is Bogga's own figure, email 2026-09-16
+ *  (OSRM road route 21.8 km / 25 min). Jökulsárlón was Booking.com's 47 km;
+ *  the road route measured 2026-09-16 is 50.6 km / 49 min, so "about 50". */
 export const DISTANCES = [
   { n: '4 km', key: 'offRoute1', label: 'off Route 1, the Ring Road' },
   { n: '20 km', key: 'driveToHofn', label: 'to Höfn' },
-  { n: '47 km', key: 'toGlacierLagoon', label: 'to Jökulsárlón glacier lagoon' },
+  { n: '50 km', key: 'toGlacierLagoon', label: 'to Jökulsárlón glacier lagoon' },
 ] as const
 
 /** Booking.com live score, fetched 2026-07-18 */
@@ -144,13 +136,17 @@ export const SCORE = {
    *  (was 2,233 on 2026-07-18). The count drifts every week, so the page says
    *  "over 2,200" rather than a figure that goes stale between deploys. */
   count: 'over 2,200',
+  /** Re-read live 2026-09-16 (2,289 reviews), in Booking's own order. All
+   *  seven, including Facilities, the lowest: showing only the flattering six
+   *  would be a selective scorecard. Booking now labels "Host" as "Staff". */
   categories: [
-    { label: 'Host', n: '9.3' },
-    { label: 'Free WiFi', n: '9.2' },
+    { label: 'Staff', n: '9.3' },
+    { label: 'Facilities', n: '8.6' },
     { label: 'Cleanliness', n: '9.1' },
-    { label: 'Comfort', n: '9.1' },
-    { label: 'Location', n: '9.1' },
-    { label: 'Value for money', n: '8.9' },
+    { label: 'Comfort', n: '9.0' },
+    { label: 'Value for money', n: '8.8' },
+    { label: 'Location', n: '9.0' },
+    { label: 'Free WiFi', n: '9.3' },
   ],
 } as const
 

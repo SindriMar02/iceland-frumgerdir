@@ -17,11 +17,7 @@ import type {
 } from "react";
 import { Suspense, lazy } from "react";
 import type Lenis from "lenis";
-import {
-  useMotionValueEvent,
-  useReducedMotion,
-  useScroll,
-} from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import {
   ArrowUpRight,
   Armchair,
@@ -62,7 +58,6 @@ import { setThemeColor } from "../../lib/preview";
 import {
   ADDRESS,
   DINNER_QUOTE,
-  DISTANCES,
   EMAIL,
   FOOTNOTE,
   BREAKFAST,
@@ -75,7 +70,7 @@ import {
   FEATURED_IDS,
   QUOTES,
   SCORE,
-  UNITS,
+  FACTS,
 } from "./data";
 import {
   bookingHref,
@@ -159,6 +154,10 @@ import { useLang } from './useLang';
 import { COPY } from './copy';
 import type { Copy, Lang } from './copy';
 import BookingBar from "./BookingBar";
+import Hero from "./Hero";
+import RouteMap from "./RouteMap";
+import { InsetBand, MaskDevelop } from "./Scenes";
+import { loadMotion } from "./motion";
 
 /* The catalogue's chrome (the "send prototype" tools, the shared footer)
  * and the private company brief behind it are reachable ONLY through this
@@ -243,36 +242,7 @@ function useRevealPhase(
   return phase;
 }
 
-/* ── The evening arc: one scrollYProgress drives sky colour + eyebrow ink +
- * the section rule fills, all computed from the raw value in ONE callback. */
-type Stop = [number, [number, number, number]];
-const SKY_STOPS: Stop[] = [
-  [0, [220, 228, 230]], // pale cold daylight (#DCE4E6)
-  [0.55, [217, 125, 61]], // ember amber (#D97D3D)
-  [1, [21, 19, 15]], // night = ground (#15130F), so the arc resolves seamlessly
-];
-const INK_STOPS: Stop[] = [
-  [0, [185, 203, 214]], // glacier ice
-  [0.5, [217, 125, 61]], // ember
-  [1, [217, 125, 61]],
-];
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
-function atStops(stops: Stop[], v: number): string {
-  const t = clamp01(v);
-  let a = stops[0];
-  let b = stops[stops.length - 1];
-  for (let i = 0; i < stops.length - 1; i++) {
-    if (t >= stops[i][0] && t <= stops[i + 1][0]) {
-      a = stops[i];
-      b = stops[i + 1];
-      break;
-    }
-  }
-  const span = b[0] - a[0] || 1;
-  const k = (t - a[0]) / span;
-  const c = a[1].map((n, i) => Math.round(n + (b[1][i] - n) * k));
-  return `rgb(${c[0]},${c[1]},${c[2]})`;
-}
 
 /* Adopted via 21st.dev "Zoomable Image" (id 20027): the engine underneath is
  * react-medium-image-zoom, a medium.com-style click-to-zoom. Every selector it
@@ -744,15 +714,22 @@ export function LangToggle({
   setLang,
   t,
   className = '',
+  tone = 'light',
 }: {
   lang: 'is' | 'en'
   setLang: (l: 'is' | 'en') => void
   t: (typeof COPY)['en']
   className?: string
+  /** 'dark' = ink text, for the landing bar over the mist ground. */
+  tone?: 'light' | 'dark'
 }) {
   const other: Lang = lang === 'is' ? 'en' : 'is'
   const { pathname, hash } = useLocation()
-  const cls = `-my-2 inline-block py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/70 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS} ${className}`
+  const ink =
+    tone === 'dark'
+      ? 'text-[#15130F]/70 hover:text-[#15130F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15130F]'
+      : `text-[#F4EEE2]/70 hover:text-[#F4EEE2] ${FOCUS}`
+  const cls = `-my-2 inline-block py-2 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors duration-200 ${ink} ${className}`
   /* On the client's own domain the other language is another ADDRESS, so this
      is a real link: crawlers can follow it to the Icelandic pages, and it
      works before any script has run. In the catalogue the language is a
@@ -1414,104 +1391,37 @@ function RoomStrip({
   );
 }
 
-/* ── HeroFilm — her own photograph, moving.
+/* ── The landing page (redesign 2026-09-16, DESIGN.md) ─────────────────────
  *
- * The hero still (her largest frame: low sun across Mýrar, the outlet
- * glaciers along the whole horizon) was handed to an image-to-video model
- * and asked for nothing but what the evening itself does: clouds drift, the
- * light shifts on the ice, the grass moves, a slow push in. Ten seconds,
- * crossfaded tail-to-head into an 8.7 s loop whose seam measures the same as
- * any two adjacent frames. Nothing in it is invented; it is the photograph
- * with the weather running.
- *
- * It costs 470 KB and it is a LUXURY, so it is fetched only where it can be
- * seen and afforded: fine, wide screens, no reduced-motion preference, no
- * Save-Data. Phones never request it. The still underneath is the LCP
- * element on every visit and stays exactly where it was; the film fades over
- * it once the browser reports it is actually playing, so a stalled video is
- * simply the photograph. Rendered client-side only, so the prerendered
- * markup carries no <video> for a crawler to weigh. */
-function HeroFilm({ reduced, on }: { reduced: boolean; on: boolean }) {
-  const [wanted, setWanted] = useState(false);
-  const [playing, setPlaying] = useState(false);
-  useEffect(() => {
-    if (reduced) return;
-    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
-    if (nav.connection?.saveData) return;
-    const mq = window.matchMedia("(min-width: 1024px) and (pointer: fine)");
-    const decide = () => setWanted(mq.matches);
-    decide();
-    mq.addEventListener("change", decide);
-    return () => mq.removeEventListener("change", decide);
-  }, [reduced]);
-  if (!wanted) return null;
-  return (
-    <video
-      ref={(el) => {
-        /* The muted PROPERTY is what autoplay policy checks; React sets it,
-           but a belt-and-braces play() catches the browsers that still wait
-           for a gesture and lets the still stand in. */
-        if (!el) return;
-        el.muted = true;
-        el.play().catch(() => {});
-      }}
-      className="absolute inset-0 h-full w-full object-cover"
-      style={{
-        opacity: playing && on ? 1 : 0,
-        transition: `opacity 1.6s ${EASE}`,
-      }}
-      autoPlay
-      muted
-      loop
-      playsInline
-      preload="auto"
-      aria-hidden="true"
-      tabIndex={-1}
-      disablePictureInPicture
-      disableRemotePlayback
-      onPlaying={() => setPlaying(true)}
-    >
-      <source
-        src={`${import.meta.env.BASE_URL}nypugardar/film/hero-1600.mp4`}
-        type="video/mp4"
-      />
-    </video>
-  );
-}
+ * Hero photograph, then the mist (manifesto, the one light ground), then the
+ * glacier band whose scrim resolves to night, then night to the end. The bar
+ * reads which of those three grounds is under it and takes that ground as its
+ * own material; it never hides, never moves ([[mobile-chrome-standard]]). */
+const MIST = "#E9EAE5";
+const SILT = "#57554E";
+const FOCUS_INK =
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#15130F]";
+type NavGround = "clear" | "mist" | "night";
+
+const H2 =
+  "font-erode text-[clamp(2.25rem,5vw,4rem)] font-light leading-[1.08] tracking-[-0.01em]";
 
 export default function Page() {
   const [lang, setLang] = useLang();
   const t = COPY[lang];
   usePageCss();
-  /* One stay for the whole page: the hero picker writes it, the room list reads
-   * it, so "book this room" carries the nights the guest already chose. */
+  /* One stay for the whole page: the booking card writes it, the room strip
+   * and every other booking link read it, so a guest who picked nights is
+   * never asked for them again on Godo. */
   const { stay, setStay, today } = useStay();
   const reduced = useReducedMotion() ?? false;
   const rootRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLElement>(null);
-  /* The hero's picture (still and film together). Written to directly from
-     the scroll callback for the parallax: no React state per frame. */
-  const heroMediaRef = useRef<HTMLDivElement>(null);
-  /* The fixed sky band; its gradient colour is written directly per frame. */
-  const skyRef = useRef<HTMLDivElement>(null);
-  const rules = useRef(new Set<EyebrowRefs>());
-  /* The hero's entrance: static in the markup, hidden before first paint,
-     shown a beat later. See useIsoLayoutEffect for why not a mount flag. */
-  const [heroPhase, setHeroPhase] = useState<Phase>("static");
-  /* True once the hero has scrolled past under the bar. Drives BOTH the nav's
-   * material (transparent over its own photograph, ink glass over content — a
-   * colour swap, never a hide/reveal) and the mobile bottom CTA, which must
-   * not cover a hero that already carries the booking card and its own CTA. */
-  const [pastHero, setPastHero] = useState(false);
-  const pastHeroRef = useRef(false);
-  const { scrollYProgress } = useScroll();
 
-  /* ── Mobile menu — hamburger state, measured nav height (so the overlay's
-   * padding-top lines up under the real nav bar), body-scroll lock + Escape. */
   const [menuOpen, setMenuOpen] = useState(false);
   const navRowRef = useRef<HTMLDivElement>(null);
-  const [navHeight, setNavHeight] = useState(84);
+  const [navHeight, setNavHeight] = useState(72);
   const lenisRef = useRef<Lenis | null>(null);
+  const [ground, setGround] = useState<NavGround>("clear");
 
   useEffect(() => {
     const el = navRowRef.current;
@@ -1522,20 +1432,41 @@ export default function Page() {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
+  /* Which ground is under the bar. A thin observer band just below the bar's
+   * top edge; elements carrying data-nav report whether they cross it, and the
+   * last one in document order wins. Anything unmarked is night. Not a scroll
+   * listener, and it runs under reduced motion too: chrome state is not
+   * motion. */
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const els = Array.from(root.querySelectorAll<HTMLElement>("[data-nav]"));
+    const inBand = new Set<Element>();
+    const pick = () => {
+      let g: NavGround = "night";
+      for (const el of els) if (inBand.has(el)) g = el.dataset.nav as NavGround;
+      setGround(g);
+    };
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) inBand.add(e.target);
+          else inBand.delete(e.target);
+        }
+        pick();
+      },
+      { rootMargin: `-${Math.round(navHeight / 2)}px 0px -92% 0px`, threshold: 0 },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [navHeight]);
+
   useEffect(() => {
     if (!menuOpen) return;
-    /* Fixed-body scroll lock, not overflow:hidden — turning body into a
-     * scroll container kills every sticky descendant and lets the page leak
-     * into the iOS status-bar strip ([[mobile-chrome-standard]] trap 2). */
+    /* Fixed-body scroll lock, not overflow:hidden ([[mobile-chrome-standard]]). */
     const y = window.scrollY;
     const b = document.body.style;
-    const prev = {
-      position: b.position,
-      top: b.top,
-      left: b.left,
-      right: b.right,
-      width: b.width,
-    };
+    const prev = { position: b.position, top: b.top, left: b.left, right: b.right, width: b.width };
     b.position = "fixed";
     b.top = `-${y}px`;
     b.left = "0";
@@ -1546,43 +1477,24 @@ export default function Page() {
     };
     window.addEventListener("keydown", onKey);
     return () => {
-      b.position = prev.position;
-      b.top = prev.top;
-      b.left = prev.left;
-      b.right = prev.right;
-      b.width = prev.width;
+      Object.assign(b, prev);
       window.scrollTo(0, y);
-      /* With Lenis alive, restore through it too or the page snaps to top. */
       lenisRef.current?.scrollTo(y, { immediate: true });
       window.removeEventListener("keydown", onKey);
     };
   }, [menuOpen]);
 
-  const register = useCallback((refs: EyebrowRefs) => {
-    rules.current.add(refs);
-    return () => {
-      rules.current.delete(refs);
-    };
-  }, []);
-
-  /* Close the overlay first, then hand off to the browser's smooth scroll on
-   * the next frame — never both at once. */
+  /* Close the overlay first, then scroll on the next frame; through Lenis when
+   * it is alive, because .lenis cancels native smooth scrolling. */
   const handleNavLinkClick = useCallback(
     (e: MouseEvent<HTMLAnchorElement>, href: string) => {
       e.preventDefault();
       setMenuOpen(false);
-      /* One frame, so the mobile menu has released body overflow before we move. */
       requestAnimationFrame(() => {
         const target = document.querySelector<HTMLElement>(href);
         if (!target) return;
         const lenis = lenisRef.current;
         if (lenis) {
-          /* Negative offset clears the fixed nav so the section heading is not
-           * left sitting underneath it on arrival. */
-          /* 0.9 s, not 1.2: a nav click is a request, and the travel is the
-             answer. Long enough to read as movement across the page, short
-             enough that the heading is under the cursor before the eye asks
-             where it went. */
           lenis.scrollTo(target, { offset: -navHeight, duration: 0.9 });
         } else {
           window.scrollTo({
@@ -1590,79 +1502,28 @@ export default function Page() {
             behavior: reduced ? "auto" : "smooth",
           });
         }
-        /* Keep the address bar honest without letting the browser jump. */
         window.history.replaceState(null, "", href);
       });
     },
     [reduced, navHeight],
   );
 
-  /* The ONE signature: sky colour, eyebrow ink and every rule fill are derived
-   * from the raw progress value inside this single callback — no sibling
-   * useTransform .get() reads, no CSS transitions on scrubbed values. */
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    /* Chrome state is not motion: reduced-motion users scroll too, and the
-     * bar's material and the bottom CTA must still follow the hero for them. */
-    const hb = headerRef.current?.getBoundingClientRect().bottom ?? Infinity;
-    const past = hb <= navHeight;
-    if (past !== pastHeroRef.current) {
-      pastHeroRef.current = past;
-      setPastHero(past);
-    }
-    if (reduced) return;
-    const vh = window.innerHeight || 800;
-    /* DIRECT WRITES ON THE LEAVES, never a custom property on an ancestor.
-       The first version set --sky and --skyink on the page root and --rule
-       on each eyebrow every scroll frame, and a variable changed on the root
-       invalidates the style of every element under it. Measured on the live
-       page over a 5.6 s wheel scroll: 723 style recalcs costing 961 ms,
-       against 340 recalcs costing 28 ms with those writes stubbed. The same
-       three colours and one transform, written straight onto the sky band,
-       the label spans and the fill spans, cost the browser only those
-       elements. */
-    if (skyRef.current)
-      skyRef.current.style.backgroundImage = `linear-gradient(to bottom, ${atStops(SKY_STOPS, v)}, transparent)`;
-    const ink = atStops(INK_STOPS, v);
-    /* Parallax on the hero picture only: it scrolls at 78% of the page, so
-       the plain and the ice sink away under the heading a shade more slowly
-       than the words leave. The exposed strip this opens at the top of the
-       header is always already above the viewport. Stops writing once the
-       hero is gone. */
-    const media = heroMediaRef.current;
-    if (media) {
-      const y = window.scrollY;
-      if (y < vh * 1.3)
-        media.style.transform = `translate3d(0, ${(Math.min(y, vh) * 0.22).toFixed(1)}px, 0)`;
-    }
-    rules.current.forEach(({ fill, label }) => {
-      fill.style.transform = `scaleX(${ruleProgress(fill.getBoundingClientRect().top, vh)})`;
-      label.style.color = ink;
-    });
-  });
-
-  /* Lenis smooth scroll — skipped entirely under prefers-reduced-motion.
-   * Held in a ref as well, because anchor clicks have to be routed through
-   * Lenis by hand: index.css sets `.lenis { scroll-behavior: auto !important }`
-   * for Lenis's whole mounted lifetime (deliberately, so the browser's own
-   * easing does not fight Lenis's rAF loop). That also cancels the native
-   * smooth scroll a plain `#id` link or scrollIntoView would rely on, so
-   * without this the nav jumps instantly. */
+  /* Lenis on fine pointers only, never under reduced motion, never on a phone
+   * ([[lenis-mobile-damage]]); dynamic import so a phone never downloads it.
+   * It feeds ScrollTrigger, which drives every scroll scene on the page. */
   useEffect(() => {
     if (reduced) return;
-    /* Fine pointers only, via dynamic import: a JS smooth-scroll library on a
-     * touch device breaks iOS momentum and chrome on its own
-     * ([[lenis-mobile-damage]]), and the gate being at the import means a
-     * phone never even downloads the library. */
     if (!window.matchMedia("(pointer: fine)").matches) return;
     let disposed = false;
     let lenis: Lenis | null = null;
     let raf = 0;
-    import("lenis").then(({ default: L }) => {
+    Promise.all([import("lenis"), loadMotion()]).then(([{ default: L }, { ScrollTrigger }]) => {
       if (disposed) return;
       lenis = new L({ duration: 1.1 });
       lenisRef.current = lenis;
-      const loop = (t: number) => {
-        lenis!.raf(t);
+      lenis.on("scroll", ScrollTrigger.update);
+      const loop = (time: number) => {
+        lenis!.raf(time);
         raf = requestAnimationFrame(loop);
       };
       raf = requestAnimationFrame(loop);
@@ -1675,74 +1536,30 @@ export default function Page() {
     };
   }, [reduced]);
 
-  useIsoLayoutEffect(() => {
-    if (reduced) return;
-    setHeroPhase("hidden");
-    const t = window.setTimeout(() => setHeroPhase("shown"), 40);
-    return () => window.clearTimeout(t);
-  }, [reduced]);
-
   useEffect(() => {
-    document.title = "Nýpugarðar · Kvöldverðurinn á Mýrum";
+    /* No document.title and no JSON-LD from here any more: both are written
+     * into the prerendered head by tools/nypugardar-seo.mjs, and a runtime
+     * copy used to overwrite the real title and publish a second, unguarded
+     * set of facts. */
     setThemeColor(GROUND);
-    /* Safari paints its own chrome and the strip under the URL bar from the
-     * BODY background, and the shared preview shell's body is light — visible
-     * as a white flash whenever the zoom dialog's top layer opens. The page
-     * ink has to live on body itself for this route. */
     const prevBodyBg = document.body.style.backgroundColor;
     document.body.style.backgroundColor = GROUND;
-    const s = document.createElement("script");
-    s.type = "application/ld+json";
-    s.text = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "BedAndBreakfast",
-      name: "Nýpugarðar",
-      url: "https://glacierview.is",
-      image: new URL(largest(IMG.hero), window.location.origin).href,
-      telephone: "+354 893 1826",
-      email: EMAIL,
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "Nýpugarðar",
-        addressLocality: "Höfn í Hornafirði",
-        postalCode: "781",
-        addressCountry: "IS",
-      },
-      /* Booking.com headline figures, last read live 2026-08-25. */
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: 8.8,
-        bestRating: 10,
-        reviewCount: 2268,
-      },
-      priceRange: "EUR 87 to 149 per night",
-      petsAllowed: false,
-      checkinTime: "16:00",
-      checkoutTime: "11:00",
-    });
-    document.head.appendChild(s);
     return () => {
       document.body.style.backgroundColor = prevBodyBg;
-      document.head.removeChild(s);
     };
   }, []);
 
-  const on = heroPhase === "shown";
-  const rise = (i: number): CSSProperties =>
-    heroPhase === "static"
-      ? {}
-      : {
-          opacity: on ? 1 : 0,
-          transform: on ? "none" : "translateY(26px)",
-          filter: on ? "none" : "blur(6px)",
-          transition: `opacity 0.85s ${EASE} ${140 + i * 70}ms, transform 0.85s ${EASE} ${140 + i * 70}ms, filter 0.85s ${EASE} ${140 + i * 70}ms`,
-        };
+  const onMist = ground === "mist" && !menuOpen;
+  const clear = ground === "clear" && !menuOpen;
+  const barInk = onMist ? "#15130F" : PAPER;
+  const pastHero = ground !== "clear";
+  const tr = reduced ? "none" : `background-color 0.22s ${EASE}, color 0.22s ${EASE}, opacity 0.22s ${EASE}`;
 
   return (
     <div
       ref={rootRef}
       lang={lang}
-      className="min-h-screen overflow-x-clip font-supreme text-[#F4EEE2] antialiased"
+      className="min-h-screen overflow-x-clip font-familjen text-[#F4EEE2] antialiased"
       style={{ background: GROUND }}
     >
       {PreviewShell ? (
@@ -1751,286 +1568,145 @@ export default function Page() {
         </Suspense>
       ) : null}
 
-      {/* The sky band — a thin fixed atmosphere behind the headlines. Its colour
-       * IS the evening: daylight blue at the top of the page, ember by dinner,
-       * and exactly the ground colour by the final CTA, so it melts into night. */}
-      <div
-        ref={skyRef}
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[44vh]"
-        style={{
-          backgroundImage: "linear-gradient(to bottom, #DCE4E6, transparent)",
-          opacity: 0.32,
-        }}
-      />
-
-      {/* ── 1 · HERO — Arrival ─────────────────────────────────────────── */}
-      {/* No explicit z-index here (z-auto): this box must NOT form its own
-       * stacking context, or it would trap the nav bar inside it and drag
-       * the whole hero above the mobile menu overlay along with it. Leaving
-       * it z-auto lets the nav bar's own z-40 rank above the overlay while
-       * the hero photo/copy (z-auto/5/10) stay ranked below it — see the
-       * overlay's comment right after </header>. */}
-      <header
-        ref={headerRef}
-        className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden"
+      <a
+        href="#farm"
+        className="sr-only z-50 bg-[#D97D3D] px-4 py-3 font-semibold text-[#15130F] focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
       >
-        <div ref={heroMediaRef} className="absolute inset-0">
-          <Img
-            {...frame(IMG.hero, "100vw")}
-            alt={t.closing.heroAlt}
-            fetchpriority="high"
-            loading="eager"
-            className="absolute inset-0 h-full w-full object-cover"
-            style={
-              heroPhase === "static"
-                ? undefined
-                : {
-                    opacity: on ? 1 : 0,
-                    transform: on ? "scale(1)" : "scale(1.05)",
-                    transition: `opacity 1.4s ${EASE}, transform 2.2s ${EASE}`,
-                  }
-            }
-          />
-          <HeroFilm reduced={reduced} on={on} />
-        </div>
-        {/* Lighter than it looks it should be, on purpose. The hero frame is
-         * her best photograph and the whole top two thirds of it is the light
-         * on the ice; a scrim heavy enough to be safe everywhere turns that
-         * into brown haze. The headline sits in the bottom third, where the
-         * gradient is at full strength, so legibility is paid for down there
-         * and the picture is left alone up here. */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-t from-[#15130F] via-[#15130F]/50 to-transparent"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-0 top-0 z-[5] h-40 bg-gradient-to-b from-[#15130F]/75 to-transparent"
-        />
+        {lang === "is" ? "Beint í efnið" : "Skip to content"}
+      </a>
 
-        {/* CONSTANT bar ([[mobile-chrome-standard]], Kleif amendment): fixed
-         * from first paint, never hides, never transforms. Over its own hero
-         * photograph it is transparent; past the hero it turns ink glass so
-         * the wordmark, menu and booking CTA ride the whole page. A colour
-         * swap is not a forbidden transform. */}
-        <nav
-          className="fixed inset-x-0 top-0 z-40"
-          aria-label="Main"
+      {/* ── The bar. Two grounds cross-fading on opacity (a scrim for the hero
+       * photograph, a solid glass otherwise), never a gradient hanging over
+       * scrolled content ([[feedback-header-chrome-and-page-transitions]]). */}
+      <nav
+        className="fixed inset-x-0 top-0 z-40 pt-[env(safe-area-inset-top)]"
+        aria-label="Main"
+        /* The ground colour lives on the fixed bar ITSELF, not only on the
+         * inner layer: Safari samples the fixed element at the top edge to
+         * tint the status strip, and a transparent bar left the strip night
+         * above the mist section. Clear over the hero, where night is right. */
+        style={{
+          color: barInk,
+          backgroundColor: clear ? "transparent" : menuOpen ? GROUND : onMist ? "rgba(233,234,229,0.9)" : "rgba(21,19,15,0.88)",
+          transition: tr,
+        }}
+      >
+        <span
+          aria-hidden="true"
+          /* Grounds and the small wordmark switch by CLASS, not inline
+           * opacity: these are the bar's states over the hero, not hidden
+           * content, and the prerender gate rightly rejects inline opacity:0. */
+          className={`pointer-events-none absolute inset-0 bg-gradient-to-b from-[#15130F]/55 to-[#15130F]/0 ${clear ? "opacity-100" : "opacity-0"}`}
+          style={{ transition: tr }}
+        />
+        <span
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-0 backdrop-blur-[10px] ${clear ? "opacity-0" : "opacity-100"}`}
           style={{
-            background: menuOpen
-              ? GROUND
-              : pastHero
-                ? "rgba(21,19,15,0.88)"
-                : "transparent",
-            backdropFilter: pastHero && !menuOpen ? "blur(10px)" : undefined,
-            WebkitBackdropFilter:
-              pastHero && !menuOpen ? "blur(10px)" : undefined,
-            boxShadow:
-              pastHero && !menuOpen ? `0 1px 0 ${HAIR}` : "0 1px 0 transparent",
-            transition: reduced
-              ? "none"
-              : `background-color 0.3s ${EASE}, box-shadow 0.3s ${EASE}`,
+            boxShadow: `0 1px 0 ${onMist ? "rgba(21,19,15,0.12)" : HAIR}`,
+            transition: tr,
           }}
+        />
+        <div
+          ref={navRowRef}
+          className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 md:px-8"
         >
-          <div
-            ref={navRowRef}
-            className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-8"
+          <a
+            href="#top"
+            onClick={(e) => handleNavLinkClick(e, "#top")}
+            translate="no"
+            className={`-my-2 py-2 font-erode text-xl font-light tracking-tight ${clear ? "opacity-0" : "opacity-100"} ${onMist ? FOCUS_INK : FOCUS}`}
+            style={{ transition: tr }}
+            tabIndex={clear ? -1 : undefined}
           >
-            <a
-              href="#top"
-              className={`-my-2 py-2 font-erode text-xl tracking-tight ${FOCUS}`}
-            >
-              Nýpugarðar
-            </a>
-            <div className="hidden items-center gap-7 md:flex">
-              {NAV.map((n) => (
-                <a
-                  key={n.id}
-                  href={`#${n.id}`}
-                  onClick={(e) => handleNavLinkClick(e, `#${n.id}`)}
-                  className={`-my-2 py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/80 transition-colors duration-200 hover:text-[#F4EEE2] ${FOCUS}`}
-                >
-                  {t.nav[n.id as keyof typeof t.nav]}
-                </a>
-              ))}
-              <LangToggle lang={lang} setLang={setLang} t={t} className="ml-2" />
-            </div>
+            Nýpugarðar
+          </a>
+          <div className="hidden items-center gap-7 md:flex">
+            {NAV.map((n) => (
+              <a
+                key={n.id}
+                href={`#${n.id}`}
+                onClick={(e) => handleNavLinkClick(e, `#${n.id}`)}
+                className={`-my-2 py-2 text-[14px] opacity-80 transition-opacity duration-200 hover:opacity-100 ${onMist ? FOCUS_INK : FOCUS}`}
+              >
+                {t.nav[n.id as keyof typeof t.nav]}
+              </a>
+            ))}
+            <LangToggle lang={lang} setLang={setLang} t={t} tone={onMist ? "dark" : "light"} className="ml-1" />
+          </div>
+          <div className="flex items-center gap-2">
             {bookingReady() ? (
               <a
-                href={bookingHref({
-                  lang,
-                  checkin: stay.checkin,
-                  checkout: stay.checkout,
-                  adults: stay.adults,
-                  children: stay.children,
-                })!}
-                className={`hidden bg-[#D97D3D] px-4 py-2.5 text-[13px] font-semibold text-[#15130F] transition-colors duration-200 hover:bg-[#E68C4C] sm:inline-block ${FOCUS}`}
+                href={bookingHref({ lang, checkin: stay.checkin, checkout: stay.checkout, adults: stay.adults, children: stay.children })!}
+                className={`hidden bg-[#D97D3D] px-4 py-2.5 text-[14px] font-semibold text-[#15130F] transition-colors duration-200 hover:bg-[#E68C4C] active:scale-[0.98] sm:inline-block ${onMist ? FOCUS_INK : FOCUS}`}
               >
                 {t.cta.check}
               </a>
-            ) : (
-              <span
-                className="hidden border border-dashed px-4 py-2 text-[13px] font-semibold sm:inline-block"
-                style={{
-                  borderColor: "rgba(217,125,61,0.55)",
-                  color: "rgba(217,125,61,0.85)",
-                }}
-                title={t.booking.placeholder}
-              >
-                {t.cta.check}
-              </span>
-            )}
+            ) : null}
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
-              className={`-mr-2.5 flex h-11 w-11 items-center justify-center md:hidden ${FOCUS}`}
+              className={`-mr-2.5 flex h-11 w-11 touch-manipulation items-center justify-center md:hidden ${onMist ? FOCUS_INK : FOCUS}`}
             >
               <span aria-hidden="true" className="relative block h-4 w-6">
-                <span
-                  className="absolute left-0 top-0 block h-[2px] w-6 rounded-full"
-                  style={{
-                    background: menuOpen ? ACCENT : "#F4EEE2",
-                    transform: menuOpen
-                      ? "translateY(7px) rotate(45deg)"
-                      : "translateY(0) rotate(0deg)",
-                    transition: reduced
-                      ? "none"
-                      : `transform 0.3s ${EASE}, background-color 0.3s ${EASE}`,
-                  }}
-                />
-                <span
-                  className="absolute bottom-0 left-0 block h-[2px] w-6 rounded-full"
-                  style={{
-                    background: menuOpen ? ACCENT : "#F4EEE2",
-                    transform: menuOpen
-                      ? "translateY(-7px) rotate(-45deg)"
-                      : "translateY(0) rotate(0deg)",
-                    transition: reduced
-                      ? "none"
-                      : `transform 0.3s ${EASE}, background-color 0.3s ${EASE}`,
-                  }}
-                />
+                {[0, 1].map((i) => (
+                  <span
+                    key={i}
+                    className={`absolute left-0 block h-[2px] w-6 rounded-full ${i ? "bottom-0" : "top-0"}`}
+                    style={{
+                      background: menuOpen ? ACCENT : "currentColor",
+                      transform: menuOpen
+                        ? i ? "translateY(-7px) rotate(-45deg)" : "translateY(7px) rotate(45deg)"
+                        : "none",
+                      transition: reduced ? "none" : `transform 0.24s ${EASE}, background-color 0.24s ${EASE}`,
+                    }}
+                  />
+                ))}
               </span>
             </button>
           </div>
-        </nav>
-
-        <div
-          id="top"
-          className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 pt-28 md:px-8 md:pb-20 md:pt-0"
-        >
-          {/* Editorial split: the headline holds the left, the booking card sits
-           * on the right at lg and above. Below that it stacks back under the
-           * copy, which is the right order on a phone — read first, book second. */}
-          <div className="lg:grid lg:grid-cols-[1fr_380px] lg:items-end lg:gap-14">
-            <div>
-              <p
-                lang="is"
-                className="font-mono text-[11.5px] uppercase tracking-[0.26em] text-[#B9CBD6]"
-                style={rise(0)}
-              >
-                {t.hero.eyebrow}
-              </p>
-              <h1
-                className="mt-4 max-w-4xl font-erode text-[clamp(3.1rem,9vw,6.5rem)] font-medium leading-[1.16] tracking-tight"
-                style={rise(1)}
-              >
-                Nýpugarðar
-                {/* The heading's second line, not a subtitle: what this place
-                  * is and where, in the words a traveller types into a search
-                  * box. A wordmark on its own tells a search engine nothing. */}
-                <span className="mt-3 block max-w-xl font-supreme text-lg font-normal leading-relaxed tracking-normal text-[#F4EEE2]/85 md:text-xl">
-                  {t.hero.tagline}
-                </span>
-              </h1>
-              <p
-                className="mt-4 max-w-xl text-[15px] leading-relaxed text-[#F4EEE2]/70 md:text-base"
-                style={rise(2)}
-              >
-                {t.hero.sub}
-              </p>
-              <div
-                className="mt-8 flex flex-wrap items-center gap-4"
-                style={rise(3)}
-              >
-                <a
-                  href={PHONE_HREF}
-                  className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
-                >
-                  <Phone
-                    className="h-4 w-4"
-                    strokeWidth={1.5}
-                    aria-hidden="true"
-                  />
-                  {PHONE}
-                </a>
-              </div>
-            </div>
-            <BookingBar
-              variant="card"
-              className="mt-10 lg:mt-0"
-              t={t}
-              lang={lang}
-              stay={stay}
-              onStay={setStay}
-              today={today}
-            />
-          </div>
         </div>
-      </header>
+      </nav>
 
-      {/* ── Mobile menu overlay — a SIBLING of <header>, never nested inside
-       * it or <nav>. It is `fixed`, so it always sizes to the real viewport
-       * regardless of anything a scroll effect does to an ancestor (a
-       * transform/backdrop-filter on an ancestor would otherwise become the
-       * containing block for a fixed descendant and collapse it to zero).
-       * z-30 sits below the nav bar's z-40 (header itself is z-auto, so it
-       * can't drag the nav along with it) and above the hero photo/copy
-       * (z-auto/z-5/z-10), so the nav row — solid background, hamburger
-       * morphed into an X — stays visible and tappable on top of it while
-       * the hero underneath is fully hidden. */}
+      {/* ── Mobile menu overlay: a sibling of the bar, fixed to the real
+       * viewport, below the bar's z-40 so the X stays on top of it. */}
       <div
         id="mobile-menu"
         role="dialog"
         aria-modal="true"
         aria-label={t.nav.menu}
         aria-hidden={!menuOpen}
-        className={`fixed inset-0 z-30 flex flex-col md:hidden ${menuOpen ? "" : "pointer-events-none"}`}
+        className={`fixed inset-0 z-30 flex flex-col overscroll-contain md:hidden ${menuOpen ? "" : "pointer-events-none"}`}
         style={{
           background: GROUND,
           paddingTop: navHeight,
           opacity: menuOpen ? 1 : 0,
           visibility: menuOpen ? "visible" : "hidden",
+          /* Opens at 300ms, closes at 180ms: closing is the response and snaps.
+           * Reduced motion keeps the fade and drops only the link movement. */
           transition: reduced
-            ? "none"
+            ? menuOpen
+              ? "opacity 0.15s ease-out, visibility 0s"
+              : "opacity 0.15s ease-out, visibility 0s 0.15s"
             : menuOpen
               ? `opacity 0.3s ${EASE}, visibility 0s`
-              : `opacity 0.3s ${EASE}, visibility 0s 0.3s`,
+              : `opacity 0.18s ${EASE}, visibility 0s 0.18s`,
         }}
       >
-        <nav
-          className="flex flex-1 flex-col justify-center px-6"
-          aria-label="Mobile"
-        >
+        <nav className="flex flex-1 flex-col justify-center px-6" aria-label="Mobile">
           <ul className="space-y-1">
             {NAV.map((n, i) => (
               <li key={n.id} className="overflow-hidden">
                 <a
                   href={`#${n.id}`}
                   onClick={(e) => handleNavLinkClick(e, `#${n.id}`)}
-                  className={`block py-2 font-erode text-[clamp(2.5rem,13vw,4.5rem)] font-medium leading-[1.1] tracking-tight text-[#F4EEE2] ${FOCUS}`}
+                  className={`block py-2 font-erode text-[clamp(2.5rem,13vw,4.5rem)] font-light leading-[1.1] tracking-tight text-[#F4EEE2] ${FOCUS}`}
                   style={{
-                    transform:
-                      menuOpen || reduced
-                        ? "translateY(0%)"
-                        : "translateY(100%)",
-                    transition: reduced
-                      ? "none"
-                      : `transform 0.3s ${EASE} ${menuOpen ? 40 + i * 35 : 0}ms`,
+                    transform: menuOpen || reduced ? "translateY(0%)" : "translateY(100%)",
+                    transition: reduced ? "none" : `transform 0.3s ${EASE} ${menuOpen ? 40 + i * 35 : 0}ms`,
                   }}
                 >
                   {t.nav[n.id as keyof typeof t.nav]}
@@ -2038,142 +1714,46 @@ export default function Page() {
               </li>
             ))}
           </ul>
-          <span
-            aria-hidden="true"
-            className="mt-8 block h-[2px] w-16 origin-left rounded-full"
-            style={{
-              background: ACCENT,
-              transform: menuOpen || reduced ? "scaleX(1)" : "scaleX(0)",
-              transition: reduced
-                ? "none"
-                : `transform 0.3s ${EASE} ${menuOpen ? 40 + NAV.length * 35 : 0}ms`,
-            }}
-          />
         </nav>
         <div className="px-6 pb-[calc(1.75rem+env(safe-area-inset-bottom))] pt-4">
-          <LangToggle
-            lang={lang}
-            setLang={setLang}
-            t={t}
-            className="-my-3 mb-2 block py-3 text-[13px]"
-          />
-          <BookLink
-            lang={lang}
-            stay={stay}
-            className="w-full justify-center py-4 text-base"
-            onClick={() => setMenuOpen(false)}
-          >
+          <LangToggle lang={lang} setLang={setLang} t={t} className="-my-3 mb-2 block py-3 text-[13px]" />
+          <BookLink lang={lang} stay={stay} className="w-full justify-between py-3 text-base" onClick={() => setMenuOpen(false)}>
             {t.cta.check}
           </BookLink>
         </div>
       </div>
 
-      <main className="relative z-[1]">
-        {/* ── 2 · THE FARM — sheep ─────────────────────────────────────── */}
-        <section
-          id="farm"
-          className="mx-auto max-w-6xl scroll-mt-16 px-5 py-24 md:px-8 md:py-32"
-        >
-          <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
-            <div>
-              <Eyebrow
-                label={t.farm.eyebrow}
-                register={register}
-                reduced={reduced}
-              />
-              <MaskHeading
-                delay={60}
-                text={t.farm.heading}
-                className="mt-6 font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl"
-              />
-              <Reveal delay={140}>
-                <p
-                  className="mt-6 max-w-[58ch] leading-relaxed"
-                  style={{ color: BODY }}
-                >
-                  {t.farm.body}
-                </p>
-              </Reveal>
-              <Reveal delay={220}>
-                <dl
-                  className="mt-10 grid grid-cols-2 gap-6 border-t pt-8"
-                  style={{ borderColor: HAIR }}
-                >
-                  <div>
-                    <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                      {t.farm.guestsFull}
-                    </dt>
-                    <dd
-                      className="mt-1 font-erode text-4xl"
-                      style={{ color: ACCENT }}
-                    >
-                      24
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                      {t.farm.open}
-                    </dt>
-                    <dd
-                      className="mt-1 font-erode text-4xl"
-                      style={{ color: ACCENT }}
-                    >
-                      {t.farm.allYear}
-                    </dd>
-                  </div>
-                </dl>
-              </Reveal>
-            </div>
-            <ClipImg
-              photo={IMG.reindeer}
-              sizes="(min-width: 768px) 46vw, 92vw"
-              alt={t.farm.reindeerAlt}
-              aspect="aspect-[4/3]"
-              caption={t.farm.reindeerCaption}
-            />
-          </div>
-        </section>
+      <main id="top" className="relative">
+        <Hero t={t} reduced={reduced} />
 
-        {/* ── 4 · GLACIER & SETTING ────────────────────────────────────── */}
-        <section className="relative flex min-h-[86svh] items-end overflow-hidden">
-          <Img
-            {...frame(IMG.glacier, "100vw")}
-            alt={t.hill.glacierAlt}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-[#15130F] via-[#15130F]/55 to-[#15130F]/20"
-          />
-          <div className="relative mx-auto w-full max-w-6xl px-5 pb-16 pt-40 md:px-8 md:pb-20">
-            <Eyebrow
-              label={t.hill.eyebrow}
-              register={register}
-              reduced={reduced}
-            />
-            <MaskHeading
-              delay={60}
-              text={t.hill.heading}
-              className="mt-6 max-w-3xl font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl"
-            />
-            <Reveal delay={140}>
-              <p className="mt-5 max-w-[60ch] leading-relaxed text-[#F4EEE2]/85">
-                {t.hill.body}
-              </p>
-            </Reveal>
-            <Reveal delay={220}>
-              <dl
-                className="mt-10 grid grid-cols-1 gap-6 border-t pt-8 sm:grid-cols-3"
-                style={{ borderColor: "rgba(244,238,226,0.25)" }}
-              >
-                {DISTANCES.map((d) => (
-                  <div key={t.distances[d.key as keyof typeof t.distances] ?? d.label}>
-                    <dd className="font-erode text-3xl text-[#F4EEE2] md:text-4xl">
-                      {d.n}
-                    </dd>
-                    <dt className="mt-1 font-mono text-[11px] uppercase tracking-[0.18em] text-[#B9CBD6]">
-                      {t.distances[d.key as keyof typeof t.distances] ?? d.label}
+        {/* ── 1 · Manifesto: the mist ─────────────────────────────────── */}
+        <section id="farm" data-nav="mist" className="scroll-mt-16 text-[#15130F]" style={{ background: MIST }}>
+          <div className="mx-auto max-w-6xl px-5 pb-24 pt-16 md:px-8 md:pb-36 md:pt-28">
+            <div className="md:grid md:grid-cols-12 md:gap-x-3">
+              <div className="md:col-span-10 md:col-start-2 lg:col-span-8 lg:col-start-3">
+                <p className="font-erode text-xl font-light italic md:text-2xl" style={{ color: SILT }}>
+                  {t.manifesto.kicker}
+                </p>
+                <MaskDevelop reduced={reduced} className="mt-8 md:mt-10">
+                  <p className="text-pretty font-erode text-[clamp(1.75rem,3.3vw,2.75rem)] font-light leading-[1.2] tracking-[-0.005em] md:[text-indent:25%]">
+                    {t.manifesto.text}
+                  </p>
+                </MaskDevelop>
+              </div>
+            </div>
+
+            <Reveal className="mt-16 md:mt-24">
+              <dl className="grid gap-6 sm:grid-cols-3 sm:gap-x-3">
+                {FACTS.map((f) => (
+                  <div
+                    key={f.key}
+                    className="flex flex-col-reverse gap-1 border-t pt-4"
+                    style={{ borderColor: "rgba(21,19,15,0.14)" }}
+                  >
+                    <dt className="text-[15px] leading-snug" style={{ color: SILT }}>
+                      {t.facts[f.key]}
                     </dt>
+                    <dd className="font-erode text-4xl font-light tabular-nums">{f.n}</dd>
                   </div>
                 ))}
               </dl>
@@ -2181,370 +1761,188 @@ export default function Page() {
           </div>
         </section>
 
-        {/* Glacier — secondary panel */}
-        <section className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-28">
-          <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
-            <ClipImg
-              photo={IMG.ridge}
-              sizes="(min-width: 768px) 46vw, 92vw"
-              alt={t.hill.ridgeAlt}
-              aspect="aspect-[4/3]"
-              caption={t.hill.ridgeEyebrow}
-            />
-            <div>
-              <MaskHeading
-                text={t.place.heading}
-                className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl"
+        {/* ── 2 · The glacier band (Kleif season, inset unclip) ────────── */}
+        <InsetBand
+          reduced={reduced}
+          className="h-[115svh] md:h-[150svh]"
+          style={{ background: MIST }}
+          image={
+            <>
+              <Img
+                {...frame(IMG.glacier, "100vw")}
+                alt={t.band.alt}
+                /* a 150svh band crops a 4:3 frame hard; keep the peaks and the lit flats, not the sky */
+                className="absolute inset-0 h-full w-full object-cover object-[center_72%]"
               />
-              <Reveal delay={90}>
-                <p
-                  className="mt-5 max-w-[56ch] leading-relaxed"
-                  style={{ color: BODY }}
-                >
-                  {t.place.body}
-                </p>
+              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#15130F] via-[#15130F]/80 via-55% to-[#15130F]/0 to-95% md:via-[#15130F]/45 md:via-35% md:to-65%" />
+            </>
+          }
+        >
+          <div className="absolute inset-x-0 bottom-0 z-[1]">
+            <div className="mx-auto max-w-6xl px-5 pb-16 md:px-8 md:pb-24">
+              <MaskHeading text={t.band.heading} className={`max-w-3xl ${H2}`} />
+              <Reveal delay={100}>
+                <p className="mt-6 max-w-[58ch] text-lg leading-relaxed text-[#F4EEE2]/85">{t.band.body}</p>
+              </Reveal>
+              <Reveal delay={180}>
+                <ul className="mt-12 grid gap-6 border-t border-[#F4EEE2]/20 pt-8 sm:grid-cols-3">
+                  {(
+                    [
+                      [t.band.auroraN, t.band.aurora],
+                      [t.band.roadN, t.band.road],
+                      [t.band.viewN, t.band.view],
+                    ] as const
+                  ).map(([n, label]) => (
+                    <li key={label}>
+                      <span className="block font-erode text-3xl font-light">{n}</span>
+                      <span className="mt-1.5 block font-fragment text-[11px] uppercase tracking-[0.16em] text-[#B9CBD6]">
+                        {label}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </Reveal>
             </div>
           </div>
-        </section>
+        </InsetBand>
 
-        {/* ── 5 · ACCOMMODATION ────────────────────────────────────────── */}
-        {/* ── 5 · ROOMS, the short version ──────────────────────────────
-          * The bands, the cottages and the full gallery live on their own
-          * page now: seven screens of inventory sat between dinner and the
-          * reviews, and the homepage read as a catalogue. Here: the counts,
-          * three frames as a taste, and the door through. */}
-        <section id="rooms" className="scroll-mt-16 border-t" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            {/* Stacked, not a split header: one heading, then its sentence
-              * under it at reading width. The old left-title / right-explainer
-              * pair asked the eye to cross the page for a single thought. No
-              * eyebrow either; see the note at the reviews section. */}
-            <MaskHeading
-              text={t.rooms.heading}
-              className="font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl"
-            />
+        {/* ── 3 · Rooms ───────────────────────────────────────────────── */}
+        <section id="rooms" className="scroll-mt-16">
+          <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-36">
+            <MaskHeading text={t.rooms.heading} className={H2} />
             <Reveal delay={90}>
-              <p className="mt-5 max-w-[52ch] leading-relaxed" style={{ color: BODY }}>
+              <p className="mt-6 max-w-[54ch] text-lg leading-relaxed" style={{ color: BODY }}>
                 {t.rooms.body}
               </p>
             </Reveal>
-
-            <Reveal delay={140}>
-              <dl
-                className="mt-12 grid grid-cols-2 gap-x-6 gap-y-8 border-t pt-8 md:grid-cols-4"
-                style={{ borderColor: HAIR }}
-              >
-                {UNITS.map((u) => (
-                  <div key={t.units[u.key as keyof typeof t.units] ?? u.label}>
-                    <dd className="font-erode text-5xl" style={{ color: ACCENT }}>
-                      {u.n}
-                    </dd>
-                    <dt className="mt-2 max-w-[16ch] font-mono text-[11px] uppercase leading-relaxed tracking-[0.16em] text-[#F4EEE2]/60">
-                      {t.units[u.key as keyof typeof t.units] ?? u.label}
-                    </dt>
-                  </div>
-                ))}
-              </dl>
-            </Reveal>
-
-            {/* Every type, its own photograph, its own price. leadFor reads
-              * her Booking photo filing, so a card can never show a stand-in
-              * from a different room. */}
             <RoomStrip t={t} lang={lang} stay={stay} reduced={reduced} />
-
             <Reveal delay={120}>
               <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-4">
-                {/* Outline, not ember: on a phone this section shares the
-                  * viewport with the sticky booking bar, and two orange
-                  * primaries stacked in one screen fight each other. Booking
-                  * keeps the ember; this is navigation. */}
                 <Link
                   to={roomsPath(lang)}
                   className={`group inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3 text-[15px] font-medium transition-[transform,border-color] duration-200 ease-out hover:border-[#F4EEE2]/70 active:scale-[0.98] ${FOCUS}`}
                 >
                   {t.rooms.seeAll}
                   <ArrowUpRight
-                    className="h-4 w-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-px"
+                    className="h-4 w-4 transition-transform duration-200 ease-out group-hover:-translate-y-px group-hover:translate-x-0.5"
                     strokeWidth={1.5}
                     aria-hidden="true"
                   />
                 </Link>
-                <p className="max-w-[44ch] text-[15px] leading-relaxed text-[#F4EEE2]/60">
-                  {t.rooms.seeAllNote}
-                </p>
+                <p className="max-w-[44ch] text-[15px] leading-relaxed text-[#F4EEE2]/60">{t.rooms.seeAllNote}</p>
               </div>
             </Reveal>
           </div>
         </section>
 
-
-        {/* ── 6 · THE DINNER BUFFET — the signature offering ───────────── */}
+        {/* ── 4 · Dinner and breakfast ────────────────────────────────── */}
         <section id="dinner" className="scroll-mt-16 border-t" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            <Eyebrow
-              label={t.dinner.eyebrow}
-              register={register}
-              reduced={reduced}
-            />
-            <MaskHeading
-              delay={60}
-              text={t.dinner.heading}
-              className="mt-6 max-w-3xl font-erode text-[clamp(2.5rem,6vw,4.5rem)] font-medium leading-[1.16] tracking-tight"
-            />
-            <Reveal delay={140}>
-              <p
-                className="mt-6 max-w-[62ch] text-lg leading-relaxed"
-                style={{ color: BODY }}
-              >
-                {t.dinner.intro}
-              </p>
-            </Reveal>
-
-            <ClipImg
-              photo={IMG.dining}
-              sizes="(min-width: 1200px) 1088px, 92vw"
-              alt={t.dinner.diningAlt}
-              aspect="aspect-[1280/577]"
-              caption={t.dinner.diningCaption}
-              className="mt-12"
-            />
-
-            <div className="mt-16 grid gap-12 md:grid-cols-2 md:gap-14">
-              <Reveal>
-                <blockquote>
-                  <p className="font-erode text-2xl italic leading-[1.4] text-[#F4EEE2]/90 md:text-[1.7rem]">
-                    “{DINNER_QUOTE.text}”
-                  </p>
-                  <footer
-                    className="mt-5 font-mono text-[11px] uppercase tracking-[0.2em]"
-                    style={{ color: ACCENT }}
-                  >
-                    {DINNER_QUOTE.name}, {DINNER_QUOTE.place} · {t.reviews.guestReviewOn}
-                  </footer>
-                </blockquote>
-              </Reveal>
-              <div>
-                <Reveal delay={80}>
-                  <p className="leading-relaxed" style={{ color: BODY }}>
-                    {t.dinner.body}
-                  </p>
+          <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-36">
+            <MaskHeading text={t.dinner.heading} className={H2} />
+            <div className="mt-12 grid gap-10 lg:grid-cols-12 lg:gap-x-3">
+              <ClipImg
+                photo={IMG.dining}
+                sizes="(min-width: 1024px) 700px, 92vw"
+                alt={t.dinner.diningAlt}
+                aspect="aspect-[1280/577]"
+                caption={t.dinner.diningCaption}
+                className="lg:col-span-8"
+              />
+              <div className="lg:col-span-4 lg:pl-6">
+                <Reveal>
+                  <p className="text-lg leading-relaxed" style={{ color: BODY }}>{t.dinner.intro}</p>
+                </Reveal>
+                <Reveal delay={90}>
+                  <p className="mt-5 leading-relaxed" style={{ color: BODY }}>{t.dinner.body}</p>
                 </Reveal>
                 <Reveal delay={160}>
-                  <div className="mt-7 flex flex-wrap gap-4">
-                    <a
-                      href={PHONE_HREF}
-                      className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-5 py-3 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
-                    >
-                      <Phone
-                        className="h-4 w-4"
-                        strokeWidth={1.5}
-                        aria-hidden="true"
-                      />
-                      {PHONE}
-                    </a>
-                    <a
-                      href={`mailto:${EMAIL}`}
-                      className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-5 py-3 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
-                    >
-                      <Mail
-                        className="h-4 w-4"
-                        strokeWidth={1.5}
-                        aria-hidden="true"
-                      />
-                      {EMAIL}
-                    </a>
-                  </div>
+                  <blockquote className="mt-10 border-t pt-6" style={{ borderColor: HAIR }}>
+                    <p className="font-erode text-xl font-light italic leading-[1.4] text-[#F4EEE2]/90">
+                      “{DINNER_QUOTE.text}”
+                    </p>
+                    <footer className="mt-4 font-fragment text-[11px] uppercase tracking-[0.16em] text-[#B9CBD6]">
+                      {DINNER_QUOTE.name}, {DINNER_QUOTE.place}, {t.reviews.guestReviewOn}
+                    </footer>
+                  </blockquote>
                 </Reveal>
-                <ClipImg
-                  photo={IMG.deck}
-                  sizes="320px"
-                  alt={t.dinner.deckAlt}
-                  aspect="aspect-[3/4]"
-                  caption={t.dinner.deckCaption}
-                  delay={200}
-                  className="mt-8 max-w-xs"
-                />
               </div>
             </div>
 
-            <Reveal delay={120}>
-              <div className="mt-16 border-t pt-10 md:mt-20 md:pt-12" style={{ borderColor: HAIR }}>
-                <div className="grid gap-10 md:grid-cols-[1.05fr_1fr] md:items-center md:gap-14">
-                  <ClipImg
-                    photo={IMG.breakfast}
-                    sizes="(min-width: 768px) 46vw, 92vw"
-                    alt={t.dinner.breakfastAlt}
-                    aspect="aspect-[4/3]"
-                    caption={t.dinner.breakfastCaption}
-                  />
-                  <div>
-                    <MaskHeading
-                      as="h3"
-                      text={t.dinner.breakfastHeading}
-                      className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl"
-                    />
-                    <p className="mt-4 max-w-[46ch] leading-relaxed" style={{ color: BODY }}>
-                      {t.dinner.breakfastBody}
-                    </p>
-                    <dl className="mt-8 space-y-5">
-                      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t pt-4" style={{ borderColor: HAIR }}>
-                        <dt className="w-32 shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/50">
-                          {t.dinner.served}
-                        </dt>
+            <div className="mt-20 grid gap-10 md:mt-28 md:grid-cols-12 md:items-center md:gap-x-3">
+              <ClipImg
+                photo={IMG.house}
+                sizes="(min-width: 768px) 40vw, 92vw"
+                alt={t.dinner.winterAlt}
+                aspect="aspect-[3/2]"
+                caption={t.dinner.winterCaption}
+                className="md:col-span-5"
+              />
+              <div className="md:col-span-6 md:col-start-7">
+                <MaskHeading as="h3" text={t.dinner.breakfastHeading} className="font-erode text-3xl font-light leading-[1.15] tracking-tight md:text-4xl" />
+                <Reveal delay={80}>
+                  <p className="mt-5 max-w-[46ch] leading-relaxed" style={{ color: BODY }}>{t.dinner.breakfastBody}</p>
+                  <dl className="mt-8 space-y-4">
+                    {(
+                      [
+                        [t.dinner.served, BREAKFAST.served],
+                        [t.dinner.weCanCover, BREAKFAST.diets],
+                      ] as const
+                    ).map(([label, items]) => (
+                      <div key={label} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t pt-4" style={{ borderColor: HAIR }}>
+                        <dt className="w-32 shrink-0 font-fragment text-[11px] uppercase tracking-[0.16em] text-[#B9CBD6]">{label}</dt>
                         <dd className="text-[15px] text-[#F4EEE2]/85">
-                          {BREAKFAST.served.map((b) => t.breakfast[b as keyof typeof t.breakfast] ?? b).join(' · ')}
+                          {items.map((b) => t.breakfast[b as keyof typeof t.breakfast] ?? b).join(", ")}
                         </dd>
                       </div>
-                      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t pt-4" style={{ borderColor: HAIR }}>
-                        <dt className="w-32 shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-[#F4EEE2]/50">
-                          {t.dinner.weCanCover}
-                        </dt>
-                        <dd className="text-[15px] text-[#F4EEE2]/85">
-                          {BREAKFAST.diets.map((b) => t.breakfast[b as keyof typeof t.breakfast] ?? b).join(' · ')}
-                        </dd>
-                      </div>
-                    </dl>
-                    <p className="mt-7 text-[15px] leading-relaxed" style={{ color: BODY }}>
-                      {t.dinner.toGoLead}{' '}
-                      <span style={{ color: ACCENT }}>
-                        {t.breakfast[BREAKFAST.toGo as keyof typeof t.breakfast] ?? BREAKFAST.toGo}
-                      </span>
-                      . {t.dinner.toGoTail}
-                    </p>
-                  </div>
-                </div>
+                    ))}
+                  </dl>
+                  <p className="mt-7 text-[15px] leading-relaxed" style={{ color: BODY }}>
+                    {t.dinner.toGoLead}{" "}
+                    <span style={{ color: ACCENT }}>
+                      {t.breakfast[BREAKFAST.toGo as keyof typeof t.breakfast] ?? BREAKFAST.toGo}
+                    </span>
+                    . {t.dinner.toGoTail}
+                  </p>
+                </Reveal>
               </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ── 7 · SEASONS ──────────────────────────────────────────────── */}
-        <section className="border-t" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-24">
-            <h2 className="sr-only">{t.seasons.srHeading}</h2>
-            <div className="grid gap-12 md:grid-cols-2 md:gap-0 md:divide-x md:divide-[#F4EEE2]/15">
-              <Reveal className="md:pr-14">
-                <MaskHeading
-                  as="h3"
-                  text={t.seasons.springHeading}
-                  className="font-erode text-3xl font-medium leading-[1.16] tracking-tight"
-                />
-                <p
-                  className="mt-4 max-w-[50ch] leading-relaxed"
-                  style={{ color: BODY }}
-                >
-                  {t.seasons.springBody}
-                </p>
-                {/* The farm in green, against the snow on the other side of the
-                  * divider. One column carrying a photograph and the other
-                  * carrying nothing read as a layout that had lost an image. */}
-                <ClipImg
-                  photo={IMG.green}
-                  sizes="(min-width: 768px) 46vw, 92vw"
-                  alt={t.seasons.springAlt}
-                  aspect="aspect-[3/2]"
-                  caption={t.seasons.springCaption}
-                  delay={140}
-                  className="mt-8"
-                />
-              </Reveal>
-              <Reveal delay={110} className="md:pl-14">
-                <MaskHeading
-                  as="h3"
-                  delay={110}
-                  text={t.seasons.winterHeading}
-                  className="font-erode text-3xl font-medium leading-[1.16] tracking-tight"
-                />
-                <p
-                  className="mt-4 max-w-[50ch] leading-relaxed"
-                  style={{ color: BODY }}
-                >
-                  {t.seasons.winterBody}
-                </p>
-                {/* Her best winter frame, and it was sitting in IMG declared but
-                  * never rendered — so the page said "winter" in words with no
-                  * picture, while the photograph waited in the gallery among the
-                  * thumbnails. It belongs here. */}
-                <ClipImg
-                  photo={IMG.house}
-                  sizes="(min-width: 768px) 46vw, 92vw"
-                  alt={t.seasons.winterAlt}
-                  aspect="aspect-[3/2]"
-                  caption={t.seasons.winterCaption}
-                  delay={140}
-                  className="mt-8"
-                />
-              </Reveal>
             </div>
           </div>
         </section>
 
-        {/* ── 7b · THE FULL LIBRARY ────────────────────────────────────
-         * Whatever the featured frames above did not use ends up here, grouped
-         * the way a guest actually asks about a place: the rooms, the cottages,
-         * the bathrooms, the table, the house, the land. All 43 photographs are
-         * hers, and the room groups are labelled with the room type Booking has
-         * each photo filed under, so a tile can be trusted as the room it says
-         * it is. */}
-        {/* ── 8 · REVIEWS ──────────────────────────────────────────────── */}
-        <section
-          id="reviews"
-          className="scroll-mt-16 border-t"
-          style={{ borderColor: HAIR }}
-        >
-          <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            {/* No eyebrow here: "Guests" above an eight-foot 8.8 labels the
-              * obvious. The four eyebrows that remain on this page each name
-              * an hour of the evening (the flock, the glacier light, dinner,
-              * nightfall), which is the arc the sky band follows; a category
-              * label is not one of those. */}
+        {/* ── 5 · Guests ──────────────────────────────────────────────── */}
+        <section id="reviews" className="scroll-mt-16 border-t" style={{ borderColor: HAIR }}>
+          <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-36">
             <h2 className="sr-only">{t.reviews.srHeading}</h2>
             <div className="grid items-end gap-10 md:grid-cols-[auto_1fr] md:gap-16">
               <Reveal>
                 <p className="flex items-baseline gap-3">
-                  <Count
-                    value={Number(SCORE.value)}
-                    className="font-erode text-[6rem] leading-none text-[#F4EEE2] md:text-[8rem]"
-                  />
-                  <span className="font-mono text-sm uppercase tracking-[0.18em] text-[#B9CBD6]">
-                    / 10
-                  </span>
+                  <Count value={Number(SCORE.value)} className="font-erode text-[6rem] font-light leading-none text-[#F4EEE2] md:text-[8rem]" />
+                  <span className="font-fragment text-sm uppercase tracking-[0.16em] text-[#B9CBD6]">{t.reviews.outOf}</span>
                 </p>
-                <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.2em] text-[#F4EEE2]/70">
-                  “{t.reviews.scoreWord}” · {SCORE.count} {t.reviews.reviewsOn}
+                <p className="mt-3 font-fragment text-[12px] uppercase tracking-[0.16em] text-[#F4EEE2]/70">
+                  “{t.reviews.scoreWord}”, {SCORE.count} {t.reviews.reviewsOn}
                 </p>
               </Reveal>
               <Reveal delay={100}>
-                <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
+                <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-4">
                   {SCORE.categories.map((c, i) => (
-                    <div
-                      key={t.scoreCats[c.label as keyof typeof t.scoreCats] ?? c.label}
-                      className="border-t pt-3"
-                      style={{ borderColor: HAIR }}
-                    >
-                      <dd className="font-erode text-2xl" style={{ color: ACCENT }}>
-                        <Count value={Number(c.n)} delay={120 + i * 70} />
-                      </dd>
-                      <dt className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.16em] text-[#F4EEE2]/60">
+                    <div key={c.label} className="flex flex-col-reverse border-t pt-3" style={{ borderColor: HAIR }}>
+                      <dt className="mt-0.5 font-fragment text-[11px] uppercase tracking-[0.14em] text-[#F4EEE2]/60">
                         {t.scoreCats[c.label as keyof typeof t.scoreCats] ?? c.label}
                       </dt>
+                      <dd className="font-erode text-2xl font-light" style={{ color: ACCENT }}>
+                        <Count value={Number(c.n)} delay={120 + i * 60} />
+                      </dd>
                     </div>
                   ))}
                 </dl>
               </Reveal>
             </div>
-
             <QuoteRotator reduced={reduced} t={t} />
             <Reveal delay={140}>
               <p className="mt-10 max-w-[70ch] text-[15px] leading-relaxed text-[#F4EEE2]/60">
-                {t.reviews.srHeading} via{" "}
-                <a
-                  href={REVIEWS_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`underline underline-offset-4 hover:text-[#F4EEE2]/80 ${FOCUS}`}
-                >
+                {t.reviews.via}{" "}
+                <a href={REVIEWS_URL} target="_blank" rel="noreferrer" className={`underline underline-offset-4 hover:text-[#F4EEE2]/80 ${FOCUS}`}>
                   Booking.com
                 </a>
                 {t.reviews.sourceNote}
@@ -2553,177 +1951,104 @@ export default function Page() {
           </div>
         </section>
 
-        {/* ── 9 · PRACTICAL INFO ───────────────────────────────────────── */}
+        {/* ── 6 · Getting here (Kleif journey) ────────────────────────── */}
         <section id="info" className="scroll-mt-16 border-t" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
-            <MaskHeading
-              text={t.info.heading}
-              className="font-erode text-4xl font-medium leading-[1.16] tracking-tight md:text-5xl"
-            />
-            <div className="mt-12 grid gap-12 md:grid-cols-2 md:gap-16">
+          <div className="mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-36">
+            <MaskHeading text={t.journey.heading} className={`max-w-3xl ${H2}`} />
+            <Reveal delay={90}>
+              <p className="mt-6 max-w-[58ch] text-lg leading-relaxed" style={{ color: BODY }}>{t.journey.body}</p>
+            </Reveal>
+            <div className="mt-16 md:mt-20">
+              <RouteMap t={t} reduced={reduced} />
+            </div>
+
+            <div className="mt-20 grid gap-12 md:mt-28 md:grid-cols-2 md:gap-16">
               <div className="space-y-8">
                 <Reveal>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                    {t.info.callFarm}
-                  </p>
-                  <a
-                    href={PHONE_HREF}
-                    className={`mt-2 inline-block font-erode text-5xl transition-colors duration-200 hover:text-[#E68C4C] md:text-6xl ${FOCUS}`}
-                    style={{ color: ACCENT }}
-                  >
+                  <p className="font-fragment text-[11px] uppercase tracking-[0.16em] text-[#B9CBD6]">{t.info.callFarm}</p>
+                  <a href={PHONE_HREF} className={`mt-2 inline-block font-erode text-5xl font-light transition-colors duration-200 hover:text-[#E68C4C] md:text-6xl ${FOCUS}`} style={{ color: ACCENT }}>
                     {PHONE}
                   </a>
                 </Reveal>
                 <Reveal delay={80}>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                    {t.info.writeToUs}
-                  </p>
-                  <a
-                    href={`mailto:${EMAIL}`}
-                    className={`-my-2 mt-0 inline-flex items-center gap-3 py-2 text-xl text-[#F4EEE2]/90 underline-offset-4 hover:underline md:text-2xl ${FOCUS}`}
-                  >
-                    <Mail
-                      className="h-5 w-5 text-[#B9CBD6]"
-                      strokeWidth={1.5}
-                      aria-hidden="true"
-                    />
+                  <p className="font-fragment text-[11px] uppercase tracking-[0.16em] text-[#B9CBD6]">{t.info.writeToUs}</p>
+                  <a href={`mailto:${EMAIL}`} className={`-my-2 inline-flex items-center gap-3 py-2 text-xl text-[#F4EEE2]/90 underline-offset-4 hover:underline md:text-2xl ${FOCUS}`}>
+                    <Mail className="h-5 w-5 text-[#B9CBD6]" strokeWidth={1.5} aria-hidden="true" />
                     {EMAIL}
                   </a>
                 </Reveal>
                 <Reveal delay={160}>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                    {t.info.address}
-                  </p>
+                  <p className="font-fragment text-[11px] uppercase tracking-[0.16em] text-[#B9CBD6]">{t.info.address}</p>
                   <p className="mt-2 flex items-start gap-3 text-xl text-[#F4EEE2]/90 md:text-2xl">
-                    <MapPin
-                      className="mt-1.5 h-5 w-5 shrink-0 text-[#B9CBD6]"
-                      strokeWidth={1.5}
-                      aria-hidden="true"
-                    />
+                    <MapPin className="mt-1.5 h-5 w-5 shrink-0 text-[#B9CBD6]" strokeWidth={1.5} aria-hidden="true" />
                     {ADDRESS}
                   </p>
-                </Reveal>
-                <Reveal delay={220}>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#F4EEE2]/55">
-                    {t.info.onTheProperty}
-                  </p>
-                  <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-                    {FACILITIES.map((f) => {
-                      const Icon = FACILITY_ICON[f] ?? Sparkles
-                      return (
-                        <li key={f} className="flex items-center gap-2.5">
-                          <Icon
-                            className="h-4 w-4 shrink-0"
-                            strokeWidth={1.5}
-                            style={{ color: ACCENT }}
-                            aria-hidden="true"
-                          />
-                          <span className="text-[15px] leading-tight text-[#F4EEE2]/80">{t.facilities[f as keyof typeof t.facilities] ?? f}</span>
-                        </li>
-                      )
-                    })}
-                  </ul>
                 </Reveal>
               </div>
               <div>
                 <Reveal delay={100}>
-                  <p className="leading-relaxed" style={{ color: BODY }}>
-                    {t.info.bookDirect}
-                  </p>
+                  <p className="leading-relaxed" style={{ color: BODY }}>{t.info.bookDirect}</p>
                 </Reveal>
                 <Reveal delay={180}>
-                  <ul
-                    className="mt-8 space-y-2.5 border-t pt-7"
-                    style={{ borderColor: HAIR }}
-                  >
-                    {DISTANCES.map((d) => (
-                      <li
-                        key={t.distances[d.key as keyof typeof t.distances] ?? d.label}
-                        className="font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/65"
-                      >
-                        {d.n} · {t.distances[d.key as keyof typeof t.distances] ?? d.label}
-                      </li>
-                    ))}
-                    <li className="font-mono text-[12px] uppercase tracking-[0.14em] text-[#F4EEE2]/65">
-                      {t.rules.openAllYear}
-                    </li>
+                  <p className="mt-10 font-fragment text-[11px] uppercase tracking-[0.16em] text-[#B9CBD6]">{t.info.onTheProperty}</p>
+                  <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                    {FACILITIES.map((f) => {
+                      const Icon = FACILITY_ICON[f] ?? Sparkles;
+                      return (
+                        <li key={f} className="flex items-center gap-2.5">
+                          <Icon className="h-4 w-4 shrink-0" strokeWidth={1.5} style={{ color: ACCENT }} aria-hidden="true" />
+                          <span className="text-[15px] leading-tight text-[#F4EEE2]/80">
+                            {t.facilities[f as keyof typeof t.facilities] ?? f}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </Reveal>
                 <Reveal delay={240}>
-                  <p className="mt-8 text-sm text-[#F4EEE2]/60">
-                    {t.footer.company}
-                  </p>
+                  <p className="mt-10 text-sm text-[#F4EEE2]/60">{t.footer.company}</p>
                 </Reveal>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── 10 · FINAL CTA — night ───────────────────────────────────── */}
-        <section className="relative flex min-h-[92svh] items-end overflow-hidden">
-          <Img
-            {...frame(IMG.dusk, "100vw")}
-            alt={t.seasons.duskAlt}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-[#15130F] via-[#15130F]/40 to-transparent"
-          />
+        {/* ── 7 · Closing ─────────────────────────────────────────────── */}
+        <section id="book" className="relative flex min-h-[92svh] scroll-mt-16 items-end overflow-hidden">
+          <Img {...frame(IMG.dusk, "100vw")} alt={t.closing.duskAlt} className="absolute inset-0 h-full w-full object-cover" />
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#15130F] via-[#15130F]/40 to-[#15130F]/10" />
           <div className="relative mx-auto w-full max-w-6xl px-5 pb-20 pt-40 text-center md:px-8 md:pb-28">
-            <div className="mx-auto w-fit">
-              <Eyebrow
-                label={t.seasons.duskEyebrow}
-                register={register}
-                reduced={reduced}
-              />
-            </div>
-            <MaskHeading
-              delay={60}
-              text={t.closing.heading}
-              className="mx-auto mt-6 max-w-3xl font-erode text-[clamp(2.6rem,6.5vw,4.6rem)] font-medium leading-[1.16] tracking-tight"
-            />
+            <MaskHeading text={t.closing.heading} className={`mx-auto max-w-3xl ${H2}`} />
             <Reveal delay={140}>
-              <p className="mx-auto mt-5 max-w-xl leading-relaxed text-[#F4EEE2]/85">
-                {t.closing.body}
-              </p>
+              <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[#F4EEE2]/85">{t.closing.body}</p>
             </Reveal>
+            {/* The booking card lives here, by the footer, never under the
+              * hero: the first scroll is for the place ([[booking-widget-at-the-bottom]]).
+              * The bar CTA and the phone bottom bar stay reachable throughout. */}
             <Reveal delay={220}>
-              <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
-                {/* Not the heading again: the h2 two lines up already says
-                  * "Book your evening…", and a sentence repeated as a button
-                  * reads as an echo. Every other booking control on the page
-                  * says exactly this, and consistency is the affordance. */}
-                <BookLink lang={lang} stay={stay}>{t.cta.check}</BookLink>
-                <a
-                  href={PHONE_HREF}
-                  className={`inline-flex items-center gap-2 border border-[#F4EEE2]/35 px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 hover:border-[#F4EEE2]/70 ${FOCUS}`}
-                >
-                  <Phone
-                    className="h-4 w-4"
-                    strokeWidth={1.5}
-                    aria-hidden="true"
-                  />
-                  {PHONE}
-                </a>
+              <div className="mx-auto mt-10 max-w-md bg-[#15130F] text-left text-[#F4EEE2]">
+                <BookingBar variant="card" t={t} lang={lang} stay={stay} onStay={setStay} today={today} />
               </div>
+              <a
+                href={PHONE_HREF}
+                className={`mt-6 inline-flex items-center gap-2 py-2 text-[15px] text-[#F4EEE2]/85 underline-offset-4 hover:underline ${FOCUS}`}
+              >
+                <Phone className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+                {t.cta.callFarm} {PHONE}
+              </a>
             </Reveal>
           </div>
         </section>
 
-        {/* Honesty note — required disclosure before the shared footer */}
         <section className="border-t" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-4xl px-5 py-10 md:px-8">
-            <p className="text-xs leading-relaxed text-[#F4EEE2]/60">
-              {FOOTNOTE}
-            </p>
+          <div className="mx-auto max-w-4xl px-5 py-10 pb-28 md:px-8 md:pb-10">
+            <p className="text-xs leading-relaxed text-[#F4EEE2]/60">{FOOTNOTE}</p>
           </div>
         </section>
       </main>
 
-      {/* Sticky mobile CTA — the booking path stays two taps away, always.
-       * Hidden while the full-screen menu is open so it doesn't double up
-       * with the overlay's own "Check availability" button at the bottom. */}
+      {/* Sticky mobile CTA: the booking path two taps away once the picture
+       * has gone; hidden while the menu is open. */}
       <div
         className="fixed inset-x-0 bottom-0 z-40 border-t md:hidden"
         style={{
@@ -2731,52 +2056,23 @@ export default function Page() {
           background: "rgba(21,19,15,0.94)",
           backdropFilter: "blur(10px)",
           WebkitBackdropFilter: "blur(10px)",
-          /* Only once the hero — which carries the booking card and its own
-           * CTA — has scrolled past. Two stacked orange CTAs in one viewport
-           * was the measured duplication; and it slides back away if the
-           * guest returns to the top. */
-          transform:
-            pastHero && !menuOpen ? "translateY(0)" : "translateY(110%)",
-          /* 300ms, not 500: this used to appear once on the way down, but it
-           * now toggles every time the hero boundary is crossed, which puts it
-           * in UI territory rather than one-shot drawer territory. */
+          transform: pastHero && !menuOpen ? "translateY(0)" : "translateY(110%)",
           transition: reduced ? "none" : `transform 0.3s ${EASE}`,
         }}
       >
         <div className="flex items-stretch gap-3 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
           {bookingReady() ? (
             <a
-              href={bookingHref({
-                lang,
-                checkin: stay.checkin,
-                checkout: stay.checkout,
-                adults: stay.adults,
-                children: stay.children,
-              })!}
+              href={bookingHref({ lang, checkin: stay.checkin, checkout: stay.checkout, adults: stay.adults, children: stay.children })!}
               className={`flex flex-1 items-center justify-center gap-2 bg-[#D97D3D] px-4 py-3 text-[15px] font-semibold text-[#15130F] active:scale-[0.98] ${FOCUS}`}
             >
               {t.cta.check}
-              <ArrowUpRight
-                className="h-4 w-4"
-                strokeWidth={1.5}
-                aria-hidden="true"
-              />
+              <ArrowUpRight className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
             </a>
-          ) : (
-            <span
-              className="flex flex-1 items-center justify-center gap-2 border border-dashed px-4 py-3 text-[15px] font-semibold"
-              style={{
-                borderColor: "rgba(217,125,61,0.55)",
-                color: "rgba(217,125,61,0.85)",
-              }}
-              title={t.booking.placeholder}
-            >
-              {t.cta.check}
-            </span>
-          )}
+          ) : null}
           <a
             href={PHONE_HREF}
-            aria-label={`Call Nýpugarðar, ${PHONE}`}
+            aria-label={`${t.cta.callFarm}, ${PHONE}`}
             className={`flex w-14 items-center justify-center border border-[#F4EEE2]/35 ${FOCUS}`}
           >
             <Phone className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
