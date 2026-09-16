@@ -155,10 +155,11 @@ import type { Copy, Lang } from './copy';
 import BookingBar from "./BookingBar";
 import Hero from "./Hero";
 import RouteMap from "./RouteMap";
+import Footer from "./Footer";
 import { InsetBand, MaskDevelop } from "./Scenes";
 import { loadMotion } from "./motion";
 
-/* The catalogue's chrome (the "send prototype" tools, the shared footer)
+/* The catalogue's chrome (the "send prototype" tools at the top)
  * and the private company brief behind it are reachable ONLY through this
  * lazy import, and only when STANDALONE is false. In the client build that
  * constant is baked true at compile time, the branch is dead code, and
@@ -2016,9 +2017,6 @@ export default function Page() {
                     })}
                   </ul>
                 </Reveal>
-                <Reveal delay={240}>
-                  <p className="mt-10 text-sm text-[#F4EEE2]/60">{t.footer.company}</p>
-                </Reveal>
               </div>
             </div>
           </div>
@@ -2051,12 +2049,9 @@ export default function Page() {
           </div>
         </section>
 
-        <section className="border-t" style={{ borderColor: HAIR }}>
-          <div className="mx-auto max-w-4xl px-5 py-10 pb-28 md:px-8 md:pb-10">
-            <p className="text-xs leading-relaxed text-[#F4EEE2]/60">{t.footer.note}</p>
-          </div>
-        </section>
       </main>
+
+      <Footer t={t} lang={lang} setLang={setLang} barSpace />
 
       {/* Sticky mobile CTA: the booking path two taps away once the picture
        * has gone; hidden while the menu is open. */}
@@ -2091,11 +2086,6 @@ export default function Page() {
         </div>
       </div>
 
-      {PreviewShell ? (
-        <Suspense fallback={null}>
-          <PreviewShell part="footer" />
-        </Suspense>
-      ) : null}
     </div>
   );
 }

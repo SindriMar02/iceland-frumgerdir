@@ -35,6 +35,11 @@ export function roomsPath(lang: Lang): string {
   return lang === 'is' ? '/is/herbergi' : '/rooms'
 }
 
+export function privacyPath(lang: Lang): string {
+  if (!STANDALONE) return '/preview/nypugardar/personuvernd'
+  return lang === 'is' ? '/is/personuvernd' : '/privacy'
+}
+
 /** The language a standalone URL is in. Null in the catalogue, where the
  *  route carries no language and the toggle decides. */
 export function langFromPath(pathname: string): Lang | null {
@@ -44,10 +49,11 @@ export function langFromPath(pathname: string): Lang | null {
 
 /** The same page in the other language, hash and all. */
 export function counterpart(pathname: string, hash: string, to: Lang): string {
+  if (/\/(privacy|personuvernd)\/?$/.test(pathname)) return privacyPath(to)
   const isRooms = /\/(rooms|herbergi)\/?$/.test(pathname)
   return (isRooms ? roomsPath(to) : homePath(to)) + (hash || '')
 }
 
 /** Every route the standalone prerender walks. Kept beside the paths that
  *  define them so a new page cannot ship unprerendered. */
-export const PRERENDER_ROUTES = ['/', '/rooms', '/is/', '/is/herbergi'] as const
+export const PRERENDER_ROUTES = ['/', '/rooms', '/privacy', '/is/', '/is/herbergi', '/is/personuvernd'] as const

@@ -22,6 +22,7 @@ import { useLang } from "./useLang";
 import { useStay } from "./stay";
 import { useReducedMotion } from "framer-motion";
 import BookingBar from "./BookingBar";
+import Footer from "./Footer";
 import PRICES from "./prices.json";
 import { leadFor, galleryFor } from "./photos";
 import { IMG, FEATURED_IDS, PHONE_HREF, CHECK_TIMES, HOUSE_RULES } from "./data";
@@ -433,6 +434,8 @@ export default function RoomsPage() {
           </div>
         </section>
       </main>
+
+      <Footer t={t} lang={lang} setLang={setLang} />
     </div>
   );
 }

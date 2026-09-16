@@ -46,18 +46,18 @@ const en = {
 
   cta: {
     check: 'Check availability',
-    bookEvening: 'Book your evening at Nýpugarðar',
-    callFarm: 'Call the farm',
+    bookEvening: 'Dinner at Nýpugarðar',
+    callFarm: 'Call us at the farm',
     bookRoom: 'Book',
-    liveFromGodo: 'Live dates and prices come straight from our booking system',
+    liveFromGodo: 'Live availability and prices from our booking system',
   },
 
   hero: {
     /** Visually the kicker at the head of the frame; in the markup it is the
      *  second half of the h1, after the wordmark, in the words a traveller
      *  types into a search box. */
-    kicker: 'A quiet guesthouse between Höfn and Jökulsárlón',
-    alt: 'Low sun across the flats below Nýpugarðar, the outlet glaciers and snow peaks along the horizon',
+    kicker: 'A farm stay between Höfn and Jökulsárlón, with glaciers on the horizon',
+    alt: 'Low sun across the Mýrar lowlands below Nýpugarðar, with outlet glaciers and snow-covered peaks on the horizon',
   },
 
   booking: {
@@ -67,15 +67,15 @@ const en = {
     children: 'Children',
     night: 'night',
     nights: 'nights',
-    ageNote: 'Guests 7 and older count as adults.',
-    pricesNext: 'Prices for your dates are shown on the next step, in our booking system.',
+    ageNote: 'Guests aged 7 and over are charged as adults.',
+    pricesNext: 'You will see the price for your dates in the next step, in our booking system.',
     placeholder: 'Godo booking connects here',
     datesAria: 'Choose your arrival and departure dates',
     openCalendar: 'Open the calendar',
     prevMonth: 'Previous month',
     nextMonth: 'Next month',
-    strikeNote: 'Crossed-out nights were fully booked at our last check',
-    mayBeFull: 'Those nights looked fully booked at our last check. The booking page has the final word.',
+    strikeNote: 'Crossed-out nights were fully booked when we last checked.',
+    mayBeFull: 'Those nights looked fully booked when we last checked. Our booking system has the latest availability.',
     checkIn: 'Check in',
     checkOut: 'Check out',
     pickDate: 'Choose a date',
@@ -83,84 +83,84 @@ const en = {
     clearDates: 'Clear dates',
     chooseCheckout: 'Choose your check-out',
     bookedWord: 'fully booked',
-    takenDay: '{date} is fully booked. Choose another night to arrive.',
-    crossesBooked: 'Those dates cross a fully booked night. Choose a stay before or after it.',
-    calendarKey: 'Struck nights were fully booked when we last checked our booking system. The booking page always has the final word.',
+    takenDay: '{date} is fully booked. Please choose another arrival date.',
+    crossesBooked: 'Those dates include a fully booked night. Please choose a stay before or after it.',
+    calendarKey: 'Crossed-out nights were fully booked when we last checked. Our booking system always has the latest availability.',
     months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     weekdaysShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     weekdayInitials: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
   },
 
   manifesto: {
-    kicker: 'Only the sounds of nature',
-    text: 'Nýpugarðar stands on a low hill above Mýrar, a short drive off the Ring Road. Eleven rooms and two cottages, glaciers in the window, and quiet evenings on the farm.',
+    kicker: 'Quiet evenings on the farm',
+    text: 'We are four kilometres off the Ring Road, on a low hill above Mýrar. There are eleven rooms and two cottages here, with the mountains and outlet glaciers of Vatnajökull across the view and quiet around the farm when the day settles.',
   },
 
   facts: {
-    rooms: 'rooms, two of them with a shared bathroom',
-    cottages: 'cottages beside the house, for three and for four',
+    rooms: 'rooms, two with a shared bathroom',
+    cottages: 'cottages beside the guesthouse, sleeping three and four',
     checkin: 'check in, until 23:30',
   },
 
   band: {
-    heading: 'The glaciers in the window',
-    body: 'The house looks out across Mýrar to the mountains and the outlet glaciers of Vatnajökull. On a clear day you see them from the dining room, and from September to April it is a good place to watch for the northern lights.',
-    alt: 'Snow peaks above the flats of Mýrar, the grass lit rust red by a low sun under a blue sky',
+    heading: 'Glaciers beyond the windows',
+    body: 'From the guesthouse we look across Mýrar to the mountains and the outlet glaciers of Vatnajökull. On a clear day the view fills the dining room windows, and from September to April dark evenings can bring the northern lights above the farm.',
+    alt: 'Snow-covered peaks beyond the Mýrar lowlands, with the grass lit by a low sun',
     auroraN: 'Sept to April',
     aurora: 'northern lights season',
     roadN: '4 km',
     road: 'off Route 1, the Ring Road',
     viewN: 'Clear days',
-    view: 'glaciers in view from the dining room',
+    view: 'glacier views from the dining room',
   },
 
   journey: {
-    heading: 'Four kilometres off the Ring Road',
-    body: 'Turn off Route 1 between Höfn and Jökulsárlón and follow the road up to the farm. From here the glacier lagoons lie to the west and Höfn to the east, and either makes an easy half-day drive.',
+    heading: 'Just four kilometres off the Ring Road',
+    body: 'We are reached by a short turn off Route 1 between Höfn and Jökulsárlón. From the farm, Höfn lies to the east and the glacier lagoons to the west, so you can spend the day exploring either direction and come back to the quiet of Nýpugarðar in the evening.',
     mapAria: 'Map of the coast around Nýpugarðar, with the driving routes from the farm to Höfn, Þórbergssetur, Jökulsárlón, Diamond Beach, Fjallsárlón and Stokksnes.',
-    drivesHeading: 'Drives from the farm',
+    drivesHeading: 'From Nýpugarðar',
     ocean: 'North Atlantic',
     min: 'min',
-    driveNote: 'Driving times and distances by road from the farm, worked out with OpenStreetMap, minutes rounded to five. They assume good conditions, so allow more time in winter.',
+    driveNote: 'Driving times and distances are calculated by road from the farm using OpenStreetMap, with times rounded to five minutes. They assume good conditions, so allow extra time in winter.',
     places: {
-      hofn: { name: 'Höfn', note: 'The nearest town, with the swimming pool and plenty more to do' },
-      thorbergssetur: { name: 'Þórbergssetur', note: 'Museum about the writer Þórbergur Þórðarson, at Hali in Suðursveit' },
-      jokulsarlon: { name: 'Jökulsárlón', note: 'The glacier lagoon, with icebergs from Breiðamerkurjökull' },
-      diamondBeach: { name: 'Diamond Beach', note: 'The black sand beach where the ice washes up, across the road from the lagoon' },
-      fjallsarlon: { name: 'Fjallsárlón', note: 'A smaller glacier lagoon under Fjallsjökull' },
-      stokksnes: { name: 'Stokksnes and Vestrahorn', note: 'The headland and black sand dunes under Vestrahorn, east of Höfn' },
+      hofn: { name: 'Höfn', note: 'The nearest town, with the swimming pool, restaurants and services' },
+      thorbergssetur: { name: 'Þórbergssetur', note: 'A museum dedicated to the writer Þórbergur Þórðarson at Hali in Suðursveit' },
+      jokulsarlon: { name: 'Jökulsárlón', note: 'The glacier lagoon, where icebergs break from Breiðamerkurjökull' },
+      diamondBeach: { name: 'Diamond Beach', note: 'The black beach where ice from the lagoon washes ashore, just across Route 1' },
+      fjallsarlon: { name: 'Fjallsárlón', note: 'A smaller glacier lagoon beneath Fjallsjökull' },
+      stokksnes: { name: 'Stokksnes and Vestrahorn', note: 'Black sand, open coast and Vestrahorn rising above the headland east of Höfn' },
     },
   },
 
   rooms: {
-    eyebrow: 'Your room',
+    eyebrow: 'Your stay',
     heading: 'Eleven rooms and two cottages',
-    body: 'Plain, comfortable and quiet, with the view from the pillow. Two of the rooms share a bathroom, and the two cottages stand beside the house, one for three guests and one for four.',
-    seeAll: 'See every room and photo',
-    seeAllNote: 'All seven room types, the two cottages among them, each with its own photographs and price, on a page of their own.',
+    body: 'Warm, comfortable and quiet, with the landscape just beyond the window. Two rooms share a bathroom. Our two timber cottages stand beside the guesthouse, one for three guests and one for four, each with its own bathroom and the fields right outside.',
+    seeAll: 'See all rooms, cottages and photos',
+    seeAllNote: 'See all seven room types, the two cottages among them, with photographs, details and prices for each one.',
     /** The horizontal strip of room types under the counts. */
     stripLabel: 'Room types',
     prevRooms: 'Previous room types',
     nextRooms: 'Next room types',
     stripHint: 'Left and right arrow keys move between room types.',
-    openRoom: 'Photos and details',
+    openRoom: 'See photos and details',
     /** Short forms for the room index chips; the bands carry the full Godo names. */
     short: {
-      twinSharedEconomy: 'Twin, economy',
-      doubleTwinShared: 'Double/twin, shared bath',
+      twinSharedEconomy: 'Twin, shared bathroom',
+      doubleTwinShared: 'Double or twin, shared bathroom',
       double: 'Double',
-      doubleTwinPrivate: 'Double/twin, private bath',
-      doublePrivateExtraBed: 'Double + extra bed',
+      doubleTwinPrivate: 'Double or twin, private bathroom',
+      doublePrivateExtraBed: 'Double with extra bed',
       cottage3: 'Cottage for 3',
       familyCottage: 'Family cottage',
     },
-    cottagesHeading: 'Two cottages beside the house',
-    cottagesBody: 'Two timber cottages beside the house, each with its own bathroom. One sleeps three and one sleeps four, with the fields right outside the door.',
+    cottagesHeading: 'Two cottages beside the guesthouse',
+    cottagesBody: 'Our two timber cottages stand beside the guesthouse, each with its own bathroom. One sleeps three and the other four, with the fields and open countryside right outside the door.',
     cottage1Alt: 'The family cottage at Nýpugarðar, red roof and a timber porch, standing on the grass',
     cottage1Caption: 'The family cottage, sleeps four',
     cottage2Alt: 'The cottage for three at Nýpugarðar, seen across the field behind it',
     cottage2Caption: 'The cottage for three',
-    beforeYouCome: 'Before you arrive',
+    beforeYouCome: 'Good to know before you arrive',
     arrive: 'Arrive',
     leave: 'Leave',
     until: 'until 23:30',
@@ -168,36 +168,36 @@ const en = {
   },
 
   dinner: {
-    heading: 'Dinner from the menu',
+    heading: 'Dinner with the glacier in view',
     intro:
-      'In the evening you order from the menu and eat in the dining room, with the windows facing the glacier. There is nothing to book ahead. Just tell us when you arrive that you would like dinner.',
-    body: 'After dinner the farm goes quiet, and the only sounds outside are the sounds of nature.',
+      'In the evening we serve dinner from the menu in our dining room, with the windows facing the glacier. You do not need to reserve a table in advance. Just let us know when you arrive that you would like to eat with us.',
+    body: 'After dinner the farm settles into the evening, with the countryside quiet outside the windows.',
     diningAlt:
-      'The dining room at Nýpugarðar, tables set in front of full-height windows facing the glacier',
+      'The dining room at Nýpugarðar, with tables set beside full-height windows facing the glacier',
     diningCaption: 'The dining room',
     winterAlt:
-      'The guesthouse at Nýpugarðar under deep snow, its deck and big windows facing white mountains',
+      'The guesthouse at Nýpugarðar in deep winter snow, with the deck and large windows facing the mountains',
     winterCaption: 'The house in winter',
-    breakfastHeading: 'Breakfast in the same room',
+    breakfastHeading: 'Breakfast with the same view',
     breakfastBody:
-      'A buffet with the same view. Guests rate it highly, and the kitchen can cover most ways of eating.',
+      'Breakfast is served as a buffet in the same dining room. Guests rate it highly, and we can accommodate vegetarian, vegan and gluten-free diets.',
     breakfastAlt:
-      'The breakfast buffet laid out at Nýpugarðar: bread, cold cuts, jams and a coffee pot',
+      'The breakfast buffet at Nýpugarðar, with bread, cold cuts, jams and coffee set out for guests',
     breakfastCaption: 'The breakfast table',
     served: 'Served',
     weCanCover: 'We can cover',
-    toGoLead: 'Driving to the glacier lagoon before breakfast?',
-    toGoTail: 'Say so the night before and it will be waiting.',
+    toGoLead: 'Leaving for Jökulsárlón before breakfast?',
+    toGoTail: 'Tell us the night before and we can prepare breakfast to go.',
   },
 
   reviews: {
-    eyebrow: 'Guests',
+    eyebrow: 'What guests say',
     srHeading: 'Guest reviews',
     outOf: '/ 10',
     scoreWord: 'Fabulous',
     reviewsOn: 'guest reviews on Booking.com',
     via: 'Guest reviews via',
-    sourceNote: ', collected 25 August 2026. Every review where a guest wrote something is here. The other stays left a score and no words, and what guests said could be better is on Booking.',
+    sourceNote: ', collected 25 August 2026. Every written review is included here, and what guests felt could be better is left on Booking.com. The remaining stays left a score without a written comment.',
     translatedFromItalian: 'Translated from Italian',
     setLabel: 'Show guest reviews, set',
     of: 'of',
@@ -210,26 +210,69 @@ const en = {
   },
 
   info: {
-    eyebrow: 'Finding us',
-    callFarm: 'Call the farm',
+    eyebrow: 'Getting here',
+    callFarm: 'Call us at the farm',
     writeToUs: 'Write to us',
     address: 'The address',
     onTheProperty: 'On the property',
     bookDirect:
-      'Book directly with us and you deal with the farm, not an agency. Dates and availability are live. Nýpugarðar is also listed on Booking.com, HeyIceland and Guide to Iceland if you would rather book there. For anything else, the phone is quickest.',
+      'Book here and your reservation comes straight to us at the farm, with live prices and availability in our booking system. Nýpugarðar is also listed on Booking.com, HeyIceland and Guide to Iceland if you prefer to book there. If you need anything else, calling us is usually the quickest way to reach us.',
     mobile: 'Mobile',
   },
 
   closing: {
-    heading: 'Stay the night, and stay for dinner',
-    body: 'A room with the horizon in the window, a seat at the table for dinner, and a night with nothing to hear but nature.',
+    heading: 'Stay for the night, stay for dinner',
+    body: 'Glaciers in the window, dinner at the farm, breakfast before the road and a quiet night surrounded by the sounds of nature.',
     duskAlt:
-      'The sun setting over open grassland at Nýpugarðar, mountains dark on the horizon',
+      'The sun setting over the open fields at Nýpugarðar, with the mountains dark on the horizon',
   },
 
   footer: {
-    company: 'Nýpugarðar ehf. is an active, registered Icelandic company, kt. 510805-0380.',
-    note: 'Guest scores from Booking.com, checked 16 September 2026, and guest quotes collected there on 25 August 2026. All photographs are our own. Rates and availability come live from our booking system. Dinner is arranged with us when you arrive.',
+    tagline: 'A quiet, family-run guesthouse on Mýrar, between Höfn and Jökulsárlón.',
+    visit: 'Visit',
+    directions: 'Directions',
+    contact: 'Contact',
+    pages: 'On this site',
+    book: 'Book a stay',
+    legal: 'Nýpugarðar ehf. · Company ID 510805-0380',
+    designedBy: 'Designed by',
+    credit: 'Designed by SNDR Studio',
+  },
+
+  privacy: {
+    title: 'Privacy',
+    lead: 'How Nýpugarðar handles your personal information when you visit this website, book a stay or get in touch with us.',
+    updated: 'Last updated 16 September 2026',
+    sections: [
+      {
+        h: 'Who we are',
+        p: 'Nýpugarðar ehf. (company ID 510805-0380), Nýpugarðar, 781 Höfn í Hornafirði, Iceland, is responsible for the personal information described here. You can reach us at nypu@simnet.is or on +354 893 1826.',
+      },
+      {
+        h: 'This website',
+        p: 'This website sets no cookies and stores nothing in your browser, and it uses no advertising or tracking tools. We count visits with Cloudflare Web Analytics, which works without cookies and does not identify you, so all we see are totals, such as how many people visited and which pages they read. The site is hosted by Cloudflare, which handles technical data such as your IP address to deliver the pages to you securely.',
+      },
+      {
+        h: 'Booking a stay',
+        p: 'When you book directly, you do it in our booking system, Godo. The details you enter there, such as your name, email, phone number and the dates of your stay, come to us so we can welcome you, and Godo stores them for us. This website never receives them itself. If you book through Booking.com or another agency, that company also holds your booking, under its own privacy policy.',
+      },
+      {
+        h: 'Email and phone',
+        p: 'If you write to us or call, we use what you tell us to answer you and to arrange your stay.',
+      },
+      {
+        h: 'Why we use it',
+        p: 'We use your information to carry out your booking, which is an agreement between you and us, and to meet our legal duties, such as keeping accounts. We do not sell your information.',
+      },
+      {
+        h: 'How long we keep it',
+        p: 'We keep booking details for as long as we need them for your stay and for our accounts. Icelandic bookkeeping law requires accounting records to be kept for seven years.',
+      },
+      {
+        h: 'Your rights',
+        p: 'You can ask to see the information we hold about you, to have it corrected, or, where the law allows, to have it deleted, and you can object to how we use it. Write to us at nypu@simnet.is. If you are not satisfied with our answer, you can complain to Persónuvernd, the Icelandic Data Protection Authority, at personuvernd.is.',
+      },
+    ],
   },
 
   price: {
@@ -237,7 +280,7 @@ const en = {
     perNight: 'per night',
     roomTypes: 'Room types and prices',
     sleeps: 'Sleeps',
-    pricesNote: 'The lowest nightly rate in the next twelve months. The exact price for your dates comes up when you check availability.',
+    pricesNote: 'The lowest nightly rate available in the next twelve months. The exact price for your dates appears when you check availability.',
     checkedOn: 'Prices checked',
   },
 
@@ -248,31 +291,31 @@ const en = {
    * the fastest way to a manual penalty, so the page is the source and the
    * schema follows it. Every answer opens with the fact, not with a greeting. */
   faq: {
-    heading: 'Questions guests ask',
+    heading: 'Questions before you stay',
     items: [
       {
         q: 'How far is Jökulsárlón from the farm?',
-        a: 'Jökulsárlón is about 50 km away, a little under an hour along Route 1. Höfn is 20 km away, and the farm sits 4 km off the Ring Road.',
+        a: 'Jökulsárlón is about 50 km from the farm, a little under an hour along Route 1. Höfn is 20 km away, and Nýpugarðar is 4 km off the Ring Road.',
       },
       {
         q: 'Can I have dinner at the farm?',
-        a: 'Yes, there is a dinner menu in the evening, served in the dining room facing the glacier. There is nothing to book ahead, just tell us when you arrive.',
+        a: 'Yes. In the evening we serve dinner from the menu in the dining room facing the glacier. You do not need to book ahead. Just let us know when you arrive that you would like dinner.',
       },
       {
         q: 'What do you serve for breakfast?',
-        a: 'A buffet in the same room, with the same view, and the kitchen covers vegetarian, vegan and gluten-free. Breakfast to go if you are leaving for the glacier lagoon before the room opens.',
+        a: 'We serve a buffet in the dining room, with the same glacier view. Vegetarian, vegan and gluten-free options are available. If you are leaving for Jökulsárlón before breakfast starts, we can prepare breakfast to go.',
       },
       {
         q: 'What time can I check in and out?',
-        a: 'Check in from 16:00 to 23:30, and check out from 07:30 to 11:00.',
+        a: 'Check in is from 16:00 to 23:30, and check out is from 07:30 to 11:00.',
       },
       {
         q: 'Can I bring a pet, and are children welcome?',
-        a: 'No pets, and the whole house is non-smoking. Children are welcome, and guests aged 7 and over are charged as adults.',
+        a: 'Pets are not allowed and the guesthouse is non-smoking. Children are welcome, and guests aged 7 and over are charged as adults.',
       },
       {
         q: 'Can I book directly with the farm?',
-        a: 'Yes, dates and prices here are live and the booking goes through our own system, so you deal with the farm and not an agency. Nýpugarðar is also on Booking.com, HeyIceland and Guide to Iceland.',
+        a: 'Yes. A direct booking comes straight to us at the farm, and our booking system shows live prices and availability. Nýpugarðar is also listed on Booking.com, HeyIceland and Guide to Iceland.',
       },
     ],
   },
@@ -307,18 +350,18 @@ const en = {
   },
 
   gallery: {
-    eyebrow: 'Every frame',
-    heading: 'The farm, the land and the table',
-    body: 'Every photograph here is our own. The rooms have their own section above, so this is the farm, the land and the table.',
-    byRoom: 'Every room type, with its own bathroom',
-    andTheRest: 'And the rest of it',
+    eyebrow: 'Life at Nýpugarðar',
+    heading: 'The farm, the view and the table',
+    body: 'These are our own photographs of the farm, the landscape and the dining room. The rooms and cottages have their own gallery above.',
+    byRoom: 'Every room type, with its own photographs',
+    andTheRest: 'Around the farm',
     groups: {
       table: 'The dining room',
       house: 'The house and the deck',
-      land: 'The land around it',
+      land: 'The landscape',
     },
     alt: {
-      land: 'The land around Nýpugarðar',
+      land: 'The landscape around Nýpugarðar',
       house: 'The guesthouse at Nýpugarðar',
       table: 'The dining room at Nýpugarðar',
       bathPrivate: 'Private bathroom at Nýpugarðar',
@@ -360,15 +403,15 @@ const is: typeof en = {
 
   cta: {
     check: 'Kanna laus herbergi',
-    bookEvening: 'Bókaðu kvöldið á Nýpugörðum',
-    callFarm: 'Hringdu í bæinn',
+    bookEvening: 'Kvöldmatur á Nýpugörðum',
+    callFarm: 'Hringdu í okkur á bænum',
     bookRoom: 'Bóka',
-    liveFromGodo: 'Laus herbergi og verð koma beint úr bókunarkerfinu okkar',
+    liveFromGodo: 'Laus herbergi og verð beint úr bókunarkerfinu okkar',
   },
 
   hero: {
-    kicker: 'Kyrrlátt gistihús milli Hafnar og Jökulsárlóns',
-    alt: 'Lágstæð sól yfir flatlendinu neðan við Nýpugarða, skriðjöklar og snævi þaktir tindar við sjóndeildarhringinn',
+    kicker: 'Sveitagisting milli Hafnar og Jökulsárlóns, með jöklana við sjóndeildarhringinn',
+    alt: 'Lág sól yfir Mýrunum neðan við Nýpugarða, með skriðjökla og snævi þakta tinda við sjóndeildarhringinn',
   },
 
   booking: {
@@ -378,15 +421,15 @@ const is: typeof en = {
     children: 'Börn',
     night: 'nótt',
     nights: 'nætur',
-    ageNote: 'Gestir 7 ára og eldri teljast fullorðnir.',
-    pricesNext: 'Verð fyrir þínar dagsetningar birtist í næsta skrefi, í bókunarkerfinu okkar.',
+    ageNote: 'Gestir 7 ára og eldri greiða sem fullorðnir.',
+    pricesNext: 'Verðið fyrir þínar dagsetningar birtist í næsta skrefi í bókunarkerfinu okkar.',
     placeholder: 'Godo bókun tengist hér',
     datesAria: 'Veldu komu- og brottfarardag',
     openCalendar: 'Opna dagatalið',
     prevMonth: 'Fyrri mánuður',
     nextMonth: 'Næsti mánuður',
-    strikeNote: 'Yfirstrikaðar nætur voru fullbókaðar við síðustu athugun',
-    mayBeFull: 'Þessar nætur virtust fullbókaðar við síðustu athugun. Bókunarsíðan ræður úrslitum.',
+    strikeNote: 'Yfirstrikaðar nætur voru fullbókaðar þegar við athuguðum síðast.',
+    mayBeFull: 'Þessar nætur virtust fullbókaðar þegar við athuguðum síðast. Nýjasta staðan er alltaf í bókunarkerfinu okkar.',
     checkIn: 'Innritun',
     checkOut: 'Útritun',
     pickDate: 'Veldu dag',
@@ -396,80 +439,80 @@ const is: typeof en = {
     bookedWord: 'fullbókað',
     takenDay: '{date} er fullbókað. Veldu annan komudag.',
     crossesBooked: 'Þessar dagsetningar ná yfir fullbókaða nótt. Veldu dvöl fyrir eða eftir hana.',
-    calendarKey: 'Yfirstrikaðar nætur voru fullbókaðar þegar við athuguðum bókunarkerfið síðast. Bókunarsíðan ræður alltaf úrslitum.',
+    calendarKey: 'Yfirstrikaðar nætur voru fullbókaðar þegar við athuguðum síðast. Nýjasta staðan er alltaf í bókunarkerfinu okkar.',
     months: ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'],
     weekdaysShort: ['mán', 'þri', 'mið', 'fim', 'fös', 'lau', 'sun'],
     weekdayInitials: ['M', 'Þ', 'M', 'F', 'F', 'L', 'S'],
   },
 
   manifesto: {
-    kicker: 'Aðeins náttúruhljóðin',
-    text: 'Nýpugarðar standa á lágum hól upp af Mýrum, stutt frá hringveginum. Ellefu herbergi og tvö sumarhús, jöklar í glugganum og kyrrlát kvöld á bænum.',
+    kicker: 'Kyrrlát kvöld á bænum',
+    text: 'Við erum fjóra kílómetra frá hringveginum, á lágum hól upp af Mýrum. Hér eru ellefu herbergi og tvö sumarhús, með fjöllin og skriðjökla Vatnajökuls fyrir augunum og kyrrðina allt í kring þegar líður á kvöldið.',
   },
 
   facts: {
     rooms: 'herbergi, þar af tvö með sameiginlegu baði',
-    cottages: 'sumarhús við hlið hússins, fyrir þrjá og fyrir fjóra',
+    cottages: 'sumarhús við gistihúsið, fyrir þrjá og fjóra',
     checkin: 'innritun, til 23:30',
   },
 
   band: {
-    heading: 'Jöklarnir í glugganum',
-    body: 'Húsið horfir yfir Mýrarnar að fjöllunum og skriðjöklum Vatnajökuls. Á björtum degi sjást þeir úr matsalnum, og frá september fram í apríl er hér gott að fylgjast með norðurljósunum.',
-    alt: 'Snævi þaktir tindar yfir Mýrunum, grasið ryðrautt í lágri sól undir bláum himni',
+    heading: 'Jöklarnir handan við gluggana',
+    body: 'Frá gistihúsinu horfum við yfir Mýrarnar að fjöllunum og skriðjöklum Vatnajökuls. Á björtum degi fyllir útsýnið gluggana í matsalnum og frá september fram í apríl geta norðurljósin birst yfir bænum þegar kvöldin eru dimm.',
+    alt: 'Snævi þaktir tindar handan Mýranna, með grasið upplýst af lágri sól',
     auroraN: 'September til apríl',
     aurora: 'norðurljósatíminn',
     roadN: '4 km',
     road: 'frá hringveginum',
     viewN: 'Bjartir dagar',
-    view: 'jöklarnir sjást úr matsalnum',
+    view: 'jöklasýn úr matsalnum',
   },
 
   journey: {
-    heading: 'Fjórir kílómetrar frá hringveginum',
-    body: 'Beygt er af þjóðvegi 1 milli Hafnar og Jökulsárlóns og ekið upp að bænum. Héðan eru jökullónin í vestri og Höfn í austri, og hvort tveggja er þægilegur bíltúr fyrir hálfan dag.',
+    heading: 'Aðeins fjóra kílómetra frá hringveginum',
+    body: 'Beygt er af þjóðvegi 1 milli Hafnar og Jökulsárlóns og þaðan er stutt heim að bæ. Höfn er í austri og jökullónin í vestri, svo auðvelt er að verja deginum í hvora áttina sem er og koma svo aftur heim í kyrrðina á Nýpugörðum um kvöldið.',
     mapAria: 'Kort af ströndinni kringum Nýpugarða, með akstursleiðum frá bænum til Hafnar, Þórbergsseturs, Jökulsárlóns, Breiðamerkurfjöru, Fjallsárlóns og Stokksness.',
-    drivesHeading: 'Akstur frá bænum',
+    drivesHeading: 'Frá Nýpugörðum',
     ocean: 'Atlantshaf',
     min: 'mín',
-    driveNote: 'Aksturstími og vegalengd eftir vegum frá bænum, reiknað með OpenStreetMap og mínútur námundaðar að fimm. Miðað er við góðar aðstæður, svo gefðu þér rýmri tíma á veturna.',
+    driveNote: 'Aksturstími og vegalengd miðast við akstur frá bænum og eru reiknuð með OpenStreetMap. Tímar eru námundaðir að fimm mínútum og miðast við góðar aðstæður, svo gefðu þér meiri tíma á veturna.',
     places: {
-      hofn: { name: 'Höfn', note: 'Næsti bær, með sundlaug og ýmsri afþreyingu' },
-      thorbergssetur: { name: 'Þórbergssetur', note: 'Safn um Þórberg Þórðarson rithöfund, á Hala í Suðursveit' },
-      jokulsarlon: { name: 'Jökulsárlón', note: 'Jökullónið, með ísjökum úr Breiðamerkurjökli' },
-      diamondBeach: { name: 'Breiðamerkurfjara', note: 'Svarta fjaran þar sem ísinn rekur á land, hinum megin við veginn frá lóninu' },
+      hofn: { name: 'Höfn', note: 'Næsti bær, með sundlaug, veitingastöðum og þjónustu' },
+      thorbergssetur: { name: 'Þórbergssetur', note: 'Safn helgað Þórbergi Þórðarsyni rithöfundi, á Hala í Suðursveit' },
+      jokulsarlon: { name: 'Jökulsárlón', note: 'Jökullónið þar sem ísjakar brotna frá Breiðamerkurjökli' },
+      diamondBeach: { name: 'Breiðamerkurfjara', note: 'Svarta fjaran þar sem ís úr lóninu rekur á land, rétt hinum megin við þjóðveg 1' },
       fjallsarlon: { name: 'Fjallsárlón', note: 'Minna jökullón undir Fjallsjökli' },
-      stokksnes: { name: 'Stokksnes og Vestrahorn', note: 'Nesið og svörtu sandhólarnir undir Vestrahorni, austan við Höfn' },
+      stokksnes: { name: 'Stokksnes og Vestrahorn', note: 'Svartur sandur, opin strönd og Vestrahorn yfir nesinu austan Hafnar' },
     },
   },
 
   rooms: {
-    eyebrow: 'Herbergið þitt',
+    eyebrow: 'Gistingin',
     heading: 'Ellefu herbergi og tvö sumarhús',
-    body: 'Einföld, notaleg og kyrrlát herbergi með útsýnið beint úr rúminu. Tvö herbergjanna deila baðherbergi, og sumarhúsin tvö standa við hlið hússins, annað fyrir þrjá gesti og hitt fyrir fjóra.',
-    seeAll: 'Skoða öll herbergi og myndir',
-    seeAllNote: 'Allar sjö herbergisgerðirnar, sumarhúsin tvö þar á meðal, hver með sínum myndum og verði, á sérsíðu.',
+    body: 'Hlýleg, þægileg og kyrrlát gisting með landslagið rétt fyrir utan gluggann. Tvö herbergjanna deila baðherbergi. Timbursumarhúsin tvö standa við hlið gistihússins, annað fyrir þrjá gesti og hitt fyrir fjóra, hvort með sínu baðherbergi og túnin beint fyrir utan.',
+    seeAll: 'Skoða öll herbergi, sumarhús og myndir',
+    seeAllNote: 'Skoðaðu allar sjö herbergisgerðirnar, sumarhúsin tvö þar á meðal, með myndum, upplýsingum og verði fyrir hvern kost.',
     stripLabel: 'Herbergisgerðir',
     prevRooms: 'Fyrri herbergisgerðir',
     nextRooms: 'Næstu herbergisgerðir',
     stripHint: 'Örvatakkar til vinstri og hægri fletta milli herbergisgerða.',
-    openRoom: 'Myndir og nánar',
+    openRoom: 'Skoða myndir og nánar',
     short: {
-      twinSharedEconomy: 'Hagkvæmt, sameiginlegt bað',
-      doubleTwinShared: 'Sameiginlegt bað',
+      twinSharedEconomy: 'Tveggja manna, sameiginlegt bað',
+      doubleTwinShared: 'Hjóna- eða tveggja manna, sameiginlegt bað',
       double: 'Hjónaherbergi',
-      doubleTwinPrivate: 'Eigin bað',
-      doublePrivateExtraBed: 'Eigin bað og aukarúm',
+      doubleTwinPrivate: 'Hjóna- eða tveggja manna, eigið bað',
+      doublePrivateExtraBed: 'Hjónaherbergi með aukarúmi',
       cottage3: 'Sumarhús fyrir 3',
       familyCottage: 'Fjölskyldusumarhús',
     },
-    cottagesHeading: 'Tvö sumarhús við hlið hússins',
-    cottagesBody: 'Tvö timburhús við hlið hússins, hvort með sínu baðherbergi. Annað er fyrir þrjá og hitt fyrir fjóra, og túnin eru beint fyrir utan dyrnar.',
+    cottagesHeading: 'Tvö sumarhús við gistihúsið',
+    cottagesBody: 'Timbursumarhúsin tvö standa við hlið gistihússins og hvort þeirra er með eigið baðherbergi. Annað er fyrir þrjá og hitt fyrir fjóra, með túnin og opið landslagið beint fyrir utan dyrnar.',
     cottage1Alt: 'Fjölskyldusumarhúsið á Nýpugörðum, rautt þak og timburverönd, stendur á grasinu',
     cottage1Caption: 'Fjölskyldusumarhúsið, fyrir fjóra',
     cottage2Alt: 'Sumarhúsið fyrir þrjá á Nýpugörðum, séð yfir túnið fyrir aftan það',
     cottage2Caption: 'Sumarhúsið fyrir þrjá',
-    beforeYouCome: 'Áður en þú kemur',
+    beforeYouCome: 'Gott að vita fyrir komu',
     arrive: 'Koma',
     leave: 'Brottför',
     until: 'til 23:30',
@@ -477,36 +520,36 @@ const is: typeof en = {
   },
 
   dinner: {
-    heading: 'Kvöldmatur af matseðli',
+    heading: 'Kvöldmatur með jökulinn fyrir augunum',
     intro:
-      'Á kvöldin er pantað af matseðli og borðað í matsalnum, þar sem gluggarnir snúa að jöklinum. Það þarf ekkert að bóka fyrirfram, láttu okkur bara vita þegar þú kemur að þú viljir kvöldmat.',
-    body: 'Eftir matinn verður allt kyrrlátt á bænum og úti heyrist ekkert nema náttúran.',
+      'Á kvöldin bjóðum við upp á mat af matseðli í matsalnum, þar sem gluggarnir snúa að jöklinum. Það þarf ekki að bóka borð fyrirfram. Láttu okkur bara vita við komu að þú viljir borða hjá okkur.',
+    body: 'Eftir kvöldmatinn færist ró yfir bæinn og kyrrðin tekur við fyrir utan gluggana.',
     diningAlt:
-      'Matsalurinn á Nýpugörðum, borð lögð fyrir framan gólfsíða glugga sem snúa að jöklinum',
+      'Matsalurinn á Nýpugörðum, með borðum við gólfsíða glugga sem snúa að jöklinum',
     diningCaption: 'Matsalurinn',
     winterAlt:
-      'Gistihúsið á Nýpugörðum í djúpum snjó, veröndin og stórir gluggar sem snúa að hvítum fjöllum',
+      'Gistihúsið á Nýpugörðum í djúpum vetrarsnjó, með veröndina og stóra glugga sem snúa að fjöllunum',
     winterCaption: 'Húsið að vetri',
-    breakfastHeading: 'Morgunmatur í sama sal',
+    breakfastHeading: 'Morgunmatur með sama útsýni',
     breakfastBody:
-      'Hlaðborð með sama útsýni. Gestir gefa því háa einkunn og eldhúsið ræður við flestar tegundir mataræðis.',
+      'Morgunverður er borinn fram sem hlaðborð í sama matsal. Gestir gefa honum háa einkunn og við getum boðið upp á grænmetisfæði, vegan og glútenlaust.',
     breakfastAlt:
-      'Morgunverðarhlaðborðið á Nýpugörðum: brauð, álegg, sultur og kaffikanna',
+      'Morgunverðarhlaðborðið á Nýpugörðum, með brauði, áleggi, sultum og kaffi fyrir gesti',
     breakfastCaption: 'Morgunverðarborðið',
     served: 'Borið fram',
     weCanCover: 'Við ráðum við',
-    toGoLead: 'Ætlarðu að keyra að Jökulsárlóni fyrir morgunmat?',
-    toGoTail: 'Láttu vita kvöldið áður og þá bíður hann þín.',
+    toGoLead: 'Leggurðu af stað að Jökulsárlóni áður en morgunmaturinn hefst?',
+    toGoTail: 'Láttu okkur vita kvöldið áður og við getum útbúið morgunmat með í nesti.',
   },
 
   reviews: {
-    eyebrow: 'Gestir',
+    eyebrow: 'Það sem gestir segja',
     srHeading: 'Umsagnir gesta',
     outOf: '/ 10',
     scoreWord: 'Frábært',
     reviewsOn: 'umsagnir gesta á Booking.com',
     via: 'Umsagnir gesta af',
-    sourceNote: ', sóttar 25. ágúst 2026. Hér eru allar umsagnir þar sem gestur skrifaði eitthvað. Hinar dvalirnar skildu aðeins eftir einkunn, og það sem gestir sögðu að mætti bæta er á Booking.',
+    sourceNote: ', sóttar 25. ágúst 2026. Hér eru allar skriflegar umsagnir, en það sem gestum fannst mega bæta er á Booking.com. Aðrar dvalir skildu eftir einkunn án skriflegrar umsagnar.',
     translatedFromItalian: 'Þýtt úr ítölsku',
     setLabel: 'Sýna umsagnir gesta, hópur',
     of: 'af',
@@ -520,25 +563,68 @@ const is: typeof en = {
 
   info: {
     eyebrow: 'Að rata til okkar',
-    callFarm: 'Hringdu í bæinn',
-    writeToUs: 'Sendu okkur línu',
+    callFarm: 'Hringdu í okkur á bænum',
+    writeToUs: 'Skrifaðu okkur',
     address: 'Heimilisfangið',
     onTheProperty: 'Á staðnum',
     bookDirect:
-      'Bókaðu beint hjá okkur og þá ertu í samskiptum við bæinn, ekki milliliði. Dagsetningar og laus herbergi uppfærast jafnóðum. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland ef þú vilt frekar bóka þar. Fyrir allt annað er síminn fljótlegastur.',
+      'Bókaðu hér og bókunin kemur beint til okkar á bænum, með verð og laus herbergi í rauntíma í bókunarkerfinu okkar. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland ef þú kýst frekar að bóka þar. Ef eitthvað annað vantar er yfirleitt fljótlegast að hringja í okkur.',
     mobile: 'Farsími',
   },
 
   closing: {
-    heading: 'Gistu nóttina og vertu í kvöldmat',
-    body: 'Herbergi með sjóndeildarhringinn í glugganum, sæti við borðið í kvöldmat og nótt þar sem ekkert heyrist nema náttúran.',
+    heading: 'Gistu hjá okkur og vertu í kvöldmat',
+    body: 'Jöklar í glugganum, kvöldmatur á bænum, morgunverður áður en haldið er af stað og kyrrlát nótt með náttúruna allt í kring.',
     duskAlt:
-      'Sólin sest yfir opnum túnum á Nýpugörðum, fjöllin dökk við sjóndeildarhringinn',
+      'Sólin sest yfir opnum túnum á Nýpugörðum, með fjöllin dökk við sjóndeildarhringinn',
   },
 
   footer: {
-    company: 'Nýpugarðar ehf. er skráð og starfandi íslenskt félag, kt. 510805-0380.',
-    note: 'Einkunnir gesta af Booking.com, athugaðar 16. september 2026, og umsagnir gesta sóttar þangað 25. ágúst 2026. Allar myndir eru okkar eigin. Verð og laus herbergi koma beint úr bókunarkerfinu okkar. Kvöldmatinn pantar þú hjá okkur þegar þú kemur.',
+    tagline: 'Kyrrlátt, fjölskyldurekið gistiheimili á Mýrum, milli Hafnar og Jökulsárlóns.',
+    visit: 'Heimsókn',
+    directions: 'Leiðarlýsing',
+    contact: 'Hafðu samband',
+    pages: 'Á vefnum',
+    book: 'Bóka gistingu',
+    legal: 'Nýpugarðar ehf. · kt. 510805-0380',
+    designedBy: 'Hannað af',
+    credit: 'Hannað af SNDR Studio',
+  },
+
+  privacy: {
+    title: 'Persónuvernd',
+    lead: 'Hvernig Nýpugarðar fara með persónuupplýsingar þínar þegar þú skoðar vefinn, bókar gistingu eða hefur samband við okkur.',
+    updated: 'Síðast uppfært 16. september 2026',
+    sections: [
+      {
+        h: 'Hver við erum',
+        p: 'Nýpugarðar ehf., kt. 510805-0380, Nýpugörðum, 781 Höfn í Hornafirði, ber ábyrgð á þeim persónuupplýsingum sem hér er fjallað um. Þú nærð í okkur á nypu@simnet.is eða í síma 893 1826.',
+      },
+      {
+        h: 'Vefurinn',
+        p: 'Vefurinn setur engar vafrakökur, vistar ekkert í vafranum þínum og notar engin auglýsinga- eða rakningartól. Við teljum heimsóknir með Cloudflare Web Analytics, sem virkar án vafrakakna og þekkir þig ekki, svo við sjáum aðeins heildartölur, til dæmis hve margir komu og hvaða síður voru lesnar. Vefurinn er hýstur hjá Cloudflare, sem vinnur með tæknileg gögn á borð við IP-tölu til að koma síðunum örugglega til þín.',
+      },
+      {
+        h: 'Bókanir',
+        p: 'Þegar þú bókar beint hjá okkur gerir þú það í bókunarkerfinu okkar, Godo. Upplýsingarnar sem þú slærð inn þar, svo sem nafn, netfang, símanúmer og dagsetningar dvalarinnar, berast okkur svo við getum tekið á móti þér, og Godo geymir þær fyrir okkur. Vefurinn sjálfur tekur aldrei við þeim. Ef þú bókar í gegnum Booking.com eða aðra ferðaskrifstofu geymir það fyrirtæki bókunina líka, samkvæmt eigin persónuverndarstefnu.',
+      },
+      {
+        h: 'Tölvupóstur og sími',
+        p: 'Ef þú skrifar okkur eða hringir notum við það sem þú segir okkur til að svara þér og undirbúa dvölina.',
+      },
+      {
+        h: 'Til hvers við notum upplýsingarnar',
+        p: 'Við notum upplýsingarnar til að efna bókunina, sem er samningur milli þín og okkar, og til að sinna lagaskyldum okkar, til dæmis um bókhald. Við seljum ekki upplýsingarnar þínar.',
+      },
+      {
+        h: 'Hve lengi við geymum þær',
+        p: 'Við geymum bókunarupplýsingar eins lengi og við þurfum vegna dvalarinnar og bókhaldsins. Samkvæmt lögum um bókhald þarf að geyma bókhaldsgögn í sjö ár.',
+      },
+      {
+        h: 'Réttindi þín',
+        p: 'Þú getur beðið um að sjá þær upplýsingar sem við höfum um þig, fá þær leiðréttar eða, þar sem lög leyfa, fá þeim eytt, og þú getur andmælt því hvernig við notum þær. Sendu okkur línu á nypu@simnet.is. Ef þér þykir svarið ekki fullnægjandi getur þú kvartað til Persónuverndar á personuvernd.is.',
+      },
+    ],
   },
 
   price: {
@@ -546,24 +632,24 @@ const is: typeof en = {
     perNight: 'á nótt',
     roomTypes: 'Herbergisgerðir og verð',
     sleeps: 'Fyrir',
-    pricesNote: 'Lægsta verð á nótt næstu tólf mánuði. Nákvæmt verð fyrir þínar dagsetningar birtist þegar þú kannar laus herbergi.',
+    pricesNote: 'Lægsta fáanlega verð á nótt næstu tólf mánuði. Nákvæmt verð fyrir þínar dagsetningar birtist þegar þú kannar laus herbergi.',
     checkedOn: 'Verð sótt',
   },
 
   faq: {
-    heading: 'Spurningar sem gestir spyrja',
+    heading: 'Spurningar fyrir dvölina',
     items: [
       {
         q: 'Hvað er langt að Jökulsárlóni?',
-        a: 'Jökulsárlón er í um 50 km fjarlægð, tæpan klukkutíma eftir þjóðvegi 1. Til Hafnar eru 20 km og bærinn stendur 4 km frá hringveginum.',
+        a: 'Jökulsárlón er í um 50 km fjarlægð frá bænum, tæpan klukkutíma eftir þjóðvegi 1. Til Hafnar eru 20 km og Nýpugarðar eru 4 km frá hringveginum.',
       },
       {
         q: 'Er hægt að fá kvöldmat á bænum?',
-        a: 'Já, á kvöldin er matseðill og maturinn er borinn fram í matsalnum sem snýr að jöklinum. Það þarf ekkert að panta fyrirfram, láttu bara vita þegar þú kemur.',
+        a: 'Já. Á kvöldin bjóðum við upp á mat af matseðli í matsalnum sem snýr að jöklinum. Það þarf ekki að bóka fyrirfram. Láttu okkur bara vita við komu að þú viljir kvöldmat.',
       },
       {
         q: 'Hvað er í morgunmat?',
-        a: 'Hlaðborð í sama sal, með sama útsýni, og eldhúsið ræður við grænmetisfæði, vegan og glútenlaust. Morgunmat má fá með í nesti ef þú leggur af stað að Jökulsárlóni áður en salurinn opnar.',
+        a: 'Við bjóðum upp á hlaðborð í matsalnum, með sömu jöklasýn. Grænmetisfæði, vegan og glútenlausir kostir eru í boði. Ef þú leggur af stað að Jökulsárlóni áður en morgunmaturinn hefst getum við útbúið morgunmat með í nesti.',
       },
       {
         q: 'Hvenær er innritun og útritun?',
@@ -571,11 +657,11 @@ const is: typeof en = {
       },
       {
         q: 'Mega gæludýr koma og eru börn velkomin?',
-        a: 'Gæludýr eru ekki leyfð og húsið er reyklaust. Börn eru velkomin og gestir 7 ára og eldri greiða sem fullorðnir.',
+        a: 'Gæludýr eru ekki leyfð og gistihúsið er reyklaust. Börn eru velkomin og gestir 7 ára og eldri greiða sem fullorðnir.',
       },
       {
         q: 'Get ég bókað beint hjá bænum?',
-        a: 'Já, dagsetningar og verð hér uppfærast jafnóðum og bókunin fer í gegnum okkar eigið kerfi, svo þú ert í samskiptum við bæinn en ekki milliliði. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland.',
+        a: 'Já. Bein bókun kemur beint til okkar á bænum og bókunarkerfið okkar sýnir verð og laus herbergi í rauntíma. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland.',
       },
     ],
   },
@@ -610,18 +696,18 @@ const is: typeof en = {
   },
 
   gallery: {
-    eyebrow: 'Allar myndirnar',
-    heading: 'Bærinn, landið og borðið',
-    body: 'Allar myndir hér eru okkar eigin. Herbergin eiga sinn eigin kafla hér að ofan, svo hér er bærinn, landið og borðið.',
-    byRoom: 'Hver herbergisgerð, með sínu baðherbergi',
-    andTheRest: 'Og allt hitt',
+    eyebrow: 'Lífið á Nýpugörðum',
+    heading: 'Bærinn, útsýnið og borðið',
+    body: 'Hér eru okkar eigin myndir af bænum, landslaginu og matsalnum. Herbergin og sumarhúsin eiga sitt eigið myndasafn hér að ofan.',
+    byRoom: 'Hver herbergisgerð, með sínum eigin myndum',
+    andTheRest: 'Umhverfis bæinn',
     groups: {
       table: 'Matsalurinn',
       house: 'Húsið og veröndin',
-      land: 'Landið í kring',
+      land: 'Landslagið',
     },
     alt: {
-      land: 'Landið umhverfis Nýpugarða',
+      land: 'Landslagið umhverfis Nýpugarða',
       house: 'Gistihúsið á Nýpugörðum',
       table: 'Matsalurinn á Nýpugörðum',
       bathPrivate: 'Eigið baðherbergi á Nýpugörðum',

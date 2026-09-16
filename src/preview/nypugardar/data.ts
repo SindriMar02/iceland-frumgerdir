@@ -63,6 +63,9 @@ export const PHONE = '893 1826'
 export const PHONE_HREF = 'tel:+3548931826'
 export const EMAIL = 'nypu@simnet.is'
 export const ADDRESS = 'Nýpugarðar, 781 Höfn í Hornafirði'
+export const FACEBOOK_URL = 'https://www.facebook.com/nypugardar/'
+/** The farmhouse, the same point the route map is drawn from (tools/nypugardar-map.mjs). */
+export const FARM_COORDS = { lat: 64.261553, lon: -15.438971 }
 
 /** Anchor ids are kept from the first build (links and muscle memory); #farm
  *  now lands on the manifesto, the farm in words. */
