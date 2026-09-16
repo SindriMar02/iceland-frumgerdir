@@ -57,7 +57,7 @@ const en = {
      *  second half of the h1, after the wordmark, in the words a traveller
      *  types into a search box. */
     kicker: 'A quiet guesthouse between Höfn and Jökulsárlón',
-    alt: 'Low sun across the flats at Nýpugarðar, the outlet glaciers and snow peaks along the horizon',
+    alt: 'Low sun across the flats below Nýpugarðar, the outlet glaciers and snow peaks along the horizon',
   },
 
   booking: {
@@ -67,8 +67,8 @@ const en = {
     children: 'Children',
     night: 'night',
     nights: 'nights',
-    ageNote: 'guests 7 and older count as adults',
-    pricesNext: 'prices shown on the next step',
+    ageNote: 'Guests 7 and older count as adults.',
+    pricesNext: 'Prices for your dates are shown on the next step, in our booking system.',
     placeholder: 'Godo booking connects here',
     datesAria: 'Choose your arrival and departure dates',
     openCalendar: 'Open the calendar',
@@ -76,11 +76,24 @@ const en = {
     nextMonth: 'Next month',
     strikeNote: 'Crossed-out nights were fully booked at our last check',
     mayBeFull: 'Those nights looked fully booked at our last check. The booking page has the final word.',
+    checkIn: 'Check in',
+    checkOut: 'Check out',
+    pickDate: 'Choose a date',
+    afterCheckIn: 'After check-in',
+    clearDates: 'Clear dates',
+    chooseCheckout: 'Choose your check-out',
+    bookedWord: 'fully booked',
+    takenDay: '{date} is fully booked. Choose another night to arrive.',
+    crossesBooked: 'Those dates cross a fully booked night. Choose a stay before or after it.',
+    calendarKey: 'Struck nights were fully booked when we last checked our booking system. The booking page always has the final word.',
+    months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    weekdaysShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    weekdayInitials: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
   },
 
   manifesto: {
     kicker: 'Only the sounds of nature',
-    text: 'Nýpugarðar stands on a low hill above Mýrar, a short drive off the Ring Road. Eleven rooms and two cottages, glaciers in the window, and in the evening nothing to hear but nature.',
+    text: 'Nýpugarðar stands on a low hill above Mýrar, a short drive off the Ring Road. Eleven rooms and two cottages, glaciers in the window, and quiet evenings on the farm.',
   },
 
   facts: {
@@ -103,19 +116,19 @@ const en = {
 
   journey: {
     heading: 'Four kilometres off the Ring Road',
-    body: 'Turn off Route 1 between Höfn and Jökulsárlón and follow the road up to the farm. From here the glacier lagoons are to the west and Höfn is to the east, each an easy drive for a morning or an afternoon.',
+    body: 'Turn off Route 1 between Höfn and Jökulsárlón and follow the road up to the farm. From here the glacier lagoons lie to the west and Höfn to the east, and either makes an easy half-day drive.',
     mapAria: 'Map of the coast around Nýpugarðar, with the driving routes from the farm to Höfn, Þórbergssetur, Jökulsárlón, Diamond Beach, Fjallsárlón and Stokksnes.',
     drivesHeading: 'Drives from the farm',
     ocean: 'North Atlantic',
     min: 'min',
-    driveNote: 'Driving times and distances by road from the farm, from OpenStreetMap routing, minutes rounded to five. They assume good conditions; allow more time in winter.',
+    driveNote: 'Driving times and distances by road from the farm, worked out with OpenStreetMap, minutes rounded to five. They assume good conditions, so allow more time in winter.',
     places: {
       hofn: { name: 'Höfn', note: 'The nearest town, with the swimming pool and plenty more to do' },
       thorbergssetur: { name: 'Þórbergssetur', note: 'Museum about the writer Þórbergur Þórðarson, at Hali in Suðursveit' },
       jokulsarlon: { name: 'Jökulsárlón', note: 'The glacier lagoon, with icebergs from Breiðamerkurjökull' },
       diamondBeach: { name: 'Diamond Beach', note: 'The black sand beach where the ice washes up, across the road from the lagoon' },
       fjallsarlon: { name: 'Fjallsárlón', note: 'A smaller glacier lagoon under Fjallsjökull' },
-      stokksnes: { name: 'Stokksnes and Vestrahorn', note: 'The black sand spit under Vestrahorn, east of Höfn' },
+      stokksnes: { name: 'Stokksnes and Vestrahorn', note: 'The headland and black sand dunes under Vestrahorn, east of Höfn' },
     },
   },
 
@@ -124,7 +137,7 @@ const en = {
     heading: 'Eleven rooms and two cottages',
     body: 'Plain, comfortable and quiet, with the view from the pillow. Two of the rooms share a bathroom, and the two cottages stand beside the house, one for three guests and one for four.',
     seeAll: 'See every room and photo',
-    seeAllNote: 'Seven room types and the two cottages, each with its own photographs and its own price, on a page of their own.',
+    seeAllNote: 'All seven room types, the two cottages among them, each with its own photographs and price, on a page of their own.',
     /** The horizontal strip of room types under the counts. */
     stripLabel: 'Room types',
     prevRooms: 'Previous room types',
@@ -164,7 +177,7 @@ const en = {
     diningCaption: 'The dining room',
     winterAlt:
       'The guesthouse at Nýpugarðar under deep snow, its deck and big windows facing white mountains',
-    winterCaption: 'The same windows in winter',
+    winterCaption: 'The house in winter',
     breakfastHeading: 'Breakfast in the same room',
     breakfastBody:
       'A buffet with the same view. Guests rate it highly, and the kitchen can cover most ways of eating.',
@@ -184,7 +197,7 @@ const en = {
     scoreWord: 'Fabulous',
     reviewsOn: 'guest reviews on Booking.com',
     via: 'Guest reviews via',
-    sourceNote: ', harvested 25 August 2026. Every review where a guest wrote something is here. The other stays left a score and no words, and what guests said could be better is on Booking.',
+    sourceNote: ', collected 25 August 2026. Every review where a guest wrote something is here. The other stays left a score and no words, and what guests said could be better is on Booking.',
     translatedFromItalian: 'Translated from Italian',
     setLabel: 'Show guest reviews, set',
     of: 'of',
@@ -216,6 +229,7 @@ const en = {
 
   footer: {
     company: 'Nýpugarðar ehf. is an active, registered Icelandic company, kt. 510805-0380.',
+    note: 'Guest scores from Booking.com, checked 16 September 2026, and guest quotes collected there on 25 August 2026. All photographs are our own. Rates and availability come live from our booking system. Dinner is arranged with us when you arrive.',
   },
 
   price: {
@@ -354,7 +368,7 @@ const is: typeof en = {
 
   hero: {
     kicker: 'Kyrrlátt gistihús milli Hafnar og Jökulsárlóns',
-    alt: 'Lágstæð sól yfir flatlendinu við Nýpugarða, skriðjöklar og snævi þaktir tindar við sjóndeildarhringinn',
+    alt: 'Lágstæð sól yfir flatlendinu neðan við Nýpugarða, skriðjöklar og snævi þaktir tindar við sjóndeildarhringinn',
   },
 
   booking: {
@@ -364,8 +378,8 @@ const is: typeof en = {
     children: 'Börn',
     night: 'nótt',
     nights: 'nætur',
-    ageNote: 'gestir 7 ára og eldri teljast fullorðnir',
-    pricesNext: 'verð birtast í næsta skrefi',
+    ageNote: 'Gestir 7 ára og eldri teljast fullorðnir.',
+    pricesNext: 'Verð fyrir þínar dagsetningar birtist í næsta skrefi, í bókunarkerfinu okkar.',
     placeholder: 'Godo bókun tengist hér',
     datesAria: 'Veldu komu- og brottfarardag',
     openCalendar: 'Opna dagatalið',
@@ -373,11 +387,24 @@ const is: typeof en = {
     nextMonth: 'Næsti mánuður',
     strikeNote: 'Yfirstrikaðar nætur voru fullbókaðar við síðustu athugun',
     mayBeFull: 'Þessar nætur virtust fullbókaðar við síðustu athugun. Bókunarsíðan ræður úrslitum.',
+    checkIn: 'Innritun',
+    checkOut: 'Útritun',
+    pickDate: 'Veldu dag',
+    afterCheckIn: 'Eftir innritun',
+    clearDates: 'Hreinsa dagsetningar',
+    chooseCheckout: 'Veldu útritunardag',
+    bookedWord: 'fullbókað',
+    takenDay: '{date} er fullbókað. Veldu annan komudag.',
+    crossesBooked: 'Þessar dagsetningar ná yfir fullbókaða nótt. Veldu dvöl fyrir eða eftir hana.',
+    calendarKey: 'Yfirstrikaðar nætur voru fullbókaðar þegar við athuguðum bókunarkerfið síðast. Bókunarsíðan ræður alltaf úrslitum.',
+    months: ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'],
+    weekdaysShort: ['mán', 'þri', 'mið', 'fim', 'fös', 'lau', 'sun'],
+    weekdayInitials: ['M', 'Þ', 'M', 'F', 'F', 'L', 'S'],
   },
 
   manifesto: {
     kicker: 'Aðeins náttúruhljóðin',
-    text: 'Nýpugarðar standa á lágum hól upp af Mýrum, stutt frá hringveginum. Ellefu herbergi og tvö sumarhús, jöklar í glugganum og á kvöldin heyrist ekkert nema náttúran.',
+    text: 'Nýpugarðar standa á lágum hól upp af Mýrum, stutt frá hringveginum. Ellefu herbergi og tvö sumarhús, jöklar í glugganum og kyrrlát kvöld á bænum.',
   },
 
   facts: {
@@ -390,7 +417,7 @@ const is: typeof en = {
     heading: 'Jöklarnir í glugganum',
     body: 'Húsið horfir yfir Mýrarnar að fjöllunum og skriðjöklum Vatnajökuls. Á björtum degi sjást þeir úr matsalnum, og frá september fram í apríl er hér gott að fylgjast með norðurljósunum.',
     alt: 'Snævi þaktir tindar yfir Mýrunum, grasið ryðrautt í lágri sól undir bláum himni',
-    auroraN: 'Sept. til apríl',
+    auroraN: 'September til apríl',
     aurora: 'norðurljósatíminn',
     roadN: '4 km',
     road: 'frá hringveginum',
@@ -400,19 +427,19 @@ const is: typeof en = {
 
   journey: {
     heading: 'Fjórir kílómetrar frá hringveginum',
-    body: 'Beygt er af þjóðvegi 1 milli Hafnar og Jökulsárlóns og ekið upp að bænum. Héðan eru jökullónin í vestri og Höfn í austri, og stuttur akstur hvert sem er, fyrir morgun eða eftirmiðdag.',
+    body: 'Beygt er af þjóðvegi 1 milli Hafnar og Jökulsárlóns og ekið upp að bænum. Héðan eru jökullónin í vestri og Höfn í austri, og hvort tveggja er þægilegur bíltúr fyrir hálfan dag.',
     mapAria: 'Kort af ströndinni kringum Nýpugarða, með akstursleiðum frá bænum til Hafnar, Þórbergsseturs, Jökulsárlóns, Breiðamerkurfjöru, Fjallsárlóns og Stokksness.',
     drivesHeading: 'Akstur frá bænum',
     ocean: 'Atlantshaf',
     min: 'mín',
-    driveNote: 'Aksturstímar og vegalengdir eftir vegum frá bænum, samkvæmt leiðarvali OpenStreetMap, mínútur námundaðar að fimm. Miðað er við góðar aðstæður; gefðu þér meiri tíma á veturna.',
+    driveNote: 'Aksturstími og vegalengd eftir vegum frá bænum, reiknað með OpenStreetMap og mínútur námundaðar að fimm. Miðað er við góðar aðstæður, svo gefðu þér rýmri tíma á veturna.',
     places: {
-      hofn: { name: 'Höfn', note: 'Næsti bær, með sundlaug og ýmsa afþreyingu' },
+      hofn: { name: 'Höfn', note: 'Næsti bær, með sundlaug og ýmsri afþreyingu' },
       thorbergssetur: { name: 'Þórbergssetur', note: 'Safn um Þórberg Þórðarson rithöfund, á Hala í Suðursveit' },
       jokulsarlon: { name: 'Jökulsárlón', note: 'Jökullónið, með ísjökum úr Breiðamerkurjökli' },
-      diamondBeach: { name: 'Breiðamerkurfjara', note: 'Svarta fjaran þar sem ísinn rekur á land, handan vegarins við lónið' },
+      diamondBeach: { name: 'Breiðamerkurfjara', note: 'Svarta fjaran þar sem ísinn rekur á land, hinum megin við veginn frá lóninu' },
       fjallsarlon: { name: 'Fjallsárlón', note: 'Minna jökullón undir Fjallsjökli' },
-      stokksnes: { name: 'Stokksnes og Vestrahorn', note: 'Svarti sandurinn undir Vestrahorni, austan við Höfn' },
+      stokksnes: { name: 'Stokksnes og Vestrahorn', note: 'Nesið og svörtu sandhólarnir undir Vestrahorni, austan við Höfn' },
     },
   },
 
@@ -421,7 +448,7 @@ const is: typeof en = {
     heading: 'Ellefu herbergi og tvö sumarhús',
     body: 'Einföld, notaleg og kyrrlát herbergi með útsýnið beint úr rúminu. Tvö herbergjanna deila baðherbergi, og sumarhúsin tvö standa við hlið hússins, annað fyrir þrjá gesti og hitt fyrir fjóra.',
     seeAll: 'Skoða öll herbergi og myndir',
-    seeAllNote: 'Sjö herbergisgerðir og sumarhúsin tvö, hver með sínum myndum og sínu verði, á sérsíðu.',
+    seeAllNote: 'Allar sjö herbergisgerðirnar, sumarhúsin tvö þar á meðal, hver með sínum myndum og verði, á sérsíðu.',
     stripLabel: 'Herbergisgerðir',
     prevRooms: 'Fyrri herbergisgerðir',
     nextRooms: 'Næstu herbergisgerðir',
@@ -430,7 +457,7 @@ const is: typeof en = {
     short: {
       twinSharedEconomy: 'Hagkvæmt, sameiginlegt bað',
       doubleTwinShared: 'Sameiginlegt bað',
-      double: 'Tveggja manna',
+      double: 'Hjónaherbergi',
       doubleTwinPrivate: 'Eigin bað',
       doublePrivateExtraBed: 'Eigin bað og aukarúm',
       cottage3: 'Sumarhús fyrir 3',
@@ -459,7 +486,7 @@ const is: typeof en = {
     diningCaption: 'Matsalurinn',
     winterAlt:
       'Gistihúsið á Nýpugörðum í djúpum snjó, veröndin og stórir gluggar sem snúa að hvítum fjöllum',
-    winterCaption: 'Sömu gluggar að vetri',
+    winterCaption: 'Húsið að vetri',
     breakfastHeading: 'Morgunmatur í sama sal',
     breakfastBody:
       'Hlaðborð með sama útsýni. Gestir gefa því háa einkunn og eldhúsið ræður við flestar tegundir mataræðis.',
@@ -511,6 +538,7 @@ const is: typeof en = {
 
   footer: {
     company: 'Nýpugarðar ehf. er skráð og starfandi íslenskt félag, kt. 510805-0380.',
+    note: 'Einkunnir gesta af Booking.com, athugaðar 16. september 2026, og umsagnir gesta sóttar þangað 25. ágúst 2026. Allar myndir eru okkar eigin. Verð og laus herbergi koma beint úr bókunarkerfinu okkar. Kvöldmatinn pantar þú hjá okkur þegar þú kemur.',
   },
 
   price: {

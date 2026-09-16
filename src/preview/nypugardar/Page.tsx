@@ -59,7 +59,6 @@ import {
   ADDRESS,
   DINNER_QUOTE,
   EMAIL,
-  FOOTNOTE,
   BREAKFAST,
   FACILITIES,
   IMG,
@@ -1549,6 +1548,18 @@ export default function Page() {
     };
   }, []);
 
+  /* The phone's sticky booking bar steps aside while the booking widget
+   * itself is on screen: two "Check availability" buttons stacked on one
+   * screen is the duplication the widget's placement exists to avoid. */
+  const [widgetInView, setWidgetInView] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById("stay");
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setWidgetInView(e.isIntersecting), { threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   const onMist = ground === "mist" && !menuOpen;
   const clear = ground === "clear" && !menuOpen;
   const barInk = onMist ? "#15130F" : PAPER;
@@ -2026,7 +2037,7 @@ export default function Page() {
               * hero: the first scroll is for the place ([[booking-widget-at-the-bottom]]).
               * The bar CTA and the phone bottom bar stay reachable throughout. */}
             <Reveal delay={220}>
-              <div className="mx-auto mt-10 max-w-md bg-[#15130F] text-left text-[#F4EEE2]">
+              <div className="mx-auto mt-10 max-w-5xl text-left">
                 <BookingBar variant="card" t={t} lang={lang} stay={stay} onStay={setStay} today={today} />
               </div>
               <a
@@ -2042,7 +2053,7 @@ export default function Page() {
 
         <section className="border-t" style={{ borderColor: HAIR }}>
           <div className="mx-auto max-w-4xl px-5 py-10 pb-28 md:px-8 md:pb-10">
-            <p className="text-xs leading-relaxed text-[#F4EEE2]/60">{FOOTNOTE}</p>
+            <p className="text-xs leading-relaxed text-[#F4EEE2]/60">{t.footer.note}</p>
           </div>
         </section>
       </main>
@@ -2056,7 +2067,7 @@ export default function Page() {
           background: "rgba(21,19,15,0.94)",
           backdropFilter: "blur(10px)",
           WebkitBackdropFilter: "blur(10px)",
-          transform: pastHero && !menuOpen ? "translateY(0)" : "translateY(110%)",
+          transform: pastHero && !menuOpen && !widgetInView ? "translateY(0)" : "translateY(110%)",
           transition: reduced ? "none" : `transform 0.3s ${EASE}`,
         }}
       >

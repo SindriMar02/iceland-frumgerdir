@@ -159,11 +159,11 @@ const COPY = {
   en: {
     home: {
       title: 'Nýpugarðar | Farm guesthouse between Höfn and Jökulsárlón',
-      desc: `Quiet guesthouse on Mýrar in Hornafjörður, about 50 km from Jökulsárlón glacier lagoon and 20 km from Höfn. Rooms and cottages with glacier views, breakfast and dinner from the menu. Rated ${B.rating} on Booking.com. Book direct.`,
+      desc: `Quiet guesthouse on Mýrar in Hornafjörður, about 50 km from Jökulsárlón glacier lagoon and 20 km from Höfn. Rooms and cottages with glacier views, breakfast, and dinner from the menu. Rated ${B.rating} on Booking.com. Book direct.`,
     },
     rooms: {
       title: 'Rooms, cottages and prices | Nýpugarðar',
-      desc: `Seven room types and two cottages at Nýpugarðar farm guesthouse near Höfn, from ${lowest} € a night. Private or shared bathrooms, sleeps 2 to 4, photographs of every room and live availability.`,
+      desc: `Seven room types, the two cottages among them, at Nýpugarðar guesthouse near Höfn, from ${lowest} € a night. Private or shared bathrooms, sleeps 2 to 4, photographs of every room and live availability.`,
     },
     crumbHome: 'Nýpugarðar',
     crumbRooms: 'Rooms and prices',
@@ -172,11 +172,11 @@ const COPY = {
   is: {
     home: {
       title: 'Nýpugarðar | Sveitagisting milli Hafnar og Jökulsárlóns',
-      desc: `Kyrrlátt gistiheimili á Mýrum í Hornafirði, um 50 km frá Jökulsárlóni og 20 km frá Höfn. Herbergi og sumarhús með jöklasýn, morgunverður og kvöldmatur af matseðli. Einkunn ${String(B.rating).replace('.', ',')} á Booking.com. Bókaðu beint.`,
+      desc: `Kyrrlátt gistiheimili á Mýrum í Hornafirði, um 50 km frá Jökulsárlóni og 20 km frá Höfn. Herbergi og sumarhús með jöklasýn, morgunmatur, og kvöldmatur af matseðli. Einkunn ${String(B.rating).replace('.', ',')} á Booking.com. Bókaðu beint.`,
     },
     rooms: {
       title: 'Herbergi, sumarhús og verð | Nýpugarðar',
-      desc: `Sjö herbergisgerðir og tvö sumarhús á Nýpugörðum, frá ${lowest} € nóttin. Eigið eða sameiginlegt bað, fyrir 2 til 4 gesti, myndir af hverju herbergi og laus herbergi í rauntíma.`,
+      desc: `Sjö herbergisgerðir, þar á meðal tvö sumarhús, á Nýpugörðum, frá ${lowest} € nóttin. Eigið eða sameiginlegt bað, fyrir 2 til 4 gesti, myndir af hverju herbergi og laus herbergi í rauntíma.`,
     },
     crumbHome: 'Nýpugarðar',
     crumbRooms: 'Herbergi og verð',

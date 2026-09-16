@@ -8,7 +8,7 @@
  *   1. intro: wordmark letter translateY at fixed times after load
  *   2. hero scroll: wrapper y, fog plate y, fade opacity, content blur at
  *      0 / 25 / 50 / 75 / 100% of the hero
- *   3. manifesto mask position, band clip-path, route line scale at the start,
+ *   3. manifesto mask position, band clip-path, map drive draw at the start,
  *      middle and end of their bands
  *   4. reduced motion: nothing transformed, fog hidden, hero 100svh
  *   5. layout: horizontal overflow at 320 / 390 / 1440, EN and IS
@@ -105,8 +105,10 @@ const out = {}
   out.band = await scene('#farm + section > div', (s) => ({ clip: getComputedStyle(document.querySelector(s)).clipPath }))
   out.route = await scene('[role="img"]', (s) => {
     const el = document.querySelector(s)
-    const m = (q) => getComputedStyle(el.querySelector(q)).transform
-    return { spur: m('[data-route="spur"]'), road: m('[data-route="road"]') }
+    return {
+      driveDashOffset: getComputedStyle(el.querySelector('[data-drive]')).strokeDashoffset,
+      markerOpacity: getComputedStyle(el.querySelector('[data-marker]')).opacity,
+    }
   })
   await page.close()
 }
