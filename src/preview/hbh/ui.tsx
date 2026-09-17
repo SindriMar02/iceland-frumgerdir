@@ -138,23 +138,18 @@ html:has(.hbh-root), body:has(.hbh-root){background-color:${C.paper}}
   border:1px solid ${C.ink};border-radius:var(--rad);background:${C.ink};color:#fff;
   font-size:var(--t-label);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;
   min-width:clamp(180px,13.75vw,220px);transition:background .3s,color .3s,border-color .3s}
-.hbh-btn .lab{display:block;padding:0.95em 1.2em 1em;padding-right:3.2em;transition:padding .3s}
+/* the label slides with a transform; animating its padding ran layout on every
+   hover frame for the same visual result */
+.hbh-btn .lab{display:block;padding:0.95em 1.2em 1em;padding-right:3.2em;transition:transform .3s cubic-bezier(0.32,0.72,0,1)}
 .hbh-btn .arw{position:absolute;top:50%;width:3.2em;text-align:center;transition:transform .3s,opacity .3s;line-height:0}
 .hbh-btn .arw.r{right:0;transform:translate(0,-50%);opacity:1}
 .hbh-btn .arw.l{left:0;transform:translate(-100%,-50%);opacity:0}
-.hbh-btn:hover .lab{padding-left:3.2em;padding-right:1.2em}
-.hbh-btn:hover .arw.r{transform:translate(100%,-50%);opacity:0}
-.hbh-btn:hover .arw.l{transform:translate(0,-50%);opacity:1}
 .hbh-btn.ghost{background:transparent;color:${C.ink};border-color:${C.ink}}
-.hbh-btn.ghost:hover{background:${C.ink};color:#fff}
 .hbh-btn.light{background:#fff;color:${C.ink};border-color:#fff}
-.hbh-btn.light:hover{background:transparent;color:#fff;border-color:#fff}
 .hbh-btn.brand{background:${C.blue};border-color:${C.blue};color:#fff}
-.hbh-btn.brand:hover{background:${C.blueDeep};border-color:${C.blueDeep}}
 .hbh-arrowbtn{width:clamp(44px,3.5625vw,58px);height:clamp(44px,3.5625vw,58px);border:1px solid currentColor;
   border-radius:var(--rad);background:transparent;color:inherit;cursor:pointer;position:relative;overflow:hidden;
   display:grid;place-items:center;transition:background .3s,color .3s}
-.hbh-arrowbtn:hover{background:${C.blue};border-color:${C.blue};color:#fff}
 .hbh-arrowbtn:disabled{opacity:.3;cursor:default}
 .hbh-arrowbtn:disabled:hover{background:transparent;color:inherit;border-color:currentColor}
 
@@ -181,10 +176,11 @@ html:has(.hbh-root), body:has(.hbh-root){background-color:${C.paper}}
   transform:translateX(-50%);transition:width .8s .15s cubic-bezier(.22,1,.36,1)}
 .hbh-intro.in .mark{opacity:1;transform:translateY(0)}
 .hbh-intro.in .rule{width:min(38vw,320px)}
-.hbh-intro.lift .mark{transform:translateY(-14px);opacity:0;transition:opacity .4s ease-in,transform .5s ease-in}
-.hbh-intro.lift .rule{width:0;transition:width .45s ease-in}
+.hbh-intro.lift .mark{transform:translateY(-14px);opacity:0;transition:opacity .4s ease-out,transform .5s ease-out}
+.hbh-intro.lift .rule{width:0;transition:width .45s ease-out}
 
 /* ── header: floating pill, plate fades in at 20px ──────────────────── */
+.hbh-scroll-top{position:absolute;top:0;left:0;width:1px;height:20px;pointer-events:none}
 .hbh-head{position:fixed;left:4.375vw;top:1.25vw;width:calc(100vw - 8.75vw);z-index:40;
   padding:1.25vw;color:${C.ink};transition:color .3s;padding-top:max(1.25vw,env(safe-area-inset-top))}
 .hbh-head:before{content:'';position:absolute;inset:0;background:#fff;border-radius:var(--rad);opacity:0;transition:opacity .3s}
@@ -195,7 +191,6 @@ html:has(.hbh-root), body:has(.hbh-root){background-color:${C.paper}}
 .hbh-head .mark small{font-size:0.52em;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;opacity:.65}
 .hbh-head nav{display:flex;gap:1.6vw;font-size:var(--t-lead);font-weight:500}
 .hbh-head nav a{opacity:1;transition:opacity .3s}
-.hbh-head nav a:hover{opacity:.6}
 .hbh-head .acts{display:flex;align-items:center;gap:0.8vw}
 @media (max-width:1080px){.hbh-head{left:3.704vw;top:1.852vw;width:calc(100vw - 7.407vw);padding:1.852vw}
   .hbh-head .acts .hbh-btn.tel{display:none}}
@@ -226,12 +221,15 @@ html:has(.hbh-root), body:has(.hbh-root){background-color:${C.paper}}
 /* ── the two-dot cursor, fine pointers only ─────────────────────────── */
 .hbh-cursor{position:fixed;inset:0;z-index:60;pointer-events:none;display:none}
 @media (hover:hover) and (pointer:fine){.hbh-cursor{display:block}}
-.hbh-cursor b{position:fixed;top:0;left:0;border-radius:50%;display:block;
-  transition:width .3s,height .3s,margin .3s,background .3s,opacity .3s}
-.hbh-cursor b.lead{width:9px;height:9px;margin:-4.5px 0 0 -4.5px;background:${C.blueDeep};z-index:2}
-.hbh-cursor b.trail{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;background:${C.blue}}
+/* one 52px box per dot, sized by the independent scale property so the disc
+   grows on the compositor; width, height and margin used to animate here and
+   that ran layout on the element that moves every pointer frame */
+.hbh-cursor b{position:fixed;top:0;left:0;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;display:block;
+  transition:scale .3s,background .3s,opacity .3s}
+.hbh-cursor b.lead{scale:0.173;background:${C.blueDeep};z-index:2}
+.hbh-cursor b.trail{scale:0.135;background:${C.blue}}
 .hbh-cursor.on-link b{opacity:0}
-.hbh-cursor.on-card b.lead{width:52px;height:52px;margin:-26px 0 0 -26px;background:${C.blue};opacity:1}
+.hbh-cursor.on-card b.lead{scale:1;background:${C.blue};opacity:1}
 .hbh-cursor.on-card b.trail{opacity:0}
 .hbh-cursor .arw{position:fixed;top:0;left:0;width:52px;height:52px;margin:-26px 0 0 -26px;display:grid;place-items:center;
   color:#fff;opacity:0;transform:translateX(-8px);transition:opacity .3s,transform .3s;z-index:3}
@@ -253,13 +251,30 @@ html:has(.hbh-root), body:has(.hbh-root){background-color:${C.paper}}
 @media (max-width:760px){.hbh-foot .cols{grid-template-columns:repeat(2,1fr);gap:2rem 1rem}}
 .hbh-foot h3{font-size:var(--t-label);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:1em;opacity:.55}
 .hbh-foot p,.hbh-foot li{font-size:var(--t-lead);line-height:1.5}
-.hbh-foot a:hover{opacity:.55}
 .hbh-foot .rule{height:1px;background:${C.hairline};margin:calc(var(--band) / 2) 0 1.5rem}
 .hbh-foot .fine{display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;font-size:var(--t-tag);opacity:.7}
 @media (max-width:760px){.hbh-root{padding-bottom:76px}}
 
+/* every hover effect sits behind a real pointer: on a touch screen a tap used
+   to leave the label shifted and a card darkened until the next tap */
+@media (hover:hover) and (pointer:fine){
+  .hbh-btn:hover .lab{transform:translateX(2em)}
+  .hbh-btn:hover .arw.r{transform:translate(100%,-50%);opacity:0}
+  .hbh-btn:hover .arw.l{transform:translate(0,-50%);opacity:1}
+  .hbh-btn.ghost:hover{background:${C.ink};color:#fff}
+  .hbh-btn.light:hover{background:transparent;color:#fff;border-color:#fff}
+  .hbh-btn.brand:hover{background:${C.blueDeep};border-color:${C.blueDeep}}
+  .hbh-arrowbtn:hover{background:${C.blue};border-color:${C.blue};color:#fff}
+  .hbh-head nav a:hover{opacity:.6}
+  .hbh-foot a:hover{opacity:.55}
+  .hbh-card:hover .hbh-media .inner:after{opacity:.55}
+}
+
 @media (prefers-reduced-motion:reduce){
-  .hbh-root *,.hbh-root *:before,.hbh-root *:after{transition-duration:.01ms !important;animation-duration:.01ms !important}
+  /* gentler, not none: colour and opacity still carry the feedback, movement goes */
+  .hbh-root *,.hbh-root *:before,.hbh-root *:after{
+    transition-property:opacity,color,background-color,border-color,fill,stroke !important;
+    transition-duration:.15s !important;animation-duration:.01ms !important}
   .hbh-rise,.hbh-word{transform:none !important;opacity:1 !important}
   .hbh-lines path{stroke-dashoffset:0 !important}
   .hbh-media .inner{transform:none !important}
@@ -299,7 +314,9 @@ export function Reveal({ as: Tag = 'div', className = '', children, style }: {
   )
 }
 
-export const step = (i: number): CSSProperties => ({ ['--d' as string]: `${(i * 0.15).toFixed(2)}s` })
+/* 70ms between parts of one group: at 150ms an image and its own caption read
+   as two separate events instead of one arrival */
+export const step = (i: number): CSSProperties => ({ ['--d' as string]: `${(i * 0.07).toFixed(2)}s` })
 
 /** Word-by-word display reveal. Icelandic compounds are never split mid-word. */
 export function Words({ text, className = '', hold = 0.45, tag: Tag = 'span' }: {
@@ -414,17 +431,19 @@ export function LineField({ top = '0', height = 430, seed = 1 }: { top?: string;
     if (reduced()) { el.classList.add('drawn'); return }
 
     let alive = true
+    let running = false
     const timers: number[] = []
     const rand = (a: number, b: number) => a + Math.random() * (b - a)
+    const clear = () => { timers.splice(0).forEach(clearTimeout) }
 
     const cycle = (p: SVGPathElement) => {
-      if (!alive) return
+      if (!alive || !running) return
       const len = p.getTotalLength()
       const out = rand(2.5, 5.5)
       p.style.transition = `stroke-dashoffset ${out}s ease-in-out`
       p.style.strokeDashoffset = `${len}`
       timers.push(window.setTimeout(() => {
-        if (!alive) return
+        if (!alive || !running) return
         const back = rand(2.5, 5.5)
         p.style.transition = `stroke-dashoffset ${back}s ease-in-out`
         p.style.strokeDashoffset = '0'
@@ -440,15 +459,32 @@ export function LineField({ top = '0', height = 430, seed = 1 }: { top?: string;
         })
         el.classList.add('drawn')
         // once the draw-in is done, hand a handful of lines to the loop
-        timers.push(window.setTimeout(() => {
-          const pool = [...svgPaths].sort(() => Math.random() - 0.5).slice(0, 6)
-          pool.forEach((p, i) => timers.push(window.setTimeout(() => cycle(p), i * rand(800, 2600))))
-        }, 4200))
+        timers.push(window.setTimeout(start, 4200))
         io.disconnect()
       })
     }, { rootMargin: '25% 0px' })
     io.observe(el)
-    return () => { alive = false; timers.forEach(clearTimeout); io.disconnect() }
+
+    /* the loop is decorative, so it only runs while the field is on screen and
+       the tab is in front; it used to keep repainting 41 strokes pages away */
+    const start = () => {
+      if (running || !alive) return
+      running = true
+      const pool = [...svgPaths].sort(() => Math.random() - 0.5).slice(0, 6)
+      pool.forEach((p, i) => timers.push(window.setTimeout(() => cycle(p), i * rand(800, 2600))))
+    }
+    const stop = () => { running = false; clear() }
+    const visible = { onScreen: false, tabVisible: document.visibilityState === 'visible' }
+    const sync = () => { if (visible.onScreen && visible.tabVisible) start(); else stop() }
+    const liveIo = new IntersectionObserver(([e]) => { visible.onScreen = e.isIntersecting; sync() }, { rootMargin: '25% 0px' })
+    liveIo.observe(el)
+    const onVis = () => { visible.tabVisible = document.visibilityState === 'visible'; sync() }
+    document.addEventListener('visibilitychange', onVis)
+
+    return () => {
+      alive = false; running = false; clear(); io.disconnect(); liveIo.disconnect()
+      document.removeEventListener('visibilitychange', onVis)
+    }
   }, [])
 
   return (
@@ -466,11 +502,28 @@ export function useScrollFx() {
     if (reduced()) return
     let raf = 0
     let stop = false
+    let onScreen = 0
+    /* the node lists are read once instead of twice per frame, and the loop only
+       runs while at least one parallax layer or scrim is actually on screen */
+    let speedEls: HTMLElement[] = []
+    let scrimEls: HTMLElement[] = []
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { onScreen += e.isIntersecting ? 1 : -1 })
+      onScreen = Math.max(0, onScreen)
+      if (onScreen > 0 && !raf) raf = requestAnimationFrame(run)
+    }, { rootMargin: '20% 0px' })
+    const collect = () => {
+      io.disconnect(); onScreen = 0
+      speedEls = Array.from(document.querySelectorAll<HTMLElement>('[data-speed]'))
+      scrimEls = Array.from(document.querySelectorAll<HTMLElement>('[data-scrim]'))
+      ;[...speedEls, ...scrimEls].forEach((el) => io.observe(el))
+    }
     const run = () => {
       if (stop) return
+      if (onScreen === 0) { raf = 0; return }
       const vh = window.innerHeight
       const sy = window.scrollY
-      document.querySelectorAll<HTMLElement>('[data-speed]').forEach((el) => {
+      speedEls.forEach((el) => {
         const r = el.getBoundingClientRect()
         if (r.bottom < -200 || r.top > vh + 200) return
         const speed = Number(el.dataset.speed)
@@ -483,7 +536,7 @@ export function useScrollFx() {
         }
         el.style.transform = `translate3d(0,${y.toFixed(1)}px,0)`
       })
-      document.querySelectorAll<HTMLElement>('[data-scrim]').forEach((el) => {
+      scrimEls.forEach((el) => {
         const host = el.parentElement
         if (!host) return
         const r = host.getBoundingClientRect()
@@ -495,8 +548,11 @@ export function useScrollFx() {
       })
       raf = requestAnimationFrame(run)
     }
+    collect()
+    const onResize = () => collect()
+    window.addEventListener('resize', onResize)
     raf = requestAnimationFrame(run)
-    return () => { stop = true; cancelAnimationFrame(raf) }
+    return () => { stop = true; cancelAnimationFrame(raf); io.disconnect(); window.removeEventListener('resize', onResize) }
   }, [])
 }
 
@@ -546,16 +602,16 @@ export function Cursor() {
 export function Header({ light = false }: { light?: boolean }) {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  const sentinel = useRef<HTMLSpanElement | null>(null)
+  /* the plate used to be driven by a frame loop that compared scrollY to 20 for
+     the whole session; a 20px sentinel at the top of the document says the same
+     thing and costs nothing while the page sits still */
   useEffect(() => {
-    let raf = 0
-    let stop = false
-    const run = () => {
-      if (stop) return
-      setScrolled((was) => (window.scrollY > 20) !== was ? window.scrollY > 20 : was)
-      raf = requestAnimationFrame(run)
-    }
-    raf = requestAnimationFrame(run)
-    return () => { stop = true; cancelAnimationFrame(raf) }
+    const el = sentinel.current
+    if (!el) return
+    const io = new IntersectionObserver(([e]) => setScrolled(!e.isIntersecting), { threshold: 0 })
+    io.observe(el)
+    return () => io.disconnect()
   }, [])
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
@@ -575,6 +631,7 @@ export function Header({ light = false }: { light?: boolean }) {
 
   return (
     <>
+      <span ref={sentinel} className="hbh-scroll-top" aria-hidden="true" />
       <a className="hbh-skip" href="#efni">Fara beint í efnið</a>
       <header className={`hbh-head${scrolled ? ' scrolled' : ''}${light ? ' light' : ''}${open ? ' menuopen' : ''}`}>
         <div className="row">

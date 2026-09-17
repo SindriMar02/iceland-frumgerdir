@@ -60,7 +60,6 @@ const PAGE_CSS = `
 .hbh-card .meta{display:flex;justify-content:space-between;gap:.6em;margin-top:.9em}
 .hbh-card .meta .tags{display:flex;gap:.4em;flex-wrap:wrap}
 .hbh-card h3{margin-top:.45em;padding-right:1.2em}
-.hbh-card:hover .hbh-media .inner:after{opacity:.55}
 .hbh-media .inner:after{content:'';position:absolute;inset:0;background:${C.ink};opacity:.12;transition:opacity .3s;z-index:1}
 @media (max-width:1080px){.hbh-card:nth-child(1){width:calc(100% - var(--col))}
   .hbh-card:nth-child(3){margin-right:calc(var(--col) / 2)}}
