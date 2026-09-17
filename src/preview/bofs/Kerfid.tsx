@@ -1,32 +1,28 @@
 /**
- * Öruggt skjól — "Kerfið" (the child-protection system, end to end).
+ * Öruggt skjól — "Kerfið": how child protection works, step by step.
  *
- * The landing hero shows a path winding to a glowing home; this page walks it.
- * Six honest stations, including the part the agency does NOT run (municipal
- * child protection), spined by the site's one scroll-scrubbed signature.
+ * Rebuilt 2026-09-17 in the page language: a plain opening, the painted
+ * road, the steps as a numbered list on a rule that fills as the reader
+ * scrolls, children's rights as convention articles, the laws as a ruled
+ * list, then questions and help. Each part hands off to island.is.
  */
 
 import { useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
 import { useReducedMotion, useScroll } from 'framer-motion'
-import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { asset, BofsStyles, Button, C, Eyebrow, Footer, Header, ScrollRail, SectionHead, SubNav, useLang, Arrow } from './ui'
-import { HillDivider, WaveDivider } from './illustrations'
+import { asset, BofsStyles, C, Footer, Header, IslandLink, PageHead, ScrollRail, SubNav, Torn, useLang, WordReveal } from './ui'
 import { FaqList, HelpBand } from './sections'
-import { KERFID, UI } from './data'
-
-const STATION_HUES = [C.terra, C.sage, C.sun, C.sky, C.rose, C.clay]
+import { ISLAND, KERFID, UI } from './data'
 
 export default function BofsKerfid() {
   const [, , pick] = useLang()
   const reduce = useReducedMotion()
-  const stationsRef = useRef<HTMLDivElement>(null)
+  const stationsRef = useRef<HTMLOListElement>(null)
 
   useEffect(() => {
     document.title = `${pick(KERFID.title)} | Barna- og fjölskyldustofa`
-    setThemeColor(C.cream2)
+    setThemeColor(C.cream)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -36,6 +32,7 @@ export default function BofsKerfid() {
     { id: 'ferlid', label: pick({ is: 'Ferlið', en: 'The process' }) },
     { id: 'rettindi', label: pick(KERFID.rights.eyebrow) },
     { id: 'login', label: pick(KERFID.laws.eyebrow) },
+    { id: 'spurningar', label: pick({ is: 'Spurningar', en: 'Questions' }) },
     { id: 'help', label: pick(UI.nav.help) },
   ]
 
@@ -48,141 +45,129 @@ export default function BofsKerfid() {
       </a>
 
       <main id="main">
-        {/* ── HERO ─────────────────────────────────────────────────────── */}
-        <section style={{ background: C.cream2 }}>
-          <div className="mx-auto max-w-4xl px-5 pb-16 pt-32 text-center sm:px-8 sm:pt-36">
-            <Reveal y={14}>
-              <Link to="/preview/bofs" className="bofs-focus mb-5 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13.5px] font-bold" style={{ background: '#fff', color: C.cocoa }}>
-                <Arrow className="rotate-180" />
-                {pick({ is: 'Forsíða', en: 'Home' })}
-              </Link>
-            </Reveal>
-            <Reveal delay={0.05}>
-              <Eyebrow>{pick(KERFID.hero.kicker)}</Eyebrow>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <h1 className="bofs-display bofs-display-xl bofs-balance mt-3 text-[clamp(34px,6vw,62px)]">{pick(KERFID.hero.title)}</h1>
-            </Reveal>
-            <Reveal delay={0.16}>
-              <p className="bofs-pretty mx-auto mt-5 max-w-2xl text-[17px] leading-relaxed" style={{ color: C.body }}>
-                {pick(KERFID.hero.lead)}
-              </p>
-            </Reveal>
-          </div>
-
-          {/* the whole journey as one painted panorama */}
-          <div className="mx-auto max-w-6xl px-5 pb-14 sm:px-8">
-            <Reveal>
-              <figure className="bofs-wet overflow-hidden">
-                <Img
-                  src={asset('art-kerfid.jpg')}
-                  /* 3024px wide for a 350px box on a phone was 92% wasted
-                     pixels and 15MB of decoded image memory. Desktop still
-                     gets the full plate: at max-w-6xl on a 2x screen the box
-                     genuinely needs ~2176px. */
-                  srcSet={`${asset('art-kerfid-1600.jpg')} 1600w, ${asset('art-kerfid.jpg')} 3024w`}
-                  sizes="(min-width: 640px) 1152px, 100vw"
-                  alt={pick({ is: 'Vatnslitamynd: stígurinn liðast yfir hæðir, framhjá vörðu og brú, að húsi með ljós í glugga', en: 'Watercolor: the path winds over hills, past a cairn and a bridge, to a house with a lit window' })}
-                  className="h-[220px] w-full object-cover sm:h-[320px]"
-                  fallbackClassName="bg-gradient-to-br from-[#F8EAD8] to-[#CFD7C4]"
-                />
-              </figure>
-            </Reveal>
-          </div>
+        <section className="bofs-wash" style={{ background: C.cream }}>
+          <PageHead crumb={pick(KERFID.hero.kicker)} title={pick(KERFID.hero.title)} lead={pick(KERFID.hero.lead)} wide>
+            <IslandLink to={ISLAND.report} button />
+            <IslandLink to={ISLAND.system} className="self-center" />
+          </PageHead>
+          <figure className="mx-auto max-w-6xl px-5 pb-16 sm:px-8">
+            <div className="bofs-wet">
+              <Img
+                src={asset('art-kerfid.jpg')}
+                srcSet={`${asset('art-kerfid-1600.jpg')} 1600w, ${asset('art-kerfid.jpg')} 3024w`}
+                sizes="(min-width: 1200px) 1120px, 100vw"
+                width={3024}
+                height={1296}
+                alt={pick({ is: 'Vatnslitamynd: stígur liggur yfir hæðir, framhjá vörðu og brú, að húsi með ljós í glugga', en: 'Watercolour: a path runs over hills, past a cairn and a bridge, to a house with a light in the window' })}
+                className="bofs-open-settle h-[220px] w-full object-cover sm:h-[340px]"
+                fallbackClassName="bg-gradient-to-br from-[#F8EAD8] to-[#CFD7C4]"
+              />
+            </div>
+          </figure>
         </section>
 
         <SubNav sections={subnav} />
 
-        {/* ── STATIONS ─────────────────────────────────────────────────── */}
-        <section id="ferlid" className="scroll-mt-24" style={{ background: C.cream }}>
-          <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
-            <SectionHead eyebrow={pick(KERFID.stationsEyebrow)} title={pick({ is: 'Sex skref frá áhyggjum að öryggi', en: 'Six steps from worry to safety' })} align="center" />
-            <div ref={stationsRef} className="relative mx-auto mt-14 max-w-3xl">
-              {/* the one scroll-scrubbed signature: a filling rail */}
-              <div className="pointer-events-none absolute bottom-4 left-[21px] top-4 w-[3px] sm:left-[25px]">
+        {/* ── the steps ─────────────────────────────────────────────────── */}
+        <section id="ferlid" className="bofs-wash scroll-mt-20" style={{ background: C.cream2 }}>
+          <Torn color={C.cream2} className="-mt-6 sm:-mt-7" />
+          <div className="mx-auto grid max-w-6xl gap-x-16 gap-y-10 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <WordReveal
+                as="h2"
+                soft
+                text={pick({ is: 'Frá áhyggjum að stuðningi, í sex skrefum', en: 'From a concern to support, in six steps' })}
+                mark={pick({ is: 'sex skrefum', en: 'six steps' })}
+                markColor={C.clay}
+                className="bofs-display bofs-balance text-[clamp(28px,4vw,44px)]"
+              />
+              <p className="mt-5">
+                <IslandLink to={ISLAND.childProtection} />
+              </p>
+            </div>
+            <ol ref={stationsRef} className="relative lg:col-span-8">
+              {/* the rule fills as the reader moves down the steps */}
+              <span className="pointer-events-none absolute bottom-6 left-[15px] top-6 w-[2px]" aria-hidden="true">
                 <ScrollRail progress={reduce ? undefined : scrollYProgress} className="h-full w-full" />
-              </div>
-              <ol className="space-y-7">
-                {KERFID.stations.map((st, i) => (
-                  <li key={i}>
-                    <Reveal y={16} delay={Math.min(i, 3) * 0.04}>
-                      <div className="relative flex gap-5">
-                        <span
-                          className="bofs-display relative z-10 grid h-11 w-11 shrink-0 place-items-center rounded-full text-[18px] text-white sm:h-[52px] sm:w-[52px]"
-                          style={{ background: STATION_HUES[i % STATION_HUES.length] }}
-                        >
-                          {i + 1}
-                        </span>
-                        <div className="flex-1 rounded-[18px] p-6" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-                          <h3 className="bofs-display bofs-display-sm bofs-balance text-[21px]">{pick(st.title)}</h3>
-                          <p className="mt-2 text-[15.5px] leading-relaxed" style={{ color: C.body }}>
-                            {pick(st.body)}
-                          </p>
-                          <span className="mt-4 inline-block rounded-full px-3 py-1 text-[12.5px] font-semibold" style={{ background: C.cream2, color: C.clayText }}>
-                            {pick(st.law)}
-                          </span>
-                        </div>
-                      </div>
-                    </Reveal>
+              </span>
+              {KERFID.stations.map((st, i) => (
+                <li key={i} className="relative grid grid-cols-[2.5rem_1fr] gap-x-5 py-6">
+                  <span className="bofs-display bofs-num relative z-10 grid h-8 w-8 place-items-center text-[20px] leading-none" style={{ background: C.cream2, color: C.clay }}>
+                    {i + 1}
+                  </span>
+                  <span className="border-b pb-6" style={{ borderColor: C.line }}>
+                    <span className="bofs-display bofs-display-sm block text-[22px]">{pick(st.title)}</span>
+                    <span className="bofs-pretty mt-2 block max-w-2xl text-[16.5px] leading-relaxed" style={{ color: C.cocoa }}>
+                      {pick(st.body)}
+                    </span>
+                    <span className="mt-3 block text-[14px]" style={{ color: C.body }}>
+                      {pick(st.law)}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* ── children's rights ─────────────────────────────────────────── */}
+        <section id="rettindi" className="bofs-wash scroll-mt-20" style={{ background: C.oat }}>
+          <Torn color={C.oat} className="-mt-6 sm:-mt-7" />
+          <div className="mx-auto grid max-w-6xl gap-x-16 gap-y-10 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <WordReveal as="h2" soft text={pick(KERFID.rights.title)} className="bofs-display bofs-balance text-[clamp(28px,4vw,44px)]" />
+              <p className="bofs-pretty mt-5 text-[17px] leading-relaxed" style={{ color: C.cocoa }}>
+                {pick(KERFID.rights.lead)}
+              </p>
+            </div>
+            <ol className="grid border-t sm:grid-cols-2 sm:gap-x-12 lg:col-span-8" style={{ borderColor: C.cocoa }}>
+              {[...KERFID.rights.items]
+                .sort((x, y) => parseInt(x.article.is) - parseInt(y.article.is))
+                .map((r) => (
+                  <li key={r.article.is} className="grid grid-cols-[4.5rem_1fr] items-baseline gap-x-4 border-b py-6" style={{ borderColor: C.line }}>
+                    <span className="bofs-display bofs-num text-[40px] leading-none" style={{ color: C.clay }}>
+                      {parseInt(r.article.is)}
+                      <span className="sr-only"> {pick(r.article)}</span>
+                    </span>
+                    <span>
+                      <span className="block text-[13px]" style={{ color: C.body }} aria-hidden="true">
+                        {pick(r.article)}
+                      </span>
+                      <span className="bofs-pretty mt-1 block text-[17px] leading-relaxed" style={{ color: C.cocoa }}>
+                        {pick(r.text)}
+                      </span>
+                    </span>
                   </li>
                 ))}
-              </ol>
-            </div>
+            </ol>
           </div>
-          <HillDivider color={C.oat} className="block w-full" />
         </section>
 
-        {/* ── CHILDREN'S RIGHTS ────────────────────────────────────────── */}
-        <section id="rettindi" className="scroll-mt-24" style={{ background: C.oat }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-            <SectionHead eyebrow={pick(KERFID.rights.eyebrow)} title={pick(KERFID.rights.title)} lead={pick(KERFID.rights.lead)} />
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {KERFID.rights.items.map((r, i) => (
-                <Reveal key={i} delay={(i % 3) * 0.06}>
-                  <div className="flex h-full flex-col rounded-[18px] p-6" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-                    <span className="mb-3 inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-[12px] font-bold" style={{ background: C.cream2, color: C.clayText }}>
-                      <span className="h-4 w-4 rounded-[3px]" style={{ background: '#FFE6AE', boxShadow: 'inset 0 0 0 1px rgba(224,169,79,.5)' }} />
-                      {pick(r.article)}
-                    </span>
-                    <p className="text-[16px] leading-relaxed" style={{ color: C.cocoa }}>
-                      {pick(r.text)}
-                    </p>
-                  </div>
-                </Reveal>
-              ))}
+        {/* ── the laws ──────────────────────────────────────────────────── */}
+        <section id="login" className="bofs-wash scroll-mt-20" style={{ background: C.cream2 }}>
+          <Torn color={C.cream2} className="-mt-6 sm:-mt-7" />
+          <div className="mx-auto grid max-w-6xl gap-x-16 gap-y-10 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <WordReveal as="h2" soft text={pick(KERFID.laws.title)} className="bofs-display bofs-balance text-[clamp(28px,4vw,44px)]" />
+              <p className="mt-5 flex flex-col items-start gap-3">
+                <IslandLink to={ISLAND.laws} />
+                <IslandLink to={ISLAND.forms} />
+              </p>
             </div>
-          </div>
-          <WaveDivider color={C.cream2} className="block w-full" />
-        </section>
-
-        {/* ── THE LAW ──────────────────────────────────────────────────── */}
-        <section id="login" className="scroll-mt-24" style={{ background: C.cream2 }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-            <SectionHead eyebrow={pick(KERFID.laws.eyebrow)} title={pick(KERFID.laws.title)} align="center" />
-            <div className="mx-auto mt-12 max-w-4xl space-y-4">
+            <ul className="border-t lg:col-span-8" style={{ borderColor: C.cocoa }}>
               {KERFID.laws.items.map((law, i) => (
-                <Reveal key={i} delay={i * 0.06}>
-                  <div className="rounded-[18px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-                    <h3 className="bofs-display bofs-display-sm text-[20px]">{pick(law.name)}</h3>
-                    <p className="mt-2 text-[15.5px] leading-relaxed" style={{ color: C.body }}>
-                      {pick(law.body)}
-                    </p>
-                  </div>
-                </Reveal>
+                <li key={i} className="border-b py-6" style={{ borderColor: C.line }}>
+                  <h3 className="bofs-display bofs-display-sm text-[21px]">{pick(law.name)}</h3>
+                  <p className="bofs-pretty mt-2 max-w-2xl text-[16.5px] leading-relaxed" style={{ color: C.cocoa }}>
+                    {pick(law.body)}
+                  </p>
+                </li>
               ))}
-            </div>
-            <div className="mt-12 flex justify-center">
-              <Button to="/preview/bofs#tilkynna" icon={<Arrow />}>
-                {pick({ is: 'Hefur þú áhyggjur af barni?', en: 'Are you worried about a child?' })}
-              </Button>
-            </div>
+            </ul>
           </div>
         </section>
 
-        {/* ── FAQ (moved here from the landing page, 2026-09-17) ──────── */}
         <FaqList />
-
-        {/* ── HELP ─────────────────────────────────────────────────────── */}
         <HelpBand />
       </main>
 

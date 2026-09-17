@@ -13,10 +13,9 @@
 
 import { useEffect } from 'react'
 import { setThemeColor } from '../../lib/preview'
-import { BofsStyles, C, Footer, Header, useLang } from './ui'
+import { BofsStyles, C, Header, useLang } from './ui'
 import { UI } from './data'
-import { DuskBookend } from './sections'
-import { ChapterMark, Ending, Entrances, Grounds, HelpPanel, Hero, Process, ServiceCategories, Story } from './landing'
+import { ChapterBreak, ChapterMark, Ending, Entrances, Grounds, HelpPanel, Hero, NightClose, Process, ServiceCategories, Story } from './landing'
 
 export default function BofsPage() {
   const [, , pick] = useLang()
@@ -27,13 +26,13 @@ export default function BofsPage() {
   }, [])
 
   const chapters = [
-    { id: 'byrja', label: pick({ is: 'Hvar byrjar þú', en: 'Where to start' }) },
-    { id: 'saga', label: pick({ is: 'Ein saga', en: 'One story' }) },
+    { id: 'byrja', label: pick({ is: 'Hvar á að byrja', en: 'Where to start' }) },
+    { id: 'saga', label: pick({ is: 'Dæmi', en: 'Example' }) },
     { id: 'heimili', label: pick({ is: 'Meðferðarheimili', en: 'Treatment homes' }) },
-    { id: 'thjonusta', label: pick({ is: 'Stuðningsþjónusta', en: 'Support services' }) },
-    { id: 'ferli', label: pick({ is: 'Hvernig hjálpin virkar', en: 'How help works' }) },
-    { id: 'stadir', label: pick({ is: 'Staðirnir', en: 'The places' }) },
-    { id: 'help', label: pick({ is: 'Hjálp núna', en: 'Help now' }) },
+    { id: 'thjonusta', label: pick({ is: 'Þjónusta', en: 'Services' }) },
+    { id: 'ferli', label: pick({ is: 'Ferlið', en: 'The process' }) },
+    { id: 'stadir', label: pick({ is: 'Heimilin', en: 'The homes' }) },
+    { id: 'help', label: pick({ is: 'Hjálp', en: 'Help' }) },
     { id: 'um', label: pick({ is: 'Stofnunin', en: 'The agency' }) },
   ]
 
@@ -48,17 +47,19 @@ export default function BofsPage() {
       <main id="main">
         <Hero />
         <Entrances />
+        <ChapterBreak n={1} word={{ is: 'Ferill máls', en: 'A case' }} ground={C.cream2} />
         <Story />
+        <ChapterBreak n={2} word={{ is: 'Úrræðin', en: 'Services' }} />
         <ServiceCategories />
+        <ChapterBreak n={3} word={{ is: 'Ferlið', en: 'Process' }} ground="#FFFFFF" />
         <Process />
         <Grounds />
+        <ChapterBreak n={4} word={{ is: 'Hjálp', en: 'Help' }} ground={C.cream2} />
         <HelpPanel />
         <Ending />
-        <DuskBookend />
+        <NightClose />
       </main>
       <ChapterMark chapters={chapters} />
-
-      <Footer />
     </div>
   )
 }

@@ -388,7 +388,10 @@ async function fetchRss({ source, url, max }) {
       source,
       topic: inferTopic(titleIs, sum),
       title: { is: titleIs, en: titleIs },
-      href: link,
+      /* Stjórnarráðið's feed gives site-relative links ("/efst-a-baugi/..."),
+         which on this site resolve to a dead local address. Resolve every
+         item link against the feed's own origin. */
+      href: new URL(link, url).href,
       untranslated: true,
     }
     if (sum && sum !== titleIs) {

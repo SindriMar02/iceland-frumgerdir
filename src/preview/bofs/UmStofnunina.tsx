@@ -1,18 +1,40 @@
 /**
- * Öruggt skjól — "Um stofnunina" (about the agency).
- * Institution as typography: a letterhead fact band, the history timeline,
- * organisation, leadership, oversight and contact. Verified content only.
+ * Öruggt skjól — "Um stofnunina".
+ *
+ * Rebuilt 2026-09-17 from what the agency itself publishes on island.is:
+ * /s/bofs/um-barna-og-fjoelskyldustofu (purpose, services), /hlutverk-...
+ * (role and statutory tasks), /starfsfolk-... (executive board and units),
+ * /stefnur-og-aaetlanir (policies), /adgengi-ad-starfsstoedvum-bofs (sites),
+ * plus the 2024 annual report (staff and sites) and GEV for oversight.
+ * Nothing on this page is written from memory; see data.ts ABOUT.
+ *
+ * Order follows what people come to an about page for: what the agency is
+ * and does, what it runs, who leads it, where it is, how it is overseen,
+ * and how to reach it.
  */
 
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Reveal } from '../../components/Reveal'
-import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { asset, BofsStyles, C, Eyebrow, Footer, Header, SectionHead, SubNav, useLang, Arrow } from './ui'
-import { WaveDivider } from './illustrations'
+import { BofsStyles, C, Footer, Header, IslandLink, PageHead, SubNav, Torn, useLang, WordReveal } from './ui'
 import { InstitutionsAndClose, StatsBand, Timeline } from './sections'
-import { ABOUT, LEADERSHIP, ORG, TIMELINE, UI } from './data'
+import { ABOUT, ISLAND, LEADERSHIP, ORG, TIMELINE, UI } from './data'
+
+/** The two-column chapter used throughout this page. */
+function Chapter({ id, title, ground, children, aside }: { id: string; title: string; ground: string; children: React.ReactNode; aside?: React.ReactNode }) {
+  return (
+    <section id={id} className="bofs-wash scroll-mt-20" style={{ background: ground }}>
+      <Torn color={ground} className="-mt-6 sm:-mt-7" />
+      <div className="mx-auto grid max-w-6xl gap-x-16 gap-y-8 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-12">
+        <div className="lg:col-span-4">
+          <WordReveal as="h2" soft text={title} className="bofs-display bofs-balance text-[clamp(28px,3.6vw,42px)]" />
+          {aside && <div className="mt-5 flex flex-col items-start gap-3">{aside}</div>}
+        </div>
+        <div className="lg:col-span-8">{children}</div>
+      </div>
+    </section>
+  )
+}
 
 export default function BofsUmStofnunina() {
   const [, , pick] = useLang()
@@ -24,12 +46,13 @@ export default function BofsUmStofnunina() {
   }, [])
 
   const subnav = [
-    { id: 'hlutverk', label: pick(ABOUT.role.eyebrow) },
+    { id: 'hlutverk', label: pick(ABOUT.role.title) },
+    { id: 'urraedi', label: pick({ is: 'Úrræði', en: 'Services' }) },
+    { id: 'skipulag', label: pick(ABOUT.org.title) },
     { id: 'saga', label: pick(TIMELINE.eyebrow) },
-    { id: 'skipulag', label: pick(ABOUT.org.eyebrow) },
-    { id: 'stjorn', label: pick(ABOUT.leadership.eyebrow) },
     { id: 'eftirlit', label: pick(ABOUT.oversight.eyebrow) },
-    { id: 'samband', label: pick(ABOUT.contact.eyebrow) },
+    { id: 'starfsstodvar', label: pick({ is: 'Starfsstöðvar', en: 'Sites' }) },
+    { id: 'samband', label: pick(ABOUT.contact.title) },
   ]
 
   return (
@@ -41,184 +64,166 @@ export default function BofsUmStofnunina() {
       </a>
 
       <main id="main">
-        {/* ── HERO / CHARTER ───────────────────────────────────────────── */}
-        <section style={{ background: C.cream }}>
-          <div className="mx-auto max-w-4xl px-5 pb-14 pt-32 text-center sm:px-8 sm:pt-36">
-            <Reveal y={14}>
-              <Link to="/preview/bofs" className="bofs-focus mb-5 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13.5px] font-bold" style={{ background: '#fff', color: C.cocoa }}>
-                <Arrow className="rotate-180" />
-                {pick({ is: 'Forsíða', en: 'Home' })}
-              </Link>
-            </Reveal>
-            <Reveal delay={0.05}>
-              <Eyebrow>{pick(ABOUT.hero.kicker)}</Eyebrow>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <h1 className="bofs-display bofs-display-xl bofs-balance mt-3 text-[clamp(34px,6vw,62px)]">{pick(ABOUT.hero.title)}</h1>
-            </Reveal>
+        {/* ── opening: what the agency is, in its own words ─────────────── */}
+        <section className="bofs-wash" style={{ background: C.cream }}>
+          <PageHead crumb={pick(ABOUT.hero.kicker)} title={pick(ABOUT.hero.title)} lead={pick(ABOUT.hero.lead)} wide>
+            <IslandLink to={ISLAND.about} />
+          </PageHead>
+          <div className="mx-auto max-w-6xl px-5 pb-16 sm:px-8">
+            <dl className="grid border-t sm:grid-cols-2 lg:grid-cols-4" style={{ borderColor: C.cocoa }}>
+              {ABOUT.factband.map((f) => (
+                <div key={pick(f.label)} className="border-b py-5 sm:pr-8" style={{ borderColor: C.line }}>
+                  <dt className="text-[14px]" style={{ color: C.body }}>
+                    {pick(f.label)}
+                  </dt>
+                  <dd className="bofs-display mt-1 text-[19px]" style={{ color: C.cocoa }}>
+                    {pick(f.value)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </div>
-
-          {/* ruled letterhead fact band */}
-          <div className="mx-auto max-w-4xl px-5 sm:px-8">
-            <Reveal delay={0.05}>
-              <div className="grid divide-y overflow-hidden rounded-[18px] sm:grid-cols-3 sm:divide-x sm:divide-y-0" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}`, borderColor: C.line }}>
-                {ABOUT.factband.map((f) => (
-                  <div key={pick(f.label)} className="px-6 py-5 text-center" style={{ borderColor: C.line }}>
-                    <span className="block text-[12px] font-bold uppercase tracking-[0.16em]" style={{ color: C.clayText }}>
-                      {pick(f.label)}
-                    </span>
-                    <span className="bofs-display bofs-display-sm mt-1.5 block text-[17px]" style={{ color: C.cocoa }}>
-                      {pick(f.value)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-          </div>
-
-          {/* one painted moment: the warm common room, arch-cropped */}
-          <div className="mx-auto mt-14 max-w-5xl px-5 sm:px-8">
-            <Reveal>
-              <figure className="bofs-wet-arch overflow-hidden">
-                <Img
-                  src={asset('art-inni.jpg')}
-                  alt={pick({ is: 'Vatnslitamynd: hlýleg setustofa með stórum glugga og útsýni yfir grænar hæðir', en: 'Watercolor: a warm common room with a big window looking over green hills' })}
-                  className="h-[240px] w-full object-cover sm:h-[380px]"
-                  fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
-                />
-              </figure>
-            </Reveal>
-          </div>
-          <div className="h-16" />
         </section>
 
         <SubNav sections={subnav} />
 
-        {/* ── ROLE ─────────────────────────────────────────────────────── */}
-        <section id="hlutverk" className="scroll-mt-24" style={{ background: C.cream }}>
-          <div className="mx-auto max-w-4xl px-5 py-20 sm:px-8">
-            <SectionHead eyebrow={pick(ABOUT.role.eyebrow)} title={pick(ABOUT.role.title)} />
-            <div className="mt-8 space-y-5">
-              {ABOUT.role.paras.map((p, i) => (
-                <Reveal key={i} delay={i * 0.05}>
-                  <p className="bofs-pretty text-[18px] leading-relaxed" style={{ color: C.cocoa }}>
-                    {pick(p)}
-                  </p>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── HISTORY ──────────────────────────────────────────────────── */}
-        <section id="saga" className="scroll-mt-24" style={{ background: C.cream2 }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-            <SectionHead eyebrow={pick(TIMELINE.eyebrow)} title={pick(TIMELINE.title)} align="center" />
-            <div className="mt-14">
-              <Timeline />
-            </div>
-          </div>
-        </section>
-
-        {/* ── ORGANISATION ─────────────────────────────────────────────── */}
-        <section id="skipulag" className="scroll-mt-24" style={{ background: C.cream }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-            <SectionHead eyebrow={pick(ABOUT.org.eyebrow)} title={pick(ABOUT.org.title)} lead={pick(ABOUT.org.lead)} />
-            <div className="mt-12 grid gap-4 md:grid-cols-3">
-              {ABOUT.org.groups.map((g, i) => (
-                <Reveal key={i} delay={i * 0.07}>
-                  <div className="h-full rounded-[18px] p-6" style={{ background: C.cream2, boxShadow: `inset 0 0 0 1px ${C.line}`, borderLeft: `4px solid ${[C.terra, C.sage, C.sky][i % 3]}` }}>
-                    <h3 className="bofs-display bofs-display-sm text-[19px]">{pick(g.title)}</h3>
-                    <p className="mt-2 text-[15px] leading-relaxed" style={{ color: C.body }}>
-                      {pick(g.body)}
-                    </p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── LEADERSHIP ───────────────────────────────────────────────── */}
-        {LEADERSHIP.length > 0 && (
-          <section id="stjorn" className="scroll-mt-24" style={{ background: C.oat }}>
-            <div className="mx-auto max-w-4xl px-5 py-20 sm:px-8">
-              <SectionHead eyebrow={pick(ABOUT.leadership.eyebrow)} title={pick(ABOUT.leadership.title)} />
-              <div className="mt-8 space-y-3">
-                {LEADERSHIP.map((l) => (
-                  <Reveal key={l.name}>
-                    <div className="flex items-center gap-4 rounded-[18px] p-5" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-                      <span className="bofs-display grid h-14 w-14 shrink-0 place-items-center rounded-full text-[20px]" style={{ background: C.cream2, color: C.clay }}>
-                        {l.name.charAt(0)}
-                      </span>
-                      <div>
-                        <span className="block text-[18px] font-bold" style={{ color: C.cocoa }}>
-                          {l.name}
-                        </span>
-                        <span className="block text-[14px]" style={{ color: C.body }}>
-                          {pick(l.title)}
-                        </span>
-                      </div>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── STATISTICS (moved here from the landing page, 2026-09-17) ── */}
-        <StatsBand />
-
-        {/* ── OVERSIGHT ────────────────────────────────────────────────── */}
-        <section id="eftirlit" className="scroll-mt-24" style={{ background: C.cream }}>
-          <div className="mx-auto max-w-4xl px-5 py-20 sm:px-8">
-            <SectionHead eyebrow={pick(ABOUT.oversight.eyebrow)} title={pick(ABOUT.oversight.title)} />
-            <Reveal delay={0.05}>
-              <p className="bofs-pretty mt-6 text-[17px] leading-relaxed" style={{ color: C.cocoa }}>
-                {pick(ABOUT.oversight.body)}
+        {/* ── role and statutory tasks ──────────────────────────────────── */}
+        <Chapter id="hlutverk" title={pick(ABOUT.role.title)} ground={C.cream2} aside={<IslandLink to={ISLAND.role} />}>
+          <div className="space-y-5">
+            {ABOUT.role.paras.map((p, i) => (
+              <p key={i} className="bofs-pretty text-[18px] leading-relaxed" style={{ color: C.cocoa }}>
+                {pick(p)}
               </p>
-              <p className="mt-4 text-[14.5px] font-semibold" style={{ color: C.body }}>
-                {pick(ABOUT.oversight.contact)}
-              </p>
-            </Reveal>
+            ))}
           </div>
-          <WaveDivider color={C.deep} className="block w-full" />
-        </section>
+          <h3 className="mt-10 text-[15px] font-semibold" style={{ color: C.clayText }}>
+            {pick({ is: 'Verkefni stofnunarinnar', en: 'The agency’s tasks' })}
+          </h3>
+          <ul className="mt-3 border-t" style={{ borderColor: C.cocoa }}>
+            {ABOUT.role.tasks.map((task, i) => (
+              <li key={i} className="border-b py-3 text-[16.5px] leading-relaxed" style={{ borderColor: C.line, color: C.cocoa }}>
+                {pick(task)}
+              </li>
+            ))}
+          </ul>
+        </Chapter>
 
-        {/* ── RELATED INSTITUTIONS (moved from the landing page, 2026-09-17) */}
+        {/* ── services it runs: our own pages ───────────────────────────── */}
+        <Chapter id="urraedi" title={pick(ABOUT.services.title)} ground={C.cream}>
+          <ul className="border-t" style={{ borderColor: C.cocoa }}>
+            {ABOUT.services.items.map((it) => (
+              <li key={it.slug} className="border-b" style={{ borderColor: C.line }}>
+                <Link to={it.slug === 'studlar' ? '/preview/bofs#heimili' : `/preview/bofs/${it.slug}`} className="bofs-focus group block rounded py-4">
+                  <span className="bofs-display bofs-way bofs-way-ink text-[22px]">{pick(it.label)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Chapter>
+
+        {/* ── organisation: board and units ─────────────────────────────── */}
+        <Chapter id="skipulag" title={pick(ABOUT.org.title)} ground={C.cream2} aside={<IslandLink to={ISLAND.staff} />}>
+          <p className="bofs-pretty text-[18px] leading-relaxed" style={{ color: C.cocoa }}>
+            {pick(ABOUT.org.lead)}
+          </p>
+          <h3 className="mt-10 text-[15px] font-semibold" style={{ color: C.clayText }}>
+            {pick(ABOUT.org.boardTitle)}
+          </h3>
+          <ul className="mt-3 border-t" style={{ borderColor: C.cocoa }}>
+            {LEADERSHIP.map((l) => (
+              <li key={l.name} className="grid gap-x-8 gap-y-1 border-b py-4 sm:grid-cols-[14rem_1fr]" style={{ borderColor: C.line }}>
+                <span className="bofs-display text-[19px]">{l.name}</span>
+                <span className="text-[16px]" style={{ color: C.cocoa }}>
+                  {pick(l.title)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <h3 className="mt-10 text-[15px] font-semibold" style={{ color: C.clayText }}>
+            {pick(ABOUT.org.unitsTitle)}
+          </h3>
+          <ul className="mt-3 grid border-t sm:grid-cols-2 sm:gap-x-10" style={{ borderColor: C.cocoa }}>
+            {ABOUT.org.units.map((u) => (
+              <li key={u.is} className="border-b py-3 text-[16px]" style={{ borderColor: C.line, color: C.cocoa }}>
+                {pick(u)}
+              </li>
+            ))}
+          </ul>
+        </Chapter>
+
+        {/* ── history ───────────────────────────────────────────────────── */}
+        <Chapter id="saga" title={pick(TIMELINE.title)} ground={C.cream}>
+          <Timeline />
+        </Chapter>
+
+        {/* ── figures ───────────────────────────────────────────────────── */}
+        <StatsBand link={ISLAND.publications} />
+
+        {/* ── oversight and complaints ──────────────────────────────────── */}
+        <Chapter id="eftirlit" title={pick(ABOUT.oversight.title)} ground={C.cream} aside={<IslandLink to={ISLAND.gev} button />}>
+          <p className="bofs-pretty text-[18px] leading-relaxed" style={{ color: C.cocoa }}>
+            {pick(ABOUT.oversight.body)}
+          </p>
+          <p className="mt-4 text-[15.5px]" style={{ color: C.cocoa }}>
+            {pick({ is: 'Gæða- og eftirlitsstofnun velferðarmála', en: 'Quality and Supervisory Authority of Welfare' })}
+            <br />
+            {pick(ABOUT.oversight.contact)}
+          </p>
+        </Chapter>
+
+        {/* ── sites ─────────────────────────────────────────────────────── */}
+        <Chapter id="starfsstodvar" title={pick(ABOUT.sites.title)} ground={C.cream2} aside={<IslandLink to={ISLAND.sites} />}>
+          <p className="text-[16.5px]" style={{ color: C.cocoa }}>
+            {pick(ABOUT.sites.lead)}
+          </p>
+          <ul className="mt-6 border-t" style={{ borderColor: C.cocoa }}>
+            {ABOUT.sites.items.map((site) => (
+              <li key={site.name.is} className="grid gap-x-8 gap-y-1 border-b py-4 sm:grid-cols-[14rem_1fr]" style={{ borderColor: C.line }}>
+                <span className="bofs-display text-[19px]">{pick(site.name)}</span>
+                <span className="text-[16px] leading-relaxed" style={{ color: C.cocoa }}>
+                  {pick(site.body)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Chapter>
+
+        {/* ── policies ──────────────────────────────────────────────────── */}
+        <Chapter id="stefnur" title={pick(ABOUT.policies.title)} ground={C.cream} aside={<IslandLink to={ISLAND.policies} />}>
+          <ul className="grid border-t sm:grid-cols-2 sm:gap-x-10" style={{ borderColor: C.cocoa }}>
+            {ABOUT.policies.items.map((p) => (
+              <li key={p.is} className="border-b py-3 text-[16.5px]" style={{ borderColor: C.line, color: C.cocoa }}>
+                {pick(p)}
+              </li>
+            ))}
+          </ul>
+        </Chapter>
+
         <InstitutionsAndClose />
 
-        {/* ── CONTACT ──────────────────────────────────────────────────── */}
-        <section id="samband" className="scroll-mt-24" style={{ background: C.deep }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-            <SectionHead eyebrow={pick(ABOUT.contact.eyebrow)} title={pick(ABOUT.contact.title)} onDeep />
-            <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="rounded-[20px] p-8" style={{ background: 'rgba(255,255,255,.06)', boxShadow: 'inset 0 0 0 1px rgba(246,232,213,.14)' }}>
-                <a href={`tel:${ORG.phone.replace(/\s/g, '')}`} className="bofs-focus bofs-display block text-[clamp(30px,5vw,44px)]" style={{ color: C.sun }}>
-                  {ORG.phone}
-                </a>
-                <a href={`mailto:${ORG.email}`} className="bofs-focus mt-2 block text-[18px] font-semibold" style={{ color: C.deepText }}>
-                  {ORG.email}
-                </a>
-                <p className="mt-4 text-[15.5px]" style={{ color: 'rgba(246,232,213,.8)' }}>
-                  {ORG.address}
-                </p>
-                <p className="mt-1 text-[14.5px]" style={{ color: 'rgba(246,232,213,.65)' }}>
-                  {pick(ORG.hours)}
-                </p>
-              </div>
-              <div className="flex flex-col justify-center rounded-[20px] p-8" style={{ background: 'rgba(255,255,255,.06)', boxShadow: 'inset 0 0 0 1px rgba(246,232,213,.14)' }}>
-                <span className="text-[13px] font-bold uppercase tracking-[0.16em]" style={{ color: C.sunOnDeep }}>
-                  {pick(ORG.motto)}
-                </span>
-                <p className="mt-3 text-[16px] leading-relaxed" style={{ color: 'rgba(246,232,213,.85)' }}>
-                  {pick({
-                    is: 'Merki og nafn Barna- og fjölskyldustofu eru eign stofnunarinnar. Þessi vefur er hugmynd, ekki opinber vefur hennar.',
-                    en: 'The Barna- og fjölskyldustofa emblem and name are property of the agency. This site is a concept, not its official website.',
-                  })}
-                </p>
-              </div>
+        {/* ── contact ───────────────────────────────────────────────────── */}
+        <section id="samband" className="bofs-wash scroll-mt-20" style={{ background: C.deep }}>
+          <Torn color={C.deep} className="-mt-6 sm:-mt-7" />
+          <div className="mx-auto grid max-w-6xl gap-x-16 gap-y-10 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-12">
+            <WordReveal as="h2" soft text={pick(ABOUT.contact.title)} className="bofs-display text-[clamp(28px,3.6vw,42px)] lg:col-span-4" style={{ color: C.deepText }} />
+            <div className="lg:col-span-8">
+              <a href={`tel:${ORG.phone.replace(/\s/g, '')}`} className="bofs-focus group bofs-display block rounded text-[clamp(30px,4vw,44px)]" style={{ color: C.sunOnDeep }}>
+                <span className="bofs-way">{ORG.phone}</span>
+              </a>
+              <a href={`mailto:${ORG.email}`} className="bofs-focus group mt-2 inline-block rounded text-[19px] font-semibold" style={{ color: C.deepText }}>
+                <span className="bofs-way">{ORG.email}</span>
+              </a>
+              <p className="mt-4 text-[16px]" style={{ color: 'rgba(246,232,213,.9)' }}>
+                {ORG.address}
+                <br />
+                {pick(ORG.hours)}
+              </p>
+              <p className="mt-8 border-t pt-5 text-[14.5px] leading-relaxed" style={{ borderColor: 'rgba(246,232,213,.2)', color: 'rgba(246,232,213,.82)' }}>
+                {pick({
+                  is: 'Merki og nafn Barna- og fjölskyldustofu eru eign stofnunarinnar. Þessi vefur er hugmynd að framsetningu, ekki opinber vefur hennar.',
+                  en: 'The Barna- og fjölskyldustofa emblem and name belong to the agency. This site is a design concept, not its official website.',
+                })}
+              </p>
             </div>
           </div>
         </section>

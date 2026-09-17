@@ -5,9 +5,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, animate, useInView, useReducedMotion, type MotionValue } from 'framer-motion'
-import { CATEGORIES, ORG, SERVICES, UI, type L, type Lang, type Service } from './data'
+import { CATEGORIES, ISLAND, ORG, SERVICES, UI, type L, type Lang, type Service } from './data'
 import { SndrBadge } from '../SndrBadge'
 
 /* ── palette ──────────────────────────────────────────────────────────── */
@@ -180,9 +180,44 @@ const WET_ARCH =
 const INK_RULE =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='6' preserveAspectRatio='none'%3E%3Cpath d='M3 3.2 C 90 1.7, 170 4.3, 258 2.6 C 350 1.1, 430 4.1, 512 2.9 C 550 2.4, 575 3.4, 597 2.8' stroke='%23fff' stroke-width='2.1' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\")"
 
+/**
+ * Holds a click on a link to another BOFS page for a short exit, then
+ * navigates. Same-page anchors, new tabs, modified clicks and anything off
+ * the site pass straight through.
+ */
+function BofsPageTransition() {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  useEffect(() => {
+    delete document.documentElement.dataset.bofsLeaving
+  }, [pathname])
+  useEffect(() => {
+    const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null
+      if (!a || a.target === '_blank' || a.hasAttribute('download')) return
+      const url = new URL(a.href, window.location.href)
+      if (url.origin !== window.location.origin) return
+      const path = url.pathname.startsWith(base) ? url.pathname.slice(base.length) || '/' : url.pathname
+      if (!path.startsWith('/preview/bofs')) return
+      if (url.pathname === window.location.pathname) return
+      e.preventDefault()
+      e.stopPropagation()
+      document.documentElement.dataset.bofsLeaving = ''
+      window.setTimeout(() => navigate(path + url.search + url.hash), reduce ? 120 : 220)
+    }
+    document.addEventListener('click', onClick, true)
+    return () => document.removeEventListener('click', onClick, true)
+  }, [navigate])
+  return null
+}
+
 export function BofsStyles() {
   return (
     <>
+      <BofsPageTransition />
       <style>{`
       @font-face { font-family:'Sentient'; src:url('${asset('fonts/Sentient-Regular.woff2')}') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
       @font-face { font-family:'Sentient'; src:url('${asset('fonts/Sentient-Medium.woff2')}') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
@@ -209,9 +244,71 @@ export function BofsStyles() {
       /* one statement style, reused as each page's single large gesture */
       .bofs-statement { font-family:${DISPLAY}; color:${C.cocoa}; font-weight:500; font-size:clamp(24px,3.6vw,38px); line-height:1.2; letter-spacing:-0.012em; }
       .bofs-num { font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1; }
-      /* a way in: the line itself is the link, and hovering underlines it */
-      .bofs-way { text-decoration:underline; text-decoration-color:transparent; text-decoration-thickness:2px; text-underline-offset:.14em; transition:text-decoration-color .2s ease-out, color .2s ease-out; }
-      .group:hover .bofs-way, .group:focus-visible .bofs-way { text-decoration-color:${C.clay}; color:${C.clayText}; }
+      /*
+       * HOVER LANGUAGE (one system, 2026-09-17). A link draws its underline
+       * from the left in 320ms on a strong ease-out; a painting or photo
+       * inside a link lifts 4px; a button deepens and presses. Hover only on
+       * devices that hover; every transition is transform, opacity or a
+       * background-size, and reduced motion collapses them to instant.
+       */
+      .bofs-way {
+        text-decoration:none; padding-bottom:2px;
+        background-image:linear-gradient(currentColor, currentColor);
+        background-size:0% 2px; background-position:0 100%; background-repeat:no-repeat;
+        transition:background-size .32s cubic-bezier(.23,1,.32,1), color .2s ease-out;
+      }
+      .bofs-way-nav { background-position:0 calc(100% - 5px); }
+      @media (hover:hover) and (pointer:fine) {
+        .bofs-way:hover, .group:hover .bofs-way, a:hover .bofs-way { background-size:100% 2px; }
+        .group:hover .bofs-way-ink { color:${C.clayText}; }
+        .bofs-pic { transition:transform .45s cubic-bezier(.23,1,.32,1); }
+        .group:hover .bofs-pic { transform:translateY(-4px); }
+        .bofs-btn { transition:transform .18s cubic-bezier(.23,1,.32,1), filter .18s ease-out; }
+        .bofs-btn:hover { transform:translateY(-1px); filter:brightness(.94) saturate(1.06); }
+      }
+      .group:focus-visible .bofs-way, .bofs-way:focus-visible { background-size:100% 2px; }
+      /*
+       * ONE STICKY ROW. On the long pages the section line takes the
+       * header's slot: the header slides up as the line slides down, so
+       * there is never a bar stacked on a bar.
+       */
+      .bofs-header { transition:transform .34s cubic-bezier(.23,1,.32,1); }
+      html[data-bofs-sub="on"] .bofs-header { transform:translateY(-100%); }
+
+      /*
+       * PAGE CHANGES. The old page lifts away for 220ms, the new one rises
+       * in over 460ms. The header is outside both, so it stays put.
+       */
+      .bofs-root > main, .bofs-root > footer { animation:bofs-enter .46s cubic-bezier(.23,1,.32,1) both; }
+      @keyframes bofs-enter { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+      html[data-bofs-leaving] .bofs-root > main, html[data-bofs-leaving] .bofs-root > footer {
+        animation:none; opacity:0; transform:translateY(-8px);
+        transition:opacity .22s ease-in, transform .22s ease-in;
+      }
+      /*
+       * THE OPENING (2026-09-17). The painting settles from a slight zoom
+       * and a cream veil over 2.4s; the headline rises line by line from
+       * behind its own mask; the kicker, lead and button follow. Runs once
+       * per visit to the hero. Reduced motion shows everything at once.
+       */
+      .bofs-open-scene { animation:bofs-open-scene 2.4s cubic-bezier(.16,1,.3,1) both; }
+      @keyframes bofs-open-scene { from { opacity:.0; transform:scale(1.07); filter:saturate(.6); } to { opacity:1; transform:none; filter:none; } }
+      .bofs-open-line { display:block; overflow:hidden; padding:.14em 0 .1em; margin:-.14em 0 -.1em; }
+      .bofs-open-line > span { display:block; animation:bofs-open-rise 1.15s cubic-bezier(.16,1,.3,1) both; }
+      @keyframes bofs-open-rise { from { transform:translateY(112%); } to { transform:none; } }
+      .bofs-open-settle { animation:bofs-open-scene 1.5s cubic-bezier(.16,1,.3,1) .15s both; }
+      .bofs-open-fade { animation:bofs-open-fade .9s cubic-bezier(.16,1,.3,1) both; }
+      @keyframes bofs-open-fade { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+      @media (prefers-reduced-motion: reduce) {
+        .bofs-open-scene, .bofs-open-settle, .bofs-open-line > span, .bofs-open-fade { animation:none; }
+        .bofs-header { transition:none; }
+        .bofs-root > main, .bofs-root > footer { animation:bofs-fade .2s linear both; }
+        @keyframes bofs-fade { from { opacity:0; } to { opacity:1; } }
+        html[data-bofs-leaving] .bofs-root > main, html[data-bofs-leaving] .bofs-root > footer { transform:none; transition:opacity .12s linear; }
+        .bofs-way, .bofs-pic, .bofs-btn { transition:none; }
+        .group:hover .bofs-pic { transform:none; }
+      }
       .bofs-root a { color:inherit; }
       .bofs-focus:focus-visible { outline:3px solid ${C.clay}; outline-offset:3px; border-radius:10px; }
       .bofs-root .no-scrollbar { scrollbar-width:none; -ms-overflow-style:none; }
@@ -232,21 +329,25 @@ export function BofsStyles() {
        * washes overlap they darken the way layered pigment does, rather than
        * fogging toward grey the way stacked alpha does.
        */
-      .bofs-wash { position:relative; }
-      .bofs-wash::before {
-        content:''; position:absolute; inset:0; pointer-events:none;
-        background-image:${PAPER}; background-size:220px 220px; mix-blend-mode:multiply;
+      /*
+       * PERF (2026-09-17): the tooth used to be a ::before on every band with
+       * mix-blend-mode, which made the browser re-blend a full-width layer
+       * against the page on every scroll frame (21 blended layers on the
+       * landing page). It is now painted into the band's own background with
+       * background-blend-mode, which is resolved once when the band is
+       * painted. Same look, no compositing cost. !important because the
+       * bands set their colour with an inline background shorthand.
+       */
+      .bofs-wash {
+        position:relative;
+        background-image:${PAPER} !important; background-size:220px 220px !important;
+        background-blend-mode:multiply !important;
       }
 
       /* pigment pools toward one part of the paper instead of filling a
          rectangle evenly; two soft blooms, never a hard boundary */
+      /* blooms retired with the blended layers: kept as a no-op class */
       .bofs-bloom { position:relative; }
-      .bofs-bloom::after {
-        content:''; position:absolute; inset:0; pointer-events:none; mix-blend-mode:multiply;
-        background:
-          radial-gradient(72% 56% at 16% 10%, rgba(74,49,35,.05), rgba(74,49,35,0) 70%),
-          radial-gradient(82% 62% at 88% 96%, rgba(74,49,35,.06), rgba(74,49,35,0) 72%);
-      }
 
       /*
        * WET EDGES. A painting dissolves into the paper; it does not stop at a
@@ -273,14 +374,7 @@ export function BofsStyles() {
         -webkit-mask-size:100% 100%; mask-size:100% 100%;
         -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
       }
-      .bofs-wet-head::after {
-        content:''; position:absolute; inset:0; pointer-events:none; mix-blend-mode:multiply;
-        background:linear-gradient(to bottom, rgba(74,49,35,0) 68%, rgba(74,49,35,.13) 100%);
-      }
-      .bofs-wet::after, .bofs-wet-arch::after {
-        content:''; position:absolute; inset:0; pointer-events:none; mix-blend-mode:multiply;
-        background:radial-gradient(118% 118% at 50% 44%, rgba(74,49,35,0) 56%, rgba(74,49,35,.10) 84%, rgba(74,49,35,.21) 100%);
-      }
+      /* edge darkening removed: it was a second blended layer per painting */
 
       /* a rule in a painting is a brushstroke: thickness varies along its
          length and it runs dry at the end. Carried as a mask so the stroke
@@ -321,9 +415,8 @@ export function BofsStyles() {
       .bofs-mist {
         position:absolute; left:-24%; right:-24%; top:36%; height:28%; pointer-events:none; opacity:.42;
         background:
-          radial-gradient(52% 100% at 28% 55%, rgba(251,243,231,.82), rgba(251,243,231,0) 70%),
-          radial-gradient(44% 100% at 74% 50%, rgba(251,243,231,.7), rgba(251,243,231,0) 70%);
-        filter:blur(22px); will-change:transform;
+          radial-gradient(56% 100% at 28% 55%, rgba(251,243,231,.7), rgba(251,243,231,.28) 38%, rgba(251,243,231,0) 72%),
+          radial-gradient(48% 100% at 74% 50%, rgba(251,243,231,.6), rgba(251,243,231,.22) 38%, rgba(251,243,231,0) 72%);
         animation:bofs-mist 46s cubic-bezier(.45,0,.55,1) infinite alternate;
       }
       @keyframes bofs-mist { from { transform:translate3d(-4%,0,0); } to { transform:translate3d(4%,1.5%,0); } }
@@ -394,7 +487,7 @@ type BtnProps = {
 }
 
 const btnBase =
-  'bofs-focus bofs-press inline-flex items-center justify-center gap-2 rounded-[6px] px-5 py-3 text-[15px] font-semibold transition-[background-color,color] duration-150'
+  'bofs-focus bofs-press bofs-btn inline-flex items-center justify-center gap-2 rounded-[6px] px-5 py-3 text-[15px] font-semibold'
 
 function btnStyle(variant: BtnProps['variant']) {
   switch (variant) {
@@ -528,7 +621,7 @@ export function Header() {
   const isActive = (to: string) => pathname === to
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50">
+    <header className="bofs-header fixed inset-x-0 top-0 z-50">
       {/* A plain bar the full width of the page, the way bris.se and
           barneombudet.no do it: opaque, a hairline underneath, nothing
           floating. The floating glass pill was the first thing that said
@@ -545,13 +638,15 @@ export function Header() {
           <div className="relative" ref={servicesRef}>
             <button
               type="button"
-              className="bofs-focus flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[14.5px] font-semibold transition-colors hover:bg-white/60"
+              className="bofs-focus group flex items-center gap-1.5 rounded px-3.5 py-2 text-[14.5px] font-semibold"
               style={{ color: C.cocoa }}
               aria-haspopup="true"
               aria-expanded={services}
               onClick={() => setServices((v) => !v)}
             >
-              {pick(UI.nav.services)}
+              <span className="bofs-way bofs-way-nav" style={{ backgroundSize: services ? '100% 2px' : undefined }}>
+                {pick(UI.nav.services)}
+              </span>
               <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style={{ transform: services ? 'rotate(180deg)' : 'none', transition: 'transform .2s ease-out' }}>
                 <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -578,7 +673,7 @@ export function Header() {
                         <Link
                           key={s.slug}
                           to={`/preview/bofs/${s.slug}`}
-                          className="bofs-focus flex items-center gap-2.5 rounded-xl px-3 py-2 transition-colors hover:bg-white/70"
+                          className="bofs-focus group flex items-center gap-2.5 rounded-[6px] px-3 py-2 transition-colors duration-150 hover:bg-[#F6EAD7]"
                         >
                           <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.hue }} />
                           <span className="leading-tight">
@@ -602,10 +697,12 @@ export function Header() {
             <Link
               key={l.to}
               to={l.to}
-              className="bofs-focus rounded-lg px-3.5 py-2 text-[14.5px] font-semibold transition-colors hover:bg-white/60"
-              style={{ color: C.cocoa, background: isActive(l.to) ? 'rgba(255,255,255,.6)' : undefined }}
+              className="bofs-focus group rounded px-3.5 py-2 text-[14.5px] font-semibold"
+              style={{ color: C.cocoa }}
             >
-              {l.label}
+              <span className="bofs-way bofs-way-nav" style={{ backgroundSize: isActive(l.to) ? '100% 2px' : undefined }}>
+                {l.label}
+              </span>
             </Link>
           ))}
         </nav>
@@ -613,7 +710,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <a
             href="tel:112"
-            className="bofs-focus bofs-press hidden items-center gap-1.5 rounded-[6px] px-3.5 py-2 text-[13.5px] font-bold sm:inline-flex"
+            className="bofs-focus bofs-press bofs-btn hidden items-center gap-1.5 rounded-[6px] px-3.5 py-2 text-[13.5px] font-bold sm:inline-flex"
             style={{ background: '#A83A24', color: '#fff' }}
           >
             <PhoneGlyph /> {pick(UI.emergencyChip)}
@@ -721,12 +818,12 @@ function PhoneGlyph() {
 
 /* ── footer ───────────────────────────────────────────────────────────── */
 
-export function Footer() {
+export function Footer({ bare = false }: { bare?: boolean }) {
   const [, , pick] = useLang()
   const homes = SERVICES.filter((s) => s.category === 'heimili')
   const services = SERVICES.filter((s) => s.category === 'thjonusta')
   return (
-    <footer style={{ background: C.deep, color: C.deepText }}>
+    <footer className="relative" style={{ background: bare ? 'transparent' : C.deep, color: C.deepText }}>
       <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
         {/*
           Three groups, not five columns. The old layout stacked five blocks at
@@ -743,7 +840,7 @@ export function Footer() {
             </p>
             <a
               href="tel:112"
-              className="bofs-focus mt-5 inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13.5px] font-bold"
+              className="bofs-focus bofs-btn bofs-press mt-5 inline-flex items-center gap-2 rounded-[6px] px-3.5 py-2 text-[13.5px] font-bold"
               style={{ background: '#A83A24', color: '#fff' }}
             >
               <PhoneGlyph />
@@ -759,7 +856,7 @@ export function Footer() {
               <ul className="space-y-0.5 text-[15px]">
                 {homes.map((s) => (
                   <li key={s.slug}>
-                    <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
+                    <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus bofs-way inline-block rounded py-1" style={{ color: '#DCCCBA' }}>
                       {s.name}
                     </Link>
                   </li>
@@ -774,7 +871,7 @@ export function Footer() {
               <ul className="space-y-0.5 text-[15px]">
                 {services.map((s) => (
                   <li key={s.slug}>
-                    <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
+                    <Link to={`/preview/bofs/${s.slug}`} className="bofs-focus bofs-way inline-block rounded py-1" style={{ color: '#DCCCBA' }}>
                       {s.name}
                     </Link>
                   </li>
@@ -797,7 +894,7 @@ export function Footer() {
                   { label: pick({ is: 'Persónuvernd', en: 'Privacy' }), to: '/preview/bofs/personuvernd' },
                 ].map((l) => (
                   <li key={l.to}>
-                    <Link to={l.to} className="bofs-focus inline-block rounded py-1 transition-opacity hover:opacity-70" style={{ color: '#DCCCBA' }}>
+                    <Link to={l.to} className="bofs-focus bofs-way inline-block rounded py-1" style={{ color: '#DCCCBA' }}>
                       {l.label}
                     </Link>
                   </li>
@@ -813,12 +910,12 @@ export function Footer() {
             <ul className="space-y-0.5 text-[15px]" style={{ color: 'rgba(246,232,213,.85)' }}>
               <li className="py-1">{ORG.address}</li>
               <li>
-                <a className="bofs-focus inline-block rounded py-1 hover:opacity-70" href={`tel:${ORG.phone.replace(/\s/g, '')}`}>
+                <a className="bofs-focus bofs-way inline-block rounded py-1" href={`tel:${ORG.phone.replace(/\s/g, '')}`}>
                   {ORG.phone}
                 </a>
               </li>
               <li>
-                <a className="bofs-focus inline-block rounded py-1 hover:opacity-70" href={`mailto:${ORG.email}`}>
+                <a className="bofs-focus bofs-way inline-block rounded py-1" href={`mailto:${ORG.email}`}>
                   {ORG.email}
                 </a>
               </li>
@@ -826,7 +923,8 @@ export function Footer() {
             <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: 'rgba(246,232,213,.6)' }}>
               {pick(ORG.hours)}
             </p>
-            <a href="tel:1717" className="bofs-focus mt-4 inline-block rounded py-1 text-[13.5px] leading-relaxed transition-opacity hover:opacity-70" style={{ color: '#C8B6A5' }}>
+            <IslandLink to={ISLAND.home} onDeep className="mt-4 text-[14px]" />
+            <a href="tel:1717" className="bofs-focus bofs-way mt-4 inline-block rounded py-1 text-[13.5px] leading-relaxed" style={{ color: '#C8B6A5' }}>
               {pick({ is: 'Hjálparsími Rauða krossins 1717, allan sólarhringinn', en: 'Red Cross helpline 1717, around the clock' })}
             </a>
           </div>
@@ -856,6 +954,46 @@ export function Footer() {
 
 /* ── shared bits: eyebrow, section head, arrow, service card ──────────── */
 
+/**
+ * The hand-off to island.is. Always the same: a line link that names where
+ * it goes, opens the official page in a new tab and says so to a screen
+ * reader. Used wherever a visitor needs more than this site's summary.
+ */
+export function IslandLink({
+  to,
+  onDeep = false,
+  button = false,
+  className = '',
+}: {
+  to: { href: string; label: L }
+  onDeep?: boolean
+  /** forms, applications and reports: a real button, not a text link */
+  button?: boolean
+  className?: string
+}) {
+  const [, , pick] = useLang()
+  const sr = <span className="sr-only"> {pick({ is: '(opnast á island.is í nýjum flipa)', en: '(opens on island.is in a new tab)' })}</span>
+  if (button)
+    return (
+      <a href={to.href} target="_blank" rel="noopener noreferrer" className={`${btnBase} ${className}`} style={btnStyle('primary')}>
+        {pick(to.label)}
+        {sr}
+      </a>
+    )
+  return (
+    <a
+      href={to.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`bofs-focus group inline-block rounded text-[15px] font-semibold ${className}`}
+      style={{ color: onDeep ? C.sunOnDeep : C.clayText }}
+    >
+      <span className="bofs-way">{pick(to.label)}</span>
+      {sr}
+    </a>
+  )
+}
+
 export function Arrow({ className }: { className?: string }) {
   return (
     <svg className={className} width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -864,9 +1002,85 @@ export function Arrow({ className }: { className?: string }) {
   )
 }
 
+/* ── torn paper seam between colour fields ────────────────────────────── */
+
+const TORN = (() => {
+  const pts: string[] = []
+  let x = 0
+  let seed = 7
+  const rnd = () => {
+    seed = (seed * 9301 + 49297) % 233280
+    return seed / 233280
+  }
+  while (x < 1440) {
+    pts.push(`L${x.toFixed(0)} ${(6 + rnd() * 16).toFixed(1)}`)
+    x += 14 + rnd() * 30
+  }
+  return `M0 28 L0 12 ${pts.join(' ')} L1440 10 L1440 28 Z`
+})()
+
+/** Sits at the top of a band, filled with that band's colour, and tears into the band above. */
+export function Torn({ color, className = '' }: { color: string; className?: string }) {
+  return (
+    <svg className={`block h-6 w-full sm:h-7 ${className}`} viewBox="0 0 1440 28" preserveAspectRatio="none" aria-hidden="true">
+      <path d={TORN} fill={color} />
+    </svg>
+  )
+}
+
+/* ── the opening of every inner page ─────────────────────────────────────── */
+
+/**
+ * A plain breadcrumb line, the page title, the lead, and whatever links the
+ * page needs. Left aligned, no pill, no arrow, no entrance animation.
+ */
+export function PageHead({
+  crumb,
+  title,
+  lead,
+  children,
+  wide = false,
+}: {
+  crumb: string
+  title: ReactNode
+  lead?: ReactNode
+  children?: ReactNode
+  wide?: boolean
+}) {
+  const [, , pick] = useLang()
+  return (
+    <div className={`mx-auto px-5 pb-12 pt-28 sm:px-8 sm:pt-32 ${wide ? 'max-w-6xl' : 'max-w-4xl'}`}>
+      <nav aria-label={pick({ is: 'Brauðmolar', en: 'Breadcrumb' })} className="text-[14px]" style={{ color: C.body }}>
+        <Link to="/preview/bofs" className="bofs-focus group rounded">
+          <span className="bofs-way">{pick({ is: 'Forsíða', en: 'Home' })}</span>
+        </Link>
+        <span aria-hidden="true" className="mx-2">/</span>
+        <span aria-current="page" style={{ color: C.cocoa }}>
+          {crumb}
+        </span>
+      </nav>
+      {typeof title === 'string' ? (
+        <WordReveal as="h1" soft base={0.05} text={title} className="bofs-display bofs-display-xl bofs-balance mt-6 max-w-3xl text-[clamp(36px,5.6vw,64px)]" />
+      ) : (
+        <h1 className="bofs-display bofs-display-xl bofs-balance mt-6 max-w-3xl text-[clamp(36px,5.6vw,64px)]">{title}</h1>
+      )}
+      {lead && (
+        <p className="bofs-pretty bofs-open-fade mt-6 max-w-2xl text-[18px] leading-relaxed" style={{ color: C.cocoa, animationDelay: '.35s' }}>
+          {lead}
+        </p>
+      )}
+      {children && (
+        <div className="bofs-open-fade mt-6 flex flex-wrap items-center gap-x-8 gap-y-3" style={{ animationDelay: '.5s' }}>
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function Eyebrow({ children, color = C.clayText }: { children: ReactNode; color?: string }) {
   return (
-    <span className="inline-block text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color }}>
+    <span className="inline-block text-[14px] font-semibold" style={{ color }}>
       {children}
     </span>
   )
@@ -892,7 +1106,7 @@ export function SectionHead({
         {title}
       </h2>
       {lead && (
-        <p className="mt-4 text-[17px] leading-relaxed" style={{ color: onDeep ? 'rgba(246,232,213,.8)' : C.body }}>
+        <p className="bofs-pretty mt-4 text-[17px] leading-relaxed" style={{ color: onDeep ? 'rgba(246,232,213,.85)' : C.cocoa }}>
           {lead}
         </p>
       )}
@@ -932,7 +1146,7 @@ export function ServiceCard({ service, index = 0 }: { service: Service; index?: 
   void index
   return (
     <Link to={`/preview/bofs/${service.slug}`} className="bofs-focus group block rounded">
-      <span className="bofs-wet block">
+      <span className="bofs-wet bofs-pic block">
         <img
           src={asset(`card-${service.art}.jpg`)}
           alt=""
@@ -948,7 +1162,7 @@ export function ServiceCard({ service, index = 0 }: { service: Service; index?: 
       <span className="mt-4 block text-[12.5px] font-semibold uppercase tracking-[0.06em]" style={{ color: C.clayText }}>
         {pick(service.kind)}
       </span>
-      <span className="bofs-display bofs-display-sm bofs-way mt-1 block text-[26px]">{service.name}</span>
+      <span className="bofs-display bofs-display-sm bofs-way bofs-way-ink mt-1 inline-block text-[26px]">{service.name}</span>
       <span className="mt-2 block text-[15.5px] leading-relaxed" style={{ color: C.cocoa }}>
         {pick(service.card)}
       </span>
@@ -1122,58 +1336,98 @@ export function StatCountUp({ value, format = 'plain', className, style }: { val
   )
 }
 
-/* ── sticky scroll-spy sub-nav (shared by the two long pages) ─────────── */
+/* ── the header's second line (the two long pages) ────────────────────── */
 
+/*
+ * A page's own sections, as a second line of the header. It is not a pill
+ * in the page: it sits directly under the header bar, same cream, one
+ * hairline, and it slides down from behind the bar once the reader has
+ * scrolled past the page's opening, as if the header grew a line. The
+ * current section is underlined with the same drawn line as every other
+ * link on the site.
+ */
 export function SubNav({ sections }: { sections: { id: string; label: string }[] }) {
   const [active, setActive] = useState(sections[0]?.id ?? '')
+  const [shown, setShown] = useState(false)
+  const reduce = useReducedMotion()
   const idKey = sections.map((s) => s.id).join('|')
 
   useEffect(() => {
     const els = sections.map((s) => document.getElementById(s.id)).filter(Boolean) as HTMLElement[]
     if (!els.length) return
-    const obs = new IntersectionObserver(
+    const spy = new IntersectionObserver(
       (entries) => {
         const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)
         if (visible[0]) setActive(visible[0].target.id)
       },
       { rootMargin: '-42% 0px -52% 0px', threshold: [0, 0.2, 0.5, 1] },
     )
-    els.forEach((el) => obs.observe(el))
-    return () => obs.disconnect()
+    els.forEach((el) => spy.observe(el))
+    // shown once the first section's top passes the header line. A boolean
+    // that only changes twice per page visit, so the listener never causes
+    // a render on an ordinary scroll frame.
+    const first = els[0]
+    const onScroll = () => setShown(first.getBoundingClientRect().top <= 120)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      spy.disconnect()
+      window.removeEventListener('scroll', onScroll)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idKey])
 
+  useEffect(() => {
+    const root = document.documentElement
+    if (shown) root.dataset.bofsSub = 'on'
+    else delete root.dataset.bofsSub
+    return () => {
+      delete root.dataset.bofsSub
+    }
+  }, [shown])
+
   return (
-    <div className="sticky top-[84px] z-40 mx-auto max-w-6xl px-4">
-      <nav
-        className="no-scrollbar flex gap-1 overflow-x-auto rounded-full p-1.5"
-        style={{ background: 'rgba(251,243,231,.92)', boxShadow: `inset 0 0 0 1px ${C.line}, 0 12px 30px -22px rgba(58,44,34,.5)`, backdropFilter: 'blur(10px)' }}
-        aria-label="On this page"
-      >
+    <motion.div
+      className="fixed inset-x-0 top-0 z-[60]"
+      initial={false}
+      animate={{ y: shown ? 0 : '-100%', opacity: shown ? 1 : 0 }}
+      transition={reduce ? { duration: 0 } : { duration: 0.32, ease: [0.23, 1, 0.32, 1] }}
+      style={{ background: C.cream, boxShadow: `inset 0 -1px 0 ${C.line}`, pointerEvents: shown ? 'auto' : 'none' }}
+      aria-hidden={!shown}
+    >
+      <div className="flex h-14 items-center gap-5 px-5 sm:px-8">
+      <Link to="/preview/bofs" className="bofs-focus shrink-0 rounded" aria-label="Barna- og fjölskyldustofa" tabIndex={shown ? 0 : -1}>
+        <img src={LOGO} width={28} height={28} alt="" aria-hidden="true" className="h-7 w-7" />
+      </Link>
+      <nav className="no-scrollbar flex min-w-0 flex-1 gap-6 overflow-x-auto" aria-label="On this page">
         {sections.map((s) => {
           const on = active === s.id
           return (
             <a
               key={s.id}
               href={`#${s.id}`}
-              className="bofs-focus relative shrink-0 rounded-full px-3.5 py-1.5 text-[13.5px] font-semibold transition-colors"
-              style={{ color: on ? '#FFF6EC' : C.body }}
+              className="bofs-focus group shrink-0 py-2 text-[13.5px] font-semibold"
+              style={{ color: on ? C.clayText : C.cocoa }}
               aria-current={on ? 'true' : undefined}
+              tabIndex={shown ? 0 : -1}
             >
-              {on && (
-                <motion.span
-                  layoutId="bofs-subnav"
-                  className="absolute inset-0 -z-10 rounded-full"
-                  style={{ background: C.clay }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 34 }}
-                />
-              )}
-              {s.label}
+              <span className="bofs-way" style={{ backgroundSize: on ? '100% 2px' : undefined }}>
+                {s.label}
+              </span>
             </a>
           )
         })}
       </nav>
-    </div>
+      <a
+        href="tel:112"
+        className="bofs-focus bofs-btn bofs-press shrink-0 rounded-[6px] px-3 py-1.5 text-[13px] font-bold"
+        style={{ background: '#A83A24', color: '#fff' }}
+        tabIndex={shown ? 0 : -1}
+      >
+        112
+      </a>
+      </div>
+    </motion.div>
   )
 }
 
@@ -1199,5 +1453,110 @@ export function ConceptBar() {
     <div className="w-full py-1.5 text-center text-[12px] font-medium" style={{ background: C.oat, color: C.body }}>
       {pick(UI.conceptBadge)}
     </div>
+  )
+}
+
+/* ── hand-drawn marks and word-by-word reveals ─────────────────────────────
+ * A headline arrives word by word, each word settling from a soft blur, and
+ * its key word is then marked by hand: a pencil underline, once or twice,
+ * drawn once as a stroke. The strokes are hand-drawn paths with a slight
+ * wobble and tapering ends, not geometric lines. Runs once when the line
+ * comes into view; reduced motion shows the finished state.
+ */
+
+export const EASE = [0.16, 1, 0.3, 1] as const
+
+export function HandMark({ kind, color, delay = 0 }: { kind: 'underline' | 'double'; color: string; delay?: number }) {
+  const reduce = useReducedMotion()
+  // Filled swashes, not stroked lines: thin at both ends, fuller in the
+  // middle, with a slight rise to the right, like a soft pencil pressed
+  // harder mid-stroke. They sit below the descenders (j, p, g) and wipe in
+  // from the left. The parent span is the observed element; only the inner
+  // svg is clipped, so the in-view check still fires.
+  const swashes =
+    kind === 'underline'
+      ? ['M3 13.6 C 62 10.4, 168 11.6, 297 6.8 C 214 11.6, 96 16.4, 3 14.8 Z']
+      : ['M3 8.6 C 62 5.6, 168 7, 297 3 C 214 7.4, 96 11.2, 3 9.8 Z', 'M40 19.6 C 94 17, 176 18, 268 14.8 C 200 18.8, 110 21.6, 40 20.6 Z']
+  return (
+    <motion.span
+      aria-hidden="true"
+      className="pointer-events-none absolute left-[1%] top-full block h-[.26em] w-[99%]"
+      initial={reduce ? false : 'hidden'}
+      whileInView="shown"
+      viewport={{ once: true, amount: 0.6 }}
+    >
+      {swashes.map((d, i) => (
+        <motion.svg
+          key={i}
+          viewBox="0 0 300 24"
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full overflow-visible"
+          variants={{ hidden: { clipPath: 'inset(0 100% 0 0)' }, shown: { clipPath: 'inset(0 0% 0 0)' } }}
+          transition={{ duration: i === 0 ? 0.7 : 0.5, delay: delay + i * 0.55, ease: [0.65, 0, 0.35, 1] }}
+        >
+          <path d={d} fill={color} />
+        </motion.svg>
+      ))}
+    </motion.span>
+  )
+}
+
+/** Words settle into place one after another; `mark` gets a hand-drawn stroke. */
+export function WordReveal({
+  text,
+  mark,
+  markKind = 'underline',
+  markColor,
+  as: Tag = 'p',
+  className = '',
+  style,
+  base = 0,
+  soft = false,
+}: {
+  text: string
+  mark?: string
+  markKind?: 'underline' | 'double'
+  markColor?: string
+  as?: 'p' | 'h1' | 'h2' | 'h3' | 'span'
+  className?: string
+  style?: CSSProperties
+  base?: number
+  /** The quieter sub-page version: no blur, shorter rise, tighter stagger. */
+  soft?: boolean
+}) {
+  const reduce = useReducedMotion()
+  const words = text.split(' ')
+  const markWords = mark ? mark.split(' ') : []
+  const markStart = mark ? words.findIndex((_, i) => words.slice(i, i + markWords.length).join(' ') === mark) : -1
+  const nodes: ReactNode[] = []
+  let i = 0
+  while (i < words.length) {
+    const isMark = i === markStart
+    const chunk = isMark ? words.slice(i, i + markWords.length) : [words[i]]
+    const delay = base + i * (soft ? 0.04 : 0.055)
+    const inner = (
+      <motion.span
+        className="inline-block"
+        initial={reduce ? false : soft ? { opacity: 0, y: '0.22em' } : { opacity: 0, y: '0.32em', filter: 'blur(6px)' }}
+        whileInView={soft ? { opacity: 1, y: 0 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
+        viewport={{ once: true, amount: 0.6 }}
+        transition={{ duration: 0.7, delay, ease: EASE }}
+      >
+        {chunk.join(' ')}
+      </motion.span>
+    )
+    nodes.push(
+      <span key={i} className={isMark ? (markKind === 'double' ? 'relative mb-[.3em] inline-block' : 'relative mb-[.2em] inline-block') : 'inline-block'}>
+        {inner}
+        {isMark && markColor && <HandMark kind={markKind} color={markColor} delay={delay + 0.45} />}
+      </span>,
+    )
+    if (i + chunk.length < words.length) nodes.push(' ')
+    i += chunk.length
+  }
+  return (
+    <Tag className={className} style={style}>
+      {nodes}
+    </Tag>
   )
 }

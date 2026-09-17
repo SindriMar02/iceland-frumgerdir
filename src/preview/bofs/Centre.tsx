@@ -1,29 +1,27 @@
 /**
- * Öruggt skjól — per-centre / per-service page (shared template).
- * Renders any of the 8 services from the URL slug; unknown slugs
- * (including the retired Fannafold) redirect to the hub.
+ * Öruggt skjól — one page per service (shared template).
+ *
+ * Rebuilt 2026-09-17 without the old parts: no back pill, no dotted labels,
+ * no gradient scrim over the painting, no rounded boxes, no quote card, no
+ * dark help card, no pill buttons. The page is type, the painting of the
+ * place, and hairlines. Every page hands off to the official page on
+ * island.is and to the municipal child protection service.
+ *
+ * Renders any service from the URL slug; the retired Fannafold address goes
+ * to the hub, anything else unknown gets the not-found page.
  */
 
 import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { Reveal } from '../../components/Reveal'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { asset, BofsStyles, Button, C, Footer, Header, useLang, Arrow } from './ui'
-import { HomeArt, WaveDivider } from './illustrations'
-import { JourneyStrip, FosterSteps, NotFoundPage } from './sections'
-import { CENTRE_PHOTO, HELP, SERVICES, UI, serviceBySlug } from './data'
+import { asset, BofsStyles, C, Footer, Header, IslandLink, PageHead, Torn, useLang } from './ui'
+import { FosterSteps, JourneyStrip, NotFoundPage } from './sections'
+import { CENTRE_PHOTO, HELP, ISLAND, SERVICE_ISLAND, SERVICES, UI, serviceBySlug } from './data'
 
 /** Addresses that used to be real services and should not dead-end. */
 const RETIRED_SLUGS = new Set(['fannafold'])
-
-/** Tint the hero veil with the service's own hue so each page keeps its identity. */
-function hexToRgba(hex: string, alpha: number) {
-  const h = hex.replace('#', '')
-  const n = parseInt(h.length === 3 ? h.replace(/./g, (c) => c + c) : h, 16)
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
-}
 
 export default function BofsCentre() {
   const { slug = '' } = useParams()
@@ -33,17 +31,17 @@ export default function BofsCentre() {
   useEffect(() => {
     if (service) {
       document.title = `${service.name} | Barna- og fjölskyldustofa`
-      setThemeColor(service.hueSoft)
+      setThemeColor(C.cream)
     }
   }, [service])
 
-  // A retired service URL still lands people on the hub, since it was once a
-  // real address; anything else is a genuine wrong turn and gets the 404.
   if (!service) return RETIRED_SLUGS.has(slug) ? <Navigate to="/preview/bofs" replace /> : <NotFoundPage />
 
   const idx = SERVICES.findIndex((s) => s.slug === slug)
   const next = SERVICES[(idx + 1) % SERVICES.length]
   const photo = CENTRE_PHOTO[slug]
+  const island = SERVICE_ISLAND[service.slug]
+  const base = photo?.src.replace('.jpg', '')
 
   return (
     <div className="bofs-root min-h-screen overflow-x-clip">
@@ -54,212 +52,147 @@ export default function BofsCentre() {
       </a>
 
       <main id="main">
-        {/* ── HERO: the service's own painting, full bleed ─────────────── */}
-        <section className="relative overflow-hidden" style={{ background: service.hueSoft }}>
-          {photo && (
-            <div className="pointer-events-none absolute inset-0" aria-hidden>
-              <Img
-                src={asset(photo.src)}
-                alt=""
-                loading="eager"
-                fetchpriority="high"
-                className="h-full w-full object-cover"
-                fallbackClassName="bg-gradient-to-br from-[#F8EAD8] to-[#CFD7C4]"
-              />
-              {/* legibility veil, tinted with the service hue so each page keeps its identity */}
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `linear-gradient(100deg, ${hexToRgba(service.hueSoft, 0.96)} 0%, ${hexToRgba(service.hueSoft, 0.9)} 34%, ${hexToRgba(service.hueSoft, 0.55)} 60%, ${hexToRgba(service.hueSoft, 0.2)} 100%)`,
-                }}
-              />
-              <div className="absolute inset-x-0 bottom-0 h-28" style={{ background: `linear-gradient(${hexToRgba(service.hueSoft, 0)}, ${service.hueSoft})` }} />
-            </div>
-          )}
-          <div className="relative mx-auto max-w-6xl px-5 pb-28 pt-32 sm:px-8 sm:pt-36">
-            <div className="max-w-2xl">
-              <Reveal y={14}>
-                <Link
-                  to="/preview/bofs"
-                  className="bofs-focus inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13.5px] font-bold"
-                  style={{ background: 'rgba(255,255,255,.7)', color: C.cocoa }}
-                >
-                  <Arrow className="rotate-180" />
-                  {pick(UI.backToAll)}
-                </Link>
-              </Reveal>
-              <Reveal delay={0.06}>
-                <span className="mt-5 inline-flex w-fit items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-bold" style={{ background: '#fff', color: C.cocoa }}>
-                  <span className="h-2 w-2 rounded-full" style={{ background: service.hue }} />
+        {/* ── opening: name, what it is, the painting of the place ─────── */}
+        <section className="bofs-wash" style={{ background: C.cream }}>
+          <PageHead
+            crumb={service.name}
+            title={service.name}
+            lead={
+              <>
+                <span className="block text-[15px] font-semibold" style={{ color: C.clayText }}>
                   {pick(service.kind)}
                 </span>
-              </Reveal>
-              <Reveal delay={0.12}>
-                <h1 className="bofs-display mt-4 text-[clamp(40px,7vw,68px)]">{service.name}</h1>
-              </Reveal>
-              <Reveal delay={0.18}>
-                <p className="mt-3 text-[clamp(17px,2.2vw,20px)] font-medium leading-snug" style={{ color: C.cocoa, opacity: 0.75 }}>
-                  {pick(service.tagline)}
-                </p>
-              </Reveal>
-              <Reveal delay={0.24}>
-                <p className="mt-5 max-w-xl text-[18px] leading-relaxed" style={{ color: C.cocoa, opacity: 0.82 }}>
-                  {pick(service.card)}
-                </p>
-              </Reveal>
-              <Reveal delay={0.3}>
-                <div className="mt-7 flex flex-wrap gap-3">
-                  <Button href="#hvernig" icon={<Arrow />}>
-                    {pick(UI.howToReach)}
-                  </Button>
-                  <Button href="tel:112" variant="soft">
-                    {pick(UI.emergencyChip)}
-                  </Button>
-                </div>
-              </Reveal>
-            </div>
-
-          </div>
-          <WaveDivider color={C.cream} className="h-12 w-full" />
+                <span className="mt-2 block">{pick(service.card)}</span>
+              </>
+            }
+            wide
+          >
+            <a href="#hvernig" className="bofs-focus group rounded text-[15px] font-semibold" style={{ color: C.clayText }}>
+              <span className="bofs-way">{pick(UI.howToReach)}</span>
+            </a>
+            {island && <IslandLink to={island} />}
+          </PageHead>
+          {photo && (
+            <figure className="mx-auto max-w-6xl px-5 pb-16 sm:px-8">
+              <div className="bofs-wet">
+                <Img
+                  src={asset(photo.src)}
+                  srcSet={`${asset(`${base}-900.jpg`)} 900w, ${asset(`${base}-1400.jpg`)} 1400w, ${asset(photo.src)} 2560w`}
+                  sizes="(min-width: 1200px) 1120px, 100vw"
+                  width={2560}
+                  height={1440}
+                  alt={pick(photo.alt)}
+                  loading="eager"
+                  fetchpriority="high"
+                  className="bofs-open-settle aspect-[16/8] w-full object-cover"
+                  fallbackClassName="bg-gradient-to-br from-[#F8EAD8] to-[#CFD7C4]"
+                />
+              </div>
+              {photo.painted && (
+                <figcaption className="mt-3 text-[13.5px]" style={{ color: C.body }}>
+                  {pick({ is: 'Vatnslitamynd, máluð eftir ljósmynd af húsinu.', en: 'Watercolour, painted from a photograph of the building.' })}
+                </figcaption>
+              )}
+            </figure>
+          )}
         </section>
 
-        {/* ── WHERE IN THE PROCESS ─────────────────────────────────────── */}
-        <section style={{ background: C.cream }}>
-          <JourneyStrip serviceName={service.name} hue={service.hue} />
+        {/* ── where this service sits on the path ──────────────────────── */}
+        <section className="bofs-wash" style={{ background: C.cream2 }}>
+          <Torn color={C.cream2} className="-mt-6 sm:-mt-7" />
+          <JourneyStrip serviceName={service.name} />
         </section>
 
-        {/* ── BODY ─────────────────────────────────────────────────────── */}
-        <section style={{ background: C.cream }}>
-          <div className="mx-auto max-w-6xl px-5 pb-20 pt-14 sm:px-8">
-            {photo && (
-              <Reveal>
-                <p className="mb-12 border-l-2 pl-4 text-[13.5px] leading-relaxed" style={{ borderColor: service.hue, color: C.body }}>
-                  {pick(photo.alt)}
-                  {/*
-                    Explicit measured colour, never opacity. C.body dimmed to
-                    0.8 computes to #877568 on cream, which is 3.99:1 and fails
-                    AA at this size; this is 5.08:1 and still reads as secondary
-                    to the alt text above it. Same mistake, same fix as the
-                    muted 13px text corrected on 17 July.
-                  */}
-                  {photo.painted && (
-                    <span className="mt-1 block" style={{ color: '#786456' }}>
-                      {pick({ is: 'Máluð eftir raunverulegri ljósmynd af húsinu.', en: 'Painted from a real photograph of the building.' })}
-                    </span>
-                  )}
+        {/* ── the body: who, what, how, and the facts beside it ────────── */}
+        <section className="bofs-wash" style={{ background: C.cream }}>
+          <Torn color={C.cream} className="-mt-6 sm:-mt-7" />
+          <div className="mx-auto grid max-w-6xl gap-x-16 gap-y-14 px-5 pb-20 pt-14 sm:px-8 lg:grid-cols-12">
+            <div className="space-y-12 lg:col-span-7">
+              <Part label={pick(UI.whoFor)}>
+                <p className="bofs-pretty text-[19px] leading-relaxed" style={{ color: C.cocoa }}>
+                  {pick(service.who)}
                 </p>
-              </Reveal>
-            )}
-            <div className="grid gap-12 lg:grid-cols-[1fr_0.85fr] lg:gap-16">
-              {/* left: narrative */}
-              <div className="space-y-12">
-                <Block eyebrow={pick(UI.whoFor)} hue={service.hue}>
-                  <p className="text-[19px] leading-relaxed" style={{ color: C.cocoa }}>
-                    {pick(service.who)}
-                  </p>
-                </Block>
+              </Part>
 
-                <Block eyebrow={pick(UI.whatHappens)} hue={service.hue}>
-                  <p className="text-[18px] leading-relaxed" style={{ color: C.body }}>
-                    {pick(service.what)}
-                  </p>
-                </Block>
+              <Part label={pick(UI.whatHappens)}>
+                <p className="bofs-pretty text-[18px] leading-relaxed" style={{ color: C.cocoa }}>
+                  {pick(service.what)}
+                </p>
+              </Part>
 
-                <div id="hvernig" className="scroll-mt-24">
-                  <Block eyebrow={pick(UI.howToReach)} hue={service.hue}>
-                    <div className="rounded-[18px] p-6" style={{ background: service.hueSoft }}>
-                      <p className="text-[17px] leading-relaxed" style={{ color: C.cocoa }}>
-                        {pick(service.how)}
-                      </p>
-                    </div>
-                  </Block>
-                </div>
-
-                {/* honest note */}
-                <div className="relative rounded-[20px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-                  <span className="bofs-display absolute -top-3 left-6 text-[52px] leading-none" style={{ color: service.hue, opacity: 0.5 }}>
-                    “
-                  </span>
-                  <p className="bofs-display pt-4 text-[clamp(20px,2.6vw,26px)] leading-[1.3]" style={{ color: C.cocoa }}>
-                    {pick(service.note)}
+              <div id="hvernig" className="scroll-mt-24">
+                <Part label={pick(UI.howToReach)}>
+                  <p className="bofs-pretty text-[18px] leading-relaxed" style={{ color: C.cocoa }}>
+                    {pick(service.how)}
                   </p>
-                </div>
+                  <p className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+                    {service.slug === 'fostur' ? <IslandLink to={ISLAND.fosterBecome} button /> : <IslandLink to={ISLAND.municipal} button />}
+                    {island && <IslandLink to={island} />}
+                  </p>
+                </Part>
               </div>
 
-              {/* right: facts card (sticky) */}
-              <aside className="lg:sticky lg:top-28 lg:self-start">
-                <div className="overflow-hidden rounded-[20px]" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-                  <div className="px-6 py-5" style={{ background: service.hueSoft }}>
-                    <span className="text-[13px] font-bold uppercase tracking-[0.16em]" style={{ color: C.cocoa }}>
-                      {pick(UI.keyFacts)}
-                    </span>
-                  </div>
-                  <dl className="divide-y" style={{ borderColor: C.line }}>
-                    {service.facts.map((f) => (
-                      <div key={pick(f.label)} className="flex items-start justify-between gap-4 px-6 py-4">
-                        <dt className="text-[14px] font-semibold" style={{ color: C.body }}>
-                          {pick(f.label)}
-                        </dt>
-                        <dd className="max-w-[62%] text-right text-[14.5px] font-bold" style={{ color: C.cocoa }}>
-                          {pick(f.value)}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                  <div className="px-6 py-5" style={{ background: C.cream2 }}>
-                    <p className="text-[13.5px] leading-relaxed" style={{ color: C.body }}>
-                      {pick({
-                        is: 'Aðgangur að úrræðum er í gegnum barnavernd í þínu sveitarfélagi.',
-                        en: 'Access to services is through child protection in your municipality.',
-                      })}
-                    </p>
-                  </div>
-                </div>
+              <p className="bofs-display bofs-balance border-t pt-8 text-[clamp(22px,2.6vw,28px)]" style={{ borderColor: C.line, fontWeight: 500 }}>
+                {pick(service.note)}
+              </p>
+            </div>
 
-                {/* mini help */}
-                <a
-                  href={`tel:${HELP.lines[1].value}`}
-                  className="bofs-focus mt-4 flex items-center gap-3 rounded-[18px] p-5 transition-transform hover:-translate-y-1"
-                  style={{ background: C.deep, color: C.deepText }}
-                >
-                  <span className="bofs-display bofs-num grid h-12 w-16 shrink-0 place-items-center rounded-xl text-[20px]" style={{ background: 'rgba(255,255,255,.1)', color: C.sunOnPanel }}>
-                    {HELP.lines[1].value}
-                  </span>
-                  <span>
-                    <span className="block text-[15px] font-bold">{pick(HELP.lines[1].label)}</span>
-                    <span className="block text-[13px]" style={{ color: 'rgba(246,232,213,.75)' }}>
-                      {pick(HELP.lines[1].blurb)}
-                    </span>
+            {/* the facts, as a plain definition list beside the text */}
+            <aside className="lg:sticky lg:top-24 lg:col-span-5 lg:self-start">
+              <h2 className="text-[14px] font-semibold" style={{ color: C.clayText }}>
+                {pick(UI.keyFacts)}
+              </h2>
+              <dl className="mt-3 border-t" style={{ borderColor: C.cocoa }}>
+                {service.facts.map((f) => (
+                  <div key={pick(f.label)} className="grid grid-cols-[7rem_1fr] gap-4 border-b py-4" style={{ borderColor: C.line }}>
+                    <dt className="text-[14.5px]" style={{ color: C.body }}>
+                      {pick(f.label)}
+                    </dt>
+                    <dd className="text-[15.5px] font-semibold" style={{ color: C.cocoa }}>
+                      {pick(f.value)}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-5 text-[14.5px] leading-relaxed" style={{ color: C.cocoa }}>
+                {pick({
+                  is: 'Sótt er um úrræðið í gegnum barnaverndarþjónustu sveitarfélagsins, ekki beint.',
+                  en: 'The service is applied for through the municipal child protection service, not directly.',
+                })}
+              </p>
+              <p className="mt-8 border-t pt-5 text-[15px] leading-relaxed" style={{ borderColor: C.line, color: C.cocoa }}>
+                {pick({ is: 'Þarftu að tala við einhvern núna?', en: 'Need to talk to someone now?' })}{' '}
+                <a href={`tel:${HELP.lines[1].value}`} className="bofs-focus group rounded font-semibold" style={{ color: C.clayText }}>
+                  <span className="bofs-way">
+                    {pick(HELP.lines[1].label)} {HELP.lines[1].value}
                   </span>
                 </a>
-              </aside>
-            </div>
+                <span className="block text-[14px]" style={{ color: C.body }}>
+                  {pick(HELP.lines[1].blurb)}
+                </span>
+              </p>
+            </aside>
           </div>
         </section>
 
-        {/* ── BECOMING A FOSTER PARENT (fostur only) ───────────────────── */}
         {slug === 'fostur' && <FosterSteps />}
 
-        {/* ── NEXT + BACK ──────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden" style={{ background: next.hueSoft }}>
-          <div className="relative mx-auto flex max-w-6xl flex-col items-start gap-6 px-5 py-16 sm:px-8 md:flex-row md:items-center md:justify-between">
-            <div>
-              <span className="text-[13px] font-bold uppercase tracking-[0.16em]" style={{ color: C.body }}>
+        {/* ── next service ─────────────────────────────────────────────── */}
+        <section className="bofs-wash" style={{ background: C.oat }}>
+          <Torn color={C.oat} className="-mt-6 sm:-mt-7" />
+          <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 pb-16 pt-12 sm:px-8 md:flex-row md:items-end md:justify-between">
+            <Link to={`/preview/bofs/${next.slug}`} className="bofs-focus group block rounded">
+              <span className="block text-[14px] font-semibold" style={{ color: C.clayText }}>
                 {pick(UI.nextCentre)}
               </span>
-              <Link to={`/preview/bofs/${next.slug}`} className="bofs-focus group mt-2 flex items-center gap-4 rounded-2xl">
-                <HomeArt art={next.art} hue={next.hue} hueSoft="#FFFFFF" className="h-16 w-16 shrink-0" />
-                <span>
-                  <span className="bofs-display block text-[clamp(26px,4vw,38px)] transition-transform group-hover:translate-x-1">{next.name}</span>
-                  <span className="text-[14px]" style={{ color: C.body }}>
-                    {pick(next.kind)}
-                  </span>
-                </span>
-              </Link>
-            </div>
-            <Button to="/preview/bofs" variant="soft" icon={<Arrow className="rotate-180" />}>
-              {pick(UI.allServices)}
-            </Button>
+              <span className="bofs-display bofs-way bofs-way-ink mt-1 inline-block text-[clamp(30px,4vw,44px)]">{next.name}</span>
+              <span className="mt-1 block text-[15px]" style={{ color: C.body }}>
+                {pick(next.kind)}
+              </span>
+            </Link>
+            <Link to="/preview/bofs#heimili" className="bofs-focus group rounded text-[15px] font-semibold" style={{ color: C.cocoa }}>
+              <span className="bofs-way">{pick(UI.allServices)}</span>
+            </Link>
           </div>
         </section>
       </main>
@@ -269,16 +202,13 @@ export default function BofsCentre() {
   )
 }
 
-function Block({ eyebrow, hue, children }: { eyebrow: string; hue: string; children: ReactNode }) {
+function Part({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <Reveal>
-      <div>
-        <span className="inline-flex items-center gap-2 text-[13px] font-bold uppercase tracking-[0.16em]" style={{ color: C.cocoa }}>
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: hue }} />
-          {eyebrow}
-        </span>
-        <div className="mt-4">{children}</div>
-      </div>
-    </Reveal>
+    <div>
+      <h2 className="text-[14px] font-semibold" style={{ color: C.clayText }}>
+        {label}
+      </h2>
+      <div className="mt-3">{children}</div>
+    </div>
   )
 }

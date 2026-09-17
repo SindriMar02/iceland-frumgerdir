@@ -1,27 +1,27 @@
 /**
  * Barna- og fjölskyldustofa, "Öruggt skjól" concept.
  *
- * A warm, unofficial redesign concept that gathers every service under
- * Barna- og fjölskyldustofa (BOFS) into one friendly, honest hub, plus the
- * institutional context (the agency, the system, the law) a state body needs.
+ * An unofficial design concept that summarises the agency's services and
+ * hands visitors to island.is, where the full information lives.
  *
  * Every user-facing string carries { is, en }; Icelandic is the original.
- * Copy rules: professional and warm, no em or en dashes anywhere. Hyphens in
- * Icelandic compounds (SÓK-meðferð, round-the-clock) are correct and allowed.
+ * Copy rules (2026-09-17): plain sentences in the register of a public
+ * agency, only what a source supports, no slogans, no em or en dashes.
  *
- * FACTS: verified July 2026 against island.is/s/bofs, stjornarradid.is,
- * althingi.is and the BOFS Ársskýrsla 2024. Key points:
- *  - BOFS answers to mennta- og barnamálaráðuneytið (unchanged in 2026).
- *  - Fannafold no longer operates; its role sits with Stuðningsheimilið Blönduhlíð.
- *  - Stuðlar: began 1994, purpose-built premises at Fossaleyni 1996; now
- *    neyðarvistun only after the Oct 2024 fire and the move of treatment to
- *    Lækjarbakki in early 2026.
- *  - Bjargey (Eyjafjarðarsveit, frá 2022) serves stúlkur og stálp.
- *  - Lækjarbakki (Gunnarsholt) serves stráka og stálp; first resident March
- *    2026, formally opened 8 May 2026 by Inga Sæland, six places.
- *  - Barnahús frá 1998, fyrsta og elsta Barnahús í Evrópu.
- *  - MST frá 2008 (um land allt frá 2015); heimsóknir eftir samkomulagi.
- *  - SÓK-meðferð: sálfræðiþjónusta vegna óviðeigandi kynhegðunar (ekki ókeypis).
+ * FACTS: re-checked 17 September 2026 against island.is/s/bofs (treatment
+ * homes, SÓK, Barnahús, MST, foster care), stjornarradid.is and the BOFS
+ * annual report 2024. Full report: _docs/BOFS-FACT-CHECK-2026-09-17.md.
+ *  - Primary treatment: island.is/s/bofs/medferdarheimili says it takes place
+ *    at Blönduhlíð, while the agency's staff page lists a unit called "Esja".
+ *    Unresolved, so the site names neither location; confirm with BOFS. The
+ *    route slug stays "esjan" so existing links keep working.
+ *  - Blönduhlíð at Farsældartún, Mosfellsbær, opened on 26 November 2024.
+ *  - Lækjarbakki reopened in March 2026 and was formally opened 8 May 2026.
+ *  - SÓK is paid for by the child protection service and needs guardians' consent.
+ *  - Barnahús: founded 1 November 1998; 15 to 18 year olds generally give
+ *    their statement to the police.
+ *  - Removed as unconfirmed: Stuðlar's 1994/1996 dates, support home capacity,
+ *    and the figures 23 child protection services and 158 children in MST.
  */
 
 import { SYNCED_AT, SYNCED_NEWS } from './news.generated'
@@ -59,117 +59,54 @@ export const ORG = {
 export const HERO = {
   kicker: t('Barna- og fjölskyldustofa', 'National Agency for Children and Families'),
   title: t('Öruggt skjól fyrir hvert barn', 'A safe place for every child'),
+  /** where the headline breaks, per language, for the line-by-line opening */
+  titleLines: { is: ['Öruggt skjól', 'fyrir hvert barn'], en: ['A safe place', 'for every child'] },
   lead: t(
-    'Þegar á reynir eiga börn og fjölskyldur rétt á hlýju, öryggi og skýrum svörum. Hér eru öll úrræði Barna- og fjölskyldustofu á einum stað, útskýrð á mannamáli.',
-    'When times are hard, children and families deserve warmth, safety and clear answers. Here is every service of Barna- og fjölskyldustofa in one place, explained in plain language.',
+    'Hér er útskýrt hvaða þjónustu Barna- og fjölskyldustofa veitir börnum og fjölskyldum, hvernig sótt er um hana og hvert er hægt að leita strax.',
+    'This site explains the services Barna- og fjölskyldustofa provides for children and families, how they are applied for, and where to turn straight away.',
   ),
-  ctaPrimary: t('Finna réttan stuðning', 'Find the right support'),
+  ctaPrimary: t('Hvar á ég að byrja?', 'Where do I start?'),
   ctaSecondary: t('Hvernig barn fær aðstoð', 'How a child gets help'),
-  reassure: t('Í bráðri neyð skaltu strax hringja í 112', 'In an emergency, call 112 right away'),
+  reassure: t('Ef barn er í bráðri hættu skaltu hringja í 112', 'If a child is in immediate danger, call 112'),
 }
 
 /* ── Wayfinder: three doors (audience triage) ─────────────────────────── */
 
-export const WAYFINDER = {
-  hand: t('Hvert liggur leiðin?', 'Which way in?'),
-  title: t('Finndu þína leið inn', 'Find your way in'),
-  doors: [
-    {
-      key: 'ahyggjur',
-      hueKey: 'terra',
-      title: t('Ég hef áhyggjur af barni', 'I am worried about a child'),
-      body: t('Sjáðu hvernig þú tilkynnir og hvað gerist næst.', 'See how to report a concern and what happens next.'),
-      to: '#tilkynna',
-    },
-    {
-      key: 'fagfolk',
-      hueKey: 'sky',
-      title: t('Ég er fagaðili', 'I work with children'),
-      body: t('Kynntu þér kerfið, úrræðin og lögin á bak við þau.', 'Get to know the system, the services and the law behind them.'),
-      to: '/preview/bofs/kerfid',
-    },
-    {
-      key: 'fostur',
-      hueKey: 'sun',
-      title: t('Ég gæti orðið fósturforeldri', 'I could become a foster parent'),
-      body: t('Sjáðu hvað fóstur felur í sér og hvernig fyrsta skrefið er.', 'See what fostering involves and how the first step is taken.'),
-      to: '/preview/bofs/fostur#gerast',
-    },
-  ],
-}
 
 /* ── Four warm pillars ────────────────────────────────────────────────── */
 
-export const VALUES: { key: string; icon: string; title: L; body: L }[] = [
-  {
-    key: 'safety',
-    icon: 'shield',
-    title: t('Öryggi', 'Safety'),
-    body: t(
-      'Hvert barn á rétt á að vera óhult. Öll úrræði byggja á vernd, ró og skýrum ramma.',
-      'Every child has the right to be safe. Every service is built on protection, calm and a clear framework.',
-    ),
-  },
-  {
-    key: 'warmth',
-    icon: 'heart',
-    title: t('Hlýja', 'Warmth'),
-    body: t(
-      'Fagfólk sem mætir barni og fjölskyldu af virðingu, hlýju og án fordóma.',
-      'Professionals who meet each child and family with respect, warmth and no judgement.',
-    ),
-  },
-  {
-    key: 'family',
-    icon: 'home',
-    title: t('Fjölskyldan með', 'Family included'),
-    body: t(
-      'Barni farnast best nálægt sínu fólki. Þess vegna vinnum við alltaf með fjölskyldunni, ekki fram hjá henni.',
-      'A child thrives best close to their own people. So we always work with the family, never around it.',
-    ),
-  },
-  {
-    key: 'hope',
-    icon: 'sun',
-    title: t('Von', 'Hope'),
-    body: t(
-      'Erfiðir kaflar taka enda. Markmiðið er alltaf betri dagar heima, í skóla og með vinum.',
-      'Hard chapters end. The goal is always better days at home, in school and with friends.',
-    ),
-  },
-]
 
 /* ── The referral path (3 steps) ──────────────────────────────────────── */
 
 export const PATH = {
   title: t('Hvernig barn fær aðstoð', 'How a child gets help'),
   lead: t(
-    'Leiðin að úrræðunum liggur í gegnum barnaverndarþjónustu í þínu sveitarfélagi. Þjónustan kostar ekkert og það er alltaf í lagi að taka fyrsta skrefið.',
-    'The path to our services runs through the child protection service in your municipality. The service is free of charge, and it is always okay to take the first step.',
+    'Barnaverndarþjónusta í sveitarfélagi barnsins er alltaf fyrsti viðkomustaður. Hún tekur við tilkynningum, metur stöðuna og sækir um úrræði hjá Barna- og fjölskyldustofu ef þörf er á.',
+    'The child protection service in the child’s municipality is always the first point of contact. It receives reports, assesses the situation and applies to Barna- og fjölskyldustofa for a service if one is needed.',
   ),
   steps: [
     {
       n: 1,
-      title: t('Þú hefur samband', 'You reach out'),
+      title: t('Haft er samband við barnavernd', 'Child protection is contacted'),
       body: t(
-        'Foreldri, ungmenni, skóli eða heilsugæsla hefur samband við barnavernd í sveitarfélaginu. Áhyggjur duga. Þú þarft ekki að hafa öll svörin.',
-        'A parent, young person, school or health centre contacts child protection in the municipality. Concern is enough. You do not need all the answers.',
+        'Foreldri, barn, skóli, heilsugæsla eða hver sá sem hefur áhyggjur hefur samband við barnaverndarþjónustu sveitarfélagsins. Ekki þarf að hafa sannanir.',
+        'A parent, a child, a school, a health centre or anyone with a concern contacts the municipal child protection service. No proof is needed.',
       ),
     },
     {
       n: 2,
       title: t('Staðan er metin', 'The situation is assessed'),
       body: t(
-        'Barnavernd kynnist stöðu barnsins og fjölskyldunnar og finnur, í samvinnu við ykkur, hvaða stuðningur á best við.',
-        'Child protection gets to know the child and family and, together with you, finds the support that fits best.',
+        'Barnaverndarþjónustan ákveður hvort málið verði kannað og vinnur áætlun í samvinnu við barnið og foreldra.',
+        'The child protection service decides whether to investigate and draws up a plan together with the child and parents.',
       ),
     },
     {
       n: 3,
-      title: t('Rétta úrræðið tekur við', 'The right service steps in'),
+      title: t('Sótt er um úrræði', 'A service is applied for'),
       body: t(
-        'Barnavernd sækir um úrræði hjá Barna- og fjölskyldustofu, hvort sem það er stuðningur heima, meðferð eða öruggt heimili.',
-        'Child protection applies to Barna- og fjölskyldustofa for a service, whether that is support at home, treatment or a safe home.',
+        'Dugi stuðningur heima ekki sækir barnaverndarþjónustan um úrræði hjá Barna- og fjölskyldustofu, til dæmis MST-meðferð, Barnahús, meðferðarheimili eða fóstur.',
+        'If support at home is not enough, the child protection service applies to Barna- og fjölskyldustofa for a service, such as MST therapy, Barnahús, a treatment home or foster care.',
       ),
     },
   ],
@@ -184,16 +121,16 @@ export const CATEGORIES: { key: Category; title: L; blurb: L }[] = [
     key: 'heimili',
     title: t('Meðferðarheimili', 'Treatment homes'),
     blurb: t(
-      'Örugg heimili þar sem börn og ungmenni á aldrinum 12 til 18 ára fá umönnun allan sólarhringinn, hlýju og einstaklingsmiðaða meðferð.',
-      'Safe homes where children and young people aged 12 to 18 receive round-the-clock care, warmth and individualised treatment.',
+      'Meðferðarheimili Barna- og fjölskyldustofu eru fyrir börn á aldrinum 12 til 18 ára. Vistun kemur til greina þegar meðferð heima hefur ekki borið árangur, og barnaverndarþjónusta sækir um hana í samráði við barnið og foreldra.',
+      'The agency’s treatment homes are for children aged 12 to 18. A placement is considered when treatment at home has not worked, and the child protection service applies for it in consultation with the child and parents.',
     ),
   },
   {
     key: 'thjonusta',
-    title: t('Fjölskyldu- og stuðningsþjónusta', 'Family & support services'),
+    title: t('Þjónusta við börn og fjölskyldur', 'Services for children and families'),
     blurb: t(
-      'Stuðningur sem kemur til fjölskyldunnar, hvort sem er heim, í Barnahús eða inn á nýtt heimili, með fagfólki sér við hlið.',
-      'Support that comes to the family, whether at home, in Barnahús or into a new home, with professionals by their side.',
+      'Meðferð sem fer fram heima eða í viðtölum, þjónusta Barnahúss vegna ofbeldis og fóstur þegar barn getur ekki búið heima.',
+      'Treatment that takes place at home or in sessions, Barnahús for children who may have experienced violence, and foster care when a child cannot live at home.',
     ),
   },
 ]
@@ -229,212 +166,207 @@ export const SERVICES: Service[] = [
     hue: '#D9744E',
     hueSoft: '#F6E0D3',
     art: 'studlar',
-    tagline: t('Þegar þarf öruggan stað strax', 'When a safe place is needed right now'),
+    tagline: t('Þegar barn þarf öruggan stað strax', 'When a child needs a safe place straight away'),
     card: t(
-      'Neyðarvistun ríkisins fyrir ungmenni, fyrsti öruggi viðkomustaðurinn þegar bráð staða kemur upp.',
-      'The state emergency care unit for young people, the first safe stop when an acute situation arises.',
+      'Neyðarvistun fyrir börn í alvarlegum vanda. Dvölin varir að hámarki í fjórtán daga.',
+      'Emergency care for children in serious difficulty. A stay lasts fourteen days at most.',
     ),
     who: t(
-      'Ungmenni á aldrinum 12 til 18 ára sem þurfa tafarlaust öruggt skjól og mat á aðstæðum sínum.',
-      'Young people aged 12 to 18 who need immediate safety and an assessment of their situation.',
+      'Börn á aldrinum 12 til 18 ára í alvarlegum vanda sem þurfa tafarlaust öruggan stað.',
+      'Children aged 12 to 18 in serious difficulty who need a safe place immediately.',
     ),
     what: t(
-      'Stuðlar hafa tekið á móti börnum frá árinu 1994 og flutt í núverandi húsnæði að Fossaleyni árið 1996. Þeir eru fyrsti viðkomustaðurinn í bráðum aðstæðum. Tekið er á móti ungmenninu í rólegu og öruggu umhverfi, hlúð að því allan sólarhringinn og staða þess metin af fagfólki svo hægt sé að finna næsta rétta skref í rólegheitum. Neyðarvistun varir að hámarki í fjórtán daga.',
-      'Stuðlar has received children since 1994 and moved into its current premises at Fossaleyni in 1996. It is the first stop in acute situations. The young person is received in a calm, secure environment, cared for around the clock, and their situation assessed by professionals so the next right step can be found without haste. An emergency stay lasts a maximum of fourteen days.',
+      'Neyðarvistun er bráðaúrræði. Markmiðið er að stöðva skaðlega hegðun, hlúa að barninu og gefa barnaverndarþjónustu og foreldrum ráðrúm til að finna lausnir. Vistunin á aldrei að vara lengur en þörf krefur og að hámarki í fjórtán daga. Sálfræðingur og deildarstjóri meta stöðuna reglulega og ákveða lengd dvalar í samráði við barnaverndarþjónustu.',
+      'Emergency care is an acute measure. Its purpose is to stop harmful behaviour, look after the child and give the child protection service and the parents time to find solutions. A stay should never last longer than necessary and at most fourteen days. A psychologist and the head of the unit review the situation regularly and decide the length of stay with the child protection service.',
     ),
     how: t(
-      'Barnaverndarþjónusta ráðstafar ungmenni í neyðarvistun.',
-      'The child protection service places a young person in emergency care.',
+      'Barnaverndarþjónusta sveitarfélagsins ákveður vistun í neyðarvistun.',
+      'The municipal child protection service decides on a placement in emergency care.',
     ),
     facts: [
-      { label: t('Fyrir', 'For'), value: t('Ungmenni 12 til 18 ára', 'Young people 12 to 18') },
-      { label: t('Dvöl', 'Stay'), value: t('Allt að 14 dagar', 'Up to 14 days') },
-      { label: t('Staðsetning', 'Location'), value: t('Fossaleyni, Grafarvogi', 'Fossaleyni, Grafarvogur') },
-      { label: t('Tók til starfa', 'Established'), value: t('1994', '1994') },
+      { label: t('Fyrir', 'For'), value: t('Börn 12 til 18 ára', 'Children aged 12 to 18') },
+      { label: t('Dvöl', 'Stay'), value: t('Að hámarki 14 dagar', '14 days at most') },
+      { label: t('Staður', 'Location'), value: t('Stuðlar, Fossaleyni í Reykjavík', 'Stuðlar, Fossaleyni, Reykjavík') },
     ],
     note: t(
-      'Stuðlar eru oft fyrsta skrefið en ekki það síðasta. Héðan liggur leiðin áfram í meðferð eða heim með réttum stuðningi.',
-      'Stuðlar is often the first step but not the last. From here the path leads on to treatment, or home with the right support.',
+      'Foreldrar og barnaverndarþjónusta vinna saman að næstu skrefum á meðan á dvölinni stendur.',
+      'Parents and the child protection service work together on the next steps during the stay.',
     ),
   },
   {
     slug: 'esjan',
-    name: 'Esjan',
+    name: 'Grunnmeðferð',
     category: 'heimili',
-    kind: t('Grunnmeðferð', 'Primary treatment'),
+    kind: t('Meðferðarheimili', 'Treatment home'),
     hue: '#6E9E6E',
     hueSoft: '#DCEBD8',
     art: 'esjan',
-    tagline: t('Að kortleggja stöðuna, saman', 'Mapping the situation, together'),
+    tagline: t('Vandinn er kortlagður og meðferð hefst', 'The difficulties are mapped and treatment begins'),
     card: t(
-      'Grunnmeðferð þar sem staða barns er kortlögð og fyrstu skrefin tekin. Hét áður Blönduhlíð.',
-      'Primary treatment where a child’s situation is mapped and the first steps are taken. Previously named Blönduhlíð.',
+      'Fyrsta stig meðferðar á meðferðarheimili. Vandi barnsins og fjölskyldunnar er kortlagður og meðferðaráætlun gerð. Meðferðin tekur 8 til 12 vikur.',
+      'The first stage of residential treatment. The difficulties of the child and family are mapped and a treatment plan is made. Treatment takes 8 to 12 weeks.',
     ),
     who: t(
-      'Börn á aldrinum 12 til 18 ára sem þurfa markvissa greiningu og upphaf meðferðar vegna vímuefna- eða hegðunarvanda.',
-      'Children aged 12 to 18 who need focused assessment and the start of treatment for substance use or behavioural difficulties.',
+      'Börn á aldrinum 12 til 18 ára þegar meðferð heima hefur ekki borið árangur, til dæmis vegna hegðunar- eða vímuefnavanda.',
+      'Children aged 12 to 18 when treatment at home has not worked, for example because of behavioural or substance use difficulties.',
     ),
     what: t(
-      'Í Esjunni fer fram grunnmeðferð sem tekur að jafnaði 8 til 12 vikur, með reglulegum heimferðarleyfum. Unnið er að því að skilja styrkleika, áskoranir og þarfir barnsins og fjölskyldunnar og út frá því verður til skýr áætlun um næstu skref. Heimilið rúmar sex ungmenni og starfar í húsnæði á Vogi. Það hét áður Blönduhlíð, en það nafn færðist yfir á stuðningsheimilið í Mosfellsbæ.',
-      'Esjan provides primary treatment that usually lasts 8 to 12 weeks, with regular home visits. The work is to understand the strengths, challenges and needs of the child and family, and from that a clear plan for the next steps takes shape. The home has room for six young people and operates in premises at Vogur. It was previously named Blönduhlíð, a name that has since moved to the support home in Mosfellsbær.',
+      'Í grunnmeðferð er vandi barnsins og fjölskyldunnar kortlagður í samvinnu við barnaverndarþjónustu. Meðferðarþörf er metin og gerð er meðferðaráætlun sem miðar að því að draga úr áhættuþáttum og styrkja það sem verndar barnið. Foreldrar taka virkan þátt og barnið fer reglulega heim á meðferðartímanum. Markmiðið er alltaf að barnið geti snúið heim að meðferð lokinni. Náist markmiðin ekki er mælt með framhaldsmeðferð eða öðrum stuðningi.',
+      'In primary treatment, the difficulties of the child and family are mapped together with the child protection service. The need for treatment is assessed and a plan is made to reduce risk factors and strengthen what protects the child. Parents take an active part and the child goes home regularly during treatment. The aim is always for the child to return home when treatment ends. If the goals are not met, continued treatment or other support is recommended.',
     ),
     how: t(
-      'Barnaverndarþjónusta sækir um grunnmeðferð hjá Barna- og fjölskyldustofu.',
-      'The child protection service applies for primary treatment through Barna- og fjölskyldustofa.',
+      'Barnaverndarþjónusta sækir um í samráði við barnið og foreldra. Meðferðarteymi Barna- og fjölskyldustofu metur hvort vistun eigi við.',
+      'The child protection service applies in consultation with the child and parents. The agency’s treatment team assesses whether a placement is appropriate.',
     ),
     facts: [
-      { label: t('Fyrir', 'For'), value: t('Börn 12 til 18 ára', 'Children 12 to 18') },
-      { label: t('Lengd', 'Length'), value: t('Að jafnaði 8 til 12 vikur', 'Usually 8 to 12 weeks') },
-      { label: t('Pláss', 'Places'), value: t('Sex ungmenni', 'Six young people') },
-      { label: t('Áhersla', 'Focus'), value: t('Greining, áætlun og fyrstu skref', 'Assessment, planning, first steps') },
+      { label: t('Fyrir', 'For'), value: t('Börn 12 til 18 ára', 'Children aged 12 to 18') },
+      { label: t('Lengd', 'Length'), value: t('8 til 12 vikur', '8 to 12 weeks') },
+      { label: t('Heimferðir', 'Home visits'), value: t('Reglulega á meðferðartíma', 'Regularly during treatment') },
     ],
     note: t(
-      'Versti dagurinn segir ekki alla söguna. Hér byrjum við á að sjá barnið í heild og byggja á því sem er heilt.',
-      'The worst day does not tell the whole story. Here we start by seeing the whole child and building on what is already whole.',
+      'Nánari upplýsingar um grunnmeðferð og handbók meðferðarheimilisins eru á síðu meðferðarheimila á island.is.',
+      'More about primary treatment, and the treatment home’s handbook, is on the treatment homes page on island.is.',
     ),
   },
   {
     slug: 'blonduhlid',
-    name: 'Blönduhlíð',
+    name: 'Stuðningsheimilið Blönduhlíð',
     category: 'heimili',
     kind: t('Stuðningsheimili', 'Support home'),
     hue: '#8A9A5B',
     hueSoft: '#E4EAD4',
     art: 'blonduhlid',
-    tagline: t('Heimili þegar meðferð lýkur', 'A home for when treatment ends'),
+    tagline: t('Áframhaldandi stuðningur að lokinni meðferð', 'Continued support after treatment'),
     card: t(
-      'Stuðningsheimili í Mosfellsbæ fyrir börn sem hafa lokið meðferð en eiga ekki öruggt heimili að hverfa til.',
-      'A support home in Mosfellsbær for children who have completed treatment but have no safe home to return to.',
+      'Fyrir börn sem hafa lokið grunn- og framhaldsmeðferð en geta ekki búið hjá foreldrum eða forsjáraðilum.',
+      'For children who have completed primary and continued treatment but cannot live with their parents or guardians.',
     ),
     who: t(
-      'Börn og ungmenni sem hafa lokið meðferð á meðferðarheimilum stofunnar en geta ekki, af einhverjum ástæðum, snúið heim að henni lokinni.',
-      'Children and young people who have completed treatment at the agency’s treatment homes but cannot, for whatever reason, return home afterwards.',
+      'Börn sem hafa lokið grunn- og framhaldsmeðferð, þurfa áframhaldandi stuðning og geta af ýmsum ástæðum ekki búið hjá forsjáraðilum.',
+      'Children who have completed primary and continued treatment, need further support and for various reasons cannot live with their guardians.',
     ),
     what: t(
-      'Blönduhlíð er á Farsældartúni í Mosfellsbæ og var opnuð í september 2025. Þar heldur stuðningurinn áfram í öruggum og heimilislegum ramma eftir að eiginlegri meðferð lýkur, með áherslu á daglegar venjur, skóla og undirbúning fyrir næsta skref. Gert er ráð fyrir þremur ungmennum í senn og mögulega því fjórða.',
-      'Blönduhlíð sits at Farsældartún in Mosfellsbær and opened in September 2025. There, support continues within a safe, home-like framework once treatment proper has ended, focusing on daily routines, school and preparing for the next step. It is intended for three young people at a time, with room for a fourth if needed.',
+      'Á stuðningsheimilinu er lögð áhersla á að viðhalda þeim árangri sem náðst hefur í meðferð, halda áfram virkni og þátttöku í samfélaginu og undirbúa barnið undir að standa á eigin fótum.',
+      'The support home focuses on keeping the progress made in treatment, continuing activity and participation in the community, and preparing the young person to stand on their own feet.',
     ),
     how: t(
-      'Barnaverndarþjónusta sækir um stuðningsheimili hjá Barna- og fjölskyldustofu.',
-      'The child protection service applies for the support home through Barna- og fjölskyldustofa.',
+      'Barnaverndarþjónusta sækir um hjá Barna- og fjölskyldustofu.',
+      'The child protection service applies to Barna- og fjölskyldustofa.',
     ),
     facts: [
-      { label: t('Fyrir', 'For'), value: t('Börn að lokinni meðferð', 'Children after treatment') },
-      { label: t('Staðsetning', 'Location'), value: t('Farsældartún í Mosfellsbæ', 'Farsældartún, Mosfellsbær') },
-      { label: t('Pláss', 'Places'), value: t('Þrjú ungmenni, mögulega fjögur', 'Three young people, possibly four') },
-      { label: t('Opnað', 'Opened'), value: t('September 2025', 'September 2025') },
+      { label: t('Fyrir', 'For'), value: t('Börn að lokinni meðferð', 'Children who have completed treatment') },
+      { label: t('Áhersla', 'Focus'), value: t('Viðhald árangurs og sjálfstætt líf', 'Keeping progress, independent living') },
     ],
     note: t(
-      'Meðferð er ekki endastöð. Stundum þarf öruggan stað til að æfa sig í venjulegu lífi áður en haldið er heim.',
-      'Treatment is not the end of the road. Sometimes a safe place is needed to practise ordinary life before going home.',
+      'Handbók stuðningsheimilisins er aðgengileg á síðu meðferðarheimilanna á island.is.',
+      'The support home’s handbook is available on the treatment homes page on island.is.',
     ),
   },
   {
     slug: 'bjargey',
     name: 'Bjargey',
     category: 'heimili',
-    kind: t('Framhaldsmeðferð fyrir stúlkur og stálp', 'Continued treatment for girls'),
+    kind: t('Framhaldsmeðferð fyrir stúlkur og stálp', 'Continued treatment for girls and non-binary young people'),
     hue: '#D98895',
     hueSoft: '#F6DEE2',
     art: 'bjargey',
-    tagline: t('Rými til að vaxa', 'Room to grow'),
+    tagline: t('Framhaldsmeðferð í allt að sex mánuði', 'Continued treatment for up to six months'),
     card: t(
-      'Framhaldsmeðferð fyrir stúlkur og stálp þar sem breytingar fá tíma til að festa rætur.',
-      'Continued treatment for girls and non-binary youth, where change is given time to take root.',
+      'Framhaldsmeðferð fyrir stúlkur og stálp sem hafa lokið grunnmeðferð. Meðferðin getur varað í allt að sex mánuði.',
+      'Continued treatment for girls and non-binary young people who have completed primary treatment. It can last up to six months.',
     ),
     who: t(
-      'Stúlkur og stálp sem hafa lokið grunnmeðferð og þurfa lengri tíma og stuðning til að byggja upp nýjar venjur.',
-      'Girls and non-binary young people who have completed primary treatment and need more time and support to build new routines.',
+      'Stúlkur og stálp sem hafa lokið grunnmeðferð og þurfa lengri meðferð.',
+      'Girls and non-binary young people who have completed primary treatment and need longer treatment.',
     ),
     what: t(
-      'Bjargey er í Eyjafjarðarsveit og hefur verið starfrækt frá 27. júní 2022. Þar er unnið áfram með það sem hófst í grunnmeðferð, í rólegu og heimilislegu umhverfi þar sem traust fær að myndast. Áhersla er á daglegar venjur, skóla, tengsl og trú á eigin getu, og skólagangan fer fram í samstarfi við skóla í sveitinni. Dvölin getur varað í allt að sex mánuði.',
-      'Bjargey is in Eyjafjarðarsveit and has operated since 27 June 2022. There, the work started in primary treatment continues in a calm, home-like setting where trust can form. The focus is on daily routines, school, relationships and self-belief, and schooling takes place in cooperation with a local school. A stay can last up to six months.',
+      'Í framhaldsmeðferð er unnið að því að draga úr áhættuhegðun, á grundvelli þeirrar kortlagningar sem fór fram í grunnmeðferð og upplýsinga frá barninu sjálfu, barnaverndarþjónustu og forsjáraðilum. Unnið er eftir einstaklingsbundinni meðferðaráætlun, með áherslu á öryggi, stöðugleika og virkni í skóla, vinnu og tómstundum. Meðferðin getur varað í allt að sex mánuði og sækja má um framlengingu ef það þjónar hagsmunum barnsins. Bjargey er í Eyjafjarðarsveit.',
+      'Continued treatment works to reduce risk behaviour, building on the mapping done in primary treatment and on information from the young person, the child protection service and guardians. Work follows an individual treatment plan, with a focus on safety, stability and activity in school, work and leisure. Treatment can last up to six months, and an extension can be requested if it serves the child’s interests. Bjargey is in Eyjafjarðarsveit.',
     ),
     how: t(
       'Barnaverndarþjónusta sækir um framhaldsmeðferð hjá Barna- og fjölskyldustofu.',
-      'The child protection service applies for continued treatment through Barna- og fjölskyldustofa.',
+      'The child protection service applies to Barna- og fjölskyldustofa for continued treatment.',
     ),
     facts: [
-      { label: t('Fyrir', 'For'), value: t('Stúlkur og stálp, eftir grunnmeðferð', 'Girls and non-binary youth, after primary treatment') },
-      { label: t('Tegund', 'Type'), value: t('Framhaldsmeðferð', 'Continued treatment') },
-      { label: t('Staðsetning', 'Location'), value: t('Eyjafjarðarsveit', 'Eyjafjarðarsveit') },
+      { label: t('Fyrir', 'For'), value: t('Stúlkur og stálp, eftir grunnmeðferð', 'Girls and non-binary young people, after primary treatment') },
       { label: t('Lengd', 'Length'), value: t('Allt að 6 mánuðir', 'Up to 6 months') },
+      { label: t('Staður', 'Location'), value: t('Eyjafjarðarsveit', 'Eyjafjarðarsveit') },
     ],
     note: t(
-      'Breytingar sem endast gerast ekki á einni nóttu. Hér er tíminn bandamaður, ekki óvinur.',
-      'Change that lasts does not happen overnight. Here, time is an ally, not an enemy.',
+      'Sækja má um framlengingu meðferðar ef það þjónar hagsmunum barnsins.',
+      'An extension of treatment can be requested if it serves the child’s interests.',
     ),
   },
   {
     slug: 'laekjarbakki',
     name: 'Lækjarbakki',
     category: 'heimili',
-    kind: t('Framhaldsmeðferð fyrir stráka og stálp', 'Continued treatment for boys'),
+    kind: t('Framhaldsmeðferð fyrir drengi og stálp', 'Continued treatment for boys and non-binary young people'),
     hue: '#5E97B8',
     hueSoft: '#D6E6EE',
     art: 'laekjarbakki',
-    tagline: t('Sveitakyrrð og traustur grunnur', 'Country calm and steady ground'),
+    tagline: t('Framhaldsmeðferð í Gunnarsholti', 'Continued treatment at Gunnarsholt'),
     card: t(
-      'Framhaldsmeðferð fyrir stráka og stálp í Gunnarsholti á Rangárvöllum. Heimilið opnaði í endurnýjuðu húsnæði vorið 2026.',
-      'Continued treatment for boys and non-binary youth at Gunnarsholt in Rangárvellir. The home opened in renovated premises in spring 2026.',
+      'Framhaldsmeðferð fyrir drengi og stálp í Gunnarsholti á Rangárvöllum. Heimilið tók aftur til starfa í mars 2026.',
+      'Continued treatment for boys and non-binary young people at Gunnarsholt in Rangárvellir. The home reopened in March 2026.',
     ),
     who: t(
-      'Strákar og stálp sem hafa lokið grunnmeðferð og þurfa lengri tíma, rútínu og fjarlægð frá álagi til að ná fótfestu, meðal annars vegna hegðunar- og vímuefnavanda.',
-      'Boys and non-binary young people who have completed primary treatment and need more time, routine and distance from everyday pressure to find their footing, for reasons that can include behavioural and substance use difficulties.',
+      'Drengir og stálp sem hafa lokið grunnmeðferð og þurfa lengri meðferð.',
+      'Boys and non-binary young people who have completed primary treatment and need longer treatment.',
     ),
     what: t(
-      'Lækjarbakki tók til starfa í Gunnarsholti á Rangárvöllum í mars 2026 og var formlega opnaður 8. maí sama ár. Heimilið rúmar allt að sex ungmenni í senn. Húsnæðið var endurnýjað með áherslu á öryggi, hlýlegt umhverfi og heimilislegt yfirbragð, og sveitin sjálf gefur ró, rútínu og útiveru sem styður meðferðina. Meðferðin er einstaklingsmiðuð og byggð á gagnreyndum aðferðum.',
-      'Lækjarbakki began operating at Gunnarsholt in Rangárvellir in March 2026 and was formally opened on 8 May that year. The home takes up to six young people at a time. The premises were renovated with an emphasis on safety, a warm environment and a home-like character, and the countryside itself offers calm, routine and outdoor life that supports the treatment. Treatment is individualised and grounded in evidence-based methods.',
+      'Í framhaldsmeðferð er unnið að því að draga úr áhættuhegðun, á grundvelli þeirrar kortlagningar sem fór fram í grunnmeðferð og upplýsinga frá barninu sjálfu, barnaverndarþjónustu og forsjáraðilum. Unnið er eftir einstaklingsbundinni meðferðaráætlun, með áherslu á öryggi, stöðugleika og virkni í skóla, vinnu og tómstundum. Meðferðin getur varað í allt að sex mánuði og sækja má um framlengingu. Lækjarbakki tók aftur til starfa í mars 2026, eftir að hafa verið lokaður um skeið, og var formlega opnaður 8. maí 2026. Þar er rými fyrir sex ungmenni.',
+      'Continued treatment works to reduce risk behaviour, building on the mapping done in primary treatment and on information from the young person, the child protection service and guardians. Work follows an individual treatment plan, with a focus on safety, stability and activity in school, work and leisure. Treatment can last up to six months and an extension can be requested. Lækjarbakki reopened in March 2026 after a period of closure and was formally opened on 8 May 2026. It has places for six young people.',
     ),
     how: t(
       'Barnaverndarþjónusta sækir um framhaldsmeðferð hjá Barna- og fjölskyldustofu.',
-      'The child protection service applies for continued treatment through Barna- og fjölskyldustofa.',
+      'The child protection service applies to Barna- og fjölskyldustofa for continued treatment.',
     ),
     facts: [
-      { label: t('Fyrir', 'For'), value: t('Stráka og stálp, eftir grunnmeðferð', 'Boys and non-binary youth, after primary treatment') },
-      { label: t('Pláss', 'Places'), value: t('Allt að 6 ungmenni', 'Up to 6 young people') },
-      { label: t('Staðsetning', 'Location'), value: t('Gunnarsholti á Rangárvöllum', 'Gunnarsholt, Rangárvellir') },
-      { label: t('Opnað', 'Opened'), value: t('Mars 2026', 'March 2026') },
+      { label: t('Fyrir', 'For'), value: t('Drengi og stálp, eftir grunnmeðferð', 'Boys and non-binary young people, after primary treatment') },
+      { label: t('Lengd', 'Length'), value: t('Allt að 6 mánuðir', 'Up to 6 months') },
+      { label: t('Pláss', 'Places'), value: t('Sex ungmenni', 'Six young people') },
+      { label: t('Staður', 'Location'), value: t('Gunnarsholt á Rangárvöllum', 'Gunnarsholt, Rangárvellir') },
     ],
     note: t(
-      'Stundum þarf pláss, kyrrð og ný sjónarhorn til að finna sjálfan sig aftur.',
-      'Sometimes it takes space, quiet and a new horizon to find yourself again.',
+      'Heimilið var formlega opnað 8. maí 2026 eftir endurbætur á húsnæðinu.',
+      'The home was formally opened on 8 May 2026 after work on the premises.',
     ),
   },
   {
     slug: 'barnahus',
     name: 'Barnahús',
     category: 'thjonusta',
-    kind: t('Stuðningur eftir ofbeldi', 'Support after abuse'),
+    kind: t('Þjónusta við börn sem kunna að hafa orðið fyrir ofbeldi', 'For children who may have experienced violence'),
     hue: '#C98BA6',
     hueSoft: '#EFDDE8',
     art: 'barnahus',
-    tagline: t('Allt undir einu þaki, á forsendum barnsins', 'Everything under one roof, on the child’s terms'),
+    tagline: t('Þjónusta á einum stað', 'Services in one place'),
     card: t(
-      'Barnvænt hús fyrir börn sem mögulega hafa orðið fyrir ofbeldi. Viðtal, greining og meðferð á einum stað.',
-      'A child-friendly house for children who may have experienced abuse. Interview, assessment and treatment in one place.',
+      'Barnahús tekur á móti börnum sem grunur leikur á að hafi orðið fyrir ofbeldi. Viðtöl, skoðun, greining og meðferð fara fram á einum stað, fjölskyldunni að kostnaðarlausu.',
+      'Barnahús receives children who may have experienced violence. Interviews, examination, assessment and treatment take place in one place, free of charge for the family.',
     ),
     who: t(
-      'Börn sem grunur leikur á að hafi sætt kynferðislegu eða líkamlegu ofbeldi, eða heimilisofbeldi.',
-      'Children who may have been subjected to sexual or physical abuse, or to domestic violence.',
+      'Börn sem grunur leikur á að hafi orðið fyrir kynferðislegu eða líkamlegu ofbeldi, og foreldrar þeirra.',
+      'Children suspected of having experienced sexual or physical violence, and their parents.',
     ),
     what: t(
-      'Barnahús hefur starfað frá 1998 og er fyrsta og elsta Barnahús í Evrópu, fyrirmynd sambærilegra húsa víða um álfuna. Þar fer allt fram undir einu þaki, í hlýlegu og barnvænu umhverfi, svo barn þurfi ekki að endurtaka erfiða sögu sína aftur og aftur á mörgum stöðum. Þar fara fram viðtöl, læknisskoðun, greining og meðferð, og fjölskyldan fær einnig stuðning. Þjónustan er veitt að kostnaðarlausu.',
-      'Barnahús has operated since 1998 and is the first and oldest Barnahús in Europe, a model for similar houses across the continent. Everything happens under one roof, in a warm and child-friendly setting, so a child does not have to repeat a difficult story again and again in many places. Interviews, medical examination, assessment and treatment all take place there, and the family receives support as well. The service is provided free of charge.',
+      'Barnahús var stofnað 1. nóvember 1998 til að tryggja samstarf barnaverndar, lögreglu, dómstóla og Landspítala þegar grunur er um að barn hafi orðið fyrir ofbeldi. Barnið og foreldrar fá þjónustuna á einum stað svo barnið þurfi ekki að segja sögu sína á mörgum stöðum. Sé málið í lögreglurannsókn ákveður dómari hvar skýrslutaka fer fram. Börn á aldrinum 15 til 18 ára gefa almennt skýrslu hjá lögreglu, nema í undantekningartilvikum.',
+      'Barnahús was founded on 1 November 1998 to ensure that child protection, the police, the courts and Landspítali work together when a child may have experienced violence. The child and parents receive the service in one place, so the child does not have to tell their story in many places. If the case is under police investigation, a judge decides where the child’s statement is taken. Children aged 15 to 18 generally give their statement to the police, except in exceptional cases.',
     ),
     how: t(
-      'Barnaverndarþjónusta óskar eftir aðkomu Barnahúss. Barn og foreldrar fá alla aðstoð á einum stað, að kostnaðarlausu.',
-      'The child protection service requests the involvement of Barnahús. The child and parents receive all support in one place, free of charge.',
+      'Barn og foreldrar fá þjónustu Barnahúss með tilvísun frá barnaverndarþjónustu, að kostnaðarlausu.',
+      'The child and parents receive the services of Barnahús through a referral from the child protection service, free of charge.',
     ),
     facts: [
-      { label: t('Fyrir', 'For'), value: t('Börn sem kunna að hafa orðið fyrir ofbeldi', 'Children who may have experienced abuse') },
-      { label: t('Undir einu þaki', 'Under one roof'), value: t('Viðtal, skoðun, greining, meðferð', 'Interview, exam, assessment, treatment') },
-      { label: t('Kostnaður', 'Cost'), value: t('Að kostnaðarlausu', 'Free of charge') },
+      { label: t('Stofnað', 'Founded'), value: t('1. nóvember 1998', '1 November 1998') },
+      { label: t('Tilvísun', 'Referral'), value: t('Frá barnaverndarþjónustu', 'From child protection') },
+      { label: t('Kostnaður', 'Cost'), value: t('Enginn fyrir fjölskylduna', 'None for the family') },
       { label: t('Sími', 'Phone'), value: t('530 2500', '530 2500') },
     ],
     note: t(
-      'Ekkert barn ber ábyrgð á því sem kom fyrir það. Í Barnahúsi er hlustað á barnið og því fylgt áfram, skref fyrir skref.',
-      'No child is responsible for what happened to them. In Barnahús the child is heard and guided forward, step by step.',
+      'Ef barn er í bráðri hættu skal hringja í 112.',
+      'If a child is in immediate danger, call 112.',
     ),
   },
   {
@@ -445,32 +377,32 @@ export const SERVICES: Service[] = [
     hue: '#5FA093',
     hueSoft: '#D5EAE3',
     art: 'mst',
-    tagline: t('Stuðningur sem kemur heim til ykkar', 'Support that comes to your home'),
+    tagline: t('Meðferð sem fer fram heima', 'Treatment that takes place at home'),
     card: t(
-      'Fjölskyldumeðferð heima þar sem barnið býr áfram hjá sínu fólki og foreldrar fá öflug verkfæri.',
-      'Family therapy at home, where the child keeps living with their own family and parents get practical tools.',
+      'Meðferð fyrir fjölskyldur barna á aldrinum 12 til 18 ára með alvarlegan hegðunar- og vímuefnavanda. Barnið býr áfram heima.',
+      'Treatment for families of children aged 12 to 18 with serious behavioural and substance use difficulties. The child keeps living at home.',
     ),
     who: t(
-      'Fjölskyldur barna á aldrinum 12 til 18 ára sem glíma við fjölþættan vanda, svo sem afskipti lögreglu, erfiðleika í skóla, ofbeldi eða vímuefnanotkun.',
-      'Families of children aged 12 to 18 facing complex challenges, such as police involvement, school difficulties, violence or substance use.',
+      'Fjölskyldur barna á aldrinum 12 til 18 ára þegar vandinn birtist til dæmis í afskiptum lögreglu, erfiðleikum í skóla, ofbeldi eða vímuefnanotkun.',
+      'Families of children aged 12 to 18 when the difficulties show up, for example, as police involvement, problems at school, violence or substance use.',
     ),
     what: t(
-      'MST-fjölkerfameðferð fer fram þar sem lífið gerist, heima, í skólanum og í nærumhverfi barnsins. Sérþjálfaður meðferðaraðili kemur heim með reglulegum heimsóknum eftir samkomulagi og er í símasambandi allan sólarhringinn. Áherslan er á að efla foreldra svo þeir hafi verkfærin til að styðja barnið sitt. Meðferðin tekur að jafnaði 3 til 5 mánuði og barnið býr heima allan tímann. MST hefur verið veitt á Íslandi frá 2008 og um land allt frá 2015.',
-      'MST multisystemic therapy takes place where life happens: at home, in school and in the child’s surroundings. A specially trained therapist visits the home regularly, by arrangement, and is reachable by phone around the clock. The focus is on strengthening parents so they have the tools to support their child. Treatment usually lasts 3 to 5 months and the child lives at home the whole time. MST has been available in Iceland since 2008 and nationwide since 2015.',
+      'MST-meðferð miðar fyrst og fremst að því að auka færni foreldra til að takast á við vanda barnsins. Meðferðaraðili hittir foreldra, og eftir atvikum barnið, heima hjá fjölskyldunni eftir samkomulagi. Foreldrar geta leitað ráða hjá meðferðaraðila í síma allan sólarhringinn. Meðferðin tekur að jafnaði 3 til 5 mánuði. Markmiðin eru að barnið búi heima, stundi skóla eða vinnu, komist ekki í kast við lögin, noti ekki vímuefni og beiti ekki ofbeldi.',
+      'MST therapy aims above all to build parents’ ability to handle their child’s difficulties. A therapist meets the parents, and the child where appropriate, in the family home by arrangement. Parents can reach the therapist for advice by phone around the clock. Treatment usually takes 3 to 5 months. The goals are that the child lives at home, attends school or work, stays out of trouble with the law, does not use drugs and does not use violence.',
     ),
     how: t(
-      'Barnaverndarþjónustur um allt land geta vísað fjölskyldum í MST hjá Barna- og fjölskyldustofu.',
-      'Child protection services anywhere in Iceland can refer families to MST through Barna- og fjölskyldustofa.',
+      'Barnaverndarþjónustur um allt land geta vísað fjölskyldum í MST-meðferð.',
+      'Child protection services anywhere in Iceland can refer families to MST therapy.',
     ),
     facts: [
-      { label: t('Fyrir', 'For'), value: t('Fjölskyldur barna 12 til 18 ára', 'Families of children 12 to 18') },
-      { label: t('Hvar', 'Where'), value: t('Heima hjá fjölskyldunni', 'In the family home') },
+      { label: t('Fyrir', 'For'), value: t('Fjölskyldur barna 12 til 18 ára', 'Families of children aged 12 to 18') },
+      { label: t('Hvar', 'Where'), value: t('Heima hjá fjölskyldunni, um allt land', 'In the family home, nationwide') },
       { label: t('Lengd', 'Length'), value: t('Að jafnaði 3 til 5 mánuðir', 'Usually 3 to 5 months') },
-      { label: t('Stuðningur', 'Support'), value: t('Heimsóknir og sími allan sólarhringinn', 'Home visits and phone around the clock') },
+      { label: t('Ráðgjöf', 'Advice'), value: t('Í síma allan sólarhringinn', 'By phone around the clock') },
     ],
     note: t(
-      'Barn þarf ekki alltaf að fara að heiman til að fá hjálp. Stundum er sterkasta úrræðið að styrkja heimilið sjálft.',
-      'A child does not always have to leave home to get help. Sometimes the strongest intervention is to strengthen the home itself.',
+      'Barnið býr heima á meðan á meðferðinni stendur.',
+      'The child lives at home throughout the treatment.',
     ),
   },
   {
@@ -481,108 +413,106 @@ export const SERVICES: Service[] = [
     hue: '#9A86B8',
     hueSoft: '#E3DCEF',
     art: 'sok',
-    tagline: t('Skilningur, ekki skömm', 'Understanding, not shame'),
+    tagline: t('Sálfræðiþjónusta vegna kynhegðunar', 'Psychological help with sexual behaviour'),
     card: t(
-      'Sálfræðimeðferð fyrir börn vegna óviðeigandi eða skaðlegrar kynhegðunar, veitt af hlýju og virðingu.',
-      'Psychological treatment for children showing inappropriate or harmful sexual behaviour, delivered with warmth and respect.',
+      'Sálfræðiþjónusta fyrir börn sem þurfa aðstoð vegna óviðeigandi eða skaðlegrar kynhegðunar, og fjölskyldur þeirra.',
+      'A psychological service for children who need help with inappropriate or harmful sexual behaviour, and for their families.',
     ),
     who: t(
       'Börn sem þurfa aðstoð vegna óviðeigandi eða skaðlegrar kynhegðunar, og fjölskyldur þeirra.',
       'Children who need help with inappropriate or harmful sexual behaviour, and their families.',
     ),
     what: t(
-      'SÓK-meðferð er sálfræðiþjónusta vegna óviðeigandi kynhegðunar. Hún styður barnið, dregur úr neikvæðum afleiðingum hegðunarinnar og minnkar líkur á að hún endurtaki sig. Unnið er af fagmennsku og hlýju, með skilningi frekar en skömm, svo barnið geti haldið áfram á heilbrigðari braut.',
-      'SÓK is a psychological service for children showing inappropriate sexual behaviour. It supports the child, reduces the negative consequences of the behaviour and lowers the likelihood of it repeating. The work is professional and warm, meeting the child with understanding rather than shame, so they can move forward on a healthier path.',
+      'Meðferðin er í höndum sálfræðinga með sérþekkingu á þessu sviði og fer að mestu fram á sálfræðistofu. Unnið er með styrkleika barnsins og það sem getur dregið úr líkum á frekari óviðeigandi eða skaðlegri kynhegðun. Lengd meðferðar fer eftir umfangi vandans, aldri og þroska barnsins. Við lok meðferðar skilar sálfræðingur skýrslu til barnaverndarþjónustu og Barna- og fjölskyldustofu.',
+      'Treatment is provided by psychologists with specialist knowledge in this field and mostly takes place at a psychology practice. The work builds on the child’s strengths and on what can reduce the likelihood of further inappropriate or harmful sexual behaviour. The length of treatment depends on the extent of the difficulties and the child’s age and maturity. At the end, the psychologist reports to the child protection service and Barna- og fjölskyldustofa.',
     ),
     how: t(
-      'Barnaverndarþjónusta vísar barni í SÓK-meðferð hjá Barna- og fjölskyldustofu.',
-      'The child protection service refers a child to SÓK through Barna- og fjölskyldustofa.',
+      'Barnaverndarþjónusta vísar barni í meðferðina. Forsjáraðilar þurfa að samþykkja þjónustuna. Barnaverndarþjónustan greiðir gjald fyrir mat og meðferð.',
+      'The child protection service refers the child. Guardians must consent to the service. The child protection service pays a fee for assessment and treatment.',
     ),
     facts: [
       { label: t('Fyrir', 'For'), value: t('Börn og fjölskyldur þeirra', 'Children and their families') },
-      { label: t('Tegund', 'Type'), value: t('Sálfræðimeðferð', 'Psychological treatment') },
-      { label: t('Markmið', 'Goal'), value: t('Stuðningur og minni endurtekning', 'Support and less recurrence') },
-      { label: t('Nálgun', 'Approach'), value: t('Fagmennska og hlýja', 'Professionalism and warmth') },
+      { label: t('Veitt af', 'Provided by'), value: t('Sérhæfðum sálfræðingum', 'Specialist psychologists') },
+      { label: t('Samþykki', 'Consent'), value: t('Forsjáraðilar samþykkja', 'Guardians give consent') },
+      { label: t('Lengd', 'Length'), value: t('Fer eftir aðstæðum barnsins', 'Depends on the child’s situation') },
     ],
     note: t(
-      'Börn eru ekki vandamál sem á að leysa. Þau eru manneskjur sem eiga skilið stuðning til að gera betur.',
-      'Children are not a problem to be solved. They are people who deserve support to do better.',
+      'Barnaverndarþjónustan greiðir fyrir meðferðina, ekki fjölskyldan.',
+      'The child protection service pays for the treatment, not the family.',
     ),
   },
   {
     slug: 'fostur',
     name: 'Fóstur',
     category: 'thjonusta',
-    kind: t('Öruggt heimili hjá fósturfjölskyldu', 'A safe home with a foster family'),
+    kind: t('Þegar barn getur ekki búið heima', 'When a child cannot live at home'),
     hue: '#D68F5A',
     hueSoft: '#F4E1CC',
     art: 'fostur',
-    tagline: t('Þegar barn þarf annað heimili um tíma', 'When a child needs another home for a while'),
+    tagline: t('Heimili hjá fósturfjölskyldu', 'A home with a foster family'),
     card: t(
-      'Þegar barn getur ekki búið heima fær það öruggt skjól hjá fósturfjölskyldu, tímabundið eða til frambúðar.',
-      'When a child cannot live at home, they find safety with a foster family, for a while or for good.',
+      'Þegar barn getur ekki búið hjá foreldrum sínum felur barnaverndarþjónusta fósturforeldrum umsjá þess, tímabundið eða varanlega.',
+      'When a child cannot live with their parents, the child protection service places the child in the care of foster parents, for a period or permanently.',
     ),
     who: t(
-      'Börn sem vegna aðstæðna sinna þurfa að búa hjá öðrum en foreldrum sínum um lengri eða skemmri tíma.',
-      'Children who, because of their circumstances, need to live with someone other than their parents for a longer or shorter time.',
+      'Börn sem vegna aðstæðna sinna þurfa að búa hjá öðrum en foreldrum sínum, og fólk sem vill gerast fósturforeldrar.',
+      'Children who, because of their circumstances, need to live with someone other than their parents, and people who want to become foster parents.',
     ),
     what: t(
-      'Fóstur felst í því að barnaverndarþjónusta felur fósturforeldrum umsjá barns. Það getur verið tímabundið, varanlegt eða styrkt fóstur með sérstökum stuðningi þegar barn glímir við verulegan vanda. Fósturforeldrar fara í gegnum hæfnismat og námskeið, og Barna- og fjölskyldustofa styður þá alla leið með ráðgjöf, samningum og eftirfylgd.',
-      'Foster care means that the child protection service places a child in the care of foster parents. It can be temporary, permanent, or supported foster care with extra help when a child faces serious difficulties. Foster parents go through an assessment and training, and Barna- og fjölskyldustofa supports them the whole way with guidance, agreements and follow-up.',
+      'Fóstur getur verið tímabundið, varanlegt eða fóstur vegna verulegs hegðunarvanda. Barnaverndarþjónusta ráðstafar barni í fóstur. Barna- og fjölskyldustofa metur hæfni þeirra sem vilja gerast fósturforeldrar, heldur námskeið fyrir þau og veitir fósturforeldrum ráðgjöf.',
+      'Foster care can be temporary, permanent, or for children with serious behavioural difficulties. The child protection service places the child. Barna- og fjölskyldustofa assesses people who want to become foster parents, runs courses for them and advises foster parents.',
     ),
     how: t(
-      'Barnaverndarþjónusta ráðstafar barni í fóstur. Þau sem vilja gerast fósturforeldrar byrja á hæfnismati og námskeiði hjá Barna- og fjölskyldustofu.',
-      'The child protection service places a child in foster care. Those who wish to become foster parents begin with an assessment and training at Barna- og fjölskyldustofa.',
+      'Barnaverndarþjónusta ráðstafar barni í fóstur. Þau sem vilja gerast fósturforeldrar sækja um hjá Barna- og fjölskyldustofu.',
+      'The child protection service places a child in foster care. People who want to become foster parents apply to Barna- og fjölskyldustofa.',
     ),
     facts: [
-      { label: t('Tegundir', 'Types'), value: t('Tímabundið, varanlegt, styrkt fóstur', 'Temporary, permanent, supported') },
-      { label: t('Fyrir', 'For'), value: t('Börn sem þurfa annað heimili', 'Children who need another home') },
-      { label: t('Fósturforeldrar', 'Foster parents'), value: t('Hæfnismat og námskeið', 'Assessment and training') },
-      { label: t('Stuðningur', 'Support'), value: t('Ráðgjöf og eftirfylgd frá BOFS', 'Guidance and follow-up from BOFS') },
+      { label: t('Tegundir', 'Types'), value: t('Tímabundið, varanlegt, vegna hegðunarvanda', 'Temporary, permanent, for behavioural difficulties') },
+      { label: t('Ráðstöfun', 'Placement'), value: t('Barnaverndarþjónusta', 'Child protection service') },
+      { label: t('Fósturforeldrar', 'Foster parents'), value: t('Hæfnismat og námskeið', 'Assessment and a course') },
     ],
     note: t(
-      'Sérhvert barn á rétt á heimili þar sem haldið er utan um það. Fósturfjölskyldur gefa það og fá stuðning til þess.',
-      'Every child deserves a home where they are held close. Foster families give that, and are supported to do so.',
+      'Umsóknarferlið fyrir verðandi fósturforeldra er lýst á island.is.',
+      'The application process for prospective foster parents is described on island.is.',
     ),
   },
 ]
 
 export const serviceBySlug = (slug: string) => SERVICES.find((s) => s.slug === slug)
 
-/** The three steps to becoming a foster parent (fostur page only). */
 export const FOSTER_STEPS = {
   eyebrow: t('Að gerast fósturforeldri', 'Becoming a foster parent'),
   lead: t(
-    'Leiðin er skýr og þú ert ekki einn á henni. Barna- og fjölskyldustofa fylgir þér alla leið.',
-    'The path is clear and you are not on it alone. Barna- og fjölskyldustofa walks it with you.',
+    'Þau sem vilja gerast fósturforeldrar sækja um hjá Barna- og fjölskyldustofu. Umsóknarferlinu, hæfnismati og leyfum er lýst á island.is.',
+    'People who want to become foster parents apply to Barna- og fjölskyldustofa. The application process, assessment and approval are described on island.is.',
   ),
   steps: [
     {
       n: 1,
-      title: t('Hæfnismat', 'Assessment'),
+      title: t('Umsókn', 'Application'),
       body: t(
-        'Þú byrjar á hæfnismati þar sem farið er yfir aðstæður þínar og hvað fóstur felur í sér, af virðingu og án skuldbindingar.',
-        'You begin with an assessment of your circumstances and what fostering involves, with respect and no obligation.',
+        'Þú sækir um að gerast fósturforeldri hjá Barna- og fjölskyldustofu.',
+        'You apply to Barna- og fjölskyldustofa to become a foster parent.',
       ),
     },
     {
       n: 2,
-      title: t('Námskeið', 'Training'),
+      title: t('Hæfnismat og námskeið', 'Assessment and course'),
       body: t(
-        'Þú sækir námskeið fyrir fósturforeldra þar sem þú færð undirbúning, þekkingu og tengsl við aðra á sömu leið.',
-        'You take a course for foster parents where you gain preparation, knowledge and a connection to others on the same path.',
+        'Barna- og fjölskyldustofa metur hæfni umsækjenda og heldur námskeið fyrir verðandi fósturforeldra.',
+        'Barna- og fjölskyldustofa assesses applicants and runs a course for prospective foster parents.',
       ),
     },
     {
       n: 3,
-      title: t('Ráðgjöf og eftirfylgd', 'Guidance and follow-up'),
+      title: t('Leyfi og ráðstöfun', 'Approval and placement'),
       body: t(
-        'Þegar barn flytur inn heldur stuðningurinn áfram, með ráðgjöf, samningum og eftirfylgd frá Barna- og fjölskyldustofu.',
-        'When a child moves in, the support continues, with guidance, agreements and follow-up from Barna- og fjölskyldustofa.',
+        'Að loknu mati getur umsækjandi fengið leyfi til að taka barn í fóstur. Barnaverndarþjónusta ráðstafar barni í fóstur og Barna- og fjölskyldustofa veitir fósturforeldrum ráðgjöf.',
+        'After assessment, the applicant can be approved to foster. The child protection service places a child, and Barna- og fjölskyldustofa advises foster parents.',
       ),
     },
   ],
-  cta: t('Hafa samband um fóstur', 'Get in touch about fostering'),
+  cta: t('Senda fyrirspurn um fóstur', 'Send a question about fostering'),
 }
 
 /* ── Photography (local; warm environments, no identifiable children) ─── */
@@ -597,73 +527,52 @@ export const CENTRE_PHOTO: Record<string, { src: string; alt: L; painted?: boole
   studlar: {
     src: 'art-studlar.jpg',
     alt: t(
-      'Vatnslitamynd af Stuðlum við Fossaleyni, máluð eftir ljósmynd af húsinu, með torfþaki og grænum garði inni í miðju',
-      'Watercolor of Stuðlar at Fossaleyni, painted from a photograph of the building, with its turf roof and green inner courtyard',
+      'Vatnslitamynd af Stuðlum við Fossaleyni',
+      'Watercolour of Stuðlar at Fossaleyni',
     ),
     painted: true,
   },
   esjan: {
     src: 'art-esjan.jpg',
-    alt: t(
-      'Vatnslitamynd af húsinu á Vogi þar sem Esjan starfar, máluð eftir ljósmynd af byggingunni',
-      'Watercolor of the building at Vogur where Esjan operates, painted from a photograph of the building',
-    ),
+    alt: t('Vatnslitamynd af meðferðarheimili í grænu landslagi', 'Watercolour of a treatment home in a green landscape'),
     painted: true,
   },
   blonduhlid: {
     src: 'art-blonduhlid.jpg',
-    alt: t(
-      'Vatnslitamynd af Blönduhlíð á Farsældartúni í Mosfellsbæ, máluð eftir ljósmynd af húsinu',
-      'Watercolor of Blönduhlíð at Farsældartún in Mosfellsbær, painted from a photograph of the house',
-    ),
+    alt: t('Vatnslitamynd af hvítu húsi með rauðu þaki', 'Watercolour of a white house with a red roof'),
     painted: true,
   },
   bjargey: {
     src: 'art-bjargey.jpg',
-    alt: t('Vatnslitamynd af Bjargey á Laugalandi í Eyjafjarðarsveit, máluð eftir ljósmynd af húsinu', 'Watercolor of Bjargey at Laugaland in Eyjafjarðarsveit, painted from a photograph of the house'),
+    alt: t('Vatnslitamynd af Bjargey í Eyjafjarðarsveit', 'Watercolour of Bjargey in Eyjafjarðarsveit'),
     painted: true,
   },
   laekjarbakki: {
     src: 'art-laekjarbakki.jpg',
-    alt: t('Vatnslitamynd af Lækjarbakka í Gunnarsholti, máluð eftir ljósmynd af húsunum', 'Watercolor of Lækjarbakki at Gunnarsholt, painted from a photograph of the buildings'),
+    alt: t('Vatnslitamynd af Lækjarbakka í Gunnarsholti', 'Watercolour of Lækjarbakki at Gunnarsholt'),
     painted: true,
   },
   barnahus: {
     src: 'art-barnahus.jpg',
     alt: t(
       'Vatnslitamynd: tveir mjúkir stólar snúa hvor að öðrum við glugga, sá minni fyrir barn, vatnsglas og litir á borði á milli',
-      'Watercolor: two soft chairs turned toward each other by a window, the smaller one for a child, a glass of water and crayons on the table between them',
+      'Watercolour: two soft chairs turned toward each other by a window, the smaller one for a child, a glass of water and crayons on the table between them',
     ),
   },
   mst: {
     src: 'art-mst.jpg',
-    alt: t('Vatnslitamynd: þrjú hús í túni í kvöldbirtu, eitt lýsir hlýtt', 'Watercolor: three houses in a home field at evening, one glowing warm'),
+    alt: t('Vatnslitamynd: þrjú hús í túni að kvöldi', 'Watercolour: three houses in a field in the evening'),
   },
   sok: {
     src: 'art-sok.jpg',
-    alt: t('Vatnslitamynd: sólarupprás yfir kyrru vatni og dökkri hæð', 'Watercolor: sunrise over still water and a dark hill'),
+    alt: t('Vatnslitamynd: sólarupprás yfir kyrru vatni og dökkri hæð', 'Watercolour: sunrise over still water and a dark hill'),
   },
   fostur: {
     src: 'art-fostur.jpg',
-    alt: t('Vatnslitamynd: sveitabær með opnar dyr og ljós sem fellur á hlaðið', 'Watercolor: a farmstead with an open door, light spilling onto the step'),
+    alt: t('Vatnslitamynd: sveitabær með opnar dyr og ljós sem fellur á hlaðið', 'Watercolour: a farmstead with an open door, light spilling onto the step'),
   },
 }
 
-/** Landing "warmth" gallery. */
-export const GALLERY = {
-  eyebrow: t('Hlýja og andrými', 'Warmth and room to breathe'),
-  title: t('Staðir þar sem barni á að líða eins og heima hjá sér', 'Places where a child should feel at home'),
-  lead: t(
-    'Hlý rými, græn náttúra og opnar dyr. Umhverfið skiptir máli þegar barni á að líða vel.',
-    'Warm rooms, green nature and open doors. Surroundings matter when a child needs to feel safe.',
-  ),
-  photos: [
-    { src: 'laekjarbakki-hus.jpg', alt: t('Meðferðarheimilið Lækjarbakki í Gunnarsholti að vetri', 'The Lækjarbakki treatment home in Gunnarsholt in winter') },
-    { src: 'interior-bright.jpg', alt: t('Björt og hlýleg stofa', 'A bright, warm room') },
-    { src: 'laekjarbakki-tonlist.jpg', alt: t('Tónlistarherbergi á Lækjarbakka', 'The music room at Lækjarbakki') },
-    { src: 'land-lupines.jpg', alt: t('Lúpínubreiða undir íslenskum fjöllum', 'A lupine meadow below Icelandic mountains') },
-  ] as { src: string; alt: L }[],
-}
 
 /* ── National statistics (verified; sober big-number tiles) ───────────── */
 
@@ -674,21 +583,20 @@ export interface Stat {
 }
 
 export const STATS = {
-  eyebrow: t('Starfið í tölum', 'The work in numbers'),
-  title: t('Umfangið á bak við hlýjuna', 'The scale behind the warmth'),
+  eyebrow: t('Tölur', 'Figures'),
+  title: t('Starfsemin í tölum', 'The work in figures'),
   lead: t(
-    'Tölur segja ekki alla söguna, en þær sýna hversu mörg börn og fjölskyldur treysta á kerfið á hverju ári.',
-    'Numbers do not tell the whole story, but they show how many children and families rely on the system each year.',
+    'Tölur úr ársskýrslu Barna- og fjölskyldustofu fyrir árið 2024.',
+    'Figures from the Barna- og fjölskyldustofa annual report for 2024.',
   ),
   source: t(
-    'Heimildir: Barna- og fjölskyldustofa, ársskýrsla 2024 og birt talnaefni.',
-    'Sources: Barna- og fjölskyldustofa, annual report 2024 and published figures.',
+    'Heimild: Barna- og fjölskyldustofa, ársskýrsla 2024.',
+    'Source: Barna- og fjölskyldustofa, annual report 2024.',
   ),
   items: [
     { value: 16751, format: 'thousand', label: t('Tilkynningar til barnaverndar árið 2024', 'Reports to child protection in 2024') },
-    { value: 23, format: 'plain', label: t('Barnaverndarþjónustur um allt land', 'Child protection services across the country') },
-    { value: 158, format: 'plain', label: t('Börn í MST-fjölkerfameðferð árið 2024', 'Children in MST therapy in 2024') },
-    { value: 169, format: 'plain', label: t('Starfsmenn Barna- og fjölskyldustofu', 'Staff at Barna- og fjölskyldustofa') },
+    { value: 169, format: 'plain', label: t('Starfsmenn í árslok 2024', 'Staff at the end of 2024') },
+    { value: 7, format: 'plain', label: t('Starfsstöðvar um landið', 'Sites around the country') },
   ] as Stat[],
 }
 
@@ -698,50 +606,50 @@ export const REPORT = {
   eyebrow: t('Tilkynningarskylda', 'The duty to report'),
   title: t('Hefur þú áhyggjur af barni?', 'Are you worried about a child?'),
   lead: t(
-    'Áhyggjur duga. Þú þarft engar sannanir og það er ekki þitt hlutverk að rannsaka málið, aðeins að láta vita.',
-    'Concern is enough. You need no proof and it is not your job to investigate, only to let someone know.',
+    'Hafðu samband við barnaverndarþjónustu í sveitarfélagi barnsins. Þú þarft ekki sannanir. Barnaverndarþjónustan metur hvort og hvernig brugðist er við.',
+    'Contact the child protection service in the child’s municipality. You do not need proof. The child protection service assesses whether and how to respond.',
   ),
   emergency: t(
-    'Ef barn er í bráðri hættu skaltu strax hringja í 112.',
-    'If a child is in immediate danger, call 112 right away.',
+    'Ef barn er í bráðri hættu skaltu hringja strax í 112.',
+    'If a child is in immediate danger, call 112 straight away.',
   ),
   statute: t(
     'Tilkynningarskylda fagfólks gengur framar ákvæðum laga um þagnarskyldu.',
-    'For professionals, the duty to report overrides statutory confidentiality.',
+    'For professionals, the duty to report takes precedence over statutory confidentiality.',
   ),
   statuteRef: t('16. og 17. gr. barnaverndarlaga nr. 80/2002', 'Articles 16 and 17, Child Protection Act no. 80/2002'),
   lanes: [
     {
       key: 'almenningur',
-      title: t('Almenningur', 'Everyone'),
+      title: t('Almenningur', 'The public'),
       rows: [
-        t('Öllum er skylt að tilkynna til barnaverndar ef áhyggjur vakna af barni.', 'Everyone is obliged to report to child protection if a concern arises about a child.'),
-        t('Þú hefur samband við barnaverndarþjónustu í sveitarfélaginu eða hringir í 112.', 'You contact the child protection service in the municipality or call 112.'),
-        t('Þú mátt óska nafnleyndar og fagfólk metur stöðuna í kjölfarið.', 'You may request anonymity, and professionals then assess the situation.'),
+        t('Öllum er skylt að tilkynna ef ástæða er til að ætla að barn búi við óviðunandi aðstæður.', 'Everyone must report if there is reason to believe a child is living in unacceptable conditions.'),
+        t('Tilkynnt er til barnaverndarþjónustu sveitarfélagsins eða í 112.', 'Reports go to the municipal child protection service or to 112.'),
+        t('Þú getur óskað nafnleyndar.', 'You can ask to remain anonymous.'),
       ],
     },
     {
       key: 'fagfolk',
       title: t('Fagfólk', 'Professionals'),
       rows: [
-        t('Þau sem starfa með börnum bera ríkari tilkynningarskyldu samkvæmt barnaverndarlögum.', 'Those who work with children carry a stronger duty to report under the Child Protection Act.'),
-        t('Skyldan gildir um kennara, heilbrigðisstarfsfólk, lögreglu og fleiri.', 'The duty applies to teachers, health staff, the police and others.'),
-        t('Hún gengur framar þagnarskyldu þegar velferð barns er í húfi.', 'It overrides professional confidentiality when a child’s welfare is at stake.'),
+        t('Þau sem starfa með börnum hafa ríkari tilkynningarskyldu samkvæmt barnaverndarlögum.', 'People who work with children have a stronger duty to report under the Child Protection Act.'),
+        t('Skyldan á meðal annars við um kennara, heilbrigðisstarfsfólk og lögreglu.', 'The duty applies to teachers, health staff and police, among others.'),
+        t('Fagfólk getur ekki óskað nafnleyndar.', 'Professionals cannot report anonymously.'),
       ],
     },
   ],
-  ctaPrimary: t('Lesa um allt ferlið', 'Read about the whole process'),
-  ctaSecondary: t('Neyð? Hringdu í 112', 'Emergency? Call 112'),
+  ctaPrimary: t('Lesa um ferlið', 'Read about the process'),
+  ctaSecondary: t('Hringja í 112', 'Call 112'),
 }
 
 /* ── Honest-hope section ──────────────────────────────────────────────── */
 
 export const HONEST = {
-  kicker: t('Hreinskilni', 'Honesty'),
-  title: t('Við lofum ekki fullkomnun. Við lofum að hlusta og gera betur', 'We do not promise perfection. We promise to listen and do better'),
+  kicker: t('Ábendingar', 'Feedback'),
+  title: t('Ábendingum og kvörtunum um þjónustuna má koma á framfæri', 'Feedback and complaints about the services can be raised'),
   body: t(
-    'Kerfi sem heldur utan um viðkvæmustu börnin okkar má aldrei standa í stað. Við tökum gagnrýni alvarlega, lærum af því sem miður fer og vinnum á hverjum degi að því að gera betur, með öryggi og líðan barnanna í forgrunni.',
-    'A system that cares for our most vulnerable children must never stand still. We take criticism seriously, learn from what goes wrong, and work every day to do better, with the safety and wellbeing of children first.',
+    'Gæða- og eftirlitsstofnun velferðarmála hefur eftirlit með gæðum þjónustu sem veitt er samkvæmt barnaverndarlögum og tekur við kvörtunum um hana.',
+    'The Quality and Supervisory Authority of Welfare oversees the quality of services provided under the Child Protection Act and receives complaints about them.',
   ),
 }
 
@@ -754,63 +662,55 @@ export interface Milestone {
 }
 
 export const TIMELINE: { eyebrow: L; title: L; items: Milestone[] } = {
-  eyebrow: t('Sagan', 'The story'),
-  title: t('Leiðin að Barna- og fjölskyldustofu', 'The road to Barna- og fjölskyldustofa'),
+  eyebrow: t('Saga', 'History'),
+  title: t('Saga stofnunarinnar', 'History of the agency'),
   items: [
     {
-      year: '1995',
-      title: t('Barnaverndarstofa tekur til starfa', 'Barnaverndarstofa begins'),
-      body: t(
-        'Sérstök ríkisstofnun um barnavernd verður til og heldur utan um meðferðarheimili og barnaverndarstarf á landsvísu.',
-        'A dedicated state agency for child protection is created, overseeing treatment homes and child protection work nationwide.',
-      ),
-    },
-    {
       year: '1998',
-      title: t('Barnahús er stofnað', 'Barnahús is founded'),
+      title: t('Barnahús stofnað', 'Barnahús is founded'),
       body: t(
-        'Fyrsta og elsta Barnahús í Evrópu opnar, þar sem allt utan um barn eftir ofbeldi fer fram undir einu þaki.',
-        'The first and oldest Barnahús in Europe opens, gathering everything around a child after abuse under one roof.',
+        'Barnahús tekur til starfa 1. nóvember 1998, fyrst sinnar tegundar í Evrópu.',
+        'Barnahús opens on 1 November 1998, the first of its kind in Europe.',
       ),
     },
     {
       year: '2008',
-      title: t('MST-fjölkerfameðferð hefst', 'MST therapy begins'),
+      title: t('MST-meðferð hefst', 'MST therapy begins'),
       body: t(
-        'Fjölskyldumeðferð heima hefst á suðvesturhorninu og er útvíkkuð um land allt árið 2015.',
-        'Family therapy in the home starts in the southwest and is extended nationwide in 2015.',
+        'MST-fjölkerfameðferð er tekin upp og síðar boðin um allt land.',
+        'MST therapy is introduced and later offered nationwide.',
       ),
     },
     {
       year: '2021',
-      title: t('Farsældarlögin samþykkt', 'The Prosperity Act passed'),
+      title: t('Farsældarlögin samþykkt', 'The Prosperity Act is passed'),
       body: t(
-        'Ný lög um samþættingu þjónustu í þágu farsældar barna tryggja börnum og foreldrum samþætta þjónustu við hæfi.',
-        'A new law on integrating services for children’s prosperity secures joined-up, appropriate services for children and families.',
+        'Lög nr. 86/2021 um samþættingu þjónustu í þágu farsældar barna eru samþykkt á Alþingi.',
+        'Act no. 86/2021 on integrated services for children’s prosperity is passed by Althingi.',
       ),
     },
     {
       year: '2022',
       title: t('Barna- og fjölskyldustofa tekur við', 'Barna- og fjölskyldustofa takes over'),
       body: t(
-        'Ný stofnun tekur til starfa 1. janúar samkvæmt lögum nr. 87/2021 og leysir Barnaverndarstofu af hólmi.',
-        'The new agency begins on 1 January under Act no. 87/2021, succeeding Barnaverndarstofa.',
+        'Barna- og fjölskyldustofa tekur til starfa 1. janúar 2022 samkvæmt lögum nr. 87/2021 og tekur við verkefnum Barnaverndarstofu.',
+        'Barna- og fjölskyldustofa begins operating on 1 January 2022 under Act no. 87/2021 and takes over the tasks of Barnaverndarstofa.',
       ),
     },
     {
-      year: '2025',
-      title: t('Grunnmeðferð og stuðningsheimili skilja leiðir', 'Treatment and support home become separate homes'),
+      year: '2024',
+      title: t('Meðferðarheimilið Blönduhlíð opnað', 'The Blönduhlíð treatment home opens'),
       body: t(
-        'Grunnmeðferðin fær eigið heimili, Esjuna, og nýtt stuðningsheimili opnar undir nafninu Blönduhlíð á Farsældartúni í Mosfellsbæ.',
-        'Primary treatment gains its own home, Esjan, and a new support home opens under the name Blönduhlíð at Farsældartún in Mosfellsbær.',
+        'Mennta- og barnamálaráðherra opnar Blönduhlíð á Farsældartúni í Mosfellsbæ 26. nóvember 2024.',
+        'The Minister of Education and Children opens Blönduhlíð at Farsældartún in Mosfellsbær on 26 November 2024.',
       ),
     },
     {
       year: '2026',
-      title: t('Lækjarbakki opnar í Gunnarsholti', 'Lækjarbakki opens in Gunnarsholt'),
+      title: t('Lækjarbakki tekur aftur til starfa', 'Lækjarbakki reopens'),
       body: t(
-        'Nýtt meðferðarheimili tekur til starfa í mars og er formlega opnað 8. maí, með rými fyrir sex ungmenni.',
-        'A new treatment home begins in March and is formally opened on 8 May, with room for six young people.',
+        'Meðferðarheimilið í Gunnarsholti tekur aftur á móti ungmennum í mars og er formlega opnað 8. maí 2026.',
+        'The treatment home at Gunnarsholt receives young people again in March and is formally opened on 8 May 2026.',
       ),
     },
   ],
@@ -826,8 +726,8 @@ export interface Faq {
 
 export const FAQ: { eyebrow: L; title: L; hand: L; items: Faq[] } = {
   eyebrow: t('Spurt og svarað', 'Questions and answers'),
-  title: t('Það sem fólk spyr oftast', 'What people ask most'),
-  hand: t('Spurðu bara', 'Just ask'),
+  title: t('Spurningar og svör', 'Questions and answers'),
+  hand: t('Spurningar', 'Questions'),
   items: [
     {
       q: t('Kostar þjónustan eitthvað?', 'Does the service cost anything?'),
@@ -836,7 +736,7 @@ export const FAQ: { eyebrow: L; title: L; hand: L; items: Faq[] } = {
     },
     {
       q: t('Þarf ég sannanir til að tilkynna áhyggjur?', 'Do I need proof to report a concern?'),
-      a: t('Nei. Áhyggjur duga. Það er ekki þitt hlutverk að rannsaka, heldur að láta vita. Fagfólk metur stöðuna í kjölfarið.', 'No. Concern is enough. It is not your job to investigate, only to let someone know. Professionals then assess the situation.'),
+      a: t('Nei. Það nægir að hafa áhyggjur. Barnaverndarþjónustan kannar málið og metur stöðuna.', 'No. A concern is enough. The child protection service looks into the matter and assesses the situation.'),
       aud: 'almennt',
     },
     {
@@ -846,22 +746,22 @@ export const FAQ: { eyebrow: L; title: L; hand: L; items: Faq[] } = {
     },
     {
       q: t('Hvernig kemst barn í meðferð?', 'How does a child get into treatment?'),
-      a: t('Leiðin liggur alltaf í gegnum barnaverndarþjónustu í sveitarfélaginu, sem sækir um úrræði hjá Barna- og fjölskyldustofu þegar þörf er á.', 'The path always runs through the child protection service in the municipality, which applies to Barna- og fjölskyldustofa for a service when needed.'),
+      a: t('Barnaverndarþjónusta sveitarfélagsins sækir um meðferð hjá Barna- og fjölskyldustofu. Foreldrar og barnið eru með í ráðum.', 'The path always runs through the child protection service in the municipality, which applies to Barna- og fjölskyldustofa for a service when needed.'),
       aud: 'foreldri',
     },
     {
       q: t('Getur barn búið heima á meðan það fær hjálp?', 'Can a child stay at home while getting help?'),
-      a: t('Oft já. MST-fjölkerfameðferð fer fram heima og styður foreldra, og alltaf er byrjað á vægustu úrræðunum.', 'Often yes. MST therapy takes place at home and supports parents, and the mildest measures are always tried first.'),
+      a: t('Oft já. Samkvæmt barnaverndarlögum skal beita vægustu úrræðum sem duga. MST-meðferð fer til dæmis fram heima hjá fjölskyldunni.', 'Often, yes. Under the Child Protection Act, the least intrusive measures that are enough must be used. MST therapy, for example, takes place in the family home.'),
       aud: 'foreldri',
     },
     {
       q: t('Hver getur orðið fósturforeldri?', 'Who can become a foster parent?'),
-      a: t('Fólk í ólíkum aðstæðum. Leiðin byrjar á hæfnismati og námskeiði hjá Barna- og fjölskyldustofu, sem styður fósturforeldra alla leið.', 'People in many different situations. The path begins with an assessment and a course at Barna- og fjölskyldustofa, which supports foster parents the whole way.'),
+      a: t('Þau sem vilja gerast fósturforeldrar sækja um hjá Barna- og fjölskyldustofu, sem metur hæfni umsækjenda. Skilyrðum og ferlinu er lýst á island.is.', 'People who want to foster apply to Barna- og fjölskyldustofa, which assesses applicants. The requirements and the process are described on island.is.'),
       aud: 'fostur',
     },
     {
       q: t('Hvað er Barnahús?', 'What is Barnahús?'),
-      a: t('Barnvænt hús þar sem allt utan um barn sem mögulega hefur orðið fyrir ofbeldi fer fram á einum stað, svo barnið þurfi ekki að endurtaka sögu sína aftur og aftur.', 'A child-friendly house where everything around a child who may have experienced abuse happens in one place, so the child does not have to repeat their story again and again.'),
+      a: t('Barnahús tekur á móti börnum sem grunur leikur á að hafi orðið fyrir ofbeldi. Þjónustan fer fram á einum stað, með tilvísun frá barnaverndarþjónustu og fjölskyldunni að kostnaðarlausu.', 'Barnahús receives children who may have experienced violence. The services take place in one place, through a referral from child protection and free of charge for the family.'),
       aud: 'almennt',
     },
   ],
@@ -870,97 +770,97 @@ export const FAQ: { eyebrow: L; title: L; hand: L; items: Faq[] } = {
 /* ── The child-protection system, end to end (kerfid page) ────────────── */
 
 export const KERFID = {
-  title: t('Kerfið', 'The system'),
+  title: t('Hvernig barnavernd virkar', 'How child protection works'),
   hero: {
-    kicker: t('Hvernig kerfið virkar', 'How the system works'),
-    title: t('Leiðin frá áhyggjum til öryggis', 'The road from worry to safety'),
+    kicker: t('Barnavernd', 'Child protection'),
+    title: t('Hvernig barnavernd virkar', 'How child protection works'),
     lead: t(
-      'Hér er öll leiðin, líka sá hluti sem Barna- og fjölskyldustofa rekur ekki sjálf. Barnaverndarþjónusta sveitarfélaga tekur við tilkynningum og metur stöðuna; stofan tekur við þegar þörf er á sérhæfðum úrræðum.',
-      'Here is the whole road, including the part Barna- og fjölskyldustofa does not run itself. Municipal child protection services receive reports and assess the situation; the agency steps in when specialised services are needed.',
+      'Barnaverndarþjónusta sveitarfélaga tekur við tilkynningum og metur stöðu barna. Barna- og fjölskyldustofa veitir sérhæfð úrræði þegar barnaverndarþjónusta sækir um þau.',
+      'Municipal child protection services receive reports and assess children’s situations. Barna- og fjölskyldustofa provides specialised services when a child protection service applies for them.',
     ),
   },
-  stationsEyebrow: t('Skref fyrir skref', 'Step by step'),
+  stationsEyebrow: t('Ferlið', 'The process'),
   stations: [
     {
       title: t('Tilkynning', 'A report'),
       body: t(
-        'Áhyggjur af barni berast barnaverndarþjónustu, í síma 112 eða beint til sveitarfélagsins. Öllum er skylt að tilkynna og fagfólk ber ríkari skyldu.',
-        'A concern about a child reaches child protection, by calling 112 or contacting the municipality directly. Everyone is obliged to report, and professionals carry a stronger duty.',
+        'Áhyggjur af barni eru tilkynntar til barnaverndarþjónustu sveitarfélagsins eða í 112. Öllum er skylt að tilkynna og fagfólk hefur ríkari skyldu.',
+        'A concern about a child is reported to the municipal child protection service or to 112. Everyone must report, and professionals have a stronger duty.',
       ),
       law: t('16. og 17. gr. barnaverndarlaga', 'Articles 16 and 17, Child Protection Act'),
     },
     {
-      title: t('Barnaverndarþjónusta sveitarfélagsins', 'The municipal child protection service'),
+      title: t('Ákvörðun um könnun', 'Decision to investigate'),
       body: t(
-        'Tilkynningin fer til barnaverndar í sveitarfélagi barnsins. Þar starfar fagfólk sveitarfélagsins, ekki Barna- og fjölskyldustofa. Innan sjö daga er tekin afstaða til þess hvort hefja skuli könnun.',
-        'The report goes to child protection in the child’s municipality. This is municipal staff, not Barna- og fjölskyldustofa. Within seven days a decision is made on whether to open an investigation.',
+        'Barnaverndarþjónusta sveitarfélagsins tekur afstöðu til þess innan sjö daga hvort hefja skuli könnun. Þar starfar starfsfólk sveitarfélagsins, ekki Barna- og fjölskyldustofu.',
+        'Within seven days, the municipal child protection service decides whether to open an investigation. Its staff work for the municipality, not for Barna- og fjölskyldustofa.',
       ),
       law: t('21. gr. barnaverndarlaga', 'Article 21, Child Protection Act'),
     },
     {
       title: t('Könnun og áætlun', 'Investigation and plan'),
       body: t(
-        'Barnavernd kynnist stöðu barns og fjölskyldu og gerir, í samvinnu við þau, skriflega áætlun um næstu skref.',
-        'Child protection gets to know the child and family and, together with them, draws up a written plan for the next steps.',
+        'Barnaverndarþjónustan kannar aðstæður barnsins og gerir skriflega áætlun í samvinnu við foreldra og barnið eftir aldri þess og þroska.',
+        'The child protection service investigates the child’s circumstances and makes a written plan with the parents, and with the child according to age and maturity.',
       ),
       law: t('22. og 23. gr. barnaverndarlaga', 'Articles 22 and 23, Child Protection Act'),
     },
     {
-      title: t('Stuðningur heima fyrst', 'Support at home first'),
+      title: t('Stuðningur heima', 'Support at home'),
       body: t(
-        'Alltaf er byrjað á vægustu úrræðum. Leiðbeiningar og stuðningur inn á heimilið eða MST-fjölkerfameðferð styðja fjölskylduna þar sem hún er.',
-        'The mildest measures are always tried first. Guidance and in-home support, or MST therapy, strengthen the family where it is.',
+        'Beita skal vægustu ráðstöfunum sem duga. Fyrst er reynt að styðja fjölskylduna heima, til dæmis með ráðgjöf eða MST-meðferð.',
+        'The least intrusive measures that are enough must be used. Support at home is tried first, for example advice or MST therapy.',
       ),
-      law: t('Meðalhófsregla, 4. gr. barnaverndarlaga', 'The proportionality principle, Article 4'),
+      law: t('4. gr. barnaverndarlaga', 'Article 4, Child Protection Act'),
     },
     {
-      title: t('Sérhæfð úrræði Barna- og fjölskyldustofu', 'Specialised services from the agency'),
+      title: t('Úrræði Barna- og fjölskyldustofu', 'Services from the agency'),
       body: t(
-        'Þegar þörf er á meiri stuðningi sækir barnaverndarþjónusta um úrræði hjá Barna- og fjölskyldustofu: Barnahús, meðferðarheimili eða fóstur.',
-        'When more support is needed, the child protection service applies to Barna- og fjölskyldustofa for a service: Barnahús, a treatment home or foster care.',
+        'Dugi það ekki sækir barnaverndarþjónustan um úrræði hjá Barna- og fjölskyldustofu, til dæmis Barnahús, meðferðarheimili eða fóstur.',
+        'If that is not enough, the child protection service applies to Barna- og fjölskyldustofa for a service such as Barnahús, a treatment home or foster care.',
       ),
       law: t('Lög um Barna- og fjölskyldustofu nr. 87/2021', 'Act no. 87/2021'),
     },
     {
-      title: t('Eftirfylgd og heimferð', 'Follow-up and return home'),
+      title: t('Eftirfylgd', 'Follow-up'),
       body: t(
-        'Markmiðið er alltaf betri dagar heima. Stuðningur heldur áfram eftir að meðferð lýkur, með eftirfylgd og skýrri áætlun.',
-        'The goal is always better days at home. Support continues after treatment ends, with follow-up and a clear plan.',
+        'Markmiðið er að barnið geti búið heima eða við stöðugar aðstæður. Barnaverndarþjónustan fylgir málinu eftir samkvæmt áætluninni.',
+        'The aim is for the child to live at home or in stable circumstances. The child protection service follows the case according to the plan.',
       ),
-      law: t('Stöðugleiki í uppvexti, 4. gr. barnaverndarlaga', 'Stability in upbringing, Article 4'),
+      law: t('4. gr. barnaverndarlaga', 'Article 4, Child Protection Act'),
     },
   ],
   rights: {
     eyebrow: t('Réttindi barna', 'Children’s rights'),
-    title: t('Barnasáttmálinn er lög á Íslandi', 'The Convention on the Rights of the Child is law in Iceland'),
+    title: t('Barnasáttmálinn hefur lagagildi á Íslandi', 'The Convention on the Rights of the Child is law in Iceland'),
     lead: t(
-      'Samningur Sameinuðu þjóðanna um réttindi barnsins hefur lagagildi á Íslandi, samanber lög nr. 19/2013. Þessi réttindi liggja til grundvallar öllu barnaverndarstarfi.',
-      'The UN Convention on the Rights of the Child has the force of law in Iceland under Act no. 19/2013. These rights underpin all child protection work.',
+      'Samningur Sameinuðu þjóðanna um réttindi barnsins var lögfestur með lögum nr. 19/2013. Hér eru nokkur ákvæði sem skipta miklu í barnavernd.',
+      'The UN Convention on the Rights of the Child was incorporated into Icelandic law by Act no. 19/2013. These are some of the articles that matter most in child protection.',
     ),
     items: [
-      { article: t('3. gr.', 'Art. 3'), text: t('Það sem er barni fyrir bestu skal alltaf hafa forgang.', 'The best interests of the child always come first.') },
-      { article: t('12. gr.', 'Art. 12'), text: t('Barn á rétt á að tjá sig og að hlustað sé á það í málum sem það varða.', 'A child has the right to be heard in matters that concern them.') },
-      { article: t('19. gr.', 'Art. 19'), text: t('Sérhvert barn á rétt á vernd gegn ofbeldi og vanrækslu.', 'Every child has the right to protection from violence and neglect.') },
-      { article: t('20. gr.', 'Art. 20'), text: t('Barn sem ekki getur búið hjá fjölskyldu sinni á rétt á sérstakri vernd og öruggu heimili.', 'A child who cannot live with their family has the right to special protection and a safe home.') },
-      { article: t('2. gr.', 'Art. 2'), text: t('Öll börn njóta réttinda sáttmálans, án mismununar.', 'All children enjoy the rights of the Convention, without discrimination.') },
-      { article: t('31. gr.', 'Art. 31'), text: t('Barn á rétt á hvíld, leik og því að fá að vera barn.', 'A child has the right to rest, play and simply to be a child.') },
+      { article: t('2. gr.', 'Art. 2'), text: t('Öll börn njóta réttinda sáttmálans án mismununar.', 'All children have the rights in the Convention without discrimination.') },
+      { article: t('3. gr.', 'Art. 3'), text: t('Það sem barni er fyrir bestu skal hafa forgang í öllum ákvörðunum sem varða það.', 'The best interests of the child must be a primary consideration in all decisions about the child.') },
+      { article: t('12. gr.', 'Art. 12'), text: t('Barn á rétt á að láta skoðanir sínar í ljós í málum sem það varða og að tekið sé tillit til þeirra.', 'A child has the right to express views on matters affecting them and to have those views taken into account.') },
+      { article: t('19. gr.', 'Art. 19'), text: t('Barn á rétt á vernd gegn hvers kyns ofbeldi og vanrækslu.', 'A child has the right to protection from all forms of violence and neglect.') },
+      { article: t('20. gr.', 'Art. 20'), text: t('Barn sem getur ekki búið hjá fjölskyldu sinni á rétt á sérstakri vernd og aðstoð.', 'A child who cannot live with their family has the right to special protection and assistance.') },
+      { article: t('31. gr.', 'Art. 31'), text: t('Barn á rétt á hvíld, tómstundum og leik.', 'A child has the right to rest, leisure and play.') },
     ],
   },
   laws: {
-    eyebrow: t('Lögin', 'The law'),
-    title: t('Þrjár stoðir í lögum', 'Three pillars in law'),
+    eyebrow: t('Lög', 'Law'),
+    title: t('Lögin sem gilda', 'The laws that apply'),
     items: [
       {
         name: t('Barnaverndarlög nr. 80/2002', 'Child Protection Act no. 80/2002'),
-        body: t('Grunnlöggjöf barnaverndar. Byggð á því að börn fái vernd og að vægustu úrræðin séu alltaf reynd fyrst.', 'The core child protection legislation. Built on protecting children and always trying the mildest measures first.'),
+        body: t('Meginlöggjöf um barnavernd. Þar er meðal annars kveðið á um tilkynningarskyldu, könnun mála og úrræði barnaverndarþjónustu.', 'The main child protection legislation, covering among other things the duty to report, investigations and the measures available to child protection services.'),
       },
       {
-        name: t('Lög um farsæld barna nr. 86/2021', 'Prosperity Act no. 86/2021'),
-        body: t('Tryggja börnum og foreldrum samþætta þjónustu við hæfi, með tengilið og málstjóra sér við hlið.', 'Secure joined-up, appropriate services for children and parents, with a contact person and case manager alongside them.'),
+        name: t('Lög nr. 86/2021 um samþættingu þjónustu í þágu farsældar barna', 'Act no. 86/2021 on integrated services for children’s prosperity'),
+        body: t('Kveða á um að börn og foreldrar fái samþætta þjónustu, með tengilið og eftir atvikum málstjóra.', 'Provides for children and parents to receive integrated services, with a contact person and, where needed, a case manager.'),
       },
       {
-        name: t('Lög um Barna- og fjölskyldustofu nr. 87/2021', 'Act no. 87/2021 on the National Agency for Children and Families'),
-        body: t('Setja stofnuninni það hlutverk að veita og styðja þjónustu í þágu barna og stuðla að gæðum hennar um allt land.', 'Give the agency the task of providing and supporting services for children and promoting the quality of those services nationwide.'),
+        name: t('Lög nr. 87/2021 um Barna- og fjölskyldustofu', 'Act no. 87/2021 on the National Agency for Children and Families'),
+        body: t('Setja Barna- og fjölskyldustofu hlutverk sitt, meðal annars að veita þjónustu og styðja barnaverndarþjónustur um allt land.', 'Sets out the agency’s role, including providing services and supporting child protection services across the country.'),
       },
     ],
   },
@@ -969,67 +869,126 @@ export const KERFID = {
 /* ── About the agency (um-stofnunina page) ────────────────────────────── */
 
 export const LEADERSHIP: { name: string; title: L }[] = [
-  { name: 'Ólöf Ásta Farestveit', title: t('Forstjóri Barna- og fjölskyldustofu', 'Director General of Barna- og fjölskyldustofa') },
+  { name: 'Ólöf Ásta Farestveit', title: t('Forstjóri', 'Director General') },
+  { name: 'Eiríkur K. Þorvarðarson', title: t('Framkvæmdastjóri sviðs búsetu og samþættrar þjónustu', 'Director, Residential and Integrated Services') },
+  { name: 'Funi Sigurðsson', title: t('Framkvæmdastjóri sviðs meðferðar og samþættrar þjónustu', 'Director, Treatment and Integrated Services') },
+  { name: 'Guðrún Þorleifsdóttir', title: t('Framkvæmdastjóri umbóta- og stjórnsýslusviðs', 'Director, Improvement and Administration') },
+  { name: 'Guðrún Sigurjónsdóttir', title: t('Framkvæmdastjóri fjármála- og mannauðssviðs', 'Director, Finance and Human Resources') },
+  { name: 'Páll Ólafsson', title: t('Framkvæmdastjóri farsældar- og barnaverndarsviðs', 'Director, Prosperity and Child Protection') },
 ]
 
 export const ABOUT = {
   title: t('Um stofnunina', 'About the agency'),
   hero: {
-    kicker: t('Stofnunin', 'The agency'),
-    title: t('Ríkisstofnun með eitt hlutverk: farsæld barna', 'A state agency with one purpose: children’s wellbeing'),
+    kicker: t('Um stofnunina', 'About the agency'),
+    title: t('Barna- og fjölskyldustofa', 'Barna- og fjölskyldustofa'),
+    lead: t(
+      'Markmið Barna- og fjölskyldustofu er að vinna að velferð barna. Meginhlutverk hennar er að veita og styðja við þjónustu í þágu barna og stuðla að gæðaþróun. Stofnunin þjónar landinu öllu.',
+      'The aim of Barna- og fjölskyldustofa is to work for the welfare of children. Its main role is to provide and support services for children and to promote quality development. The agency serves the whole country.',
+    ),
   },
   factband: [
-    { label: t('Stofnuð', 'Established'), value: t('2022', '2022') },
-    { label: t('Lög', 'Law'), value: t('Nr. 87/2021', 'No. 87/2021') },
-    { label: t('Ráðuneyti', 'Ministry'), value: t('Mennta- og barnamálaráðuneytið', 'Ministry of Education and Children') },
+    { label: t('Heyrir undir', 'Reports to'), value: t('Mennta- og barnamálaráðherra', 'Minister of Education and Children') },
+    { label: t('Starfar samkvæmt', 'Operates under'), value: t('Lögum nr. 87/2021', 'Act no. 87/2021') },
+    { label: t('Tók til starfa', 'Began operating'), value: t('1. janúar 2022', '1 January 2022') },
+    { label: t('Starfsfólk', 'Staff'), value: t('169 í árslok 2024', '169 at the end of 2024') },
   ],
   role: {
     eyebrow: t('Hlutverk', 'Role'),
-    title: t('Hvað gerir Barna- og fjölskyldustofa?', 'What does Barna- og fjölskyldustofa do?'),
+    title: t('Hlutverk', 'Role'),
     paras: [
       t(
-        'Barna- og fjölskyldustofa veitir fræðslu, ráðgjöf og handleiðslu á sviði barnaverndar og samþættingar þjónustu í þágu farsældar barna.',
-        'Barna- og fjölskyldustofa provides education, advice and supervision in child protection and in integrating services for children’s prosperity.',
+        'Barna- og fjölskyldustofa styður við þjónustu sem veitt er hjá sveitarfélögum um land allt og vinnur að innleiðingu samþættingar þjónustu í þágu farsældar barna.',
+        'Barna- og fjölskyldustofa supports services provided by municipalities across the country and works on implementing integrated services for children’s prosperity.',
       ),
       t(
-        'Hún rekur Barnahús og sérhæfð meðferðarúrræði, metur og þjálfar fósturforeldra og þróar gagnreyndar aðferðir í þjónustu við börn.',
-        'It runs Barnahús and specialised treatment services, assesses and trains foster parents, and develops evidence-based methods in services for children.',
+        'Á grundvelli barnaverndarlaga hefur stofnunin yfirumsjón með rekstri meðferðarheimila ríkisins og Barnahúss, auk annarra úrræða sem styðja við vinnslu barnaverndarmála. Hún veitir barnaverndarþjónustum liðsinni í fósturmálum með því að þjálfa, fræða og styðja fósturforeldra.',
+        'Under the Child Protection Act, the agency oversees the state treatment homes and Barnahús, along with other services that support child protection work. It assists child protection services in foster care by training, educating and supporting foster parents.',
       ),
-      t(
-        'Stofan er þjónustustofnun við barnaverndarþjónustur sveitarfélaga og vinnur að samhæfingu og eflingu barnaverndarstarfs um allt land.',
-        'The agency serves the municipal child protection services and works to coordinate and strengthen child protection work across the country.',
-      ),
+    ],
+    tasks: [
+      t('Almenn og sérhæfð fræðsla til stjórnvalda og annarra.', 'General and specialised training for public authorities and others.'),
+      t('Útgáfa leiðbeininga, gátlista og annars stuðningsefnis.', 'Publishing guidance, checklists and other support material.'),
+      t('Leiðbeiningar og ráðgjöf um vinnslu einstakra mála.', 'Guidance and advice on individual cases.'),
+      t('Þróun og innleiðing gagnreyndra aðferða og úrræða í þágu barna.', 'Developing and introducing evidence-based methods and services for children.'),
+      t('Uppbygging og yfirstjórn heimila, stofnana og sérhæfðra úrræða fyrir börn.', 'Establishing and managing homes, institutions and specialised services for children.'),
+      t('Rannsóknir og stuðningur við þróunar- og rannsóknarstarf.', 'Research, and support for development and research work.'),
+      t('Vinnsla upplýsinga, þar á meðal söfnun og skráahald.', 'Processing information, including collection and record keeping.'),
+    ],
+  },
+  services: {
+    title: t('Úrræði í umsjón stofnunarinnar', 'Services run by the agency'),
+    items: [
+      { slug: 'barnahus', label: t('Barnahús', 'Barnahús') },
+      { slug: 'studlar', label: t('Meðferðarheimili', 'Treatment homes') },
+      { slug: 'sok', label: t('SÓK-meðferð', 'SÓK therapy') },
+      { slug: 'mst', label: t('MST-fjölkerfameðferð', 'MST therapy') },
+      { slug: 'fostur', label: t('Fóstur', 'Foster care') },
     ],
   },
   org: {
     eyebrow: t('Skipulag', 'Organisation'),
-    title: t('Ein stofnun, mörg svið', 'One agency, many divisions'),
+    title: t('Skipulag', 'Organisation'),
     lead: t(
-      'Í árslok 2024 störfuðu 169 manns hjá stofnuninni á sjö starfsstöðvum um allt land, þar af tveimur á landsbyggðinni.',
-      'At the end of 2024, 169 people worked at the agency across seven sites nationwide, two of them outside the capital area.',
+      'Forstjóri og framkvæmdastjórn stýra stofnuninni. Í árslok 2024 störfuðu 169 manns hjá henni á sjö starfsstöðvum.',
+      'The agency is led by the Director General and the executive board. At the end of 2024, 169 people worked there across seven sites.',
     ),
-    groups: [
-      { title: t('Farsældarsvið og gæðasvið', 'Prosperity and quality divisions'), body: t('Fræðsla, ráðgjöf, gæðaþróun og stuðningur við barnaverndarþjónustur.', 'Education, advice, quality development and support for child protection services.') },
-      { title: t('Meðferðarsvið', 'Treatment division'), body: t('Stuðlar, Blönduhlíð, Bjargey, Lækjarbakki og MST-fjölkerfameðferð.', 'Stuðlar, Blönduhlíð, Bjargey, Lækjarbakki and MST therapy.') },
-      { title: t('Barnahús og fósturteymi', 'Barnahús and the foster team'), body: t('Stuðningur eftir ofbeldi og umsjón með fóstri um allt land.', 'Support after abuse and oversight of foster care nationwide.') },
+    boardTitle: t('Forstjóri og framkvæmdastjórn', 'Director General and executive board'),
+    unitsTitle: t('Svið og einingar', 'Divisions and units'),
+    units: [
+      t('Farsældar- og barnaverndarsvið', 'Prosperity and Child Protection'),
+      t('Svið búsetu og samþættrar þjónustu', 'Residential and Integrated Services'),
+      t('Svið meðferðar og samþættrar þjónustu', 'Treatment and Integrated Services'),
+      t('Umbóta- og stjórnsýslusvið', 'Improvement and Administration'),
+      t('Fjármála- og mannauðssvið', 'Finance and Human Resources'),
+      t('Barnahús', 'Barnahús'),
+      t('Fósturteymi', 'Foster care team'),
+      t('MST', 'MST'),
+      t('Stuðlar', 'Stuðlar'),
+      t('Bjargey', 'Bjargey'),
+      t('Lækjarbakki', 'Lækjarbakki'),
+      t('Esja', 'Esja'),
+    ],
+  },
+  sites: {
+    title: t('Starfsstöðvar í Reykjavík', 'Sites in Reykjavík'),
+    lead: t(
+      'Upplýsingar um aðgengi og samgöngur eins og stofnunin birtir þær.',
+      'Access and transport information as published by the agency.',
+    ),
+    items: [
+      { name: t('Skrifstofa, Borgartúni 21', 'Office, Borgartún 21'), body: t('Strætisvagnar 4, 12 og 16 stansa í Borgartúni. Gjaldskyld bílastæði við aðalinngang. Aðgengi fyrir hreyfihamlaða er gott.', 'Buses 4, 12 and 16 stop on Borgartún. Paid parking at the main entrance. Good access for people with limited mobility.') },
+      { name: t('Skrifstofa, Borgartúni 29', 'Office, Borgartún 29'), body: t('Strætisvagnar 4, 12 og 16 stansa í Borgartúni. Gjaldskyld bílastæði við aðalinngang.', 'Buses 4, 12 and 16 stop on Borgartún. Paid parking at the main entrance.') },
+      { name: t('Barnahús', 'Barnahús'), body: t('Um fimm mínútna gangur frá Mjódd. Bílastæði fyrir framan húsið. Aðgengi fyrir hreyfihamlaða er gott.', 'About five minutes’ walk from Mjódd. Parking in front of the building. Good access for people with limited mobility.') },
+      { name: t('Stuðlar', 'Stuðlar'), body: t('Strætisvagnar 6 og 15 stansa við Egilshöll, í göngufæri. Bílastæði fyrir framan húsið. Aðgengi fyrir hreyfihamlaða er gott.', 'Buses 6 and 15 stop at Egilshöll, within walking distance. Parking in front of the building. Good access for people with limited mobility.') },
+    ],
+  },
+  policies: {
+    title: t('Stefnur og áætlanir', 'Policies and plans'),
+    items: [
+      t('Jafnlaunastefna', 'Equal pay policy'),
+      t('Jafnréttisáætlun', 'Equality plan'),
+      t('Umhverfisstefna', 'Environmental policy'),
+      t('Loftslagsstefna', 'Climate policy'),
+      t('Persónuverndarstefna', 'Privacy policy'),
     ],
   },
   leadership: {
-    eyebrow: t('Forysta', 'Leadership'),
-    title: t('Forysta stofnunarinnar', 'Who leads the agency'),
+    eyebrow: t('Stjórnun', 'Management'),
+    title: t('Forstjóri og framkvæmdastjórn', 'Director General and executive board'),
   },
   oversight: {
     eyebrow: t('Eftirlit', 'Oversight'),
-    title: t('Hver hefur eftirlit með úrræðunum?', 'Who oversees the services?'),
+    title: t('Eftirlit og kvartanir', 'Oversight and complaints'),
     body: t(
-      'Gæða- og eftirlitsstofnun velferðarmála hefur eftirlit með gæðum þjónustu sem veitt er á grundvelli barnaverndarlaga, þar á meðal úrræðum sem Barna- og fjölskyldustofa rekur. Notendur geta beint kvörtun um gæði þjónustunnar þangað.',
-      'The Quality and Supervisory Authority of Welfare oversees the quality of services provided under child protection law, including those the agency runs. Service users can direct complaints about quality there.',
+      'Gæða- og eftirlitsstofnun velferðarmála hefur eftirlit með gæðum þjónustu sem veitt er samkvæmt barnaverndarlögum, þar á meðal úrræðum Barna- og fjölskyldustofu. Kvörtunum um gæði þjónustunnar má beina þangað.',
+      'The Quality and Supervisory Authority of Welfare oversees the quality of services provided under the Child Protection Act, including the agency’s services. Complaints about the quality of services can be sent there.',
     ),
-    contact: t('Suðurlandsbraut 24, 108 Reykjavík · 540 0040 · gev@gev.is', 'Suðurlandsbraut 24, 108 Reykjavík · 540 0040 · gev@gev.is'),
+    contact: t('Suðurlandsbraut 24, 108 Reykjavík. Sími 540 0040. gev@gev.is', 'Suðurlandsbraut 24, 108 Reykjavík. Phone 540 0040. gev@gev.is'),
   },
   contact: {
     eyebrow: t('Hafa samband', 'Contact'),
-    title: t('Talaðu við okkur', 'Talk to us'),
+    title: t('Hafa samband', 'Contact'),
   },
 }
 
@@ -1037,43 +996,43 @@ export const ABOUT = {
 
 export const ABOUT_TEASER = {
   eyebrow: t('Stofnunin', 'The agency'),
-  title: t('Hver heldur utan um öll úrræðin?', 'Who holds all of this together?'),
+  title: t('Um Barna- og fjölskyldustofu', 'About Barna- og fjölskyldustofa'),
   body: t(
-    'Barna- og fjölskyldustofa er ríkisstofnun undir mennta- og barnamálaráðuneytinu. Hún tók til starfa árið 2022 og hjá henni vinna um 170 manns á hverjum degi að velferð barna um allt land.',
-    'Barna- og fjölskyldustofa is a state agency under the Ministry of Education and Children. It began in 2022, and around 170 people work there every day for the wellbeing of children across the country.',
+    'Barna- og fjölskyldustofa er ríkisstofnun undir mennta- og barnamálaráðuneytinu. Hún tók til starfa 1. janúar 2022 og tók við verkefnum Barnaverndarstofu. Í árslok 2024 störfuðu þar 169 manns.',
+    'Barna- og fjölskyldustofa is a state agency under the Ministry of Education and Children. It began operating on 1 January 2022, taking over the tasks of Barnaverndarstofa. At the end of 2024, 169 people worked there.',
   ),
   cta: t('Um stofnunina', 'About the agency'),
-  timelineCta: t('Sjá alla söguna', 'See the whole story'),
+  timelineCta: t('Saga stofnunarinnar', 'History of the agency'),
 }
 
 /* ── Emergency + contact ──────────────────────────────────────────────── */
 
 export const HELP = {
-  title: t('Þarftu að tala við einhvern núna?', 'Need to talk to someone now?'),
+  title: t('Hvert er hægt að leita strax?', 'Where can I turn straight away?'),
   lead: t(
-    'Þú þarft ekki að bíða eftir réttu orðunum. Hér er hægt að ná strax í hjálp.',
-    'You do not have to wait for the right words. Here is how to reach help right now.',
+    'Ef barn er í hættu eða þú þarft að tala við einhvern núna eru þetta númerin.',
+    'If a child is in danger or you need to talk to someone now, these are the numbers.',
   ),
   lines: [
     {
       label: t('Neyðarlínan', 'Emergency line'),
       value: '112',
-      blurb: t('Bráð neyð, allan sólarhringinn', 'Acute emergencies, around the clock'),
+      blurb: t('Bráð hætta, allan sólarhringinn', 'Immediate danger, around the clock'),
     },
     {
       label: t('Hjálparsími Rauða krossins', 'Red Cross helpline'),
       value: '1717',
-      blurb: t('Sími og netspjall, nafnlaust og ókeypis', 'Phone and web chat, anonymous and free'),
+      blurb: t('Sími og netspjall, allan sólarhringinn, nafnlaust og án endurgjalds', 'Phone and web chat, around the clock, anonymous and free'),
     },
     {
       label: t('Barnahús', 'Barnahús'),
       value: '530 2500',
-      blurb: t('Stuðningur eftir ofbeldi', 'Support after abuse'),
+      blurb: t('Þjónusta vegna gruns um ofbeldi gegn barni', 'Services when violence against a child is suspected'),
     },
     {
-      label: t('Barna- og fjölskyldustofa', 'National Agency for Children and Families'),
+      label: t('Barna- og fjölskyldustofa', 'Barna- og fjölskyldustofa'),
       value: '530 2600',
-      blurb: t('Almenn þjónusta, virka daga', 'General service, weekdays'),
+      blurb: t('Virka daga 9 til 12 og 12.30 til 15', 'Weekdays 9 to 12 and 12.30 to 15'),
     },
   ],
 }
@@ -1082,7 +1041,7 @@ export const HELP = {
 
 export const INSTITUTIONS: { eyebrow: L; title: L; items: { name: string; role: L; href: string | null }[] } = {
   eyebrow: t('Samstarf og eftirlit', 'Partners and oversight'),
-  title: t('Tengdar stofnanir', 'Related institutions'),
+  title: t('Tengdar stofnanir', 'Related bodies'),
   items: [
     {
       name: 'Barnaverndarþjónustur sveitarfélaga',
@@ -1119,16 +1078,6 @@ export const INSTITUTIONS: { eyebrow: L; title: L; items: { name: string; role: 
 
 /* ── Closing CTA ──────────────────────────────────────────────────────── */
 
-export const CLOSING = {
-  hand: t('Byrjaðu þar sem þú ert', 'Start where you are'),
-  title: t('Hvert barn á skilið öruggt skjól', 'Every child deserves a safe place'),
-  lead: t(
-    'Hvort sem þú hefur áhyggjur af barni, vinnur með börnum eða vilt rétta hjálparhönd, þá er leið inn.',
-    'Whether you are worried about a child, work with children or want to lend a hand, there is a way in.',
-  ),
-  ctaPrimary: t('Hvernig barn fær aðstoð', 'How a child gets help'),
-  ctaSecondary: t('Skoða öll úrræði', 'See all services'),
-}
 
 /* ── News (real, current, source-linked items; verified 27 July 2026) ────
  * Every item below was re-checked against the publisher's own page on
@@ -1183,27 +1132,27 @@ export const NEWS_SOURCES: { id: NewsItem['source']; label: L }[] = [
 
 export const NEWS = {
   eyebrow: t('Fréttir', 'News'),
-  title: t('Fréttir og tilkynningar', 'News and announcements'),
+  title: t('Fréttir', 'News'),
   lead: t(
-    'Það nýjasta frá Barna- og fjölskyldustofu og umfjöllun tengd starfinu úr íslenskum fréttamiðlum, á einum stað.',
-    'The latest from Barna- og fjölskyldustofa, together with related coverage from Icelandic media, in one place.',
+    'Fréttir Barna- og fjölskyldustofu og tengdar fréttir frá öðrum opinberum aðilum og fjölmiðlum. Hver frétt vísar á upprunalega heimild.',
+    'News from Barna- og fjölskyldustofa and related items from other public bodies and the media. Every item links to its original source.',
   ),
   /** Stamped by the sync, so it can never drift from the actual content. */
   updated: SYNCED_AT,
   note: t(
-    'Fréttirnar sækjast sjálfkrafa af fréttavef Barna- og fjölskyldustofu á island.is, með fyrirsögn, dagsetningu og inngangi eins og stofnunin birtir þær sjálf. Uppfærslan keyrir daglega, svo listinn hér er alltaf sá sami og á island.is. Fréttir frá öðrum en stofnuninni eru valdar handvirkt og merktar sinni heimild.',
-    'Items are pulled automatically from the Barna- og fjölskyldustofa newsroom on island.is, with the headline, date and intro exactly as the agency publishes them. The sync runs daily, so this list always matches island.is. Items from other publishers are selected by hand and labelled with their source.',
+    'Fréttir Barna- og fjölskyldustofu eru sóttar daglega af fréttavef stofnunarinnar á island.is, með fyrirsögn, dagsetningu og inngangi eins og þær eru birtar þar. Fréttir frá öðrum eru valdar sérstaklega og merktar útgefanda.',
+    'News from Barna- og fjölskyldustofa is collected daily from the agency’s newsroom on island.is, with the headline, date and introduction as published there. Items from other publishers are selected individually and labelled with the publisher.',
   ),
   cta: t('Sjá allar fréttir', 'See all news'),
   featuredLabel: t('Nýjast', 'Latest'),
   readMore: t('Lesa fréttina', 'Read the item'),
   filterTitle: t('Sía eftir efni', 'Filter by topic'),
   filterAll: t('Allt', 'Everything'),
-  archiveTitle: t('Eldra efni', 'Earlier items'),
+  archiveTitle: t('Eldri fréttir', 'Earlier news'),
   sourcesTitle: t('Hvaðan fréttirnar koma', 'Where these items come from'),
   sourcesNote: t(
-    'Hver frétt vísar beint á upprunalega heimild og opnast á vef útgefandans. Ekkert er endursagt hér nema það standi í heimildinni sjálfri.',
-    'Every item links straight to its original source and opens on the publisher’s own site. Nothing is restated here that is not in the source itself.',
+    'Hver frétt opnast á vef útgefandans.',
+    'Each item opens on the publisher’s website.',
   ),
   count: (n: number): L =>
     t(n === 1 ? '1 frétt' : `${n} fréttir`, n === 1 ? '1 item' : `${n} items`),
@@ -1225,78 +1174,78 @@ export const NEWS = {
  * ------------------------------------------------------------------------ */
 
 export const ACCESSIBILITY = {
-  title: t('Aðgengisyfirlýsing', 'Accessibility statement'),
-  updated: t('Yfirlýsing uppfærð 25. júlí 2026', 'Statement updated 25 July 2026'),
+  title: t('Aðgengi', 'Accessibility'),
+  updated: t('Síðast uppfært 17. september 2026', 'Last updated 17 September 2026'),
   intro: t(
-    'Barna- og fjölskyldustofa vill að öll geti nálgast upplýsingar um þjónustu við börn og fjölskyldur, óháð fötlun, aldri eða tækni. Þessi yfirlýsing á við þennan vef.',
-    'Barna- og fjölskyldustofa wants everyone to be able to reach information about services for children and families, regardless of disability, age or technology. This statement applies to this website.',
+    'Stefnt er að því að allir geti notað vefinn, óháð fötlun, aldri eða búnaði. Þessi yfirlýsing á við um þennan vef.',
+    'The aim is for everyone to be able to use this site, regardless of disability, age or device. This statement applies to this website.',
   ),
   sections: [
     {
-      title: t('Staða aðgengis', 'Conformance status'),
+      title: t('Markmið', 'Aim'),
       body: t(
-        'Vefurinn uppfyllir WCAG 2.1 á stigi AA. Sjálfvirk úttekt með axe-core á öllum síðum vefsins skilaði engum frávikum, og prófað var að auki með lyklaborði eingöngu, með aukinni leturstærð og með stillingunni um minni hreyfingu.',
-        'The site meets WCAG 2.1 Level AA. An automated axe-core audit across every page returned no violations, and the site was additionally tested using keyboard only, at enlarged text sizes, and with reduced motion enabled.',
+        'Markmiðið er að vefurinn uppfylli WCAG 2.1, stig AA. Vefurinn er hugmynd að framsetningu og hefur ekki farið í formlega úttekt.',
+        'The aim is for the site to meet WCAG 2.1 level AA. The site is a design concept and has not been formally audited.',
       ),
     },
     {
-      title: t('Hvað hefur verið gert', 'What has been done'),
+      title: t('Það sem hefur verið gert', 'What has been done'),
       body: t(
-        'Öll mynd- og textaskil standast birtuskilakröfur, allar myndir bera lýsingu, fyrirsagnir eru í réttri röð, hægt er að nota vefinn með lyklaborði einu saman, sýnilegt fókusmerki fylgir öllum stýringum, og stillanleg leturstærð er í fæti síðunnar. Hreyfing er hófleg og slokknar sjálfkrafa hjá þeim sem hafa valið minni hreyfingu í stýrikerfinu.',
-        'All text and interface colours meet contrast requirements, every image carries a description, headings follow a correct order, the site can be operated with a keyboard alone, a visible focus indicator follows every control, and a text-size control sits in the footer. Motion is restrained and switches off automatically for anyone who has chosen reduced motion in their operating system.',
+        'Myndir hafa textalýsingu, fyrirsagnir eru í réttri röð, hægt er að nota vefinn með lyklaborði og fókus er sýnilegur. Hægt er að stækka letur í fæti síðunnar. Hreyfing á síðunni stöðvast ef stillt hefur verið á minni hreyfingu í tækinu.',
+        'Images have text descriptions, headings are in order, the site can be used with a keyboard and focus is visible. Text size can be increased in the footer. Motion stops if reduced motion is set on the device.',
       ),
     },
     {
-      title: t('Það sem enn má bæta', 'Known limitations'),
+      title: t('Takmarkanir', 'Limitations'),
       body: t(
-        'Þessi vefur er hugmynd og hefur ekki verið prófaður með notendum sem reiða sig á skjálesara eða með táknmálstúlkun. Í fullbúnum vef yrði bætt við notendaprófunum með fötluðu fólki, texta á myndböndum og einfaldara máli fyrir börn.',
-        'This site is a concept and has not yet been tested with users who rely on screen readers, nor with sign language interpretation. A production build would add user testing with disabled people, captions on any video, and plain language written for children.',
+        'Vefurinn hefur ekki verið prófaður með notendum skjálesara eða með fötluðu fólki. Það þyrfti að gera áður en vefur af þessu tagi væri tekinn í notkun.',
+        'The site has not been tested with screen reader users or with disabled people. That would need to be done before a site like this went into use.',
       ),
     },
     {
-      title: t('Ábendingar um aðgengi', 'Accessibility feedback'),
+      title: t('Ábendingar', 'Feedback'),
       body: t(
-        'Ef þú finnur efni sem þú kemst ekki að, sendu okkur línu á bofs@bofs.is eða hringdu í 530 2600 og við bætum úr. Ef ekki er brugðist við innan hæfilegs tíma má vísa málinu áfram til þess eftirlitsaðila sem fer með aðgengismál opinberra vefja.',
-        'If you find content you cannot reach, write to bofs@bofs.is or call 530 2600 and we will fix it. If the matter is not resolved within a reasonable time, it can be escalated to the authority responsible for monitoring accessibility of public websites.',
+        'Ábendingar um aðgengi má senda á bofs@bofs.is eða hringja í 530 2600.',
+        'Feedback about accessibility can be sent to bofs@bofs.is or by calling 530 2600.',
       ),
     },
   ],
 }
 
 export const PRIVACY = {
-  title: t('Persónuverndarstefna', 'Privacy policy'),
-  updated: t('Uppfært 25. júlí 2026', 'Updated 25 July 2026'),
+  title: t('Persónuvernd', 'Privacy'),
+  updated: t('Síðast uppfært 17. september 2026', 'Last updated 17 September 2026'),
   intro: t(
-    'Barna- og fjölskyldustofa vinnur persónuupplýsingar í samræmi við lög nr. 90/2018 um persónuvernd og vinnslu persónuupplýsinga.',
-    'Barna- og fjölskyldustofa processes personal data in accordance with Act no. 90/2018 on data protection and the processing of personal data.',
+    'Barna- og fjölskyldustofa vinnur persónuupplýsingar samkvæmt lögum nr. 90/2018 um persónuvernd og vinnslu persónuupplýsinga. Persónuverndarstefna stofnunarinnar er birt á island.is.',
+    'Barna- og fjölskyldustofa processes personal data under Act no. 90/2018 on data protection and the processing of personal data. The agency’s privacy policy is published on island.is.',
   ),
   sections: [
     {
-      title: t('Hvaða upplýsingum er safnað', 'What is collected'),
+      title: t('Þessi vefur', 'This site'),
       body: t(
-        'Þessi vefur safnar engum persónuupplýsingum. Hér eru engar vafrakökur, engin greiningartól og engin rakning frá þriðja aðila. Val þitt um tungumál og leturstærð er vistað í vafranum þínum og berst hvergi annað.',
-        'This website collects no personal data. There are no cookies, no analytics tools and no third-party tracking. Your language and text-size preferences are stored in your own browser and are never sent anywhere.',
+        'Vefurinn notar engar vafrakökur og engin greiningartól. Val á tungumáli og leturstærð er vistað í vafranum þínum.',
+        'The site uses no cookies and no analytics tools. Your choice of language and text size is stored in your browser.',
       ),
     },
     {
-      title: t('Vefþjónusta', 'Web hosting'),
+      title: t('Hýsing', 'Hosting'),
       body: t(
-        'Vefurinn er hýstur á öruggri þjónustu sem kann að skrá tæknilegar upplýsingar á borð við IP-tölu í rekstrarskyni. Slíkar upplýsingar eru ekki notaðar til að bera kennsl á einstaklinga.',
-        'The site is hosted on a secure service that may log technical information such as IP addresses for operational purposes. Such information is not used to identify individuals.',
+        'Hýsingaraðili getur skráð tæknilegar upplýsingar, svo sem IP-tölur, vegna rekstrar.',
+        'The hosting provider may log technical information, such as IP addresses, for operational purposes.',
       ),
     },
     {
       title: t('Réttindi þín', 'Your rights'),
       body: t(
-        'Þú átt rétt á upplýsingum um vinnslu persónuupplýsinga um þig, aðgangi að þeim, leiðréttingu og eftir atvikum eyðingu. Fyrirspurnir sendast á bofs@bofs.is. Einnig má beina kvörtun til Persónuverndar.',
-        'You have the right to information about the processing of personal data concerning you, to access it, to have it corrected and, where applicable, erased. Enquiries go to bofs@bofs.is. A complaint may also be directed to Persónuvernd, the Icelandic Data Protection Authority.',
+        'Þú átt rétt á upplýsingum um vinnslu persónuupplýsinga um þig, aðgangi að þeim og leiðréttingu. Fyrirspurnir má senda á bofs@bofs.is. Kvörtunum má beina til Persónuverndar.',
+        'You have the right to information about the processing of your personal data, to access it and to have it corrected. Questions can be sent to bofs@bofs.is. Complaints can be made to Persónuvernd, the Data Protection Authority.',
       ),
     },
     {
-      title: t('Ef þú hefur samband', 'If you contact us'),
+      title: t('Viðkvæmar upplýsingar', 'Sensitive information'),
       body: t(
-        'Ef þú sendir okkur tölvupóst eða hringir fer sú vinnsla eftir almennum reglum stofnunarinnar um meðferð erinda. Ekki senda viðkvæmar upplýsingar um barn í tölvupósti. Ef barn er í hættu skal hringja í 112.',
-        'If you email or call us, that is handled under the agency’s general rules for enquiries. Please do not send sensitive information about a child by email. If a child is in danger, call 112.',
+        'Ekki senda viðkvæmar upplýsingar um barn í tölvupósti. Hafðu frekar samband við barnaverndarþjónustu sveitarfélagsins. Ef barn er í hættu skaltu hringja í 112.',
+        'Do not send sensitive information about a child by email. Contact the municipal child protection service instead. If a child is in danger, call 112.',
       ),
     },
   ],
@@ -1305,19 +1254,19 @@ export const PRIVACY = {
 /* ── Not found (a wrong turn, not a dead end) ─────────────────────────── */
 
 export const NOTFOUND = {
-  hand: t('Þú beygðir af leið', 'You took a wrong turn'),
-  title: t('Þessi síða er ekki til', 'This page does not exist'),
+  hand: t('Síða fannst ekki', 'Page not found'),
+  title: t('Síðan fannst ekki', 'Page not found'),
   lead: t(
-    'Það er allt í lagi. Slóðin gæti verið úrelt eða innsláttarvilla. Hér fyrir neðan eru leiðirnar sem skipta mestu máli.',
-    'That is alright. The address may be out of date, or a small typo. The paths that matter most are just below.',
+    'Slóðin getur verið röng eða síðan hefur verið færð. Hér eru helstu síður vefsins.',
+    'The address may be wrong or the page may have moved. These are the main pages of the site.',
   ),
   links: [
-    { label: t('Öll úrræðin', 'All services'), to: '/preview/bofs#heimili' },
-    { label: t('Hvernig kerfið virkar', 'How the system works'), to: '/preview/bofs/kerfid' },
+    { label: t('Úrræði Barna- og fjölskyldustofu', 'Services of the agency'), to: '/preview/bofs#heimili' },
+    { label: t('Hvernig barnavernd virkar', 'How child protection works'), to: '/preview/bofs/kerfid' },
     { label: t('Hefur þú áhyggjur af barni?', 'Are you worried about a child?'), to: '/preview/bofs#tilkynna' },
-    { label: t('Fá hjálp núna', 'Get help now'), to: '/preview/bofs#help' },
+    { label: t('Hvert er hægt að leita strax?', 'Where can I turn straight away?'), to: '/preview/bofs#help' },
   ],
-  home: t('Aftur á forsíðu', 'Back to the front page'),
+  home: t('Forsíða', 'Home'),
   reassure: t('Ef barn er í bráðri hættu skaltu hringja í 112.', 'If a child is in immediate danger, call 112.'),
 }
 
@@ -1329,7 +1278,7 @@ export const UI = {
     home: t('Forsíða', 'Home'),
     homes: t('Meðferðarheimili', 'Treatment homes'),
     services: t('Úrræðin', 'Services'),
-    system: t('Kerfið', 'The system'),
+    system: t('Barnavernd', 'Child protection'),
     about: t('Um stofnunina', 'About'),
     report: t('Tilkynna áhyggjur', 'Report a concern'),
     path: t('Ferlið', 'The process'),
@@ -1338,26 +1287,72 @@ export const UI = {
   allServices: t('Öll úrræðin', 'All services'),
   exploreCentre: t('Skoða nánar', 'Learn more'),
   backToAll: t('Til baka í öll úrræði', 'Back to all services'),
-  whoFor: t('Fyrir hvern', 'Who it’s for'),
-  whatHappens: t('Hvað gerist', 'What happens'),
-  howToReach: t('Hvernig barn kemst að', 'How a child gets a place'),
-  keyFacts: t('Staðreyndir', 'Key facts'),
+  whoFor: t('Fyrir hverja', 'Who it is for'),
+  whatHappens: t('Hvað felst í þjónustunni', 'What the service involves'),
+  howToReach: t('Hvernig er sótt um?', 'How is it applied for?'),
+  keyFacts: t('Í stuttu máli', 'In brief'),
   nextCentre: t('Næsta úrræði', 'Next service'),
-  wherePath: t('Hvar í ferlinu?', 'Where in the process?'),
+  wherePath: t('Hvar úrræðið er í ferlinu', 'Where this service sits in the process'),
   readSystem: t('Lesa um kerfið alla leið', 'Read about the whole system'),
   emergencyChip: t('Neyð? Hringdu í 112', 'Emergency? Call 112'),
   langLabel: t('Íslenska', 'English'),
   onThisPage: t('Á þessari síðu', 'On this page'),
   conceptBadge: t(
-    'Hugmyndavefur. Óformleg endurhönnun, ekki opinber vefur Barna- og fjölskyldustofu.',
-    'Concept site. An unofficial redesign, not the official website of Barna- og fjölskyldustofa.',
+    'Hugmynd að framsetningu. Þetta er ekki opinber vefur Barna- og fjölskyldustofu.',
+    'Design concept. This is not the official website of Barna- og fjölskyldustofa.',
   ),
   footerTagline: t(
-    'Öll úrræði fyrir börn og fjölskyldur á einum hlýjum stað.',
-    'Every service for children and families in one warm place.',
+    'Þjónusta við börn og fjölskyldur um allt land.',
+    'Services for children and families across Iceland.',
   ),
   footerContact: t('Hafa samband', 'Contact'),
   footerServices: t('Úrræði', 'Services'),
   footerSite: t('Vefurinn', 'This site'),
   rights: t('Hugmynd og hönnun', 'Concept & design'),
+}
+
+/* ── island.is: where the full, official information lives ──────────────
+ * This site is a warm front door. Everything it summarises is published in
+ * full on island.is, and every section that needs more than a summary hands
+ * the visitor there. Each address below was taken from the island.is
+ * sitemap and confirmed to load with the matching page title on
+ * 17 September 2026. island.is has no separate page per treatment home, so
+ * the homes point at the treatment-homes page, which covers them.
+ * ---------------------------------------------------------------------- */
+
+const IS = 'https://island.is'
+
+export const ISLAND = {
+  home: { href: `${IS}/s/bofs`, label: t('Vefur stofnunarinnar', 'The agency’s website') },
+  report: { href: `${IS}/tilkynna-um-adstaedur-barns-til-barnaverndar`, label: t('Tilkynna til barnaverndar', 'Report to child protection') },
+  municipal: { href: `${IS}/s/bofs/barnavernd-eftir-sveitarfeloegum`, label: t('Finna barnaverndarþjónustu', 'Find a child protection service') },
+  childProtection: { href: `${IS}/s/bofs/barnavernd`, label: t('Nánar um barnavernd', 'More about child protection') },
+  system: { href: `${IS}/s/bofs/hlutverk-og-skipulag-barnaverndarstarfs`, label: t('Hlutverk og skipulag barnaverndar', 'How child protection is organised') },
+  laws: { href: `${IS}/s/bofs/loeg-og-reglugerdir`, label: t('Lög og reglugerðir', 'Laws and regulations') },
+  forms: { href: `${IS}/s/bofs/eydubloed-barnaverndarmala`, label: t('Eyðublöð barnaverndarmála', 'Child protection forms') },
+  faq: { href: `${IS}/s/bofs/spurt-og-svarad-um-barna-og-fjoelskyldustofu`, label: t('Fleiri spurningar og svör', 'More questions and answers') },
+  about: { href: `${IS}/s/bofs/um-barna-og-fjoelskyldustofu`, label: t('Nánar um stofnunina', 'More about the agency') },
+  role: { href: `${IS}/s/bofs/hlutverk-barna-og-fjoelskyldustofu`, label: t('Hlutverk og lögbundin verkefni', 'Role and statutory tasks') },
+  staff: { href: `${IS}/s/bofs/starfsfolk-barna-og-fjoelskyldustofu`, label: t('Starfsfólk eftir einingum', 'Staff by unit') },
+  policies: { href: `${IS}/s/bofs/stefnur-og-aaetlanir`, label: t('Lesa stefnurnar', 'Read the policies') },
+  sites: { href: `${IS}/s/bofs/adgengi-ad-starfsstoedvum-bofs`, label: t('Aðgengi að starfsstöðvum', 'Access to the sites') },
+  publications: { href: `${IS}/s/bofs/utgefid-efni`, label: t('Ársskýrslur og útgefið efni', 'Annual reports and publications') },
+  gev: { href: `${IS}/s/gev`, label: t('Senda kvörtun eða ábendingu', 'Send a complaint or feedback') },
+  news: { href: `${IS}/s/bofs/frett`, label: t('Allar fréttir stofnunarinnar', 'All news from the agency') },
+  privacy: { href: `${IS}/s/bofs/personuverndarstefna`, label: t('Persónuverndarstefna stofnunarinnar', 'The agency’s privacy policy') },
+  homes: { href: `${IS}/s/bofs/medferdarheimili`, label: t('Nánar um meðferðarheimilin', 'More about the treatment homes') },
+  fosterBecome: { href: `${IS}/ad-gerast-fosturforeldri/umsoknarferli`, label: t('Sækja um að gerast fósturforeldri', 'Apply to become a foster parent') },
+}
+
+/** The official page for each service. */
+export const SERVICE_ISLAND: Record<string, { href: string; label: L }> = {
+  studlar: ISLAND.homes,
+  esjan: ISLAND.homes,
+  blonduhlid: ISLAND.homes,
+  bjargey: ISLAND.homes,
+  laekjarbakki: ISLAND.homes,
+  barnahus: { href: `${IS}/s/bofs/barnahus`, label: t('Nánar um Barnahús', 'More about Barnahús') },
+  mst: { href: `${IS}/s/bofs/mst-medferd`, label: t('Nánar um MST-meðferð', 'More about MST therapy') },
+  sok: { href: `${IS}/s/bofs/sok-medferd`, label: t('Nánar um SÓK-meðferð', 'More about SÓK therapy') },
+  fostur: { href: `${IS}/s/bofs/fostur`, label: t('Nánar um fóstur', 'More about foster care') },
 }

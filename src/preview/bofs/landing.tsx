@@ -28,7 +28,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { Img } from '../../components/Img'
-import { asset, Button, C, Handwritten, SectionHead, ServiceCard, useLang } from './ui'
+import { asset, Button, C, EASE, Footer, SectionHead, ServiceCard, Torn, useLang, WordReveal } from './ui'
 import { ABOUT_TEASER, CATEGORIES, HELP, HERO, HONEST, INSTITUTIONS, NEWS, ORG, PATH, REPORT, SERVICES, type L } from './data'
 
 const t = (is: string, en: string): L => ({ is, en })
@@ -63,34 +63,37 @@ function Caption({ children, placeholder = false }: { children: string; placehol
   )
 }
 
-/* ── torn paper, and the chapter marker ───────────────────────────────── */
+/* ── the chapter marker ─────────────────────────────────────────────── */
 
 /*
- * decriminalizepoverty.org (Awwwards SOTD, an institutional illustrated
- * site) changes ground colour per chapter and joins the chapters with a
- * torn paper edge instead of a straight seam. The jitter here is a fixed
- * sequence so every render tears the same way.
+ * SCROLL-BOUND MOTION (after decriminalizepoverty.org). Movement is tied to
+ * the scroll position, never to a timer, so it is exactly as fast as the
+ * reader and can never leave something hidden. Transform only.
  */
-const TORN = (() => {
-  const pts: string[] = []
-  let x = 0
-  let seed = 7
-  const rnd = () => {
-    seed = (seed * 9301 + 49297) % 233280
-    return seed / 233280
-  }
-  while (x < 1440) {
-    pts.push(`L${x.toFixed(0)} ${(6 + rnd() * 16).toFixed(1)}`)
-    x += 14 + rnd() * 30
-  }
-  return `M0 28 L0 12 ${pts.join(' ')} L1440 10 L1440 28 Z`
-})()
 
-function Torn({ color, className = '' }: { color: string; className?: string }) {
+/** Settles a block into place as it enters the lower part of the screen. */
+function Rise({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const reduce = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'start 0.55'] })
+  const y = useTransform(scrollYProgress, [0, 1], [reduce ? 0 : 56, 0])
   return (
-    <svg className={`block h-6 w-full sm:h-7 ${className}`} viewBox="0 0 1440 28" preserveAspectRatio="none" aria-hidden="true">
-      <path d={TORN} fill={color} />
-    </svg>
+    <motion.div ref={ref} className={className} style={{ y }}>
+      {children}
+    </motion.div>
+  )
+}
+
+/** A picture drifting a little slower than the page. Its frame must clip. */
+function Drift({ children, amount = 40, className = '' }: { children: React.ReactNode; amount?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const reduce = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
+  const y = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [-amount, amount])
+  return (
+    <div ref={ref} className={`overflow-hidden ${className}`}>
+      <motion.div style={{ y, scale: reduce ? 1 : 1.1 }}>{children}</motion.div>
+    </div>
   )
 }
 
@@ -146,7 +149,7 @@ export function ChapterMark({ chapters }: { chapters: { id: string; label: strin
  * grotesk.
  */
 export function Hero() {
-  const [, , pick] = useLang()
+  const [lang, , pick] = useLang()
   const reduce = useReducedMotion()
   const ref = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
@@ -158,8 +161,11 @@ export function Hero() {
   return (
     <section ref={ref} className="bofs-wash relative isolate flex min-h-[100svh] flex-col overflow-hidden" style={{ background: C.cream }}>
       <motion.div style={{ y: valleyY, willChange: 'transform' }} className="pointer-events-none absolute inset-0 -z-10">
+        <div className="bofs-open-scene absolute inset-0">
         <Img
           src={asset('art-dawn.jpg')}
+          srcSet={`${asset('art-dawn-900.jpg')} 900w, ${asset('art-dawn-1400.jpg')} 1400w, ${asset('art-dawn.jpg')} 2560w`}
+          sizes="110vw"
           alt=""
           aria-hidden
           loading="eager"
@@ -174,6 +180,7 @@ export function Hero() {
             the site, asked for by name on 2026-09-17; transform-only, 46s,
             and it stops under reduced motion. */}
         <div className="bofs-mist" aria-hidden="true" />
+        </div>
         {/* legibility wash for the type block, as in the original */}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(100deg, rgba(251,243,231,.95) 0%, rgba(251,243,231,.84) 30%, rgba(251,243,231,.38) 56%, rgba(251,243,231,0) 78%)' }} />
         <div className="absolute inset-x-0 top-0 h-24" style={{ background: 'linear-gradient(rgba(251,243,231,.8), rgba(251,243,231,0))' }} />
@@ -181,14 +188,22 @@ export function Hero() {
 
       <motion.div style={{ y: contentY, opacity: contentOpacity, willChange: 'transform, opacity' }} className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-start px-5 pb-48 pt-24 sm:px-8 md:justify-center md:pb-24 md:pt-28">
         <div className="max-w-2xl">
-          <p className="text-[14px] font-semibold" style={{ color: C.clayText }}>
+          <p className="bofs-open-fade text-[14px] font-semibold" style={{ color: C.clayText, animationDelay: '.2s' }}>
             {pick(HERO.kicker)}
           </p>
-          <h1 className="bofs-display bofs-display-xl bofs-balance mt-3 text-[clamp(40px,7.2vw,80px)]">{pick(HERO.title)}</h1>
-          <p className="bofs-pretty mt-6 max-w-xl text-[clamp(17px,2vw,20px)] leading-relaxed" style={{ color: C.body }}>
+          {/* each line rises from behind its own mask, a beat apart */}
+          <h1 className="bofs-display bofs-display-xl mt-3 text-[clamp(40px,7.2vw,80px)]">
+            <span className="sr-only">{pick(HERO.title)}</span>
+            {HERO.titleLines[lang].map((line, i) => (
+              <span key={i} className="bofs-open-line" aria-hidden="true">
+                <span style={{ animationDelay: `${0.42 + i * 0.12}s` }}>{line}</span>
+              </span>
+            ))}
+          </h1>
+          <p className="bofs-open-fade bofs-pretty mt-6 max-w-xl text-[clamp(17px,2vw,20px)] leading-relaxed" style={{ color: C.cocoa, animationDelay: '.85s' }}>
             {pick(HERO.lead)}
           </p>
-          <div className="mt-8">
+          <div className="bofs-open-fade mt-8" style={{ animationDelay: '1s' }}>
             <Button href="#byrja">{pick(HERO.ctaPrimary)}</Button>
           </div>
         </div>
@@ -213,9 +228,9 @@ export function Hero() {
 export function Entrances() {
   const [, , pick] = useLang()
   const ways = [
-    { to: '#help', title: t('Ég þarf hjálp', 'I need help'), note: t('Númerin sem svara, allan sólarhringinn ef þarf.', 'The numbers that answer, around the clock if needed.') },
-    { to: '#tilkynna', title: t('Ég hef áhyggjur af barni', 'I am worried about a child'), note: t('Áhyggjur duga. Þú þarft engar sannanir.', 'Concern is enough. You need no proof.') },
-    { to: '/preview/bofs/kerfid', title: t('Ég vinn með börnum', 'I work with children'), note: t('Kerfið, úrræðin og lögin á bak við þau.', 'The system, the services and the law behind them.') },
+    { to: '#help', title: t('Ég þarf hjálp', 'I need help'), note: t('Símanúmer sem svara strax, sum allan sólarhringinn.', 'Numbers that answer straight away, some around the clock.') },
+    { to: '#tilkynna', title: t('Ég hef áhyggjur af barni', 'I am worried about a child'), note: t('Hafðu samband við barnavernd. Þú þarft ekki sannanir.', 'Contact child protection. You do not need proof.') },
+    { to: '/preview/bofs/kerfid', title: t('Ég vinn með börnum', 'I work with children'), note: t('Ferlið, tilkynningarskyldan og lögin sem gilda.', 'The process, the duty to report and the laws that apply.') },
   ]
   return (
     <section id="byrja" className="bofs-wash scroll-mt-24" style={{ background: C.cream }}>
@@ -226,14 +241,16 @@ export function Entrances() {
         draws an underline under it. Nothing else: no arrow, no border, no
         scrim, no card.
       */}
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-12 lg:gap-16">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-5">
-          <h2 className="bofs-display text-[clamp(30px,4vw,46px)]">{pick({ is: 'Hvar byrjar þú?', en: 'Where do you start?' })}</h2>
+          <Rise>
+            <h2 className="bofs-display text-[clamp(30px,4vw,46px)]">{pick({ is: 'Hvar byrjar þú?', en: 'Where do you start?' })}</h2>
+          </Rise>
           <ol className="mt-8 divide-y-0">
             {ways.map((w) => {
               const inner = (
                 <>
-                  <span className="bofs-display bofs-way block text-[clamp(28px,3.3vw,40px)]">{pick(w.title)}</span>
+                  <span className="bofs-display bofs-way bofs-way-ink inline-block text-[clamp(28px,3.3vw,40px)]">{pick(w.title)}</span>
                   <span className="mt-2 block text-[16.5px] leading-relaxed" style={{ color: C.cocoa }}>
                     {pick(w.note)}
                   </span>
@@ -257,16 +274,18 @@ export function Entrances() {
           </ol>
         </div>
         <div className="lg:col-span-7">
-          <div className="bofs-wet">
+          <Drift amount={28} className="rounded-[4px]">
             <Img
               src={asset('art-inni.jpg')}
+              srcSet={`${asset('art-inni-900.jpg')} 900w, ${asset('art-inni-1400.jpg')} 1400w, ${asset('art-inni.jpg')} 2560w`}
+              sizes="(min-width: 1024px) 680px, 100vw"
               width={2560}
               height={1440}
-              alt={pick({ is: 'Vatnslitamynd: borðstofuborð við glugga með útsýni yfir dalinn', en: 'Watercolour: a dining table by a window looking over the valley' })}
+              alt={pick({ is: 'Vatnslitamynd: borð við glugga með útsýni yfir dal', en: 'Watercolour: a table by a window looking over a valley' })}
               className="aspect-[16/10] w-full object-cover object-[50%_45%]"
               fallbackClassName="bg-gradient-to-b from-[#F3E6CF] to-[#E4D3B4]"
             />
-          </div>
+          </Drift>
         </div>
       </div>
     </section>
@@ -282,102 +301,204 @@ export function Entrances() {
  * example and says so in its caption: this site never invents a quote and
  * presents it as real.
  */
+/*
+ * THE STORY, after decriminalizepoverty.org, compact. Three beats in a row
+ * rather than three full screens: each is a centred column with a setup
+ * line, a large line whose key word is marked by hand, and a short source
+ * note. The paintings sit in small round vignettes. The whole chapter is
+ * about two screens tall on a desktop.
+ */
+
+type BeatData = {
+  ground: string
+  ink: string
+  soft: string
+  accent: string
+  setup: L
+  big: L
+  /** Marked only when the word is the fact a worried reader needs. */
+  mark?: L
+  markKind: 'underline' | 'double'
+  after?: L
+  art?: 'plass' | 'kerfid'
+  cite: L
+  source: L
+}
+
+const BEATS: BeatData[] = [
+  {
+    ground: C.cream2,
+    ink: C.cocoa,
+    soft: C.cocoa,
+    accent: C.clay,
+    setup: t('Foreldri hefur', 'A parent is'),
+    big: t('áhyggjur af barninu sínu', 'worried about their child'),
+    markKind: 'underline',
+    art: 'plass',
+    cite: t(
+      'Öllum er skylt að láta barnaverndarþjónustu vita ef ástæða er til að ætla að barn búi við óviðunandi aðstæður. Foreldrar geta líka sjálfir leitað þangað.',
+      'Everyone must tell the child protection service if there is reason to believe a child lives in unacceptable conditions. Parents can also turn there themselves.',
+    ),
+    source: t('Barnaverndarlög nr. 80/2002, byggt á 16. gr.', 'Child Protection Act no. 80/2002, based on Article 16'),
+  },
+  {
+    ground: C.deep,
+    ink: '#FFF5E3',
+    soft: 'rgba(255,245,227,.86)',
+    accent: C.sunOnDeep,
+    setup: t('Barnavernd ákveður innan', 'Child protection decides within'),
+    big: t('sjö daga', 'seven days'),
+    mark: t('sjö daga', 'seven days'),
+    markKind: 'double',
+    after: t('hvort málið verði kannað', 'whether to investigate'),
+    cite: t(
+      'Ef málið er kannað er gerð skrifleg áætlun í samvinnu við foreldra og barnið, eftir aldri þess og þroska.',
+      'If the case is investigated, a written plan is made with the parents and the child, according to the child’s age and maturity.',
+    ),
+    source: t('Barnaverndarlög nr. 80/2002, byggt á 21. til 23. gr.', 'Child Protection Act no. 80/2002, based on Articles 21 to 23'),
+  },
+  {
+    ground: C.cream,
+    ink: C.cocoa,
+    soft: C.cocoa,
+    accent: C.clay,
+    setup: t('Fyrst er reynt að', 'The first step is to'),
+    big: t('styðja fjölskylduna heima', 'support the family at home'),
+    mark: t('heima', 'at home'),
+    markKind: 'underline',
+    art: 'kerfid',
+    cite: t(
+      'Barnaverndaryfirvöld beita ekki íþyngjandi ráðstöfunum nema markmiðum verði ekki náð með vægari hætti.',
+      'Child protection authorities do not use intrusive measures unless the aims cannot be reached in a less intrusive way.',
+    ),
+    source: t('Barnaverndarlög nr. 80/2002, byggt á 4. gr.', 'Child Protection Act no. 80/2002, based on Article 4'),
+  },
+]
+
+function Beat({ beat, first }: { beat: BeatData; first: boolean }) {
+  const [, , pick] = useLang()
+  const reduce = useReducedMotion()
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
+  const artY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [40, -40])
+
+  const art =
+    beat.art === 'plass' ? (
+      <Img
+        src={asset('art-plass-1000.jpg')}
+        width={1000}
+        height={750}
+        alt={pick({ is: 'Vatnslitamynd: eldhús að kvöldi', en: 'Watercolour: a kitchen in the evening' })}
+        className="h-full w-full object-cover object-[45%_55%]"
+        fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
+      />
+    ) : beat.art === 'kerfid' ? (
+      <Img
+        src={asset('art-kerfid-1600.jpg')}
+        width={1600}
+        height={685}
+        alt={pick({ is: 'Vatnslitamynd: vegur um dal að húsi', en: 'Watercolour: a road through a valley to a house' })}
+        className="h-full w-full object-cover object-[50%_60%]"
+        fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
+      />
+    ) : null
+
+  const bigSize = beat.markKind === 'double' ? 'text-[clamp(52px,7.4vw,96px)]' : 'text-[clamp(34px,4.6vw,60px)]'
+
+  return (
+    <div ref={ref} className="relative" style={{ background: beat.ground }}>
+      {!first && <Torn color={beat.ground} className="absolute inset-x-0 -top-6 sm:-top-7" />}
+      <div className="mx-auto grid max-w-6xl items-center gap-x-14 gap-y-8 px-5 py-16 sm:px-8 sm:py-20 md:grid-cols-12">
+        <div className={`text-center md:text-left ${art ? 'md:col-span-8' : 'md:col-span-12 md:text-center'}`}>
+          <WordReveal
+            text={pick(beat.setup)}
+            className="bofs-display text-[clamp(20px,2.4vw,30px)] leading-[1.1]"
+            style={{ color: beat.ink, fontWeight: 400 }}
+          />
+          <WordReveal
+            as="h3"
+            text={pick(beat.big)}
+            mark={beat.mark && pick(beat.mark)}
+            markKind={beat.markKind}
+            markColor={beat.accent}
+            base={0.12}
+            className={`bofs-display bofs-balance mt-1 ${bigSize} leading-[1.02]`}
+            style={{ color: beat.markKind === 'double' ? beat.accent : beat.ink, fontWeight: 700, letterSpacing: '-0.02em' }}
+          />
+          {beat.after && (
+            <WordReveal
+              text={pick(beat.after)}
+              base={0.3}
+              className="bofs-display mt-2 text-[clamp(20px,2.4vw,30px)] leading-[1.1]"
+              style={{ color: beat.ink, fontWeight: 400 }}
+            />
+          )}
+          <motion.figure
+            className={`mt-7 max-w-2xl ${art ? 'mx-auto md:mx-0' : 'mx-auto'}`}
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.6 }}
+            transition={{ duration: 0.8, delay: 0.5, ease: EASE }}
+          >
+            <blockquote className="bofs-pretty text-[clamp(16px,1.5vw,18px)] leading-relaxed" style={{ color: beat.soft }}>
+              {pick(beat.cite)}
+            </blockquote>
+            <figcaption className="mt-2 text-[13px]" style={{ color: beat.soft, opacity: 0.85 }}>
+              {pick(beat.source)}
+            </figcaption>
+          </motion.figure>
+        </div>
+        {art && (
+          <motion.div style={{ y: artY }} className="mx-auto aspect-square w-[min(58vw,300px)] overflow-hidden rounded-full md:col-span-4 md:w-full md:max-w-[300px]">
+            {art}
+          </motion.div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function Story() {
   const [, , pick] = useLang()
-  const steps = [t('Áhyggjur', 'Worry'), t('Samtal', 'A conversation'), t('Mat', 'Assessment'), t('Stuðningur', 'Support')]
   return (
-    <section id="saga" className="bofs-wash scroll-mt-24" style={{ background: C.cream2 }}>
-      <Torn color={C.cream2} className="-mt-6 sm:-mt-7" />
-      {/*
-        One story in the second person, in three beats, the way
-        decriminalizepoverty.org walks its reader through a day. Big lines,
-        a sentence each, one painting beside two of them, and the four words
-        the road is made of. It is a made-up example and says so.
-      */}
-      <div className="mx-auto max-w-6xl px-5 pb-24 pt-16 sm:px-8 sm:pb-32 sm:pt-20">
-        <Handwritten className="text-[30px] leading-none sm:text-[34px]" style={{ color: C.clayText }}>
-          {pick({ is: 'Ímyndaðu þér', en: 'Imagine' })}
-        </Handwritten>
-
-        <div className="mt-8 grid items-center gap-10 lg:grid-cols-12 lg:gap-16">
-          <div className="lg:col-span-6">
-            <p className="bofs-display bofs-balance text-[clamp(30px,4.4vw,56px)]" style={{ fontWeight: 500 }}>
-              {pick({ is: 'að þú sért foreldri sem veit ekki hvert á að leita.', en: 'you are a parent who does not know where to turn.' })}
-            </p>
-            <p className="mt-5 max-w-lg text-[17px] leading-relaxed" style={{ color: C.cocoa }}>
-              {pick({
-                is: 'Eitthvað er ekki í lagi heima, í skólanum eða með vinum. Þú hefur beðið of lengi eftir réttu orðunum.',
-                en: 'Something is not right at home, at school or with friends. You have waited too long for the right words.',
-              })}
-            </p>
-          </div>
-          <div className="bofs-wet lg:col-span-6">
-            <Img
-              src={asset('art-plass.jpg')}
-              srcSet={`${asset('art-plass-1000.jpg')} 1000w, ${asset('art-plass.jpg')} 1800w`}
-              sizes="(min-width: 1024px) 560px, 100vw"
-              width={1800}
-              height={1350}
-              alt={pick({ is: 'Vatnslitamynd: eldhús að kvöldi, borðið lagt, auður stóll með teppi', en: 'Watercolour: a kitchen in the evening, the table laid, an empty chair with a blanket' })}
-              className="aspect-[4/3] w-full object-cover"
-              fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
-            />
-          </div>
-        </div>
-
-        <div className="mx-auto mt-20 max-w-3xl text-center sm:mt-28">
-          <p className="bofs-display bofs-balance text-[clamp(30px,4.4vw,56px)]" style={{ fontWeight: 500 }}>
-            {pick({ is: 'Þú hringir eitt símtal.', en: 'You make one phone call.' })}
-          </p>
-          <p className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed" style={{ color: C.cocoa }}>
-            {pick({
-              is: 'Barnavernd í þínu sveitarfélagi hlustar, kynnist stöðunni og finnur með ykkur hvaða stuðningur á best við. Þjónustan kostar ekkert.',
-              en: 'Child protection in your municipality listens, gets to know the situation and finds with you the support that fits. The service is free.',
-            })}
-          </p>
-        </div>
-
-        <div className="mt-20 grid items-center gap-10 sm:mt-28 lg:grid-cols-12 lg:gap-16">
-          <div className="bofs-wet order-2 lg:order-1 lg:col-span-6">
-            <Img
-              src={asset('art-kerfid.jpg')}
-              srcSet={`${asset('art-kerfid-1600.jpg')} 1600w, ${asset('art-kerfid.jpg')} 3024w`}
-              sizes="(min-width: 1024px) 560px, 100vw"
-              width={3024}
-              height={1296}
-              alt={pick({ is: 'Vatnslitamynd: vegur liggur um dal að húsi með ljós í glugga', en: 'Watercolour: a road runs through a valley to a house with a light in the window' })}
-              className="aspect-[16/9] w-full object-cover object-[60%_60%]"
-              fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
-            />
-          </div>
-          <div className="order-1 lg:order-2 lg:col-span-6">
-            <p className="bofs-display bofs-balance text-[clamp(30px,4.4vw,56px)]" style={{ fontWeight: 500 }}>
-              {pick({ is: 'Rétta úrræðið tekur við. Og fylgir ykkur heim.', en: 'The right service steps in. And follows you home.' })}
-            </p>
-            <ol className="mt-8 flex flex-wrap items-center gap-y-3">
-              {steps.map((s, i) => (
-                <li key={s.is} className="flex items-center">
-                  <span className="bofs-display whitespace-nowrap text-[clamp(17px,1.7vw,22px)]" style={{ fontWeight: 500 }}>
-                    {pick(s)}
-                  </span>
-                  {i < steps.length - 1 && (
-                    <span className="mx-3 w-7 sm:w-9" aria-hidden="true">
-                      <span className="bofs-rule" />
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ol>
-            <p className="mt-6 text-[13.5px]" style={{ color: C.body }}>
-              {pick({
-                is: 'Dæmisaga um leið sem margar fjölskyldur fara. Ekki raunverulegt mál.',
-                en: 'An example of a road many families travel. Not a real case.',
-              })}
-            </p>
-          </div>
-        </div>
-      </div>
+    <section id="saga" className="scroll-mt-20" aria-label={pick({ is: 'Dæmi um feril máls', en: 'An example of how a case proceeds' })}>
+      {BEATS.map((b, i) => (
+        <Beat key={i} beat={b} first={i === 0} />
+      ))}
+      <p className="bofs-wash px-5 pb-8 text-center text-[13.5px]" style={{ background: C.cream, color: C.body }}>
+        {pick({ is: 'Almennt dæmi um feril máls. Hvert mál er ólíkt.', en: 'A general example of how a case proceeds. Every case is different.' })}
+      </p>
     </section>
+  )
+}
+
+/* ── chapter breaks: a pause, not a page ──────────────────────────────────
+ * After the reference, but a third of the height: a short hairline draws
+ * down, the chapter number, one word written in with a hand-drawn stroke
+ * beneath it. Decorative for screen readers; the chapter's heading follows.
+ */
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI']
+
+export function ChapterBreak({ n, word, ground = C.cream, ink = C.cocoa }: { n: number; word: L; ground?: string; ink?: string }) {
+  const [, , pick] = useLang()
+  const reduce = useReducedMotion()
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'center center'] })
+  const lineIn = useTransform(scrollYProgress, [0.2, 0.9], [reduce ? 1 : 0, 1])
+  return (
+    <div ref={ref} aria-hidden="true" className="bofs-wash relative flex flex-col items-center px-5 pb-14 pt-10" style={{ background: ground }}>
+      <Torn color={ground} className="absolute inset-x-0 -top-6 sm:-top-7" />
+      <motion.span className="block h-16 w-px origin-top sm:h-20" style={{ background: ink, scaleY: lineIn, opacity: 0.45 }} />
+      <span className="bofs-display mt-4 text-[16px]" style={{ color: ink, opacity: 0.8 }}>
+        {pick({ is: 'Kafli', en: 'Chapter' })} {ROMAN[n - 1]}
+      </span>
+      <WordReveal
+        as="span"
+        text={pick(word)}
+        className="bofs-display mt-1 block text-center text-[clamp(40px,6.4vw,84px)] leading-[1.05]"
+        style={{ color: ink, fontWeight: 400, letterSpacing: '-0.02em' }}
+      />
+    </div>
   )
 }
 
@@ -399,7 +520,9 @@ export function ServiceCategories() {
       <section id="heimili" className="bofs-wash scroll-mt-24" style={{ background: C.cream }}>
         <Torn color={C.cream} className="-mt-6 sm:-mt-7" />
         <div className="mx-auto max-w-6xl px-5 pb-24 pt-16 sm:px-8 sm:pb-28 sm:pt-20">
-          <SectionHead eyebrow={pick(CATEGORIES[0].title)} title={pick({ is: 'Örugg heimili þegar þeirra er þörf', en: 'Safe homes, when they’re needed' })} lead={pick(CATEGORIES[0].blurb)} />
+          <Rise>
+            <SectionHead title={pick({ is: 'Meðferðarheimili', en: 'Treatment homes' })} lead={pick(CATEGORIES[0].blurb)} />
+          </Rise>
           {/* five paintings, set on the page, no frames */}
           <div className="mt-14 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
             {homes.map((s, i) => (
@@ -412,11 +535,12 @@ export function ServiceCategories() {
       <section id="thjonusta" className="bofs-wash scroll-mt-24" style={{ background: C.oat }}>
         <Torn color={C.oat} className="-mt-6 sm:-mt-7" />
         <div className="mx-auto max-w-6xl px-5 pb-24 pt-16 sm:px-8 sm:pb-28 sm:pt-20">
-          <SectionHead
-            eyebrow={pick(CATEGORIES[1].title)}
-            title={pick({ is: 'Stuðningur sem kemur til fjölskyldunnar', en: 'Support that comes to the family' })}
-            lead={pick(CATEGORIES[1].blurb)}
-          />
+          <Rise>
+            <SectionHead
+              title={pick({ is: 'Þjónusta við börn og fjölskyldur', en: 'Services for children and families' })}
+              lead={pick(CATEGORIES[1].blurb)}
+            />
+          </Rise>
           <div className="mt-14 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-4">
             {services.map((s, i) => (
               <ServiceCard key={s.slug} service={s} index={i} />
@@ -446,10 +570,10 @@ export function Process() {
   const steps = [
     ...PATH.steps.map((s) => ({ title: s.title, body: s.body })),
     {
-      title: t('Fjölskyldan fær eftirfylgd', 'The family is followed up'),
+      title: t('Málinu er fylgt eftir', 'The case is followed up'),
       body: t(
-        'Stuðningurinn hættir ekki þegar meðferð lýkur. Barnavernd og úrræðið fylgja fjölskyldunni eftir heim.',
-        'Support does not end when treatment ends. Child protection and the service follow the family home.',
+        'Markmiðið er að barnið geti búið heima eða við stöðugar aðstæður. Barnaverndarþjónustan fylgir málinu eftir samkvæmt áætluninni.',
+        'The aim is for the child to live at home or in stable circumstances. The child protection service follows the case according to the plan.',
       ),
     },
   ]
@@ -458,15 +582,15 @@ export function Process() {
     <section id="ferli" className="scroll-mt-24" style={{ background: '#FFFFFF' }}>
       <Torn color="#FFFFFF" className="-mt-6 sm:-mt-7" />
       <div className="mx-auto max-w-6xl px-5 pb-20 pt-14 sm:px-8 sm:pb-28 sm:pt-20">
-        <div>
-          <h2 className="bofs-display max-w-2xl text-[clamp(30px,4.6vw,52px)]">{pick({ is: 'Hvernig hjálpin virkar', en: 'How help works' })}</h2>
+        <Rise>
+          <h2 className="bofs-display max-w-2xl text-[clamp(30px,4.6vw,52px)]">{pick({ is: 'Hvernig barn fær aðstoð', en: 'How a child gets help' })}</h2>
           <p className="bofs-pretty mt-4 max-w-xl text-[16.5px] leading-relaxed" style={{ color: C.body }}>
             {pick({
-              is: 'Fjögur skref, í þessari röð. Barnaverndarþjónusta í þínu sveitarfélagi er alltaf fyrsti viðkomustaðurinn og þjónustan kostar ekkert.',
-              en: 'Four steps, in this order. The child protection service in your municipality is always the first stop, and the service is free.',
+              is: 'Barnaverndarþjónusta í sveitarfélagi barnsins er alltaf fyrsti viðkomustaður.',
+              en: 'The child protection service in the child’s municipality is always the first point of contact.',
             })}
           </p>
-        </div>
+        </Rise>
 
         <div ref={ref} className="relative mt-14">
           {/* one straight rule that draws itself as the reader reaches it */}
@@ -496,10 +620,10 @@ export function Process() {
           </ol>
         </div>
 
-        <p className="mt-14 text-[17px]">
+        <p className="mt-14 flex flex-wrap gap-x-10 gap-y-3 text-[17px]">
           <Link to="/preview/bofs/kerfid" className="bofs-focus group rounded">
             <span className="bofs-way font-semibold" style={{ color: C.clayText }}>
-              {pick({ is: 'Lesa um allt ferlið', en: 'Read about the whole process' })}
+              {pick({ is: 'Nánar um ferlið', en: 'More about the process' })}
             </span>
           </Link>
         </p>
@@ -523,51 +647,55 @@ export function Grounds() {
     <section id="stadir" className="bofs-wash scroll-mt-24" style={{ background: C.cream }}>
       <Torn color={C.cream} className="-mt-6 sm:-mt-7" />
       <div className="mx-auto max-w-6xl px-5 pt-14 sm:px-8 sm:pt-20">
-        <div>
-          <h2 className="bofs-display max-w-2xl text-[clamp(30px,4.6vw,52px)]">{pick({ is: 'Venjulegir staðir, venjulegir dagar', en: 'Ordinary places, ordinary days' })}</h2>
+        <Rise>
+          <h2 className="bofs-display max-w-2xl text-[clamp(30px,4.6vw,52px)]">{pick({ is: 'Á meðferðarheimilunum', en: 'At the treatment homes' })}</h2>
           <p className="bofs-pretty mt-4 max-w-xl text-[16.5px] leading-relaxed" style={{ color: C.body }}>
             {pick({
-              is: 'Meðferðarheimili er fyrst og fremst heimili. Morgunmatur, herbergi sem er tekið til, gönguferð. Það er í þessum smáu hlutum sem öryggið býr.',
-              en: 'A treatment home is first of all a home. Breakfast, a room made ready, a walk. Safety lives in these small things.',
+              is: 'Í meðferð er lögð áhersla á öryggi, stöðugleika og virkni í skóla, vinnu og tómstundum. Foreldrar taka þátt í meðferðinni.',
+              en: 'Treatment focuses on safety, stability and activity in school, work and leisure. Parents take part in the treatment.',
             })}
           </p>
-        </div>
+        </Rise>
       </div>
 
       {/* the one full-bleed photograph, and it is a real one */}
       <div className="mt-12">
         <figure>
-          <Img
-            src={asset('laekjarbakki-hus.jpg')}
-            width={1920}
-            height={1440}
-            srcSet={`${asset('laekjarbakki-hus-1000.jpg')} 1000w, ${asset('laekjarbakki-hus.jpg')} 1920w`}
-            sizes="100vw"
-            alt={pick({ is: 'Meðferðarheimilið Lækjarbakki í Gunnarsholti að vetri', en: 'The Lækjarbakki treatment home in Gunnarsholt in winter' })}
-            className="bofs-photo h-[52vw] max-h-[680px] min-h-[280px] w-full object-cover"
-            fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
-          />
+          <Drift amount={30} className="h-[38vw] max-h-[460px] min-h-[240px]">
+            <Img
+              src={asset('laekjarbakki-hus.jpg')}
+              width={1920}
+              height={1440}
+              srcSet={`${asset('laekjarbakki-hus-1000.jpg')} 1000w, ${asset('laekjarbakki-hus.jpg')} 1920w`}
+              sizes="100vw"
+              alt={pick({ is: 'Meðferðarheimilið Lækjarbakki í Gunnarsholti að vetri', en: 'The Lækjarbakki treatment home in Gunnarsholt in winter' })}
+              className="bofs-photo h-[38vw] max-h-[460px] min-h-[240px] w-full object-cover"
+              fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
+            />
+          </Drift>
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
-            <Caption>{pick({ is: 'Lækjarbakki í Gunnarsholti, opnað í maí 2026. Ljósmynd frá heimilinu.', en: 'Lækjarbakki in Gunnarsholt, opened May 2026. Photograph from the home.' })}</Caption>
+            <Caption>{pick({ is: 'Lækjarbakki í Gunnarsholti. Ljósmynd frá heimilinu.', en: 'Lækjarbakki at Gunnarsholt. Photograph from the home.' })}</Caption>
           </div>
         </figure>
       </div>
 
-      <div className="mx-auto grid max-w-6xl gap-x-6 gap-y-10 px-5 pb-20 pt-12 sm:grid-cols-2 sm:px-8 sm:pb-28">
+      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-5 gap-y-8 px-5 pb-16 pt-10 sm:px-8 lg:grid-cols-4">
         {[
-          { src: PLACEHOLDER.table, w: 1920, h: 1071, ph: true, alt: t('Eldhúsborð með tveimur bollum og ullarteppi á stólbaki', 'A kitchen table with two mugs and a wool blanket on a chair'), cap: t('Eldhúsborðið, þar sem flest samtöl byrja.', 'The kitchen table, where most conversations begin.') },
-          { src: PLACEHOLDER.hands, w: 966, h: 1200, ph: true, alt: t('Hendur slétta sæng á rúmi í björtu herbergi', 'Hands smoothing a duvet on a bed in a bright room'), cap: t('Herbergi tekið til fyrir þann sem kemur.', 'A room made ready for whoever is arriving.') },
-          { src: PLACEHOLDER.grounds, w: 1400, h: 939, ph: true, alt: t('Starfsmaður gengur eftir malarstíg við lágreist hvítt hús', 'A staff member walking along a gravel path by a low white house'), cap: t('Gengið um lóðina.', 'Crossing the grounds.') },
-          { src: 'laekjarbakki-tonlist.jpg', w: 1920, h: 1440, ph: false, alt: t('Tónlistarherbergi á Lækjarbakka', 'The music room at Lækjarbakki'), cap: t('Tónlistarherbergið á Lækjarbakka. Ljósmynd frá heimilinu.', 'The music room at Lækjarbakki. Photograph from the home.') },
+          { src: PLACEHOLDER.table, w: 1920, h: 1071, ph: true, alt: t('Eldhúsborð með tveimur bollum og ullarteppi á stólbaki', 'A kitchen table with two mugs and a wool blanket on a chair'), cap: t('Eldhús.', 'A kitchen.') },
+          { src: PLACEHOLDER.hands, w: 966, h: 1200, ph: true, alt: t('Hendur slétta sæng á rúmi í björtu herbergi', 'Hands smoothing a duvet on a bed in a bright room'), cap: t('Herbergi.', 'A bedroom.') },
+          { src: PLACEHOLDER.grounds, w: 1400, h: 939, ph: true, alt: t('Starfsmaður gengur eftir malarstíg við lágreist hvítt hús', 'A staff member walking along a gravel path by a low white house'), cap: t('Lóð meðferðarheimilis.', 'The grounds of a treatment home.') },
+          { src: 'laekjarbakki-tonlist.jpg', w: 1920, h: 1440, ph: false, alt: t('Tónlistarherbergi á Lækjarbakka', 'The music room at Lækjarbakki'), cap: t('Tónlistarherbergi á Lækjarbakka. Ljósmynd frá heimilinu.', 'The music room at Lækjarbakki. Photograph from the home.') },
         ].map((f) => (
           <figure key={f.src}>
             <Img
               src={asset(f.src)}
+              srcSet={`${asset(f.src.replace('.jpg', '-900.jpg'))} 900w, ${asset(f.src)} ${f.w}w`}
+              sizes="(min-width: 1024px) 270px, 50vw"
               width={f.w}
               height={f.h}
               data-placeholder={f.ph ? 'ai' : undefined}
               alt={pick(f.alt)}
-              className="bofs-photo aspect-[3/2] w-full object-cover"
+              className="bofs-photo aspect-[4/5] w-full object-cover"
               fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
             />
             <Caption placeholder={f.ph}>{pick(f.cap)}</Caption>
@@ -591,16 +719,16 @@ export function HelpPanel() {
   const municipal = INSTITUTIONS.items[0]
   const rows: { label: L; blurb: L; value: string; href: string; external?: boolean; red?: boolean }[] = [
     { label: t('Bráð hætta', 'Immediate danger'), blurb: HELP.lines[0].blurb, value: '112', href: 'tel:112', red: true },
-    { label: t('Ég þarf að tala við einhvern', 'I need to talk to someone'), blurb: HELP.lines[1].blurb, value: '1717', href: 'tel:1717' },
+    { label: t('Að tala við einhvern', 'Talk to someone'), blurb: HELP.lines[1].blurb, value: '1717', href: 'tel:1717' },
     {
       label: t('Áhyggjur af barni', 'Worried about a child'),
-      blurb: t('Barnaverndarþjónusta í þínu sveitarfélagi tekur við', 'The child protection service in your municipality takes it from here'),
+      blurb: t('Finna barnaverndarþjónustu sveitarfélagsins', 'Find your municipal child protection service'),
       value: pick({ is: 'Finna', en: 'Find' }),
       href: municipal.href ?? '#',
       external: true,
     },
-    { label: t('Eftir ofbeldi', 'After abuse'), blurb: t('Barnahús', 'Barnahús'), value: HELP.lines[2].value, href: `tel:${HELP.lines[2].value.replace(/\s/g, '')}` },
-    { label: t('Almennar upplýsingar', 'General information'), blurb: t('Barna- og fjölskyldustofa, virka daga', 'Barna- og fjölskyldustofa, weekdays'), value: HELP.lines[3].value, href: `tel:${HELP.lines[3].value.replace(/\s/g, '')}` },
+    { label: t('Grunur um ofbeldi', 'Suspected violence'), blurb: t('Barnahús', 'Barnahús'), value: HELP.lines[2].value, href: `tel:${HELP.lines[2].value.replace(/\s/g, '')}` },
+    { label: t('Almennar upplýsingar', 'General information'), blurb: HELP.lines[3].blurb, value: HELP.lines[3].value, href: `tel:${HELP.lines[3].value.replace(/\s/g, '')}` },
   ]
 
   return (
@@ -630,9 +758,11 @@ export function HelpPanel() {
                 <p className="mt-1 text-[13px] font-semibold" style={{ color: C.clayText }}>
                   {pick(REPORT.statuteRef)}
                 </p>
-                <Link to="/preview/bofs/kerfid" className="bofs-focus group mt-5 inline-block rounded text-[15px] font-semibold" style={{ color: C.clayText }}>
-                  <span className="bofs-way">{pick(REPORT.ctaPrimary)}</span>
-                </Link>
+                <p className="mt-5">
+                  <Link to="/preview/bofs/kerfid" className="bofs-focus group inline-block rounded text-[15px] font-semibold" style={{ color: C.clayText }}>
+                    <span className="bofs-way">{pick(REPORT.ctaPrimary)}</span>
+                  </Link>
+                </p>
               </div>
             </div>
           </div>
@@ -645,7 +775,7 @@ export function HelpPanel() {
                     href={r.href}
                     target={r.external ? '_blank' : undefined}
                     rel={r.external ? 'noopener noreferrer' : undefined}
-                    className="bofs-focus group flex items-center justify-between gap-6 py-6"
+                    className="bofs-focus group flex items-center justify-between gap-6 py-6 transition-transform duration-300 ease-[cubic-bezier(.23,1,.32,1)] hover:translate-x-1"
                   >
                     <span>
                       <span className="block text-[17px] font-bold" style={{ color: C.cocoa }}>
@@ -682,88 +812,131 @@ export function Ending() {
   const [, , pick] = useLang()
   const story = NEWS.items.find((n) => n.featured) ?? NEWS.items[0]
   const links = [
-    { label: pick({ is: 'Kerfið, frá upphafi til enda', en: 'The system, end to end' }), to: '/preview/bofs/kerfid' },
-    { label: pick({ is: 'Gerast fósturforeldri', en: 'Become a foster parent' }), to: '/preview/bofs/fostur#gerast' },
+    { label: pick({ is: 'Hvernig barnavernd virkar', en: 'How child protection works' }), to: '/preview/bofs/kerfid' },
+    { label: pick({ is: 'Að gerast fósturforeldri', en: 'Becoming a foster parent' }), to: '/preview/bofs/fostur#gerast' },
     { label: pick({ is: 'Allar fréttir', en: 'All news' }), to: '/preview/bofs/frettir' },
-    { label: pick({ is: 'Saga, skipulag og eftirlit', en: 'History, structure and oversight' }), to: '/preview/bofs/um-stofnunina' },
+    { label: pick({ is: 'Um stofnunina', en: 'About the agency' }), to: '/preview/bofs/um-stofnunina' },
   ]
   return (
     <section id="um" className="bofs-wash scroll-mt-24" style={{ background: C.oat }}>
       <Torn color={C.oat} className="-mt-6 sm:-mt-7" />
       <div className="mx-auto max-w-6xl px-5 pb-20 pt-14 sm:px-8 sm:pb-24 sm:pt-20">
-        <div className="grid gap-x-10 gap-y-12 lg:grid-cols-12">
-          {/* the one story */}
-          <div className="lg:col-span-5">
-            <article className="group relative border-t pt-5" style={{ borderColor: C.cocoa }}>
-              <div className="flex items-center gap-3 text-[13px] font-semibold" style={{ color: C.body }}>
-                <span>{pick({ is: 'Nýjast', en: 'Latest' })}</span>
-                <span className="bofs-num">{story.date}</span>
-                <span>{story.source}</span>
-              </div>
-              <h2 className="bofs-display bofs-balance mt-3 text-[clamp(22px,2.6vw,30px)]">
-                <a href={story.href} target="_blank" rel="noopener noreferrer" className="bofs-focus rounded after:absolute after:inset-0 after:content-['']" style={{ color: C.cocoa }}>
-                  {pick(story.title)}
-                </a>
-              </h2>
-              {story.summary && (
-                <p className="bofs-pretty mt-3 text-[15px] leading-relaxed" style={{ color: C.body }}>
-                  {pick(story.summary)}
-                </p>
-              )}
-              <span className="bofs-way mt-4 inline-block text-[14.5px] font-semibold" style={{ color: C.clayText }}>
+        {/* two written pieces, side by side */}
+        <div className="grid gap-x-16 gap-y-14 lg:grid-cols-12">
+          <article className="group relative lg:col-span-7">
+            <p className="text-[13px] font-semibold" style={{ color: C.clayText }}>
+              {pick({ is: 'Nýjasta frétt', en: 'Latest news' })}
+            </p>
+            <h2 className="bofs-display bofs-balance mt-3 max-w-2xl text-[clamp(24px,3vw,36px)]">
+              <a href={story.href} target="_blank" rel="noopener noreferrer" className="bofs-focus rounded after:absolute after:inset-0 after:content-['']" style={{ color: C.cocoa }}>
+                {pick(story.title)}
+              </a>
+            </h2>
+            {story.summary && (
+              <p className="bofs-pretty mt-4 max-w-2xl text-[16px] leading-relaxed" style={{ color: C.cocoa }}>
+                {pick(story.summary)}
+              </p>
+            )}
+            <p className="mt-4 text-[13.5px]" style={{ color: C.body }}>
+              <span className="bofs-num">{story.date}</span> · {story.source} ·{' '}
+              <span className="bofs-way font-semibold" style={{ color: C.clayText }}>
                 {pick(NEWS.readMore)}
               </span>
-            </article>
-          </div>
+            </p>
+          </article>
 
-          {/* the statement */}
-          <div className="lg:col-span-4">
-            <div className="border-t pt-5" style={{ borderColor: C.cocoa }}>
-              <p className="bofs-display bofs-balance text-[clamp(20px,2.2vw,26px)]" style={{ fontWeight: 500 }}>
-                {pick(HONEST.title)}
-              </p>
-              <p className="bofs-pretty mt-4 text-[15px] leading-relaxed" style={{ color: C.body }}>
-                {pick(ABOUT_TEASER.body)}
-              </p>
-              <Link to="/preview/bofs/um-stofnunina" className="bofs-focus group mt-4 inline-block rounded text-[14.5px] font-semibold" style={{ color: C.clayText }}>
+          <div className="lg:col-span-5 lg:pl-10" style={{ borderLeft: `1px solid ${C.line}` }}>
+            <p className="bofs-display bofs-balance text-[clamp(22px,2.4vw,30px)]" style={{ fontWeight: 500 }}>
+              {pick(HONEST.title)}
+            </p>
+            <p className="bofs-pretty mt-4 text-[15.5px] leading-relaxed" style={{ color: C.cocoa }}>
+              {pick(HONEST.body)}
+            </p>
+            <p className="mt-4">
+              <Link to="/preview/bofs/um-stofnunina#eftirlit" className="bofs-focus group inline-block rounded text-[15px] font-semibold" style={{ color: C.clayText }}>
+                <span className="bofs-way">{pick({ is: 'Eftirlit og kvartanir', en: 'Oversight and complaints' })}</span>
+              </Link>
+            </p>
+            <p className="bofs-pretty mt-8 border-t pt-6 text-[15.5px] leading-relaxed" style={{ borderColor: C.line, color: C.cocoa }}>
+              {pick(ABOUT_TEASER.body)}
+            </p>
+            <p className="mt-4">
+              <Link to="/preview/bofs/um-stofnunina" className="bofs-focus group inline-block rounded text-[15px] font-semibold" style={{ color: C.clayText }}>
                 <span className="bofs-way">{pick(ABOUT_TEASER.cta)}</span>
               </Link>
-            </div>
+            </p>
           </div>
+        </div>
 
-          {/* contact and the links a professional expects */}
-          <div className="lg:col-span-3">
-            <div className="border-t pt-5" style={{ borderColor: C.cocoa }}>
-              <p className="text-[15px] font-bold" style={{ color: C.cocoa }}>
-                {ORG.name}
+        {/* the colophon: who this is and where, on one rule */}
+        <div className="mt-20 border-t pt-8 sm:mt-24" style={{ borderColor: C.cocoa }}>
+          <div className="grid gap-x-10 gap-y-8 md:grid-cols-12">
+            <div className="md:col-span-5">
+              <p className="bofs-display text-[20px]">{ORG.name}</p>
+              <p className="mt-2 text-[15px] leading-relaxed" style={{ color: C.cocoa }}>
+                {ORG.address}
+                <br />
+                <a className="bofs-focus rounded" href={`tel:${ORG.phone.replace(/\s/g, '')}`}>
+                  {ORG.phone}
+                </a>
+                {' · '}
+                <a className="bofs-focus rounded" href={`mailto:${ORG.email}`}>
+                  {ORG.email}
+                </a>
+                <br />
+                <span style={{ color: C.body }}>{pick(ORG.hours)}</span>
               </p>
-              <ul className="mt-2 space-y-0.5 text-[15px]" style={{ color: C.body }}>
-                <li>{ORG.address}</li>
-                <li>
-                  <a className="bofs-focus rounded hover:opacity-70" href={`tel:${ORG.phone.replace(/\s/g, '')}`}>
-                    {ORG.phone}
-                  </a>
-                </li>
-                <li>
-                  <a className="bofs-focus rounded hover:opacity-70" href={`mailto:${ORG.email}`}>
-                    {ORG.email}
-                  </a>
-                </li>
-                <li className="text-[13.5px]">{pick(ORG.hours)}</li>
-              </ul>
-              <ul className="mt-6 space-y-1.5">
-                {links.map((l) => (
-                  <li key={l.to}>
-                    <Link to={l.to} className="bofs-focus group inline-block rounded text-[14.5px] font-semibold" style={{ color: C.cocoa }}>
-                      <span className="bofs-way">{l.label}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
             </div>
+            <ul className="grid gap-x-10 gap-y-2 sm:grid-cols-2 md:col-span-7 md:pt-1">
+              {links.map((l) => (
+                <li key={l.to}>
+                  <Link to={l.to} className="bofs-focus group inline-block rounded text-[15px] font-semibold" style={{ color: C.cocoa }}>
+                    <span className="bofs-way">{l.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
+    </section>
+  )
+}
+
+/* ── 9. Night: the valley at dusk carries the closing line AND the footer ── */
+
+/*
+ * The old bookend faded its painting into a flat brown, and the footer was
+ * the same brown without the paper texture, so a seam showed where the two
+ * met. Now there is one night section: the painting runs behind the closing
+ * line and the whole footer, darkening continuously as it goes down, and
+ * the footer paints no ground of its own.
+ */
+export function NightClose() {
+  const [, , pick] = useLang()
+  return (
+    <section className="relative overflow-hidden" style={{ background: C.deep }}>
+      <Img
+        src={asset('art-dusk.jpg')}
+        srcSet={`${asset('art-dusk-1600.jpg')} 1600w, ${asset('art-dusk.jpg')} 2560w`}
+        sizes="100vw"
+        width={2560}
+        height={1440}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 h-full w-full object-cover object-[50%_30%]"
+        fallbackClassName="bg-gradient-to-b from-[#55402E] to-[#4A3123]"
+      />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(rgba(58,44,34,.18) 0%, rgba(58,44,34,.5) 30%, rgba(58,44,34,.8) 55%, rgba(58,44,34,.9) 100%)' }} />
+      <div className="relative mx-auto max-w-4xl px-5 pb-24 pt-32 text-center sm:px-8 sm:pt-40">
+        <p className="bofs-display bofs-balance mx-auto max-w-2xl text-[clamp(22px,3.2vw,32px)]" style={{ color: '#FDF3E3', textShadow: '0 1px 24px rgba(40,28,18,.45)' }}>
+          {pick({ is: 'Ef barn er í bráðri hættu skaltu hringja í 112.', en: 'If a child is in immediate danger, call 112.' })}
+        </p>
+        <p className="mx-auto mt-3 max-w-xl text-[17px]" style={{ color: 'rgba(253,243,227,.9)' }}>
+          {pick({ is: 'Hjálparsími Rauða krossins, 1717, svarar allan sólarhringinn.', en: 'The Red Cross helpline, 1717, answers around the clock.' })}
+        </p>
+      </div>
+      <Footer bare />
     </section>
   )
 }

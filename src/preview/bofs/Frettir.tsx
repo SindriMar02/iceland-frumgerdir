@@ -1,23 +1,17 @@
 /**
- * Öruggt skjól — "Fréttir" (news).
+ * Öruggt skjól — "Fréttir": news from the agency and related bodies.
  *
- * Real, current, source-linked items from the agency's own newsroom, from
- * GEV, from Stjórnarráðið and from Icelandic media. A production build would
- * pull these from the feeds; here they are curated, and every item was
- * re-checked against its publisher on 27 July 2026.
- *
- * Structure: a lead story, a topic filter, then the rest grouped by month.
- * The filter drives the lead as well as the archive, so choosing "Barnahús"
- * genuinely re-leads the page rather than only shortening a list.
+ * Items are synced from the publishers and every one links to its source.
+ * Rebuilt 2026-09-17 in the page language: plain opening, topic filter as
+ * underlined text buttons, the lead story on a rule, the rest by month,
+ * and where the items come from. No boxes, no pills.
  */
 
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Reveal } from '../../components/Reveal'
 import { setThemeColor } from '../../lib/preview'
-import { BofsStyles, C, Eyebrow, Footer, Header, useLang, Arrow } from './ui'
+import { BofsStyles, C, Footer, Header, IslandLink, PageHead, useLang } from './ui'
 import { NewsFeature, NewsGroupedList, NewsSources } from './sections'
-import { NEWS, NEWS_TOPICS, type NewsTopic, UI } from './data'
+import { ISLAND, NEWS, NEWS_TOPICS, type NewsTopic, UI } from './data'
 
 export default function BofsFrettir() {
   const [, , pick] = useLang()
@@ -29,10 +23,7 @@ export default function BofsFrettir() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const shown = useMemo(
-    () => (topic === 'all' ? NEWS.items : NEWS.items.filter((n) => n.topic === topic)),
-    [topic],
-  )
+  const shown = useMemo(() => (topic === 'all' ? NEWS.items : NEWS.items.filter((n) => n.topic === topic)), [topic])
   const lead = shown[0]
   const rest = shown.slice(1)
 
@@ -44,120 +35,67 @@ export default function BofsFrettir() {
         {pick(UI.skipToContent)}
       </a>
 
-      <main id="main">
-        {/* ── Masthead ──────────────────────────────────────────────────── */}
-        <section style={{ background: C.cream }}>
-          <div className="mx-auto max-w-5xl px-5 pb-10 pt-32 sm:px-8 sm:pt-36">
-            <Reveal y={14}>
-              <Link
-                to="/preview/bofs"
-                className="bofs-focus mb-5 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13.5px] font-bold"
-                style={{ background: '#fff', color: C.cocoa }}
-              >
-                <Arrow className="rotate-180" />
-                {pick({ is: 'Forsíða', en: 'Home' })}
-              </Link>
-            </Reveal>
-            <Reveal delay={0.05}>
-              <Eyebrow>{pick(NEWS.eyebrow)}</Eyebrow>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <h1 className="bofs-display bofs-display-xl bofs-balance mt-3 text-[clamp(34px,6vw,58px)]">
-                {pick(NEWS.title)}
-              </h1>
-            </Reveal>
-            <Reveal delay={0.16}>
-              <p className="bofs-pretty mt-5 max-w-2xl text-[17px] leading-relaxed" style={{ color: C.body }}>
-                {pick(NEWS.lead)}
-              </p>
-              <p className="mt-3 text-[13px]" style={{ color: C.body }}>
-                {pick(NEWS.updated)}
-              </p>
-            </Reveal>
-          </div>
-        </section>
+      <main id="main" className="bofs-wash" style={{ background: C.cream }}>
+        <PageHead crumb={pick(NEWS.title)} title={pick(NEWS.title)} lead={pick(NEWS.lead)}>
+          <IslandLink to={ISLAND.news} />
+        </PageHead>
 
-        {/* ── Topic filter ──────────────────────────────────────────────── */}
-        <section style={{ background: C.cream }}>
-          <div className="mx-auto max-w-5xl px-5 sm:px-8">
-            <Reveal delay={0.04}>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-y py-4" style={{ borderColor: C.line }}>
-                <span className="text-[12.5px] font-bold uppercase" style={{ color: C.clayText, letterSpacing: '0.14em' }}>
-                  {pick(NEWS.filterTitle)}
-                </span>
-                <div className="flex flex-wrap gap-2" role="group" aria-label={pick(NEWS.filterTitle)}>
-                  {[{ id: 'all' as const, label: NEWS.filterAll }, ...NEWS_TOPICS].map((tOpt) => {
-                    const on = topic === tOpt.id
-                    return (
-                      <button
-                        key={tOpt.id}
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() => setTopic(tOpt.id)}
-                        className="bofs-focus rounded-[11px] px-3.5 py-1.5 text-[13.5px] font-bold transition-colors duration-150"
-                        style={
-                          on
-                            ? { background: C.cocoa, color: C.cream }
-                            : { background: '#fff', color: C.body, boxShadow: `inset 0 0 0 1px ${C.line}` }
-                        }
-                      >
-                        {pick(tOpt.label)}
-                      </button>
-                    )
-                  })}
-                </div>
-                <p className="text-[13px]" style={{ color: C.body }} aria-live="polite">
-                  {pick(NEWS.count(shown.length))}
-                </p>
-              </div>
-            </Reveal>
-          </div>
-        </section>
+        <div className="mx-auto max-w-4xl px-5 pb-24 sm:px-8">
+          <p className="-mt-6 mb-10 text-[14px]" style={{ color: C.body }}>
+            {pick(NEWS.updated)}
+          </p>
 
-        {/* ── Lead story ────────────────────────────────────────────────── */}
-        <section style={{ background: C.cream }}>
-          <div className="mx-auto max-w-5xl px-5 pt-10 sm:px-8">
+          {/* topic filter */}
+          <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 border-y py-4" style={{ borderColor: C.line }} role="group" aria-label={pick(NEWS.filterTitle)}>
+            <span className="text-[14px]" style={{ color: C.body }}>
+              {pick(NEWS.filterTitle)}
+            </span>
+            {[{ id: 'all' as const, label: NEWS.filterAll }, ...NEWS_TOPICS].map((opt) => {
+              const on = topic === opt.id
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setTopic(opt.id)}
+                  className="bofs-focus group rounded text-[15px] font-semibold"
+                  style={{ color: on ? C.clayText : C.cocoa }}
+                >
+                  <span className="bofs-way" style={{ backgroundSize: on ? '100% 2px' : undefined }}>
+                    {pick(opt.label)}
+                  </span>
+                </button>
+              )
+            })}
+            <span className="ml-auto text-[14px]" style={{ color: C.body }} aria-live="polite">
+              {pick(NEWS.count(shown.length))}
+            </span>
+          </div>
+
+          <div className="mt-10">
             {lead ? (
-              <Reveal>
-                <NewsFeature item={lead} as="h2" />
-              </Reveal>
+              <NewsFeature item={lead} as="h2" />
             ) : (
-              <p className="rounded-[18px] px-6 py-8 text-center text-[15px]" style={{ background: '#fff', color: C.body, boxShadow: `inset 0 0 0 1px ${C.line}` }}>
+              <p className="text-[17px]" style={{ color: C.cocoa }}>
                 {pick(NEWS.empty)}
               </p>
             )}
           </div>
-        </section>
 
-        {/* ── Archive, grouped by month ─────────────────────────────────── */}
-        {rest.length > 0 && (
-          <section style={{ background: C.cream }}>
-            <div className="mx-auto max-w-5xl px-5 pt-14 sm:px-8">
-              <h2 className="bofs-display mb-6 text-[clamp(20px,2.4vw,26px)]">{pick(NEWS.archiveTitle)}</h2>
-              <Reveal delay={0.04}>
-                <div className="rounded-[20px] px-6 py-2 sm:px-8" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-                  <NewsGroupedList items={rest} />
-                </div>
-              </Reveal>
+          {rest.length > 0 && (
+            <div className="mt-16">
+              <h2 className="bofs-display mb-4 text-[clamp(22px,2.6vw,28px)]">{pick(NEWS.archiveTitle)}</h2>
+              <NewsGroupedList items={rest} />
             </div>
-          </section>
-        )}
+          )}
 
-        {/* ── Provenance + the honest note about feeds ──────────────────── */}
-        <section style={{ background: C.cream }}>
-          <div className="mx-auto max-w-5xl px-5 pb-24 pt-14 sm:px-8">
-            <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-              <Reveal>
-                <NewsSources />
-              </Reveal>
-              <Reveal delay={0.06}>
-                <p className="h-full rounded-[18px] p-6 text-[14px] leading-relaxed sm:p-7" style={{ background: C.oat, color: C.body }}>
-                  {pick(NEWS.note)}
-                </p>
-              </Reveal>
-            </div>
+          <div className="mt-20 grid gap-x-12 gap-y-10 lg:grid-cols-2">
+            <NewsSources />
+            <p className="bofs-pretty border-t pt-6 text-[15px] leading-relaxed" style={{ borderColor: C.cocoa, color: C.cocoa }}>
+              {pick(NEWS.note)}
+            </p>
           </div>
-        </section>
+        </div>
       </main>
 
       <Footer />
