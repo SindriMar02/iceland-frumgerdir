@@ -244,12 +244,10 @@ export const companyEntry: PreviewCompany = {
     subject: 'Hugmynd að nýrri vefsíðu fyrir HBH Byggi',
     body:
       'Sælir,\n\n' +
-      'Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki. Ég skoðaði hbh.is og það sem sat eftir voru verkin: Canopy, Sandhótel, Smárabíó, Nauthóll og Marel, og myndirnar af þeim eru góðar.\n\n' +
-      'Tvennt rakst ég þó á. Vefurinn keyrir á WordPress 5.4.21 frá apríl 2020 og hefur ekki fengið öryggisuppfærslu síðan, og hbh.is fer ekki sjálfkrafa yfir í https, svo síðan svarar enn á óvörðu http. Verkin sjálf eru svo ein málsgrein neðst á forsíðunni.\n\n' +
-      'Ég setti saman frumgerð þar sem hvert verk fær sína eigin síðu með ykkar eigin myndum. Allur texti á síðunni er ykkar eigin texti.\n\n' +
-      'Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.\n\n' +
-      'Hana má skoða hér hvenær sem er, og hún virkar vel í síma:\n[HLEKKUR Á FRUMGERÐ]\n\n' +
-      'Ef ykkur líst á er ég til í að heyra frá ykkur, en ef ekki er það að sjálfsögðu allt í lagi.\n\n' +
-      'Bestu kveðjur,\nSindri Már\n845 1758\nsndrstudio.is',
+      'Ég heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki. Ég rakst á hbh.is og það sem sat eftir voru verkin sjálf, Canopy, Sandhótel, Smárabíó, Nauthóll og Marel, og myndirnar af þeim eru virkilega góðar. Það er ekki sjálfgefið að verktaki eigi svona myndefni af sínum eigin verkum.\n\n' +
+      'Eitt rakst ég þó á. Vefurinn keyrir enn á WordPress 5.4.21 sem kom út í apríl 2020 og hefur ekki fengið öryggisuppfærslu síðan, og hbh.is fer ekki sjálfkrafa yfir í https, þannig að síðan svarar enn á óvörðu http. Verkin sjálf eru svo ein málsgrein neðst á forsíðunni og myndirnar liggja á undirsíðu sem fáir rata á.\n\n' +
+      'Ég setti því saman frumgerð þar sem hvert verk fær sína eigin síðu með ykkar eigin myndum og ykkar eigin texta, og hana má skoða á [HLEKKUR Á FRUMGERÐ] hvenær sem er, hún virkar líka vel í síma. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding, mér fannst einfaldlega gaman að sjá hvað verkin ykkar bera sig vel þegar þau fá pláss.\n\n' +
+      'Ef ykkur líst á er ég til í að heyra frá ykkur, en ef ekki er það auðvitað allt í lagi.\n\n' +
+      'Bestu kveðjur,\nSindri Már\n845-1758\nsndrstudio.is',
   },
 }
