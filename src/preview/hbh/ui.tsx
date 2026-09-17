@@ -200,8 +200,12 @@ html:has(.hbh-root), body:has(.hbh-root){background-color:${C.paper}}
 @media (max-width:1080px){.hbh-head{left:3.704vw;top:1.852vw;width:calc(100vw - 7.407vw);padding:1.852vw}
   .hbh-head .acts .hbh-btn.tel{display:none}}
 @media (max-width:760px){.hbh-head{left:3.448vw;top:3.448vw;width:calc(100vw - 6.897vw);padding:3.6vw 3.448vw}
-  .hbh-head nav{display:none}.hbh-head .acts .hbh-btn{display:none}.hbh-head .burger{display:grid}}
-.hbh-head .burger{display:none;width:44px;height:38px;place-items:center;background:transparent;border:0;cursor:pointer;color:inherit}
+  .hbh-head nav{display:none}.hbh-head .acts .hbh-btn{display:none}}
+/* the menu button is hidden from 761px up, never below it: the base rule used
+   to sit after the media query and silently won, which left a phone with no
+   navigation at all (caught on the iOS simulator) */
+.hbh-head .burger{display:grid;width:44px;height:44px;place-items:center;background:transparent;border:0;cursor:pointer;color:inherit}
+@media (min-width:761px){.hbh-head .burger{display:none}}
 .hbh-head .burger i{display:block;position:relative;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .3s,background .3s}
 .hbh-head .burger i:before,.hbh-head .burger i:after{content:'';position:absolute;left:0;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .3s,top .3s}
 .hbh-head .burger i:before{top:-7px}.hbh-head .burger i:after{top:7px}
