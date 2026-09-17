@@ -216,8 +216,12 @@ html:has(.hbh-root), body:has(.hbh-root){background-color:${C.paper}}
 .hbh-menu{position:fixed;inset:0;z-index:35;overscroll-behavior:contain;background:${C.blueDeep};color:#fff;opacity:0;pointer-events:none;
   transition:opacity .3s;display:flex;flex-direction:column;justify-content:center;padding:0 var(--gut)}
 .hbh-menu.open{opacity:1;pointer-events:auto}
-.hbh-menu a{font-size:clamp(30px,8.6vw,44px);line-height:1.5;font-weight:500}
-.hbh-menu .foot{margin-top:2rem;display:flex;flex-wrap:wrap;gap:0.8rem}
+/* only the navigation links take the big menu size; the two buttons keep the
+   label scale, or the email address runs into its own arrow */
+.hbh-menu > a{font-size:clamp(30px,8.6vw,44px);line-height:1.5;font-weight:500}
+.hbh-menu .foot{margin-top:2.4rem;display:flex;flex-wrap:wrap;gap:0.8rem}
+.hbh-menu .foot .hbh-btn{font-size:var(--t-label);min-width:0;flex:1 1 auto;text-align:left}
+.hbh-menu .foot .hbh-btn .lab{padding:1.05em 1.2em 1.1em;padding-right:3.4em}
 
 /* ── the two-dot cursor, fine pointers only ─────────────────────────── */
 .hbh-cursor{position:fixed;inset:0;z-index:60;pointer-events:none;display:none}
