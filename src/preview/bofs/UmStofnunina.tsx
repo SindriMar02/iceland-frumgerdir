@@ -11,7 +11,7 @@ import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { asset, BofsStyles, C, Eyebrow, Footer, Header, SectionHead, SubNav, useLang, Arrow } from './ui'
 import { WaveDivider } from './illustrations'
-import { Timeline } from './sections'
+import { InstitutionsAndClose, StatsBand, Timeline } from './sections'
 import { ABOUT, LEADERSHIP, ORG, TIMELINE, UI } from './data'
 
 export default function BofsUmStofnunina() {
@@ -167,6 +167,9 @@ export default function BofsUmStofnunina() {
           </section>
         )}
 
+        {/* ── STATISTICS (moved here from the landing page, 2026-09-17) ── */}
+        <StatsBand />
+
         {/* ── OVERSIGHT ────────────────────────────────────────────────── */}
         <section id="eftirlit" className="scroll-mt-24" style={{ background: C.cream }}>
           <div className="mx-auto max-w-4xl px-5 py-20 sm:px-8">
@@ -182,6 +185,9 @@ export default function BofsUmStofnunina() {
           </div>
           <WaveDivider color={C.deep} className="block w-full" />
         </section>
+
+        {/* ── RELATED INSTITUTIONS (moved from the landing page, 2026-09-17) */}
+        <InstitutionsAndClose />
 
         {/* ── CONTACT ──────────────────────────────────────────────────── */}
         <section id="samband" className="scroll-mt-24" style={{ background: C.deep }}>

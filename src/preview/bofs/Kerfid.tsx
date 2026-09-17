@@ -14,7 +14,7 @@ import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { asset, BofsStyles, Button, C, Eyebrow, Footer, Header, ScrollRail, SectionHead, SubNav, useLang, Arrow } from './ui'
 import { HillDivider, WaveDivider } from './illustrations'
-import { HelpBand } from './sections'
+import { FaqList, HelpBand } from './sections'
 import { KERFID, UI } from './data'
 
 const STATION_HUES = [C.terra, C.sage, C.sun, C.sky, C.rose, C.clay]
@@ -178,6 +178,9 @@ export default function BofsKerfid() {
             </div>
           </div>
         </section>
+
+        {/* ── FAQ (moved here from the landing page, 2026-09-17) ──────── */}
+        <FaqList />
 
         {/* ── HELP ─────────────────────────────────────────────────────── */}
         <HelpBand />

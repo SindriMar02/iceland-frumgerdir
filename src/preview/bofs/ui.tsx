@@ -8,7 +8,6 @@ import type { CSSProperties, ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, animate, useInView, useReducedMotion, type MotionValue } from 'framer-motion'
 import { CATEGORIES, ORG, SERVICES, UI, type L, type Lang, type Service } from './data'
-import { Reveal } from '../../components/Reveal'
 import { SndrBadge } from '../SndrBadge'
 
 /* ── palette ──────────────────────────────────────────────────────────── */
@@ -44,8 +43,17 @@ export const C = {
  * Author (humanist text sans, variable). Self-hosted from the local library
  * at public/bofs/fonts/. Caveat stays for the single handwritten grace note.
  */
-const DISPLAY = '"Fraunces", "Bricolage Grotesque", Georgia, serif'
-const BODY = '"Author", "Hanken Grotesk", system-ui, sans-serif'
+/*
+ * Type recut 2026-09-17. Fraunces looked best and is the serif every
+ * generated site wears, so Sindri asked for a face with the same softness
+ * that is not on every AI page. Twelve owned families were set in Icelandic
+ * side by side; Sentient (Indian Type Foundry, soft low-contrast serif, full
+ * Icelandic) came closest to Fraunces' warmth with a calmer, cleaner drawing.
+ * General Sans carries body text. A plain grotesk for everything was tried
+ * first and read as a bank. Caveat stays for the single handwritten line.
+ */
+const DISPLAY = '"Sentient", Georgia, serif'
+const BODY = '"General Sans", "Helvetica Neue", Arial, sans-serif'
 const HAND = '"Caveat", cursive'
 export const FONT = { display: DISPLAY, body: BODY, hand: HAND }
 
@@ -176,10 +184,12 @@ export function BofsStyles() {
   return (
     <>
       <style>{`
-      @font-face { font-family:'Fraunces'; src:url('${asset('fonts/fraunces-400.woff2')}') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
-      @font-face { font-family:'Fraunces'; src:url('${asset('fonts/fraunces-500.woff2')}') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
-      @font-face { font-family:'Fraunces'; src:url('${asset('fonts/fraunces-600.woff2')}') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
-      @font-face { font-family:'Author'; src:url('${asset('fonts/author-var.woff2')}') format('woff2'); font-weight:200 800; font-style:normal; font-display:swap; }
+      @font-face { font-family:'Sentient'; src:url('${asset('fonts/Sentient-Regular.woff2')}') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+      @font-face { font-family:'Sentient'; src:url('${asset('fonts/Sentient-Medium.woff2')}') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+      @font-face { font-family:'Sentient'; src:url('${asset('fonts/Sentient-Bold.woff2')}') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+      @font-face { font-family:'General Sans'; src:url('${asset('fonts/GeneralSans-Regular.woff2')}') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+      @font-face { font-family:'General Sans'; src:url('${asset('fonts/GeneralSans-Medium.woff2')}') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+      @font-face { font-family:'General Sans'; src:url('${asset('fonts/GeneralSans-Semibold.woff2')}') format('woff2'); font-weight:600 700; font-style:normal; font-display:swap; }
 
       /*
        * The page ground is paper, not a colour. Every other surface in the
@@ -188,10 +198,10 @@ export function BofsStyles() {
        */
       .bofs-root { background-color:${C.cream}; background-image:${PAPER}; background-size:260px 260px; background-blend-mode:multiply; color:${C.body}; font-family:${BODY}; -webkit-font-smoothing:antialiased; }
       .bofs-root ::selection { background:${C.terra}; color:#fff; }
-      /* a serif display wants air, not grotesk tightness */
-      .bofs-display { font-family:${DISPLAY}; color:${C.cocoa}; font-weight:600; letter-spacing:-0.012em; line-height:1.08; }
-      .bofs-display-xl { font-weight:500; letter-spacing:-0.018em; line-height:1.04; }
-      .bofs-display-sm { font-weight:600; letter-spacing:-0.004em; }
+      /* a soft serif display wants a medium weight and a little air */
+      .bofs-display { font-family:${DISPLAY}; color:${C.cocoa}; font-weight:500; letter-spacing:-0.012em; line-height:1.08; }
+      .bofs-display-xl { font-weight:500; letter-spacing:-0.018em; line-height:1.02; }
+      .bofs-display-sm { font-weight:500; letter-spacing:-0.006em; line-height:1.18; }
       .bofs-hand { font-family:${HAND}; }
       /* long Icelandic compounds orphan easily; balance headings, pretty leads */
       .bofs-balance { text-wrap:balance; }
@@ -199,6 +209,9 @@ export function BofsStyles() {
       /* one statement style, reused as each page's single large gesture */
       .bofs-statement { font-family:${DISPLAY}; color:${C.cocoa}; font-weight:500; font-size:clamp(24px,3.6vw,38px); line-height:1.2; letter-spacing:-0.012em; }
       .bofs-num { font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1; }
+      /* a way in: the line itself is the link, and hovering underlines it */
+      .bofs-way { text-decoration:underline; text-decoration-color:transparent; text-decoration-thickness:2px; text-underline-offset:.14em; transition:text-decoration-color .2s ease-out, color .2s ease-out; }
+      .group:hover .bofs-way, .group:focus-visible .bofs-way { text-decoration-color:${C.clay}; color:${C.clayText}; }
       .bofs-root a { color:inherit; }
       .bofs-focus:focus-visible { outline:3px solid ${C.clay}; outline-offset:3px; border-radius:10px; }
       .bofs-root .no-scrollbar { scrollbar-width:none; -ms-overflow-style:none; }
@@ -298,9 +311,25 @@ export function BofsStyles() {
        * Drifting clouds, flying birds, breathing suns and twinkling windows
        * read as a children's book; the register here is warm-institutional.
        * All motion is either a one-shot entrance or user-triggered feedback.
+       *
+       * One exception, asked for by name on 2026-09-17: the hero mist. A pair
+       * of soft cream pools that drift 4% across the valley floor over 46
+       * seconds. It is a single composited layer (transform only; the blur is
+       * rasterised once), it is invisible as motion unless you watch for it,
+       * and it stops under reduced motion. Nothing else on the site loops.
        */
+      .bofs-mist {
+        position:absolute; left:-24%; right:-24%; top:36%; height:28%; pointer-events:none; opacity:.42;
+        background:
+          radial-gradient(52% 100% at 28% 55%, rgba(251,243,231,.82), rgba(251,243,231,0) 70%),
+          radial-gradient(44% 100% at 74% 50%, rgba(251,243,231,.7), rgba(251,243,231,0) 70%);
+        filter:blur(22px); will-change:transform;
+        animation:bofs-mist 46s cubic-bezier(.45,0,.55,1) infinite alternate;
+      }
+      @keyframes bofs-mist { from { transform:translate3d(-4%,0,0); } to { transform:translate3d(4%,1.5%,0); } }
       @media (prefers-reduced-motion: reduce) {
         .bofs-faq { transition:none !important; }
+        .bofs-mist { animation:none; }
       }
     `}</style>
 
@@ -365,21 +394,20 @@ type BtnProps = {
 }
 
 const btnBase =
-  'bofs-focus bofs-press inline-flex items-center justify-center gap-2 rounded-[13px] px-6 py-3 text-[15px] font-semibold transition-all duration-200 will-change-transform hover:-translate-y-0.5'
+  'bofs-focus bofs-press inline-flex items-center justify-center gap-2 rounded-[6px] px-5 py-3 text-[15px] font-semibold transition-[background-color,color] duration-150'
 
 function btnStyle(variant: BtnProps['variant']) {
   switch (variant) {
     case 'soft':
-      return { background: '#fff', color: C.cocoa, boxShadow: '0 2px 0 ' + C.line }
+      return { background: '#fff', color: C.cocoa, boxShadow: 'inset 0 0 0 1px ' + C.line }
     case 'ghost':
-      return { background: 'transparent', color: C.clayText, boxShadow: 'inset 0 0 0 1.5px ' + C.line }
+      return { background: 'transparent', color: C.clayText, boxShadow: 'inset 0 0 0 1px ' + C.line }
     case 'deep':
-      // pigment weight, not elevation: an inked bottom edge instead of a
-      // shadow cast onto paper the button is supposed to be part of
-      return { background: C.sun, color: '#3A2410', boxShadow: 'inset 0 -2px 0 rgba(58,44,34,.22)' }
+      return { background: C.sun, color: '#3A2410' }
     case 'primary':
     default:
-      return { background: C.clay, color: '#FFF6EC', boxShadow: 'inset 0 -2px 0 rgba(58,20,8,.26)' }
+      // flat. A public service button is a button, not a pillow.
+      return { background: C.clay, color: '#FFF6EC' }
   }
 }
 
@@ -501,18 +529,13 @@ export function Header() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50">
+      {/* A plain bar the full width of the page, the way bris.se and
+          barneombudet.no do it: opaque, a hairline underneath, nothing
+          floating. The floating glass pill was the first thing that said
+          "generated". */}
       <div
-        className="mx-auto mt-3 flex items-center justify-between gap-4 rounded-2xl px-3 py-2 pr-3 pl-4 transition-all duration-500 sm:mt-4"
-        style={{
-          margin: '12px 12px 0',
-          maxWidth: 'min(1180px, calc(100% - 24px))',
-          marginLeft: 'auto',
-          marginRight: 'auto',
-          background: scrolled ? 'rgba(251,243,231,.92)' : 'rgba(251,243,231,.35)',
-          boxShadow: scrolled ? `0 10px 30px -22px rgba(58,44,34,.45), inset 0 0 0 1px ${C.line}` : 'none',
-          backdropFilter: scrolled ? 'blur(10px)' : 'none',
-          WebkitBackdropFilter: scrolled ? 'blur(10px)' : 'none',
-        }}
+        className="flex h-16 items-center justify-between gap-4 px-5 sm:px-8"
+        style={{ background: C.cream, boxShadow: `inset 0 -1px 0 ${scrolled ? C.line : 'rgba(231,214,188,.55)'}` }}
       >
         <Link to="/preview/bofs" className="bofs-focus shrink-0 rounded-2xl" aria-label="Barna- og fjölskyldustofa">
           <Wordmark />
@@ -540,8 +563,8 @@ export function Header() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.98 }}
                   transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
-                  style={{ transformOrigin: 'top left', background: 'rgba(251,243,231,.97)', boxShadow: `0 26px 54px -26px rgba(58,44,34,.55), inset 0 0 0 1px ${C.line}`, backdropFilter: 'blur(14px)' }}
-                  className="absolute left-0 top-[calc(100%+10px)] grid w-[520px] grid-cols-2 gap-1 rounded-2xl p-3"
+                  style={{ transformOrigin: 'top left', background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}
+                  className="absolute left-0 top-[calc(100%+12px)] grid w-[520px] grid-cols-2 gap-1 rounded-[10px] p-3"
                 >
                   {[
                     { title: pick(CATEGORIES[0].title), list: homes },
@@ -590,7 +613,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <a
             href="tel:112"
-            className="bofs-focus bofs-press hidden items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13.5px] font-bold sm:inline-flex"
+            className="bofs-focus bofs-press hidden items-center gap-1.5 rounded-[6px] px-3.5 py-2 text-[13.5px] font-bold sm:inline-flex"
             style={{ background: '#A83A24', color: '#fff' }}
           >
             <PhoneGlyph /> {pick(UI.emergencyChip)}
@@ -600,7 +623,7 @@ export function Header() {
           </span>
           <button
             type="button"
-            className="bofs-focus grid h-10 w-10 place-items-center rounded-xl xl:hidden"
+            className="bofs-focus grid h-10 w-10 place-items-center rounded-[6px] xl:hidden"
             style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}
             aria-label="Menu"
             aria-expanded={open}
@@ -621,8 +644,8 @@ export function Header() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="mx-3 mt-2 max-h-[80vh] overflow-y-auto rounded-2xl p-3 xl:hidden"
-            style={{ background: 'rgba(251,243,231,.97)', boxShadow: `0 24px 48px -24px rgba(58,44,34,.5), inset 0 0 0 1px ${C.line}`, backdropFilter: 'blur(14px)' }}
+            className="max-h-[80vh] overflow-y-auto p-3 xl:hidden"
+            style={{ background: C.cream, boxShadow: `inset 0 -1px 0 ${C.line}` }}
           >
             <MobileGroup label={pick({ is: 'Síður', en: 'Pages' })}>
               {pageLinks.map((l) => (
@@ -843,8 +866,7 @@ export function Arrow({ className }: { className?: string }) {
 
 export function Eyebrow({ children, color = C.clayText }: { children: ReactNode; color?: string }) {
   return (
-    <span className="inline-flex items-center gap-2 text-[13px] font-bold uppercase tracking-[0.16em]" style={{ color }}>
-      <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+    <span className="inline-block text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color }}>
       {children}
     </span>
   )
@@ -898,51 +920,39 @@ const CARD_CROP: Record<Service['art'], string> = {
   fostur: 'center 60%',
 }
 
-export function ServiceCard({ service, index = 0 }: { service: Service; index?: number }) {
+/*
+ * A cell in a hairline grid, not a card. ivykids.com sets its programmes as
+ * cells divided by 1px lines with one photograph occupying a cell of its
+ * own; the eye reads one table of offerings instead of six boxes. The
+ * painting sits inside the cell as a picture, the kind is a small coloured
+ * tag, and the whole cell is the link.
+ */
+export function ServiceCard({ service, index = 0 }: { service: Service; index?: number; ground?: string }) {
   const [, , pick] = useLang()
+  void index
   return (
-    <Reveal delay={(index % 3) * 0.08} y={26}>
-      <Link
-        to={`/preview/bofs/${service.slug}`}
-        className="bofs-focus bofs-lift group relative flex h-full flex-col overflow-hidden rounded-[18px]"
-        style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}
-      >
-        {/*
-          The painting is the card's head. It is decorative here, so alt is
-          empty: the name is announced by the h3 immediately below, and a
-          screen reader should not have to sit through a watercolour
-          description before hearing which centre this is.
-        */}
-        <span className="bofs-wet-head" style={{ background: service.hueSoft }}>
-          <img
-            src={asset(`card-${service.art}.jpg`)}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-            width={640}
-            height={360}
-            className="bofs-photo block h-[132px] w-full object-cover"
-            style={{ objectPosition: CARD_CROP[service.art] ?? 'center 55%' }}
-          />
-        </span>
-        {/* a div, not a span: this wraps an h3, and a span may only contain
-            phrasing content. <a> itself is transparent, so a div is fine. */}
-        <div className="flex flex-1 flex-col p-6 pt-5">
-          <span className="inline-flex w-fit items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-bold" style={{ background: service.hueSoft, color: C.cocoa }}>
-            {pick(service.kind)}
-          </span>
-          <h3 className="bofs-display bofs-display-sm mt-3 text-[23px]">{service.name}</h3>
-          <p className="mt-2 flex-1 text-[15px] leading-relaxed" style={{ color: C.body }}>
-            {pick(service.card)}
-          </p>
-          <span className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-bold" style={{ color: C.clayText }}>
-            {pick(UI.exploreCentre)}
-            <Arrow className="transition-transform duration-200 ease-out group-hover:translate-x-1" />
-          </span>
-        </div>
-      </Link>
-    </Reveal>
+    <Link to={`/preview/bofs/${service.slug}`} className="bofs-focus group block rounded">
+      <span className="bofs-wet block">
+        <img
+          src={asset(`card-${service.art}.jpg`)}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+          width={640}
+          height={400}
+          className="bofs-photo block aspect-[16/10] w-full object-cover"
+          style={{ objectPosition: CARD_CROP[service.art] ?? 'center 55%' }}
+        />
+      </span>
+      <span className="mt-4 block text-[12.5px] font-semibold uppercase tracking-[0.06em]" style={{ color: C.clayText }}>
+        {pick(service.kind)}
+      </span>
+      <span className="bofs-display bofs-display-sm bofs-way mt-1 block text-[26px]">{service.name}</span>
+      <span className="mt-2 block text-[15.5px] leading-relaxed" style={{ color: C.cocoa }}>
+        {pick(service.card)}
+      </span>
+    </Link>
   )
 }
 

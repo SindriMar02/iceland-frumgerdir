@@ -1,53 +1,41 @@
 /**
  * Öruggt skjól — landing page.
- * A warm, honest hub for every service under Barna- og fjölskyldustofa.
  *
- * Section order is one narrative arc of light: dawn cream, daylight services,
- * the one white official-notice band (tilkynningarskylda), warm afternoon,
- * the deep honest pause, resolution, then a dusk valley into the night footer.
- * Native scroll only; every reveal is transform/opacity and reduced-motion safe.
+ * Rebuilt 2026-09-17 as eight chapters that alternate between the painted,
+ * serif "shelter" register and the white, sans "guidance" register, so no
+ * two neighbouring sections share a layout. The chapters live in
+ * landing.tsx; the sections that left this page (statistics, FAQ, related
+ * institutions, the full news list, the timeline) live on their own pages.
+ *
+ * Native scroll only; every reveal is transform/opacity and reduced-motion
+ * safe. The one ambient loop on the site is the hero's drifting mist.
  */
 
-import { useEffect, useRef } from 'react'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
-import { Reveal } from '../../components/Reveal'
+import { useEffect } from 'react'
 import { setThemeColor } from '../../lib/preview'
-import { BofsStyles, Button, C, Eyebrow, Footer, Header, SectionHead, ServiceCard, useLang, Arrow } from './ui'
-import { ValueIcon, WaveDivider, HillDivider } from './illustrations'
-import { GALLERY, HERO, HONEST, PATH, SERVICES, UI, VALUES, CATEGORIES } from './data'
-import { Img } from '../../components/Img'
-import { asset } from './ui'
-import {
-  AboutTeaser,
-  DuskBookend,
-  FaqList,
-  FosterBand,
-  HelpBand,
-  InstitutionsAndClose,
-  NewsBand,
-  ReportBand,
-  StatsBand,
-  WayfinderDoors,
-} from './sections'
+import { BofsStyles, C, Footer, Header, useLang } from './ui'
+import { UI } from './data'
+import { DuskBookend } from './sections'
+import { ChapterMark, Ending, Entrances, Grounds, HelpPanel, Hero, Process, ServiceCategories, Story } from './landing'
 
 export default function BofsPage() {
   const [, , pick] = useLang()
-  const reduce = useReducedMotion()
-  const heroRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     document.title = 'Öruggt skjól | Barna- og fjölskyldustofa'
     setThemeColor(C.cream)
   }, [])
 
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
-  // the painting is scaled 110%, so 70px of drift never exposes an edge
-  const valleyY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 70])
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -60])
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0])
-
-  const homes = SERVICES.filter((s) => s.category === 'heimili')
-  const services = SERVICES.filter((s) => s.category === 'thjonusta')
+  const chapters = [
+    { id: 'byrja', label: pick({ is: 'Hvar byrjar þú', en: 'Where to start' }) },
+    { id: 'saga', label: pick({ is: 'Ein saga', en: 'One story' }) },
+    { id: 'heimili', label: pick({ is: 'Meðferðarheimili', en: 'Treatment homes' }) },
+    { id: 'thjonusta', label: pick({ is: 'Stuðningsþjónusta', en: 'Support services' }) },
+    { id: 'ferli', label: pick({ is: 'Hvernig hjálpin virkar', en: 'How help works' }) },
+    { id: 'stadir', label: pick({ is: 'Staðirnir', en: 'The places' }) },
+    { id: 'help', label: pick({ is: 'Hjálp núna', en: 'Help now' }) },
+    { id: 'um', label: pick({ is: 'Stofnunin', en: 'The agency' }) },
+  ]
 
   return (
     <div className="bofs-root min-h-screen overflow-x-clip">
@@ -58,258 +46,17 @@ export default function BofsPage() {
       </a>
 
       <main id="main">
-        {/* ── HERO ─────────────────────────────────────────────────────── */}
-        <section ref={heroRef} className="bofs-wash relative isolate flex min-h-[100svh] flex-col justify-center overflow-hidden" style={{ background: C.cream }}>
-          <motion.div style={{ y: valleyY, willChange: 'transform' }} className="pointer-events-none absolute inset-0 -z-10">
-            {/* the painted valley: gouache wash, eager-loaded, parallax only */}
-            <Img
-              src={asset('art-dawn.jpg')}
-              alt=""
-              aria-hidden
-              loading="eager"
-              fetchpriority="high"
-              /* The lit house sits at x≈78%, y≈56% of the painting (measured,
-                 not guessed: 54 of the 60 warmest pixels fall in that column).
-                 A portrait phone shows only ~26% of the painting's width under
-                 object-cover, and the desktop centre of 62% put that window at
-                 49% to 75%, so the house, which is the whole concept, fell just
-                 off the right edge. 84% brings the entire house into frame with
-                 room to its right, and lands it in the clear part of the
-                 legibility veil beside the buttons. */
-              className="h-full w-full scale-110 object-cover object-[84%_58%] md:object-[62%_60%]"
-              fallbackClassName="bg-gradient-to-b from-[#F8EAD8] via-[#EFE5D2] to-[#CFD7C4]"
-            />
-            {/* legibility veils: cream for the type block, cream fade into the next band */}
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(100deg, rgba(251,243,231,.95) 0%, rgba(251,243,231,.84) 30%, rgba(251,243,231,.38) 56%, rgba(251,243,231,0) 78%)' }} />
-            <div className="absolute inset-x-0 top-0 h-24" style={{ background: 'linear-gradient(rgba(251,243,231,.8), rgba(251,243,231,0))' }} />
-            <div className="absolute inset-x-0 bottom-0 h-32" style={{ background: `linear-gradient(rgba(251,243,231,0), ${C.cream})` }} />
-          </motion.div>
-
-          <motion.div style={{ y: contentY, opacity: contentOpacity, willChange: 'transform, opacity' }} className="mx-auto w-full max-w-6xl px-5 pb-40 pt-28 sm:px-8">
-            <div className="max-w-2xl">
-              <Reveal y={16}>
-                <Eyebrow>{pick(HERO.kicker)}</Eyebrow>
-              </Reveal>
-              <Reveal delay={0.06}>
-                <h1 className="bofs-display bofs-display-xl bofs-balance mt-1 text-[clamp(40px,8vw,76px)]">{pick(HERO.title)}</h1>
-              </Reveal>
-              <Reveal delay={0.14}>
-                <p className="bofs-pretty mt-6 max-w-xl text-[clamp(17px,2.2vw,21px)] leading-relaxed" style={{ color: C.body }}>
-                  {pick(HERO.lead)}
-                </p>
-              </Reveal>
-              <Reveal delay={0.22}>
-                <div className="mt-8 flex flex-wrap items-center gap-3">
-                  <Button href="#heimili" icon={<Arrow />}>
-                    {pick(HERO.ctaPrimary)}
-                  </Button>
-                  <Button href="#path" variant="soft">
-                    {pick(HERO.ctaSecondary)}
-                  </Button>
-                </div>
-              </Reveal>
-              <Reveal delay={0.3}>
-                <div className="mt-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold" style={{ background: '#fff', color: C.cocoa, boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-                  <span className="grid h-6 w-6 place-items-center rounded-full bofs-num text-[12px] font-bold text-white" style={{ background: '#A83A24' }}>
-                    112
-                  </span>
-                  {pick(HERO.reassure)}
-                </div>
-              </Reveal>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="absolute inset-x-0 bottom-7 mx-auto flex w-fit flex-col items-center gap-1.5 text-[11px] font-bold uppercase"
-            style={{ color: C.body, opacity: contentOpacity, letterSpacing: '0.28em' }}
-          >
-            <span>{pick({ is: 'skoðaðu', en: 'scroll' })}</span>
-            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-              <path d="M2 4.5l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </motion.div>
-        </section>
-
-        {/* ── WAYFINDER (three doors) ──────────────────────────────────── */}
-        <WayfinderDoors />
-
-        {/* ── MISSION + compressed values ─────────────────────────────── */}
-        <section className="bofs-wash bofs-bloom relative" style={{ background: C.cream2 }}>
-          <div className="mx-auto max-w-5xl px-5 py-20 text-center sm:px-8 sm:py-28">
-            <Reveal>
-              <Eyebrow>{pick({ is: 'Eitt net af hlýju', en: 'One warm network' })}</Eyebrow>
-            </Reveal>
-            <Reveal delay={0.05}>
-              <p className="bofs-statement bofs-balance mx-auto mt-5 max-w-3xl">
-                {pick({
-                  is: 'Á bak við hvert úrræði er sama hugsun: að ekkert barn eigi að standa eitt. Hér höldum við utan um þau öll.',
-                  en: 'Behind every service is the same idea: no child should stand alone. Here, we hold all of them.',
-                })}
-              </p>
-            </Reveal>
-            <Reveal delay={0.12}>
-              <div className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-x-8 gap-y-4">
-                {VALUES.map((v, i) => (
-                  <span key={v.key} className="inline-flex items-center gap-2.5">
-                    <ValueIcon name={v.icon} color={[C.clay, C.rose, C.sage, C.sun][i % 4]} className="h-6 w-6" />
-                    <span className="text-[15px] font-bold" style={{ color: C.cocoa }}>
-                      {pick(v.title)}
-                    </span>
-                    <span className="hidden text-[14px] lg:inline" style={{ color: C.body }}>
-                      {pick(v.body).split('.')[0]}
-                    </span>
-                  </span>
-                ))}
-              </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ── TREATMENT HOMES ──────────────────────────────────────────── */}
-        <section id="heimili" className="bofs-wash scroll-mt-24" style={{ background: C.cream }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-            <SectionHead eyebrow={pick(CATEGORIES[0].title)} title={pick({ is: 'Örugg heimili þegar þeirra er þörf', en: 'Safe homes, when they’re needed' })} lead={pick(CATEGORIES[0].blurb)} />
-            <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {homes.map((s, i) => (
-                <ServiceCard key={s.slug} service={s} index={i} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── FAMILY & SUPPORT SERVICES ────────────────────────────────── */}
-        <section id="thjonusta" className="bofs-wash bofs-bloom scroll-mt-24" style={{ background: C.oat }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-            <SectionHead
-              eyebrow={pick(CATEGORIES[1].title)}
-              title={pick({ is: 'Stuðningur sem kemur til fjölskyldunnar', en: 'Support that comes to the family' })}
-              lead={pick(CATEGORIES[1].blurb)}
-            />
-            <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {services.map((s, i) => (
-                <ServiceCard key={s.slug} service={s} index={i} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── PATH (3 steps) ───────────────────────────────────────────── */}
-        <section id="path" className="bofs-wash scroll-mt-24" style={{ background: C.cream }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-            <SectionHead eyebrow={pick({ is: 'Fyrsta skrefið', en: 'The first step' })} title={pick(PATH.title)} lead={pick(PATH.lead)} align="center" />
-            <div className="relative mt-14 grid gap-6 md:grid-cols-3">
-              <div className="bofs-rule pointer-events-none absolute left-0 right-0 top-9 hidden md:block" />
-              {PATH.steps.map((step, i) => (
-                <Reveal key={step.n} delay={i * 0.1}>
-                  <div className="relative flex h-full flex-col rounded-[20px] p-7" style={{ background: '#fff', boxShadow: `inset 0 0 0 1px ${C.line}` }}>
-                    <span className="bofs-display grid h-16 w-16 place-items-center rounded-2xl text-[28px] text-white" style={{ background: [C.terra, C.sage, C.sun][i] }}>
-                      {step.n}
-                    </span>
-                    <h3 className="bofs-display bofs-display-sm mt-5 text-[21px]">{pick(step.title)}</h3>
-                    <p className="mt-2 text-[15px] leading-relaxed" style={{ color: C.body }}>
-                      {pick(step.body)}
-                    </p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── TILKYNNINGARSKYLDA (the one white band) ──────────────────── */}
-        <ReportBand />
-
-        {/* ── NATIONAL STATISTICS ──────────────────────────────────────── */}
-        <StatsBand />
-
-        {/* ── WARMTH GALLERY ───────────────────────────────────────────── */}
-        <section className="bofs-wash" style={{ background: C.cream }}>
-          <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
-            <SectionHead eyebrow={pick(GALLERY.eyebrow)} title={pick(GALLERY.title)} lead={pick(GALLERY.lead)} align="center" />
-            <div className="mt-12 grid grid-cols-2 gap-4 lg:h-[540px] lg:grid-cols-4 lg:grid-rows-2">
-              {GALLERY.photos.map((p, i) => (
-                <Reveal
-                  key={p.src}
-                  delay={i * 0.08}
-                  className={i === 0 ? 'col-span-2 lg:col-span-2 lg:row-span-2' : i === 1 ? 'col-span-2 lg:col-span-2' : 'col-span-1'}
-                >
-                  <figure className="group relative h-full overflow-hidden rounded-[20px]">
-                    <Img
-                      src={asset(p.src)}
-                      /* These tiles are 167 to 350px wide on a phone but the
-                         plates were up to 1920px: two of them alone were 21MB
-                         of decoded image memory. Desktop still gets the full
-                         plate for the two large tiles. */
-                      srcSet={`${asset(p.src.replace('.jpg', '-1000.jpg'))} 1000w, ${asset(p.src)} 1920w`}
-                      sizes={i < 2 ? '(min-width: 1024px) 576px, 100vw' : '(min-width: 1024px) 288px, 50vw'}
-                      alt={pick(p.alt)}
-                      className={`bofs-photo w-full object-cover transition-transform duration-700 group-hover:scale-105 ${i === 0 ? 'h-56 lg:h-full' : i === 1 ? 'h-44 lg:h-full' : 'h-40 lg:h-full'}`}
-                      fallbackClassName="bg-gradient-to-br from-[#EAD6B4] to-[#C2D8BC]"
-                    />
-                    <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-1.5 p-4 text-[13px] font-semibold text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100" style={{ background: 'linear-gradient(transparent, rgba(58,44,34,.7))' }}>
-                      {pick(p.alt)}
-                    </figcaption>
-                  </figure>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── NEWS ─────────────────────────────────────────────────────── */}
-        <NewsBand />
-
-        {/* ── ABOUT TEASER + history stones ────────────────────────────── */}
-        <AboutTeaser />
-        {/*
-          The wash goes on the WRAPPER, not the divider. .bofs-wash is a
-          ::before overlay with mix-blend-mode:multiply, so it textures whatever
-          the element paints, including SVG fill. Without it this wave painted a
-          flat C.deep while the deep section directly below it is C.deep with
-          the paper texture multiplied over it: the same hex, about 6% apart in
-          practice, and the curve read as a lighter brown than the band it ran
-          into. Every other seam on the site already matches its neighbour's
-          texture state, so only this one is wrapped.
-        */}
-        <span className="bofs-wash block">
-          <WaveDivider color={C.deep} className="block w-full" />
-        </span>
-
-        {/* ── HONEST-HOPE BAND (the one deep pause) ────────────────────── */}
-        <section className="bofs-wash bofs-bloom" style={{ background: C.deep }}>
-          <div className="mx-auto grid max-w-6xl gap-10 px-5 py-24 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-            <div>
-              <SectionHead eyebrow={pick(HONEST.kicker)} title={pick(HONEST.title)} onDeep />
-            </div>
-            <Reveal delay={0.1}>
-              <div className="rounded-[20px] p-8" style={{ background: 'rgba(255,255,255,.06)', boxShadow: 'inset 0 0 0 1px rgba(246,232,213,.14)' }}>
-                <p className="text-[17px] leading-relaxed" style={{ color: 'rgba(246,232,213,.9)' }}>
-                  {pick(HONEST.body)}
-                </p>
-                <p className="mt-5 text-[14.5px] font-semibold uppercase" style={{ color: C.sun, letterSpacing: '0.14em' }}>
-                  {pick({ is: 'Af því að börnin eiga það skilið', en: 'Because children deserve it' })}
-                </p>
-              </div>
-            </Reveal>
-          </div>
-          <HillDivider color={C.cream} className="block w-full" />
-        </section>
-
-        {/* ── FOSTER INVITATION ────────────────────────────────────────── */}
-        <FosterBand />
-
-        {/* ── FAQ ──────────────────────────────────────────────────────── */}
-        <FaqList />
-
-        {/* ── HELP / CONTACT ───────────────────────────────────────────── */}
-        <HelpBand />
-
-        {/* ── RELATED INSTITUTIONS + CLOSING ───────────────────────────── */}
-        <InstitutionsAndClose />
-
-        {/* ── DUSK VALLEY → NIGHT FOOTER ───────────────────────────────── */}
+        <Hero />
+        <Entrances />
+        <Story />
+        <ServiceCategories />
+        <Process />
+        <Grounds />
+        <HelpPanel />
+        <Ending />
         <DuskBookend />
       </main>
+      <ChapterMark chapters={chapters} />
 
       <Footer />
     </div>
