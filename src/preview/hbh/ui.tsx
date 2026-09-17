@@ -606,21 +606,53 @@ export function Header({ light = false }: { light?: boolean }) {
   )
 }
 
-/** The opening moment. Runs on a cold load only, never on in-app navigation. */
+/** The opening moment. Cold load only, fine pointers only.
+ *
+ *  It ran on a phone once and iOS Safari left it stranded as a pale film over
+ *  the whole page (caught on the simulator, 2026-09-17): a timer-driven
+ *  overlay can be throttled while the tab is still settling, and the failure
+ *  mode is a client seeing a washed-out site. So: never on touch, advanced by
+ *  a wall clock rather than by setTimeout alone, dismissed by the first scroll,
+ *  tap or key, and hard-removed after 2.6s whatever happened. */
 export function Intro() {
   const [phase, setPhase] = useState<'off' | 'in' | 'lift' | 'gone'>('off')
   useEffect(() => {
     if (reduced()) return
+    if (!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return
+    if (document.visibilityState !== 'visible') return
     let seen = false
     try { seen = sessionStorage.getItem('hbh-intro') === '1' } catch { seen = false }
     if (seen) return
     try { sessionStorage.setItem('hbh-intro', '1') } catch { /* private mode */ }
+
     setPhase('in')
-    document.documentElement.style.overflow = 'hidden'
-    const t1 = window.setTimeout(() => setPhase('lift'), 1000)
-    const t2 = window.setTimeout(() => { setPhase('gone'); document.documentElement.style.overflow = '' }, 1500)
-    const t3 = window.setTimeout(() => setPhase('off'), 2000)
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); document.documentElement.style.overflow = '' }
+    const root = document.documentElement
+    root.style.overflow = 'hidden'
+    const t0 = Date.now()
+    let raf = 0
+    let done = false
+    const finish = () => {
+      if (done) return
+      done = true
+      root.style.overflow = ''
+      setPhase('gone')
+      window.setTimeout(() => setPhase('off'), 500)
+      cancelAnimationFrame(raf)
+      for (const ev of ['scroll', 'pointerdown', 'keydown', 'visibilitychange'] as const) {
+        window.removeEventListener(ev, finish)
+      }
+    }
+    const tick = () => {
+      const t = Date.now() - t0
+      if (t >= 1500) { finish(); return }
+      if (t >= 1000) setPhase('lift')
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    for (const ev of ['scroll', 'pointerdown', 'keydown', 'visibilitychange'] as const) {
+      window.addEventListener(ev, finish, { passive: true })
+    }
+    return () => { cancelAnimationFrame(raf); root.style.overflow = ''; for (const ev of ['scroll', 'pointerdown', 'keydown', 'visibilitychange'] as const) window.removeEventListener(ev, finish) }
   }, [])
   if (phase === 'off') return null
   return (
