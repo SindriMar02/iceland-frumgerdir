@@ -1,0 +1,23 @@
+import puppeteer from 'puppeteer-core';
+const br = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new' });
+const page = await br.newPage();
+await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+await page.goto('http://localhost:8963/', { waitUntil: 'networkidle0' });
+await new Promise(r=>setTimeout(r,1600));
+const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
+const matches = await page.evaluate(()=> window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+console.log('hover fine matches:', matches);
+const row = await page.$('a[data-preview]');
+await page.evaluate((el)=> el.scrollIntoView({block:'center'}), row);
+await wait(300);
+const box = await row.boundingBox();
+await page.mouse.move(box.x+5, box.y+5);
+await wait(100);
+await page.mouse.move(box.x + box.width/2, box.y + box.height/2, {steps:5});
+await wait(500);
+const state = await page.evaluate(() => {
+  const fig = document.querySelector('.ki-peek');
+  return { hasOn: fig ? ('on' in fig.dataset) : null, html: fig ? fig.outerHTML.slice(0,300): null, transform: fig ? getComputedStyle(fig).transform : null };
+});
+console.log(JSON.stringify(state));
+await br.close();

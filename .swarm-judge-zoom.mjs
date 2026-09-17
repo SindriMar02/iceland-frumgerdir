@@ -1,0 +1,12 @@
+import puppeteer from 'puppeteer-core';
+const OUT = '/private/tmp/claude-501/-Users-sindri-Documents-Website-redesign-mockups/dda2a378-fed2-4edc-83a5-2a93b4e70d42/scratchpad/swarm/judge-mobile-density';
+const br = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new' });
+const page = await br.newPage();
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+await page.goto('http://localhost:8963/', { waitUntil: 'networkidle0' });
+await new Promise(r=>setTimeout(r,1500));
+await page.evaluate(y => window.scrollTo({top:y,left:0,behavior:'instant'}), 844*2);
+await new Promise(r=>setTimeout(r,300));
+await page.screenshot({ path: `${OUT}/zoom-collision-full.png` });
+await page.screenshot({ path: `${OUT}/zoom-collision-top.png`, clip: {x:0,y:0,width:390,height:120} });
+await br.close();
