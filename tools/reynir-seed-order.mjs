@@ -128,7 +128,7 @@ const docs = PRODUCTS.map((p, i) => {
 })
 
 /* ── what is live now ───────────────────────────────────────────────────── */
-const q = encodeURIComponent('*[_type=="orderProduct"]{_id,"id":id.current,"n":name.is,basePrice,pricePerPerson}')
+const q = encodeURIComponent('*[_type=="orderProduct"]{_id,"id":id.current,"n":name.is,basePrice,pricePerPerson,image}')
 const res = await fetch(`https://${PROJECT}.api.sanity.io/v2025-08-15/data/query/${DATASET}?query=${q}`, {
   headers: { Authorization: `Bearer ${token}` },
 })
@@ -162,7 +162,13 @@ if (!WRITE) {
   process.exit(0)
 }
 
-const mutations = docs.map((doc) => ({ createOrReplace: doc }))
+/* The product photo is not in order.ts: it is uploaded to the CMS by
+   tools/reynir-seed-product-images.mjs (or by the owner). createOrReplace
+   would drop it, so carry the live image over onto the replacement. */
+const mutations = docs.map((doc) => {
+  const was = live.find((l) => l._id === doc._id)
+  return { createOrReplace: was?.image ? { ...doc, image: was.image } : doc }
+})
 const mres = await fetch(`https://${PROJECT}.api.sanity.io/v2025-08-15/data/mutate/${DATASET}?returnDocuments=false`, {
   method: 'POST',
   headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
