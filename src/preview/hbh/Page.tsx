@@ -83,7 +83,14 @@ const PAGE_CSS = `
 .hbh-quote .count{font-size:var(--t-tag);letter-spacing:.08em;opacity:.7;font-variant-numeric:tabular-nums}
 .hbh-quote .nav{display:flex;gap:.6em;color:#fff}
 .hbh-quote .hbh-arrowbtn{border-color:rgba(255,255,255,.55)}
-@media (max-width:760px){.hbh-quote{min-height:0;padding:var(--band) 0}.hbh-quote blockquote{min-height:8em}}
+/* On a phone the card must fit between the floating header and the fold, or
+   the first lines of the goal sit behind the header (caught on the iOS
+   simulator). Smaller display size, no reserved height, tighter padding. */
+@media (max-width:760px){.hbh-quote{min-height:0;padding:var(--band) 0}
+  .hbh-quote .card{padding:2rem 1.4rem 1.6rem}
+  .hbh-quote blockquote{min-height:0;font-size:var(--t-smaller);line-height:1.3}
+  .hbh-quote .qmark{font-size:2.4rem}
+  .hbh-quote .row{margin-top:1.2em}}
 
 .hbh-culture .pair{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:var(--col);margin-top:calc(var(--band) / 1.6);align-items:start}
 .hbh-culture .pair .hbh-media:first-child{aspect-ratio:3 / 2}
