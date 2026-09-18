@@ -12,6 +12,7 @@
  */
 import { Suspense, lazy, useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
+import { STANDALONE, standaloneTitle } from './preview/nypugardar/paths'
 
 const Page = lazy(() => import('./preview/nypugardar/Page'))
 const RoomsPage = lazy(() => import('./preview/nypugardar/RoomsPage'))
@@ -27,6 +28,11 @@ const PrivacyPage = lazy(() => import('./preview/nypugardar/PrivacyPage'))
  *  still has. Effect-only, so it is inert during the server render. */
 export function ScrollToTop() {
   const { pathname, hash } = useLocation()
+  /* The title follows the route; see STANDALONE_TITLES for why the pages
+     themselves no longer set it on her domain. */
+  useEffect(() => {
+    if (STANDALONE) document.title = standaloneTitle(pathname)
+  }, [pathname])
   useEffect(() => {
     if (hash) {
       let tries = 0

@@ -39,7 +39,7 @@ if (existsSync(join(dist, 'nypugardar.html'))) {
 }
 
 /* 2 ── prune everything the farm does not own */
-const KEEP = new Set(['index.html', '404.html', 'assets', 'nypugardar', '_redirects', 'robots.txt', 'sitemap.xml', 'llms.txt'])
+const KEEP = new Set(['index.html', '404.html', 'assets', 'nypugardar', '_redirects', '_headers', 'robots.txt', 'sitemap.xml', 'llms.txt'])
 let pruned = 0
 for (const entry of readdirSync(dist)) {
   if (!KEEP.has(entry)) {
@@ -94,8 +94,29 @@ writeFileSync(
     '/herbergi /rooms 301',
     '# Language roots without the slash',
     '/is /is/ 301',
+    '# Browsers and some crawlers ask for /favicon.ico regardless of <link rel=icon>',
+    '/favicon.ico /nypugardar/brand/favicon-32.png 200',
     '# Everything else is the SPA',
     '/* /index.html 200',
+    '',
+  ].join('\n'),
+)
+
+/* Security headers Pages does not send on its own. HSTS without
+   includeSubDomains: mail.glacierview.is and smtp. are Opex's, not ours.
+   frame-ancestors 'none' is the modern X-Frame-Options; both are sent for
+   older browsers. No full CSP: the page carries inline JSON-LD and Vite's
+   modulepreload, and a wrong CSP breaks a live site silently. */
+writeFileSync(
+  join(dist, '_headers'),
+  [
+    '/*',
+    '  Strict-Transport-Security: max-age=31536000',
+    '  X-Frame-Options: DENY',
+    '  Content-Security-Policy: frame-ancestors \'none\'',
+    '  X-Content-Type-Options: nosniff',
+    '  Referrer-Policy: strict-origin-when-cross-origin',
+    '  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()',
     '',
   ].join('\n'),
 )

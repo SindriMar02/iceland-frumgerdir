@@ -56,6 +56,7 @@ export default function RoomsPage() {
     };
   }, []);
   useEffect(() => {
+    if (STANDALONE) return; /* the app sets the injected title */
     document.title = lang === "is"
       ? "Herbergi og myndir · Nýpugarðar"
       : "Rooms & photos · Nýpugarðar";

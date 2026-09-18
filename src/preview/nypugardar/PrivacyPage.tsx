@@ -6,7 +6,9 @@
  * complain. Every statement about the website itself is checked against the
  * standalone build: no cookies, no browser storage (useLang stores nothing
  * when STANDALONE), no third-party embeds, fonts and map served from the site,
- * and Cloudflare Web Analytics, which is cookieless. If a tracker, an embed or
+ * and SNDR Pulse (04-platform/sndr-pulse), a cookieless counter that stores
+ * daily totals by page, source, device class and country and no IP, user agent
+ * or identifier; the Cloudflare beacon is stripped from this build. If a tracker, an embed or
  * a form is ever added, this page must change in the same commit.
  *
  * The wording is a plain-language draft for the owner to approve; it is not
@@ -51,6 +53,7 @@ export default function PrivacyPage() {
     };
   }, []);
   useEffect(() => {
+    if (STANDALONE) return; /* the app sets the injected title */
     document.title = `${t.privacy.title} · Nýpugarðar`;
   }, [t]);
 

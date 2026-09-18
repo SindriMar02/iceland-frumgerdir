@@ -56,6 +56,7 @@ export default function WinterPage() {
     };
   }, []);
   useEffect(() => {
+    if (STANDALONE) return; /* the app sets the injected title */
     document.title = lang === "is"
       ? "Veturinn á Nýpugörðum · Nýpugarðar"
       : "Winter at Nýpugarðar · Nýpugarðar";

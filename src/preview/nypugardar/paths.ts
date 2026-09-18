@@ -62,4 +62,29 @@ export function counterpart(pathname: string, hash: string, to: Lang): string {
 
 /** Every route the standalone prerender walks. Kept beside the paths that
  *  define them so a new page cannot ship unprerendered. */
+/**
+ * The <title> of every standalone route, the SAME eight strings the SEO
+ * injector (tools/nypugardar-seo.mjs) writes into the prerendered HTML. The
+ * browser needs them too: a client-side route change (the language switch,
+ * the rooms link) keeps the previous page's title unless someone sets it, and
+ * a page that set its own catalogue title used to overwrite the injected one
+ * on hydration. Change both places together; the audit of 2026-09-18 found
+ * them apart.
+ */
+export const STANDALONE_TITLES: Record<string, string> = {
+  '/': 'Nýpugarðar | Farm guesthouse between Höfn and Jökulsárlón',
+  '/rooms': 'Rooms, cottages and prices | Nýpugarðar',
+  '/winter': 'Winter at Nýpugarðar | Daylight, roads and northern lights',
+  '/privacy': 'Privacy | Nýpugarðar',
+  '/is': 'Nýpugarðar | Sveitagisting milli Hafnar og Jökulsárlóns',
+  '/is/herbergi': 'Herbergi, sumarhús og verð | Nýpugarðar',
+  '/is/vetur': 'Veturinn á Nýpugörðum | Birta, færð og norðurljós',
+  '/is/personuvernd': 'Persónuvernd | Nýpugarðar',
+}
+
+export function standaloneTitle(pathname: string): string {
+  const key = pathname.replace(/\/+$/, '') || '/'
+  return STANDALONE_TITLES[key] ?? STANDALONE_TITLES[key === '/herbergi' ? '/rooms' : '/']
+}
+
 export const PRERENDER_ROUTES = ['/', '/rooms', '/winter', '/privacy', '/is/', '/is/herbergi', '/is/vetur', '/is/personuvernd'] as const

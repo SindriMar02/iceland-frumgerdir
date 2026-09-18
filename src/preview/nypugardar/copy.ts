@@ -254,7 +254,7 @@ const en = {
       },
       {
         h: 'This website',
-        p: 'This website sets no cookies and stores nothing in your browser, and it uses no advertising or tracking tools. We count visits with Cloudflare Web Analytics, which works without cookies and does not identify you, so all we see are totals, such as how many people visited and which pages they read. The site is hosted by Cloudflare, which handles technical data such as your IP address to deliver the pages to you securely.',
+        p: 'This website sets no cookies and stores nothing in your browser, and it uses no advertising or tracking tools. Visits are counted by a small script from the studio that built the site, which works without cookies and does not identify you: it keeps daily totals only, such as how many people visited, which pages they read, which country they came from and whether they used a phone or a computer. Your IP address is not saved. The site is hosted by Cloudflare, which handles technical data such as your IP address to deliver the pages to you securely.',
       },
       {
         h: 'Booking a stay',
@@ -681,7 +681,7 @@ const is: typeof en = {
       },
       {
         h: 'Vefurinn',
-        p: 'Vefurinn setur engar vafrakökur, vistar ekkert í vafranum þínum og notar engin auglýsinga- eða rakningartól. Við teljum heimsóknir með Cloudflare Web Analytics, sem virkar án vafrakakna og þekkir þig ekki, svo við sjáum aðeins heildartölur, til dæmis hve margir komu og hvaða síður voru lesnar. Vefurinn er hýstur hjá Cloudflare, sem vinnur með tæknileg gögn á borð við IP-tölu til að koma síðunum örugglega til þín.',
+        p: 'Vefurinn setur engar vafrakökur, vistar ekkert í vafranum þínum og notar engin auglýsinga- eða rakningartól. Heimsóknir eru taldar með litlu forriti frá stofunni sem smíðaði vefinn. Það virkar án vafrakakna og þekkir þig ekki: aðeins eru geymdar daglegar heildartölur, til dæmis hve margir komu, hvaða síður voru lesnar, frá hvaða landi og hvort notaður var sími eða tölva. IP-talan þín er ekki vistuð. Vefurinn er hýstur hjá Cloudflare, sem vinnur með tæknileg gögn á borð við IP-tölu til að koma síðunum örugglega til þín.',
       },
       {
         h: 'Bókanir',
