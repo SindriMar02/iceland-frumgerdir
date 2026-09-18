@@ -118,34 +118,6 @@ const PAGE_CSS = `
   /* Squarer on a phone: 21:9 of map on a 375px screen is a 160px sliver. */
   @media (max-width:760px) { .rb-mapband { aspect-ratio:4 / 5; } }
 
-  /* The black-and-white craft band. ARCHIVAL is the same warm tone every
-     other mono photograph on this page carries, so it belongs to the set
-     rather than reading as a stray greyscale image. */
-  .rb-craftband { position:relative; z-index:2; display:block; overflow:hidden;
-    margin-inline:calc(-1 * clamp(20px,4.5vw,72px));
-    border-top:1px solid ${HAIR}; border-bottom:1px solid ${HAIR}; background:${INK_DEEP}; }
-  /* The frame is 1900x882 and its subject sits LOW: the scissors and the tray
-     of snúðar fill the bottom half, the top is out-of-focus bakery. Capping
-     the height and cropping from the centre (the default 50% 50%) therefore
-     cut the pastries off on a wide screen — the band showed a slice of hand
-     and a dark blur, which is the one thing in the photograph that says
-     nothing. One change: the crop is anchored low enough to keep the tray
-     in it. 62%, measured: at 1440px wide the image scales to 0.758, so the
-     band shows ~400px of the 882, and 62% puts that window over the scissors
-     and the full row of snúðar while dropping the empty top.
-
-     THE HEIGHT IS NOT A LEVER. This band sits inside .rb-cover after the hero
-     grid (flex:1 in a 100svh column), so every pixel added here is taken from
-     the hero row above, and the hero's snúður cutout slides behind the band,
-     which paints over it. Raising it to 34vh once cut the pastry in half.
-     Leave it at the original clamp; the anchor alone fixes the crop. */
-  .rb-craftband img { display:block; width:100%; height:100%; object-fit:cover;
-    object-position:50% 62%;
-    aspect-ratio:1900 / 882; max-height:clamp(190px,26vh,300px); filter:${ARCHIVAL}; }
-  /* On a phone the band is nearly square, so the same anchor would push the
-     hand out of frame entirely; 3:2 keeps both and needs no shift. */
-  @media (max-width:760px) { .rb-craftband img { max-height:none; aspect-ratio:3 / 2; object-position:50% 55%; } }
-
   /* Section intros. Full-bleed ones are centred and carry no rule; the
      kicker's letterspacing already reads as a masthead without one. */
   .rb-sec-intro { text-align:center; }
@@ -1289,31 +1261,13 @@ function ReynirPageInner() {
           </div>
         </div>
 
-        {/* A breath between the hero and the menu: one black-and-white craft
-            frame, full width, and nothing else on it.
-
-            Two earlier attempts filled this space with information — a
-            scrolling marquee of product nouns, then a rail of facts that were
-            already elsewhere on the page. Neither was needed. The site's own
-            organising rule is "black and white is the craft, colour is the
-            product", so the quiet answer is a craft frame: hands snipping
-            poppy-seed rolls into shape. No text, no links, nothing to read.
-
-            z-index:2 is not decoration and must not be removed. `.rb-cover-art`
-            is absolutely positioned, vertically centred and z-index:1, so it
-            overflows its own grid and paints over anything that follows it
-            inside the cover — which is exactly what happened to the version of
-            this band that did not set it. */}
-        <section className="rb-craftband" aria-hidden="true">
-          <img
-            src={`${import.meta.env.BASE_URL}reynir/band/handverk.webp`}
-            alt=""
-            width={1900}
-            height={882}
-            loading="lazy"
-            decoding="async"
-          />
-        </section>
+        {/* No band under the hero any more. Three things sat here over time —
+            a marquee of product nouns, a rail of facts, then a black-and-white
+            craft frame — and Sindri's verdict on the last one was that it did
+            not belong: a strip of a different photograph wedged between the
+            hero and the menu, which the hero's own cutout kept colliding with.
+            The hero ends on its own dark ground and the menu opens on its
+            hairline. The frame stays in the gallery, where it belongs. */}
 
       </section>
 
