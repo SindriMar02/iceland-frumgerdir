@@ -22,6 +22,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Lang } from './data'
 import {
+  COMPANY_ORDERS_ENABLED,
   ORDER_ENDPOINT,
   ORDER_T,
   PHOTO_UPLOAD_ENABLED,
@@ -317,6 +318,13 @@ const ORDER_CSS = `
   @keyframes rb-ord-layerin { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:none; } }
   @media (prefers-reduced-motion: reduce) { .rb-ord-spec-row { animation:none; } }
   @media (prefers-reduced-motion: reduce) { .rb-ord-extra { animation:none; } }
+  /* The row still appears and the note still speaks — only the movement and
+     the decaying tint go. */
+  @media (prefers-reduced-motion: reduce) {
+    .rb-ord-row, .rb-ord-added span { animation:none; }
+    .rb-ord-row[data-fresh]::after { animation:none; opacity:0; }
+    .rb-ord-addbtn:active { transform:none; }
+  }
 
   /* text + form fields */
   .rb-ord-field { display:block; margin-top:18px; }
@@ -386,19 +394,76 @@ const ORDER_CSS = `
   .rb-ord-total-value { margin-left:auto; font-family:${DISPLAY}; font-size:27px; color:${GOLD};
     font-variant-numeric:tabular-nums; }
   .rb-ord-slip-note { font-size:12px; color:${DIM}; margin:12px 0 0; line-height:1.5; }
-  /* ── the basket ── */
-  .rb-ord-cake { border-bottom:1px dashed rgba(238,211,170,.18); padding-bottom:6px; margin-bottom:4px; }
-  .rb-ord-cakebtns { display:flex; gap:14px; margin:0 0 6px; }
-  .rb-ord-cakebtns button { background:none; border:0; padding:0; cursor:pointer; font-size:12px;
+  /* ── the basket row ──
+     Measured off the carts this was built against (nings.is, adidas, Urban
+     Outfitters, lululemon, Faire): thumbnail left, name and price sharing the
+     top baseline, the chosen options as label/value pairs beneath, and the two
+     controls as small text links at the bottom edge. The photograph is what
+     makes a row scannable — it is how you check you ordered the right cake
+     without reopening the configurator. */
+  .rb-ord-row { display:grid; grid-template-columns:52px minmax(0,1fr); gap:12px;
+    padding:14px 0; border-bottom:1px dashed rgba(238,211,170,.18); }
+  .rb-ord-row-pic { width:52px; aspect-ratio:1/1; border-radius:3px; overflow:hidden;
+    border:1px solid ${HAIR_SOFT}; background:${INK}; }
+  .rb-ord-row-pic img { width:100%; height:100%; object-fit:cover; display:block; }
+  .rb-ord-row:not(:has(.rb-ord-row-pic)) { grid-template-columns:minmax(0,1fr); }
+  .rb-ord-row-body { min-width:0; }
+  .rb-ord-row-top { display:flex; align-items:baseline; gap:10px; }
+  .rb-ord-row-name { font-size:14.5px; color:${IVORY}; }
+  .rb-ord-row-price { margin-left:auto; font-size:13.5px; color:${GOLD}; white-space:nowrap;
+    font-variant-numeric:tabular-nums; }
+  /* label above value, not a colon-joined sentence: the labels form a column
+     the eye can skim down, which is the whole reason the references use a
+     definition list here. */
+  .rb-ord-row-specs { margin:7px 0 0; display:grid; gap:4px; }
+  .rb-ord-row-specs dt { font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+    color:${FAINT}; }
+  .rb-ord-row-specs dd { margin:1px 0 0; font-size:12.5px; color:${DIM}; line-height:1.45; }
+  .rb-ord-row-flag { margin:7px 0 0; font-size:11.5px; color:${GOLD_LIGHT}; }
+  .rb-ord-row-acts { display:flex; align-items:center; gap:9px; margin-top:9px; }
+  .rb-ord-row-acts > span { font-size:11px; color:${FAINT}; }
+  .rb-ord-row-acts button { background:none; border:0; padding:2px 0; cursor:pointer; font-size:12px;
     color:${FAINT}; text-decoration:underline; text-underline-offset:3px; }
-  .rb-ord-cakebtns button:hover { color:${GOLD_LIGHT}; }
-  .rb-ord-cakebtns button:focus-visible { outline:2px solid ${GOLD}; outline-offset:2px; }
+  .rb-ord-row-acts button:hover { color:${GOLD_LIGHT}; }
+  .rb-ord-row-acts button:focus-visible { outline:2px solid ${GOLD}; outline-offset:2px; border-radius:2px; }
+  /* …except the stepper, which is a control, not a link. */
+  .rb-ord-row-acts .rb-ord-qty button { text-decoration:none; }
+  /* The way back to the range, which every one of those carts keeps inside the
+     basket ("Add items" in DoorDash's cart panel). Quiet: it is a second path,
+     not the send. */
+  .rb-ord-addmore { display:flex; align-items:center; gap:8px; width:100%; margin:12px 0 2px;
+    padding:11px 12px; background:none; border:1px dashed rgba(238,211,170,.28); border-radius:4px;
+    color:${GOLD_LIGHT}; font-size:13px; cursor:pointer;
+    transition:border-color .2s ${EASE}, background .2s ${EASE}, color .2s ${EASE}; }
+  .rb-ord-addmore span { font-size:15px; line-height:1; }
+  .rb-ord-addmore:hover { border-color:${GOLD}; background:rgba(200,168,119,.07); color:${IVORY}; }
+  .rb-ord-addmore:focus-visible { outline:2px solid ${GOLD}; outline-offset:3px; }
+  .rb-ord-slip-title { display:flex; align-items:baseline; gap:10px; }
+  .rb-ord-slip-count { margin-left:auto; font-family:${BODY}; font-size:11.5px; letter-spacing:.1em;
+    text-transform:uppercase; color:${FAINT}; }
+  /* The answer to "did that go in?", in words, next to the range rather than
+     in a panel that sits below the fold on a phone. The line holds its height
+     with a non-breaking space so nothing reflows when it speaks. */
+  .rb-ord-added { margin:8px 0 0; min-height:17px; font-size:12.5px; color:${GOLD_LIGHT}; }
+  .rb-ord-added span { display:inline-block; animation:rb-ord-addedin .24s ${EASE} both; }
+  /* ── a shelf inside the range, not a step of its own ── */
+  .rb-ord-shelf { margin-top:clamp(26px,3.8vh,38px); }
+  .rb-ord-shelfhead { display:flex; align-items:center; gap:14px; }
+  .rb-ord-shelfrule { flex:1; height:0; border-bottom:1px solid ${HAIR}; }
   .rb-ord-addcake { display:flex; align-items:center; gap:18px; margin-top:20px; flex-wrap:wrap; }
-  .rb-ord-addbtn { padding:12px 22px; background:none; border:1px solid ${HAIR}; border-radius:4px;
-    color:${GOLD_LIGHT}; font-size:14px; cursor:pointer;
-    transition:border-color .2s ${EASE}, background .2s ${EASE}; }
-  .rb-ord-addbtn:hover { border-color:${GOLD}; background:rgba(200,168,119,.08); }
-  .rb-ord-addbtn:focus-visible { outline:2px solid ${GOLD}; outline-offset:3px; }
+  /* Filled, and carrying the total — nings.is's own add-to-basket bar. An
+     outlined button here read as a secondary link beside the options, which
+     is exactly wrong: putting the cake in the basket is the moment. */
+  .rb-ord-addbtn { display:inline-flex; align-items:baseline; gap:14px; padding:14px 22px;
+    background:${GOLD}; border:1px solid ${GOLD}; border-radius:4px; color:${INK};
+    font-family:${BODY}; font-weight:600; font-size:14.5px; cursor:pointer;
+    transition:background .2s ${EASE}, border-color .2s ${EASE}, transform .2s ${EASE}; }
+  .rb-ord-addbtn:hover { background:${GOLD_LIGHT}; border-color:${GOLD_LIGHT}; }
+  /* Asymmetric: the press lands at once, the release settles back. */
+  .rb-ord-addbtn:active { transform:scale(.985); transition-duration:.2s,.2s,.09s; }
+  .rb-ord-addbtn:focus-visible { outline:2px solid ${GOLD_LIGHT}; outline-offset:3px; }
+  .rb-ord-addbtn-sum { font-family:${DISPLAY}; font-size:16px; font-variant-numeric:tabular-nums;
+    opacity:.82; }
   .rb-ord-linkbtn { background:none; border:0; padding:0; cursor:pointer; font-size:13px; color:${FAINT};
     text-decoration:underline; text-underline-offset:3px; }
   .rb-ord-linkbtn:hover { color:${GOLD_LIGHT}; }
@@ -464,6 +529,21 @@ const ORDER_CSS = `
     font-family:${BODY}; font-size:14px; letter-spacing:.01em; color:${GOLD_LIGHT}; }
   @keyframes rb-ord-groupin { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
   .rb-ord-groups[data-key] { animation:rb-ord-groupin .38s ${EASE} both; }
+  /* A row does not fade in from nowhere: it arrives from the direction the
+     basket grows, and the gold tint behind it decays once, so the eye is told
+     WHICH row is new and then left alone. Two motions, one meaning. */
+  @keyframes rb-ord-rowin { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+  @keyframes rb-ord-rowfresh { from { opacity:1; } to { opacity:0; } }
+  .rb-ord-row { position:relative; animation:rb-ord-rowin .24s ${EASE} both; }
+  /* The tint decays as an overlay's OPACITY rather than as the row's own
+     background: same look, composited, and it cannot repaint the row's text.
+     Longer than the 300ms UI budget on purpose — this is not a transition
+     between two states, it is a "this one is new" marker getting out of the
+     way, and at 300ms it is over before the eye leaves the button. */
+  .rb-ord-row[data-fresh]::after { content:''; position:absolute; inset:0 -8px; pointer-events:none;
+    background:rgba(200,168,119,.13); border-radius:3px;
+    animation:rb-ord-rowfresh 1.1s ${EASE} .16s both; }
+  @keyframes rb-ord-addedin { from { opacity:0; transform:translateY(-3px); } to { opacity:1; transform:none; } }
 
   /* sent state */
   .rb-ord-done { border:1px solid ${GOLD}; border-radius:6px; padding:clamp(26px,4vw,40px);
@@ -511,6 +591,13 @@ const ORDER_CSS = `
     /* the slip moves below the choices; a slim sticky bar carries the total instead */
     .rb-ord-slipwrap { order:2; margin-top:clamp(28px,4vh,40px); }
     .rb-ord-slip { position:static; }
+    /* Breyta/Fjarlægja are 12px text links, which is right on a desktop cart
+       and 22px tall on a phone — half a tap target. The text stays small; the
+       button grows around it, and the row's own bottom padding comes off so
+       the basket does not gain 22px per entry for nothing. */
+    .rb-ord-row-acts { margin-top:2px; gap:16px; }
+    .rb-ord-row-acts button { min-height:44px; display:inline-flex; align-items:center; }
+    .rb-ord-row { padding-bottom:6px; }
     .rb-ord-formwrap { min-width:0;
     /* min-width:0 because this is a grid item, and a grid item's default
        min-width:auto lets any wide child (the extras card grid was the one
@@ -664,8 +751,16 @@ function OrderForm({
     [productId, ORDER_PRODUCTS],
   )
 
-  /** A private order and a company order need different fields, not a different form. */
-  const [who, setWho] = useState<'person' | 'company'>('person')
+  /** A private order and a company order need different fields, not a different
+   *  form. The lane itself is switched off for now (COMPANY_ORDERS_ENABLED,
+   *  owner's call 2026-09-18) — the state, the fields and the validation all
+   *  stay; `who` simply cannot leave 'person' while the flag is false, so
+   *  every `who === 'company'` branch below goes quiet at once instead of
+   *  being deleted one by one. */
+  const [whoPicked, setWhoPicked] = useState<'person' | 'company'>('person')
+  const companyLane = COMPANY_ORDERS_ENABLED
+  const who: 'person' | 'company' = companyLane ? whoPicked : 'person'
+  const setWho = setWhoPicked
 
   /**
    * The order is a LIST of cakes now, not one. A ferming needs a
@@ -968,6 +1063,15 @@ function OrderForm({
   const kjor = !anyQuote && cakesSubtotal >= VEISLUKJOR.threshold
   const kjorDiscount = kjor ? Math.round((cakesSubtotal * VEISLUKJOR.discountPct) / 100) : 0
   const extrasSum = ORDER_EXTRAS.reduce((sum, ex) => sum + (extrasQty[ex.id] ?? 0) * extraUnitPrice(ex, extrasQty[ex.id] ?? 0, kjor), 0)
+  /* How many things are in the basket, the way every cart states its own size
+     ("1 hlutur · 1.490 kr." on nings.is, "Cart (1 item)" on Walmart).
+     ENTRIES, not units, and that is a correction: counting units read
+     "11 vörur" for one cake and ten kleinur, when ten kleinur is one thing the
+     customer ordered. A clothing cart can count units because nobody buys
+     units by the tray. The draft is deliberately not counted — it is not in
+     the basket until the customer puts it there. */
+  const basketCount = cakes.length
+    + ORDER_EXTRAS.filter((ex) => (extrasQty[ex.id] ?? 0) > 0).length
   const orderTotal = cakesSubtotal - kjorDiscount + extrasSum
 
   /** What stands where the total goes when there is no number to put there. */
@@ -1068,6 +1172,36 @@ function OrderForm({
     photo: draftWantsPhoto ? photo : null,
     size,
   })
+  /** The product grid, so adding an item can hand the range back. */
+  const rangeRef = useRef<HTMLDivElement>(null)
+  /** What just went into the basket. `n` only increments so that adding the
+   *  same product twice still re-announces — a changing key, not new text. */
+  const [justAdded, setJustAdded] = useState<{ key: string; name: string; n: number } | null>(null)
+  const backToRange = () => {
+    const reduce = typeof window !== 'undefined'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    rangeRef.current?.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' })
+  }
+  /** The basket's own add-more control: wake the configurator on the product
+   *  already highlighted and take the customer up to the range. */
+  /** The basket's add-more button, so focus has somewhere to land when the
+   *  row holding the pressed button is removed. */
+  const addMoreRef = useRef<HTMLButtonElement>(null)
+  /** Emptying the basket removes the add-more button along with the last row,
+   *  so the range's first product is the fallback landing place. */
+  const focusAfterRemoval = () => {
+    /* A ref can still point at a node React has just unmounted, and focusing
+       a detached element silently lands on <body> — the exact failure this
+       exists to prevent. So the node has to still be in the document. */
+    const live = (el: HTMLElement | null) => (el && el.isConnected ? el : null)
+    const target = live(addMoreRef.current)
+      ?? live(rangeRef.current?.querySelector<HTMLElement>('input[type="radio"]') ?? null)
+    target?.focus()
+  }
+  const addMore = () => {
+    setDraftActive(true)
+    backToRange()
+  }
   const clearDraft = () => {
     clearPhoto()
     setPicked({})
@@ -1084,16 +1218,34 @@ function OrderForm({
       first?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
       return false
     }
-    setCakes((prev) => [...prev, snapshotDraft()])
+    const added = snapshotDraft()
+    setCakes((prev) => [...prev, added])
     clearDraft()
     setDraftActive(false)
+    /* Adding to a basket has to be ANSWERED, or the configurator just empties
+       and the customer cannot tell whether it worked. Every reference answers
+       it in the same two ways: the row appears in the basket, and the range
+       comes back ready for the next choice (DoorDash returns to the menu with
+       the cart popover; Faire and Urban Outfitters keep an explicit add-more
+       control in the panel). The note is aria-live so it is not only visual. */
+    setJustAdded({ key: added.key, name: added.product.name[lang], n: (justAdded?.n ?? 0) + 1 })
+    backToRange()
     return true
   }
   const cancelDraft = () => {
     clearDraft()
     setDraftActive(false)
   }
-  const removeCake = (key: string) => setCakes((prev) => prev.filter((c) => c.key !== key))
+  const removeCake = (key: string) => {
+    setCakes((prev) => prev.filter((c) => c.key !== key))
+    setJustAdded(null)
+    /* The button that was just pressed no longer exists, so focus would fall
+       to the document and a keyboard or screen-reader user would lose their
+       place in the basket. Hand it to the way back into the range, which is
+       the next thing they are likely to want — and when the row removed was
+       the LAST one, that button is gone too, so the range itself takes it. */
+    requestAnimationFrame(() => focusAfterRemoval())
+  }
   const editCake = (key: string) => {
     const cake = cakes.find((c) => c.key === key)
     if (!cake) return
@@ -1500,7 +1652,12 @@ function OrderForm({
 
   const slip = (
     <div className="rb-ord-slip">
-      <div className="rb-ord-slip-title">{t.slipTitle}</div>
+      <div className="rb-ord-slip-title">
+        <span>{t.slipTitle}</span>
+        {/* Every cart states its own size in the title. Cakes and counter
+            extras are both things in the basket, so both count. */}
+        {basketCount > 0 && <span className="rb-ord-slip-count">{t.basketCount(basketCount)}</span>}
+      </div>
       <div className="rb-ord-slip-rule" aria-hidden="true" />
       <div>
         {/* The empty state was written but never rendered: before anything was
@@ -1511,22 +1668,64 @@ function OrderForm({
             Each is one row — the full option spec lives in the email — plus
             the two small controls that keep the basket honest: change it, or
             take it out. */}
-        {cakes.map((c) => (
-          <div className="rb-ord-cake" key={c.key}>
-            <div className="rb-ord-slipline">
-              <span className="rb-ord-slipline-name">
-                {c.product.name[lang]}{c.qty > 1 ? ` ×${c.qty}` : ''}
-                {c.size && <span className="rb-ord-slipline-sub">{c.size.label[lang]}</span>}
-              </span>
-              <span className="rb-ord-slipline-dots" aria-hidden="true" />
-              <span className="rb-ord-slipline-price">{c.quote ? t.quoteTotal : isk(c.total)}</span>
+        {/* A basket row, built on the grammar every cart on Mobbin shares
+            (adidas, Urban Outfitters, lululemon, Faire, Walmart, Selfridges):
+            the photograph, the product name with its price on the same
+            baseline, then the CHOICES as label/value pairs underneath, then
+            Edit and Remove as small text links at the row's bottom edge — not
+            buttons competing with the send. Skinned in this page's own
+            language: ink ground, hairline rule, gold numerals, no white card.
+
+            One line per row was not enough. "Marsipanterta · 40 manna" hid the
+            filling, the writing and the strawberries, so the only way to check
+            an order was to reopen the configurator. */}
+        {cakes.map((c) => {
+          const specs: { key: string; label: string; value: string }[] = []
+          for (const line of c.lines) {
+            if (line.key === 'qty' || line.key === 'base') continue
+            specs.push({
+              key: line.key,
+              /* The size line's sub-line is the RATE ("930 kr. á mann"), not a
+                 field name, and the group's own legend is a question, so the
+                 size gets a short attribute label of its own. Every other line
+                 already carries its group name. */
+              label: (line.key === 'size' ? t.rowSize : line.sub) ?? '',
+              value: line.name,
+            })
+          }
+          if (c.qty > 1) specs.push({ key: 'qty', label: t.fieldQty, value: String(c.qty) })
+          return (
+            <div className="rb-ord-row" key={c.key} data-fresh={justAdded?.key === c.key || undefined}>
+              {c.product.image && (
+                <span className="rb-ord-row-pic" aria-hidden="true">
+                  <img src={c.product.image} alt="" loading="lazy" decoding="async" width={1400} height={1400} />
+                </span>
+              )}
+              <div className="rb-ord-row-body">
+                <div className="rb-ord-row-top">
+                  <span className="rb-ord-row-name">{c.product.name[lang]}</span>
+                  <span className="rb-ord-row-price">{c.quote ? t.quoteTotal : isk(c.total)}</span>
+                </div>
+                {specs.length > 0 && (
+                  <dl className="rb-ord-row-specs">
+                    {specs.map((sp) => (
+                      <div key={sp.key}>
+                        {sp.label && <dt>{sp.label}</dt>}
+                        <dd>{sp.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+                {c.wantsPhoto && !c.photo && <p className="rb-ord-row-flag">{t.photoLabel}</p>}
+                <div className="rb-ord-row-acts">
+                  <button type="button" onClick={() => editCake(c.key)} aria-label={`${t.btnEditCake}: ${c.product.name[lang]}`}>{t.btnEditCake}</button>
+                  <span aria-hidden="true">·</span>
+                  <button type="button" onClick={() => removeCake(c.key)} aria-label={`${t.btnRemoveCake}: ${c.product.name[lang]}`}>{t.btnRemoveCake}</button>
+                </div>
+              </div>
             </div>
-            <div className="rb-ord-cakebtns">
-              <button type="button" onClick={() => editCake(c.key)}>{t.btnEditCake}</button>
-              <button type="button" onClick={() => removeCake(c.key)}>{t.btnRemoveCake}</button>
-            </div>
-          </div>
-        ))}
+          )
+        })}
         {draftActive && lines.map((line) => (
           <div className="rb-ord-slipline" key={line.key}>
             <span className="rb-ord-slipline-name">
@@ -1567,22 +1766,68 @@ function OrderForm({
           <span className="rb-ord-slipline-price">{isk(-kjorDiscount)}</span>
         </div>
       )}
+      {/* An extra in the basket is a basket row too, not a dotted price line.
+          It was the one entry that looked different from everything else in
+          the panel, and nings.is's own basket shows every entry the same way:
+          photograph, name, its own quantity control, price. Unlike a cake,
+          this quantity is still live — extras are counter goods with no frozen
+          configuration — so the stepper belongs on the row rather than a
+          "Breyta" link that would have nothing to open. */}
       {ORDER_EXTRAS.filter((ex) => (extrasQty[ex.id] ?? 0) > 0).map((ex) => {
         const exQty = extrasQty[ex.id] ?? 0
         const exUnit = extraUnitPrice(ex, exQty, kjor)
         return (
-          <div className="rb-ord-slipline" key={`extra_${ex.id}`}>
-            <span className="rb-ord-slipline-name">
-              {ex.label[lang]} ×{exQty}
-              {exUnit < ex.unitPrice && (
-                <span className="rb-ord-slipline-sub">{kjor ? t.extrasKjorTag : t.extrasBulkTag}</span>
-              )}
-            </span>
-            <span className="rb-ord-slipline-dots" aria-hidden="true" />
-            <span className="rb-ord-slipline-price">{isk(exQty * exUnit)}</span>
+          <div className="rb-ord-row" key={`extra_${ex.id}`}>
+            {ex.image && (
+              <span className="rb-ord-row-pic" aria-hidden="true">
+                <img src={ex.image} alt="" loading="lazy" decoding="async" width={480} height={480} />
+              </span>
+            )}
+            <div className="rb-ord-row-body">
+              <div className="rb-ord-row-top">
+                <span className="rb-ord-row-name">{ex.label[lang]}</span>
+                <span className="rb-ord-row-price">{isk(exQty * exUnit)}</span>
+              </div>
+              <dl className="rb-ord-row-specs">
+                <div>
+                  <dt>{lang === 'is' ? 'Verð á stykki' : 'Unit price'}</dt>
+                  <dd>
+                    {isk(exUnit)}
+                    {exUnit < ex.unitPrice && ` · ${kjor ? t.extrasKjorTag : t.extrasBulkTag}`}
+                  </dd>
+                </div>
+              </dl>
+              <div className="rb-ord-row-acts">
+                <span className="rb-ord-qty" data-small="true" role="group" aria-label={ex.label[lang]}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      stepExtra(ex.id, -1)
+                      /* Below one step this row disappears with the focus in it. */
+                      if (exQty - ex.step <= 0) requestAnimationFrame(() => focusAfterRemoval())
+                    }}
+                    aria-label={`${lang === 'is' ? 'Fækka' : 'Remove'} ${ex.label[lang]}`}
+                  >−</button>
+                  <span className="rb-ord-qty-val" aria-live="polite">{exQty}</span>
+                  <button type="button" onClick={() => stepExtra(ex.id, 1)} disabled={exQty >= ex.max} aria-label={`${lang === 'is' ? 'Bæta við' : 'Add'} ${ex.label[lang]}`}>+</button>
+                </span>
+              </div>
+            </div>
           </div>
         )
       })}
+      {/* Faire, Urban Outfitters and Walmart all keep an explicit way back to
+          the range inside the basket; DoorDash's cart panel calls it "Add
+          items". It sits under every entry — cakes AND extras — because a
+          control that appeared in the middle of the basket read as if it
+          added something to that half of it. While a cake is being configured
+          the filled button in the range IS this path, so it stays hidden then
+          rather than competing with it. */}
+      {!draftActive && cakes.length > 0 && (
+        <button type="button" className="rb-ord-addmore" onClick={addMore} ref={addMoreRef}>
+          <span aria-hidden="true">+</span>{t.addMore}
+        </button>
+      )}
       <div className="rb-ord-total">
         <span className="rb-ord-total-label">{t.slipTotal}</span>
         <span className="rb-ord-total-value" data-bump={bump} data-quote={softTotal} aria-live="polite">
@@ -1711,7 +1956,9 @@ function OrderForm({
             <div className="rb-ord-formwrap">
               {/* running total, mobile only */}
               <div className="rb-ord-mobiletotal">
-                <span className="rb-ord-mobiletotal-label">{t.slipTotal}</span>
+                <span className="rb-ord-mobiletotal-label">
+                  {basketCount > 0 ? t.basketCount(basketCount) : t.slipTotal}
+                </span>
                 <span className="rb-ord-mobiletotal-value" data-bump={bump} data-quote={softTotal} aria-live="polite">
                   {totalText}
                 </span>
@@ -1725,7 +1972,12 @@ function OrderForm({
                   feature the restructure had quietly orphaned. One slim row,
                   because this is context, not a step: a segmented toggle and
                   a select, not lanes and chips. */}
-              <div className="rb-ord-ctx">
+              <div className="rb-ord-ctx" data-lanes={companyLane || undefined}>
+                {/* The person/company toggle is gated, not deleted — see
+                    COMPANY_ORDERS_ENABLED in order.ts. With one lane there is
+                    nothing to segment, and a control with a single option is
+                    just noise. */}
+                {companyLane && (
                 <div className="rb-ord-ctx-field">
                   <span className="rb-ord-ctx-label">{t.stepWho}</span>
                   <div className="rb-ord-seg" role="radiogroup" aria-label={t.stepWho}>
@@ -1745,6 +1997,7 @@ function OrderForm({
                     ))}
                   </div>
                 </div>
+                )}
                 {askOccasion && (
                   <div className="rb-ord-ctx-field">
                     <label className="rb-ord-ctx-label" htmlFor="rb-ord-occasion">
@@ -1796,6 +2049,7 @@ function OrderForm({
                   <span className="rb-ord-steplabel">{t.stepProduct}</span>
                 </div>
                 <div
+                  ref={rangeRef}
                   className="rb-ord-prods"
                   role="radiogroup"
                   aria-label={t.stepProduct}
@@ -1830,6 +2084,16 @@ function OrderForm({
                     blurb belongs to a cake actually being configured. */}
                 <p className="rb-ord-help" style={{ marginTop: 12 }}>
                   {draftActive ? product.blurb[lang] : t.pickNextCake}
+                </p>
+                {/* What Nings answers with its header basket turning into
+                    "1 HLUTUR · 1.490 KR.": adding has to be confirmed in
+                    words, not only by a row appearing in a panel that is
+                    below the fold on a phone. Keyed on the counter so adding
+                    the same product twice re-announces and re-plays. */}
+                <p className="rb-ord-added" role="status">
+                  <span key={justAdded?.n ?? 0}>
+                    {justAdded && !draftActive ? t.addedToOrder(justAdded.name) : '\u00a0'}
+                  </span>
                 </p>
                 {showErr('g_product') && <p className="rb-ord-err" role="alert">{errors.g_product}</p>}
               </div>
@@ -2054,7 +2318,16 @@ function OrderForm({
                       Committing here snapshots this cake into the slip exactly
                       as priced, then hands the picker back. */}
                   <div className="rb-ord-addcake">
-                    <button type="button" className="rb-ord-addbtn" onClick={commitDraft}>{t.addAnother}</button>
+                    {/* nings.is puts the quantity, the running total and one
+                        filled "Setja í körfu" in a single bar at the end of the
+                        product; the total ON the button is what makes it a
+                        commitment rather than a link. Ours carries the same
+                        three, and says "Tilboð" instead of a number when the
+                        cake is a quote — a bespoke cake has no total to show. */}
+                    <button type="button" className="rb-ord-addbtn" onClick={commitDraft}>
+                      <span>{t.addToOrder}</span>
+                      {!unpriced && <span className="rb-ord-addbtn-sum">{quote ? t.quoteTotal : isk(total)}</span>}
+                    </button>
                     {cakes.length > 0 && (
                       <button type="button" className="rb-ord-linkbtn" onClick={cancelDraft}>{t.cancelDraftCake}</button>
                     )}
@@ -2063,14 +2336,20 @@ function OrderForm({
               </div>
               )}
 
-              {/* 5 — counter extras. Always offered; the veislukjör price
-                  takes over automatically when the cakes reach the threshold.
-                  Every figure on the kjör side is a PLACEHOLDER until the
-                  owner sets real ones — see VEISLUKJOR in order.ts. */}
-              <div className="rb-ord-step">
-                <div className="rb-ord-stephead">
-                  <span className="rb-ord-stepnum" aria-hidden="true">02</span>
+              {/* Counter extras — no longer a numbered step of their own.
+                  Þorleifur asked for fewer steps (call 2026-09-18) and for one
+                  basket you keep adding to, and nings.is, DoorDash and Uber
+                  Eats all model that the same way: ONE range with shelves in
+                  it, not a step per shelf. Numbering them 02 also implied the
+                  customer had to pass through pastries to reach the date.
+
+                  The kjör price still takes over automatically at the
+                  threshold, and every figure on that side is a PLACEHOLDER
+                  until the owner sets real ones — see VEISLUKJOR in order.ts. */}
+              <div className="rb-ord-shelf">
+                <div className="rb-ord-shelfhead">
                   <span className="rb-ord-steplabel">{t.stepExtras}</span>
+                  <span className="rb-ord-shelfrule" aria-hidden="true" />
                 </div>
                 <p className="rb-ord-help" style={{ marginTop: 10 }}>{kjor ? t.extrasKjorIntro : lang === 'is' ? 'Bættu bakkelsi við pöntunina ef þú vilt.' : 'Add pastries to your order if you like.'}</p>
                 {/* Photo cards, not text rows — the sweetgreen add-on
@@ -2129,7 +2408,7 @@ function OrderForm({
                   moment its own screen; here it gets its own numbered step. */}
               <div className="rb-ord-step">
                 <div className="rb-ord-stephead">
-                  <span className="rb-ord-stepnum" aria-hidden="true">03</span>
+                  <span className="rb-ord-stepnum" aria-hidden="true">02</span>
                   <span className="rb-ord-steplabel">{t.stepWhen}</span>
                 </div>
                 <div className="rb-ord-two">
@@ -2268,7 +2547,7 @@ function OrderForm({
                   chips live directly under them. */}
               <div className="rb-ord-step">
                 <div className="rb-ord-stephead">
-                  <span className="rb-ord-stepnum" aria-hidden="true">04</span>
+                  <span className="rb-ord-stepnum" aria-hidden="true">03</span>
                   <span className="rb-ord-steplabel">{t.stepDetails}</span>
                 </div>
 

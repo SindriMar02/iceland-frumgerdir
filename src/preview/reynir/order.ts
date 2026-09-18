@@ -119,6 +119,27 @@ export const ORDER_ENDPOINT = 'https://reynir-order.sindri-381.workers.dev/order
  */
 export const PHOTO_UPLOAD_ENABLED = true
 
+/**
+ * Whether the form offers the COMPANY lane at all.
+ *
+ * OFF since 2026-09-18, on Þorleifur's own instruction in that day's call
+ * ("fyrirtækjatapana sem við erum með … taka hann bara út"): a designer is
+ * making him a proper fyrirtækjakassa and will supply its photographs and
+ * prices, and until that exists the company tab collects a kennitala and an
+ * invoicing address for products aimed at private customers.
+ *
+ * NOTHING is deleted. The lane's fields, its validation, its own occasion
+ * list, the invoicing address and the guest count all still exist below and in
+ * OrderSection; this flag is the only thing standing between them and the
+ * page. Flip it back to true when the corporate box lands, check that the
+ * company occasion list in the CMS has been confirmed (it never was), and walk
+ * the flow once as a company before shipping it.
+ *
+ * Turning it off also takes four fields out of the order — which is half of
+ * what he meant by "færri skref".
+ */
+export const COMPANY_ORDERS_ENABLED = false
+
 /** Icelandic thousands grouping, done by hand. Never ICU/toLocaleString. */
 export function isk(n: number): string {
   const s = Math.round(Math.abs(n)).toString()
@@ -1148,6 +1169,22 @@ export interface OrderCopy {
   extrasBulkTag: string
   extrasBulkLine: (n: number, price: string) => string
   addAnother: string
+  /** The primary button under the configurator: this item into the basket. */
+  addToOrder: string
+  /** In the basket panel: go back up to the range and pick another product. */
+  addMore: string
+  /** Confirmation after something lands in the basket. Read by aria-live, so
+   *  it names the product rather than saying "added". */
+  addedToOrder: (name: string) => string
+  /** "3 vörur" beside the basket title, the way every cart states its size. */
+  basketCount: (n: number) => string
+  /** Sub-heads inside step 01, which now holds the whole range. */
+  sectionCakes: string
+  /** The label column in a basket row names the ATTRIBUTE, so the size group's
+   *  own legend ("Fyrir hvað marga á tertan að vera?") cannot be reused: a
+   *  question in a label column reads as a prompt the customer still has to
+   *  answer, and it is four times the width of the value beside it. */
+  rowSize: string
   pickNextCake: string
   cancelDraftCake: string
   btnEditCake: string
@@ -1296,7 +1333,13 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     extrasBulkTag: 'bulk price',
     extrasBulkLine: (n, price) => `${n}+ at ${price} each`,
     addAnother: 'Add another cake',
-    pickNextCake: 'Pick the next cake above, or carry on with the order.',
+    addToOrder: 'Add to order',
+    addMore: 'Add another item',
+    addedToOrder: (name) => `Added to your order: ${name}`,
+    basketCount: (n) => `${n} ${n === 1 ? 'item' : 'items'}`,
+    sectionCakes: 'Cakes',
+    rowSize: 'Size',
+    pickNextCake: 'Pick another item above, or carry on with the order.',
     cancelDraftCake: 'Skip this cake',
     btnEditCake: 'Edit',
     btnRemoveCake: 'Remove',
@@ -1425,7 +1468,17 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     extrasBulkTag: 'magnverð',
     extrasBulkLine: (n, price) => `${n}+ stk. á ${price}`,
     addAnother: 'Bæta annarri köku við',
-    pickNextCake: 'Veldu næstu köku hér fyrir ofan, eða haltu áfram með pöntunina.',
+    addToOrder: 'Bæta í pöntun',
+    addMore: 'Bæta við pöntun',
+    /* Neutral phrasing on purpose: "komin í pöntunina" is feminine and would
+       read wrong for Rice Crispies turninn. Naming the product after a colon
+       stays right for every gender the catalogue grows into. */
+    addedToOrder: (name) => `Bætt í pöntunina: ${name}`,
+    /* 1 vara, 2 vörur, 21 vara — the -1 exception that 11 does not take. */
+    basketCount: (n) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? 'vara' : 'vörur'}`,
+    sectionCakes: 'Kökur',
+    rowSize: 'Stærð',
+    pickNextCake: 'Veldu næstu vöru hér fyrir ofan, eða haltu áfram með pöntunina.',
     cancelDraftCake: 'Sleppa þessari köku',
     btnEditCake: 'Breyta',
     btnRemoveCake: 'Fjarlægja',
