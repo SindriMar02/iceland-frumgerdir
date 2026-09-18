@@ -124,9 +124,27 @@ const PAGE_CSS = `
   .rb-craftband { position:relative; z-index:2; display:block; overflow:hidden;
     margin-inline:calc(-1 * clamp(20px,4.5vw,72px));
     border-top:1px solid ${HAIR}; border-bottom:1px solid ${HAIR}; background:${INK_DEEP}; }
+  /* The frame is 1900x882 and its subject sits LOW: the scissors and the tray
+     of snúðar fill the bottom half, the top is out-of-focus bakery. Capping
+     the height and cropping from the centre (the default 50% 50%) therefore
+     cut the pastries off on a wide screen — the band showed a slice of hand
+     and a dark blur, which is the one thing in the photograph that says
+     nothing. One change: the crop is anchored low enough to keep the tray
+     in it. 62%, measured: at 1440px wide the image scales to 0.758, so the
+     band shows ~400px of the 882, and 62% puts that window over the scissors
+     and the full row of snúðar while dropping the empty top.
+
+     THE HEIGHT IS NOT A LEVER. This band sits inside .rb-cover after the hero
+     grid (flex:1 in a 100svh column), so every pixel added here is taken from
+     the hero row above, and the hero's snúður cutout slides behind the band,
+     which paints over it. Raising it to 34vh once cut the pastry in half.
+     Leave it at the original clamp; the anchor alone fixes the crop. */
   .rb-craftband img { display:block; width:100%; height:100%; object-fit:cover;
+    object-position:50% 62%;
     aspect-ratio:1900 / 882; max-height:clamp(190px,26vh,300px); filter:${ARCHIVAL}; }
-  @media (max-width:760px) { .rb-craftband img { max-height:none; aspect-ratio:3 / 2; } }
+  /* On a phone the band is nearly square, so the same anchor would push the
+     hand out of frame entirely; 3:2 keeps both and needs no shift. */
+  @media (max-width:760px) { .rb-craftband img { max-height:none; aspect-ratio:3 / 2; object-position:50% 55%; } }
 
   /* Section intros. Full-bleed ones are centred and carry no rule; the
      kicker's letterspacing already reads as a masthead without one. */
@@ -302,7 +320,18 @@ const PAGE_CSS = `
   .rb-cta:active { transform:scale(.98); }
   .rb-cta-gold { background:${GOLD}; color:${INK}; border:1px solid ${GOLD}; }
   .rb-cta-gold:hover { background:${GOLD_LIGHT}; border-color:${GOLD_LIGHT}; }
+  /* Screen-reader-only text. The clip technique, not a negative offset: an
+     off-canvas absolute element inside a scroll container drags the container
+     with it (see the .sr-only note in the studio memory). */
+  .rb-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0; }
   .rb-cta-ghost { background:transparent; color:${IVORY}; border:1px solid rgba(238,211,170,.34); }
+  /* An outlined button with an arrow means this one leaves the site. The arrow
+     is a separate span so it can sit at the size of the text without being
+     read out as a word. */
+  .rb-cta-ext { display:inline-flex; align-items:center; gap:9px; }
+  .rb-cta-ext > span[aria-hidden] { font-size:13px; opacity:.75; transition:transform .2s ${EASE}; }
+  .rb-cta-ext:hover > span[aria-hidden] { transform:translate(2px,-2px); }
   .rb-cta-ghost:hover { border-color:${GOLD}; background:rgba(238,211,170,.05); }
 
   .rb-lang { background:none; border:none; cursor:pointer; padding:14px 13px; margin:-14px -13px; font-family:${BODY};
@@ -395,6 +424,25 @@ const PAGE_CSS = `
 
   .rb-cover-art { position:absolute; top:50%; right:clamp(-30px,0vw,20px); transform:translateY(-50%);
     width:clamp(300px,40vw,${MED_BASE}px); z-index:1; pointer-events:none; display:flex; align-items:center; justify-content:center; }
+  /* THE SNUDUR WAS NEVER ACTUALLY CENTRED, and that is why the craft band cut
+     it. top:50% only centres together with translateY(-50%), and this element
+     also carries the shared entrance class .rb-enter-3, whose keyframes END at
+     transform:none with fill-mode both. A filled animation beats a normal
+     declaration, so the instant the intro finished the browser threw the -50%
+     away: the cutout's TOP edge sat on the grid's centre line instead of its
+     middle, dropping it about 240px. Measured at 1440x900 before this fix: the
+     art ran 438-920 while the band starts at 770, so 150px (31% of the pastry)
+     was behind a band that paints over it (z-index:2, by design). Centred, it
+     ends at 679 and clears the band by 91px.
+     Fix: its own keyframes, carrying the -50% at both ends. Nothing about the
+     hero's design, the band, or the z-index changes.
+     GENERAL RULE: never put .rb-enter* on an element that needs its own
+     transform. Animate a wrapper, or give it keyframes that preserve it. */
+  @keyframes rb-rise-art {
+    from { opacity:0; transform:translateY(calc(-50% + 14px)); }
+    to   { opacity:1; transform:translateY(-50%); }
+  }
+  .rb-cover-art.rb-enter-3 { animation-name:rb-rise-art; }
 
   /* ── photo gallery: one horizontal strip, scroll-snapped ───────────────── */
   .rb-gallery-strip { display:flex; gap:14px; overflow-x:auto; overflow-y:hidden;
@@ -1220,12 +1268,24 @@ function ReynirPageInner() {
               {heroLine[lang]}
             </p>
 
-            <div className="rb-cover-ctas rb-enter-4" style={{ display: 'flex', gap: 14, marginTop: 'clamp(24px,3.5vh,36px)' }}>
-              {/* generic in the hero: the platform choice belongs further
-                  down, where both options can be shown side by side */}
-              <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold">{t.ctaDelivery}</a>
-              <a href="#menu" className="rb-cta rb-cta-ghost">{t.ctaMenu}</a>
+            {/* The hero used to offer "Panta heim" in gold, which left the
+                site for aha.is, while the header's "Panta" opened the bakery's
+                own cake order. One verb, two errands, and the gold one was the
+                one that pays a commission. So: the bakery's own order flow is
+                the gold button, the delivery app is an outlined button that
+                says where it goes and marks itself as leaving, and a line
+                under them states which is which. */}
+            <div className="rb-cover-ctas rb-enter-4" style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 'clamp(24px,3.5vh,36px)' }}>
+              <Link to={P.order} className="rb-cta rb-cta-gold">{t.ctaOrderOwn}</Link>
+              <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost rb-cta-ext">
+                {t.ctaDelivery}
+                <span aria-hidden="true">↗</span>
+                <span className="rb-sr">({t.extNote})</span>
+              </a>
             </div>
+            <p className="rb-enter-4" style={{ fontSize: 13.5, color: DIM, margin: '14px 0 0', maxWidth: '42ch', lineHeight: 1.55 }}>
+              {t.ctaPathsNote}
+            </p>
           </div>
         </div>
 
@@ -1584,13 +1644,25 @@ function ReynirPageInner() {
                 </div>
               </div>
 
-              {/* Both delivery platforms they actually trade on, side by side.
-                  aha.is stays the primary because it is the one they already
-                  advertise; Wolt sat unlinked even though their storefront is
-                  live and was the source we price-checked the menu against. */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 'clamp(26px,4vh,36px)' }}>
-                <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold">{t.orderPrimary}</a>
-                <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost">{t.orderWolt}</a>
+              {/* Both delivery platforms they actually trade on, under a head
+                  that says what they are for. Neither is gold any more: gold
+                  is reserved for ordering FROM the bakery, so a customer can
+                  tell the two errands apart by sight anywhere on the page.
+                  The buttons carry only the platform name — the head above
+                  them already says "heimsending", and "Panta á aha.is" was
+                  the third thing on this page starting with "Panta". */}
+              <div style={{ marginTop: 'clamp(26px,4vh,36px)' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', color: GOLD }}>
+                  {t.deliveryKicker}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 14 }}>
+                  <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost rb-cta-ext">
+                    {t.orderPrimary}<span aria-hidden="true">↗</span><span className="rb-sr">({t.extNote})</span>
+                  </a>
+                  <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost rb-cta-ext">
+                    {t.orderWolt}<span aria-hidden="true">↗</span><span className="rb-sr">({t.extNote})</span>
+                  </a>
+                </div>
               </div>
               <p style={{ fontSize: 14.5, color: DIM, margin: '18px 0 0', lineHeight: 1.6, maxWidth: '34ch' }}>{t.deliveryNote}</p>
             </div>

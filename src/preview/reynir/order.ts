@@ -1321,7 +1321,7 @@ export interface OrderCopy {
 /** UI copy for the configurator, kept beside its data so the whole flow reviews as one file. */
 export const ORDER_T: Record<Lang, OrderCopy> = {
   en: {
-    navOrder: 'Order',
+    navOrder: 'Order a cake',
     kicker: 'Order ahead',
     title: 'Build your order.',
     intro:
@@ -1461,7 +1461,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     charsLeft: (n: number) => `${n} characters left`,
   },
   is: {
-    navOrder: 'Panta',
+    navOrder: 'Panta tertu',
     kicker: 'Pantað fyrirfram',
     title: 'Settu saman pöntun.',
     intro:
