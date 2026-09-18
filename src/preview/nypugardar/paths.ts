@@ -35,6 +35,11 @@ export function roomsPath(lang: Lang): string {
   return lang === 'is' ? '/is/herbergi' : '/rooms'
 }
 
+export function winterPath(lang: Lang): string {
+  if (!STANDALONE) return '/preview/nypugardar/vetur'
+  return lang === 'is' ? '/is/vetur' : '/winter'
+}
+
 export function privacyPath(lang: Lang): string {
   if (!STANDALONE) return '/preview/nypugardar/personuvernd'
   return lang === 'is' ? '/is/personuvernd' : '/privacy'
@@ -50,10 +55,11 @@ export function langFromPath(pathname: string): Lang | null {
 /** The same page in the other language, hash and all. */
 export function counterpart(pathname: string, hash: string, to: Lang): string {
   if (/\/(privacy|personuvernd)\/?$/.test(pathname)) return privacyPath(to)
+  if (/\/(winter|vetur)\/?$/.test(pathname)) return winterPath(to)
   const isRooms = /\/(rooms|herbergi)\/?$/.test(pathname)
   return (isRooms ? roomsPath(to) : homePath(to)) + (hash || '')
 }
 
 /** Every route the standalone prerender walks. Kept beside the paths that
  *  define them so a new page cannot ship unprerendered. */
-export const PRERENDER_ROUTES = ['/', '/rooms', '/privacy', '/is/', '/is/herbergi', '/is/personuvernd'] as const
+export const PRERENDER_ROUTES = ['/', '/rooms', '/winter', '/privacy', '/is/', '/is/herbergi', '/is/vetur', '/is/personuvernd'] as const

@@ -79,7 +79,7 @@ import {
   ROOM_SLEEPS,
   type GodoRoomKey,
 } from "./godo";
-import { STANDALONE, counterpart, roomsPath } from "./paths";
+import { STANDALONE, counterpart, roomsPath, winterPath } from "./paths";
 import { useStay, type Stay } from "./stay";
 import {
   largest,
@@ -1925,6 +1925,18 @@ export default function Page() {
                       {t.breakfast[BREAKFAST.toGo as keyof typeof t.breakfast] ?? BREAKFAST.toGo}
                     </span>
                     . {t.dinner.toGoTail}
+                  </p>
+                  {/* The winter page, offered where winter is already on the
+                      screen: the snow frame beside this block. Not in the nav. */}
+                  <p className="mt-6 text-[15px]">
+                    <Link
+                      to={winterPath(lang)}
+                      className={`group inline-flex items-baseline gap-2 underline-offset-4 transition-colors duration-200 hover:underline ${FOCUS}`}
+                      style={{ color: ACCENT }}
+                    >
+                      {t.dinner.winterLink}
+                      <span aria-hidden="true" className="font-fragment text-[11px] transition-transform duration-200 ease-out motion-reduce:transition-none [@media(hover:hover)]:group-hover:translate-x-0.5">&rarr;</span>
+                    </Link>
                   </p>
                 </Reveal>
               </div>

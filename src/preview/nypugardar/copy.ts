@@ -42,6 +42,7 @@ const en = {
     gallery: 'Photos',
     reviews: 'Guests',
     info: 'Find us',
+    winter: 'Winter',
     menu: 'Site menu',
   },
 
@@ -177,6 +178,7 @@ const en = {
     diningAlt:
       'The dining room at Nýpugarðar, with tables set beside full-height windows facing the glacier',
     diningCaption: 'The dining room',
+    winterLink: 'What winter is like here',
     winterAlt:
       'The guesthouse at Nýpugarðar in deep winter snow, with the deck and large windows facing the mountains',
     winterCaption: 'The house in winter',
@@ -322,6 +324,77 @@ const en = {
     ],
   },
 
+  /* WINTER — /winter, its own page.
+   * Written for the traveller booking November to March, who asks a
+   * different set of questions than the summer guest: how dark is it, what
+   * are the roads doing, can we still reach Jökulsárlón, what happens if we
+   * arrive after dark. Every answer is the farm's own fact or a public
+   * Icelandic source (Vegagerðin, Veðurstofan, safetravel.is). Daylight
+   * times are computed for the farm's own coordinates (64.2616, -15.4390),
+   * NOAA solar position, and rounded to the minute. Nothing here claims the
+   * farm is open on a specific date: the booking calendar answers that. */
+  winter: {
+    eyebrow: 'Winter',
+    heading: 'Winter on Mýrar',
+    intro:
+      'Winter is the quiet half of the year here. The light is short and low, the glaciers sit white behind the farm, and on a clear night you can walk out of the door and stand under the aurora with no streetlight anywhere near you. These are the things guests ask us between November and March, answered from the farm.',
+    daylight: {
+      heading: 'How much daylight you get',
+      note: 'Sunrise and sunset at the farm, to the nearest minute, from the sun\u2019s position at our own coordinates. A minute either way from one year to the next.',
+      cols: { date: 'Date', rise: 'Sunrise', set: 'Sunset', length: 'Daylight' },
+      rows: [
+        { date: '1 November', rise: '08:46', set: '16:45', length: '8 h' },
+        { date: '1 December', rise: '10:22', set: '15:20', length: '5 h' },
+        { date: '21 December', rise: '10:58', set: '15:01', length: '4 h' },
+        { date: '15 January', rise: '10:31', set: '15:51', length: '5 h 20' },
+        { date: '1 February', rise: '09:43', set: '16:47', length: '7 h' },
+        { date: '1 March', rise: '08:10', set: '18:18', length: '10 h' },
+      ],
+    },
+    items: [
+      {
+        q: 'Are you open in the winter?',
+        a: 'Yes, we take guests through the winter, with breakfast in the morning and dinner from the menu in the evening. The booking calendar on this site shows exactly which nights and which rooms are free, so what you see there is what we have.',
+      },
+      {
+        q: 'Can we see the northern lights from the farm?',
+        a: 'Often, from September to April, when the sky is clear. There is no village and no streetlight on Mýrar, so you do not have to drive anywhere: step outside the door, let your eyes adjust and look north. The Icelandic Met Office publishes an aurora forecast at vedur.is.',
+      },
+      {
+        q: 'How dark is it, really?',
+        a: 'Around the shortest day the sun is up for about four hours, from just before eleven until three in the afternoon, and it never climbs high. That also means long blue light before and after, which is the best light the glaciers get all year. The table above has the times month by month.',
+      },
+      {
+        q: 'What are the roads like?',
+        a: 'Route 1, the Ring Road, runs past the farm and is cleared through the winter, but it can close in a storm and it does so with little warning. Vegagerðin publishes live road conditions at road.is, and safetravel.is carries the weather and travel alerts. The farm sits 4 km off Route 1 on a road that is kept passable.',
+      },
+      {
+        q: 'We will not arrive until after dark. Is that a problem?',
+        a: 'Not at all, it is normal here in winter. Check in is until 22:00. If you arrive later than that, a note on the table in the lobby tells you which room is yours, so you can let yourself in and settle.',
+      },
+      {
+        q: 'Can we still get to Jökulsárlón in winter?',
+        a: 'Yes. It is about 50 km along Route 1, roughly 50 minutes when the road is clear, longer on snow. Drive it in daylight if you can, and check road.is before you set off. Ice cave and glacier tours run through the winter from the Jökulsárlón area and usually leave early in the morning.',
+      },
+      {
+        q: 'Can we get breakfast before an early tour?',
+        a: 'Yes. If you are leaving before breakfast is served, tell us the evening before and we will put together breakfast to go.',
+      },
+      {
+        q: 'What should we bring?',
+        a: 'Warm layers, a waterproof outer layer and shoes with real grip, plus a pair of ice grips if you have them, since the yard can freeze. A head torch is useful in the dark. If you are driving your own car, winter tyres are required in the cold months and studded tyres are allowed from 1 November to mid-April.',
+      },
+    ],
+    linksHeading: 'Worth a look before you drive',
+    links: [
+      { href: 'https://www.road.is/', label: 'road.is', note: 'Live road conditions from Vegagerðin' },
+      { href: 'https://safetravel.is/', label: 'safetravel.is', note: 'Weather and travel alerts' },
+      { href: 'https://en.vedur.is/weather/forecasts/aurora/', label: 'vedur.is', note: 'The Met Office aurora forecast' },
+    ],
+    ctaHeading: 'A winter night at the farm',
+    ctaBody: 'Rooms, cottages and live prices are on the rooms page, and the booking calendar shows what is free.',
+  },
+
   rules: {
     openAllYear: 'Open all year',
     childrenWelcome: 'Children welcome',
@@ -401,6 +474,7 @@ const is: typeof en = {
     gallery: 'Myndir',
     reviews: 'Umsagnir',
     info: 'Að rata',
+    winter: 'Veturinn',
     menu: 'Valmynd',
   },
 
@@ -531,6 +605,7 @@ const is: typeof en = {
     diningAlt:
       'Matsalurinn á Nýpugörðum, með borðum við gólfsíða glugga sem snúa að jöklinum',
     diningCaption: 'Matsalurinn',
+    winterLink: 'Hvernig veturinn er hjá okkur',
     winterAlt:
       'Gistihúsið á Nýpugörðum í djúpum vetrarsnjó, með veröndina og stóra glugga sem snúa að fjöllunum',
     winterCaption: 'Húsið að vetri',
@@ -668,6 +743,69 @@ const is: typeof en = {
         a: 'Já. Bein bókun kemur beint til okkar á bænum og bókunarkerfið okkar sýnir verð og laus herbergi í rauntíma. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland.',
       },
     ],
+  },
+
+  /* VETURINN — /is/vetur. Sama efni og enska síðan, sömu staðreyndir. */
+  winter: {
+    eyebrow: 'Veturinn',
+    heading: 'Veturinn á Mýrum',
+    intro:
+      'Veturinn er kyrrláti helmingur ársins hjá okkur. Birtan er stutt og lág, jöklarnir standa hvítir fyrir ofan bæinn og á heiðskírum kvöldum gengurðu út um dyrnar og stendur undir norðurljósunum, án þess að nokkur ljósastaur trufli. Hér eru þau atriði sem gestir spyrja okkur um frá nóvember fram í mars.',
+    daylight: {
+      heading: 'Hvað birtan er löng',
+      note: 'Sólarupprás og sólsetur á bænum, reiknað út frá okkar eigin hnitum. Getur munað mínútu milli ára.',
+      cols: { date: 'Dagsetning', rise: 'Sólarupprás', set: 'Sólsetur', length: 'Birta' },
+      rows: [
+        { date: '1. nóvember', rise: '08:46', set: '16:45', length: '8 klst.' },
+        { date: '1. desember', rise: '10:22', set: '15:20', length: '5 klst.' },
+        { date: '21. desember', rise: '10:58', set: '15:01', length: '4 klst.' },
+        { date: '15. janúar', rise: '10:31', set: '15:51', length: '5 klst. 20' },
+        { date: '1. febrúar', rise: '09:43', set: '16:47', length: '7 klst.' },
+        { date: '1. mars', rise: '08:10', set: '18:18', length: '10 klst.' },
+      ],
+    },
+    items: [
+      {
+        q: 'Er opið hjá ykkur á veturna?',
+        a: 'Já, við tökum á móti gestum allan veturinn, með morgunmat og kvöldmat af matseðli. Bókunarkerfið hér á síðunni sýnir nákvæmlega hvaða nætur og hvaða herbergi eru laus, svo það sem þú sérð þar er það sem við eigum.',
+      },
+      {
+        q: 'Sjást norðurljósin frá bænum?',
+        a: 'Oft, frá september fram í apríl þegar heiðskírt er. Það er hvorki þorp né ljósastaur á Mýrum, svo þú þarft ekki að keyra neitt: farðu út, leyfðu augunum að venjast myrkrinu og horfðu í norður. Veðurstofan birtir norðurljósaspá á vedur.is.',
+      },
+      {
+        q: 'Hvað er raunverulega dimmt?',
+        a: 'Í kringum stysta daginn er sólin uppi í um fjórar klukkustundir, frá tæplega ellefu til þrjú, og fer aldrei hátt. Á móti kemur löng bláa birtan á undan og eftir, sem er fallegasta birtan sem jöklarnir fá allt árið. Taflan hér að ofan sýnir tímana mánuð fyrir mánuð.',
+      },
+      {
+        q: 'Hvernig eru vegirnir?',
+        a: 'Þjóðvegur 1 liggur framhjá bænum og er mokaður yfir veturinn, en honum er hægt að loka í illviðri og það gerist með litlum fyrirvara. Vegagerðin birtir færð í rauntíma á road.is og safetravel.is heldur utan um veður og viðvaranir. Bærinn er 4 km frá þjóðveginum, á vegi sem er haldið færum.',
+      },
+      {
+        q: 'Við komum ekki fyrr en eftir myrkur. Er það í lagi?',
+        a: 'Það er ekkert mál og raunar venjan hér á veturna. Innritun er til klukkan 22:00. Ef þú kemur seinna liggur blað á borðinu í anddyrinu sem segir þér hvar þú gistir, svo þú getur komið þér fyrir sjálf eða sjálfur.',
+      },
+      {
+        q: 'Komumst við að Jökulsárlóni á veturna?',
+        a: 'Já. Það eru um 50 km eftir þjóðvegi 1, um 50 mínútur þegar vegurinn er auður og lengur í snjó. Reyndu að fara í birtu og kíktu á road.is áður en þú leggur af stað. Íshella- og jöklaferðir eru í gangi allan veturinn frá svæðinu við Jökulsárlón og leggja yfirleitt af stað snemma morguns.',
+      },
+      {
+        q: 'Getum við fengið morgunmat fyrir snemmbúna ferð?',
+        a: 'Já. Ef þið leggið af stað áður en morgunmatur er borinn fram, látið okkur vita kvöldið áður og við útbúum morgunmat með í nesti.',
+      },
+      {
+        q: 'Hverju eigum við að pakka?',
+        a: 'Hlýjum lögum, vatnsheldri yfirhöfn og skóm með alvöru gripi, og mannbroddum ef þið eigið þá, því hlaðið getur orðið hált. Höfuðljós kemur sér vel í myrkrinu. Ef þið eruð á eigin bíl þarf vetrardekk yfir köldustu mánuðina og negld dekk eru leyfð frá 1. nóvember fram í miðjan apríl.',
+      },
+    ],
+    linksHeading: 'Gott að skoða áður en lagt er af stað',
+    links: [
+      { href: 'https://www.road.is/', label: 'road.is', note: 'Færð á vegum frá Vegagerðinni' },
+      { href: 'https://safetravel.is/', label: 'safetravel.is', note: 'Veður og viðvaranir' },
+      { href: 'https://www.vedur.is/vedur/spar/nordurljos/', label: 'vedur.is', note: 'Norðurljósaspá Veðurstofunnar' },
+    ],
+    ctaHeading: 'Vetrarnótt á bænum',
+    ctaBody: 'Herbergin, sumarhúsin og verðin eru á gistisíðunni og bókunarkerfið sýnir hvað er laust.',
   },
 
   rules: {

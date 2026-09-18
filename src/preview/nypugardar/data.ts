@@ -99,7 +99,9 @@ export const CHECK_TIMES = [
 ] as const
 
 export const HOUSE_RULES = [
-  { key: 'openAllYear', rule: 'Open all year', noteKey: null, note: null },
+  /* No 'Open all year' line: Godo shows all seven room types at zero from 22
+   * to 31 December and Bogga has not confirmed why, so the site does not
+   * make the claim. The booking calendar answers the question honestly. */
   { key: 'childrenWelcome', rule: 'Children welcome', noteKey: 'childrenNote', note: 'guests 7 and older pay as adults' },
   { key: 'noPets', rule: 'No pets', noteKey: null, note: null },
   { key: 'noSmoking', rule: 'No smoking', noteKey: null, note: null },

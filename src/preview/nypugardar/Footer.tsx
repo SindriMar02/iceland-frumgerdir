@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
 import type { Copy, Lang } from './copy'
 import { ADDRESS, EMAIL, FACEBOOK_URL, FARM_COORDS, PHONE, PHONE_HREF } from './data'
-import { homePath, privacyPath, roomsPath } from './paths'
+import { homePath, privacyPath, roomsPath, winterPath } from './paths'
 import { LangToggle } from './Page'
 
 /**
@@ -45,6 +45,7 @@ export default function Footer({
     { to: roomsPath(lang), label: t.nav.rooms },
     { to: `${home}#dinner`, label: t.nav.dinner },
     { to: `${home}#info`, label: t.nav.info },
+    { to: winterPath(lang), label: t.nav.winter },
     { to: `${home}#book`, label: t.footer.book },
   ]
 

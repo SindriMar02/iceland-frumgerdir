@@ -66,6 +66,10 @@ const B = {
   checkout: '11:00',
   rooms: 13,
   facebook: 'https://www.facebook.com/nypugardar/',
+  /* Ferðamálastofa's own directory listing, checked live 2026-09-18: it
+   * carries the name, the address, the phone, the email and the domain, so
+   * it is a real entity anchor for a farm whose domain is not its name. */
+  ferdalag: 'https://www.ferdalag.is/en/service/nypugardar',
   booking: 'https://www.booking.com/hotel/is/gistiheimilid-nypugordum.html',
   /* Booking.com headline figures, read live 2026-09-16 */
   rating: 8.8,
@@ -165,12 +169,17 @@ const COPY = {
       title: 'Rooms, cottages and prices | Nýpugarðar',
       desc: `Seven room types, the two cottages among them, at Nýpugarðar guesthouse near Höfn, from ${lowest} € a night. Private or shared bathrooms, sleeps 2 to 4, photographs of every room and direct booking.`,
     },
+    winter: {
+      title: 'Winter at Nýpugarðar | Daylight, roads and northern lights',
+      desc: 'What winter is like at Nýpugarðar guesthouse near Höfn: hours of daylight month by month, road conditions on Route 1, northern lights from the farmyard, arriving after dark and getting to Jökulsárlón in winter.',
+    },
     privacy: {
       title: 'Privacy | Nýpugarðar',
       desc: 'How Nýpugarðar guesthouse handles your personal information: this website, bookings, email and your rights.',
     },
     crumbHome: 'Nýpugarðar',
     crumbRooms: 'Rooms and prices',
+    crumbWinter: 'Winter',
     crumbPrivacy: 'Privacy',
     ogLocale: 'en_GB',
   },
@@ -183,12 +192,17 @@ const COPY = {
       title: 'Herbergi, sumarhús og verð | Nýpugarðar',
       desc: `Sjö herbergisgerðir, þar á meðal tvö sumarhús, á Nýpugörðum, frá ${lowest} € nóttin. Eigið eða sameiginlegt bað, fyrir 2 til 4 gesti, myndir af hverju herbergi og bein bókun.`,
     },
+    winter: {
+      title: 'Veturinn á Nýpugörðum | Birta, færð og norðurljós',
+      desc: 'Hvernig veturinn er á Nýpugörðum við Höfn: birtan mánuð fyrir mánuð, færð á þjóðvegi 1, norðurljós frá hlaðinu, koma eftir myrkur og leiðin að Jökulsárlóni að vetri.',
+    },
     privacy: {
       title: 'Persónuvernd | Nýpugarðar',
       desc: 'Hvernig gistiheimilið Nýpugarðar fer með persónuupplýsingar: vefurinn, bókanir, tölvupóstur og réttindi þín.',
     },
     crumbHome: 'Nýpugarðar',
     crumbRooms: 'Herbergi og verð',
+    crumbWinter: 'Veturinn',
     crumbPrivacy: 'Persónuvernd',
     ogLocale: 'is_IS',
   },
@@ -200,12 +214,15 @@ const PAGES = STANDALONE_DIST
       { lang: 'en', key: 'rooms', dir: 'rooms', image: DINING },
       { lang: 'is', key: 'home', dir: 'is', image: HERO },
       { lang: 'is', key: 'rooms', dir: 'is/herbergi', image: DINING },
+      { lang: 'en', key: 'winter', dir: 'winter', image: HOUSE },
+      { lang: 'is', key: 'winter', dir: 'is/vetur', image: HOUSE },
       { lang: 'en', key: 'privacy', dir: 'privacy', image: HERO },
       { lang: 'is', key: 'privacy', dir: 'is/personuvernd', image: HERO },
     ]
   : [
       { lang: 'en', key: 'home', dir: 'preview/nypugardar', image: HERO },
       { lang: 'en', key: 'rooms', dir: 'preview/nypugardar/herbergi', image: DINING },
+      { lang: 'en', key: 'winter', dir: 'preview/nypugardar/vetur', image: HOUSE },
       { lang: 'en', key: 'privacy', dir: 'preview/nypugardar/personuvernd', image: HERO },
     ]
 
@@ -280,7 +297,7 @@ function lodging(lang) {
       }
       return room
     }),
-    sameAs: [B.facebook, B.booking],
+    sameAs: [B.facebook, B.booking, B.ferdalag],
     areaServed: [
       { '@type': 'Place', name: 'Hornafjörður' },
       { '@type': 'Place', name: 'Jökulsárlón' },
@@ -311,7 +328,18 @@ const breadcrumb = (page) => ({
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: COPY[page.lang].crumbHome, item: urlFor(homeOf(page.lang)) },
-    ...(page.key === 'home' ? [] : [{ '@type': 'ListItem', position: 2, name: page.key === 'privacy' ? COPY[page.lang].crumbPrivacy : COPY[page.lang].crumbRooms, item: urlFor(page) }]),
+    ...(page.key === 'home'
+      ? []
+      : [{
+          '@type': 'ListItem',
+          position: 2,
+          name: page.key === 'privacy'
+            ? COPY[page.lang].crumbPrivacy
+            : page.key === 'winter'
+              ? COPY[page.lang].crumbWinter
+              : COPY[page.lang].crumbRooms,
+          item: urlFor(page),
+        }]),
   ],
 })
 
@@ -416,6 +444,15 @@ ${rooms}
 ## Food
 - Dinner: served from the evening menu in the dining room facing the glacier. No advance reservation is needed; guests let the farm know on arrival if they would like dinner.
 - Breakfast: buffet and continental in the same dining room, with vegetarian, vegan and gluten-free options. Breakfast to go is available for guests leaving before service begins.
+
+## Winter (November to March)
+- The farm takes guests through the winter; the booking system shows which nights are free.
+- Daylight at the farm: about 8 hours on 1 November, 5 hours on 1 December, about 4 hours around 21 December (sunrise 10:58, sunset 15:01), 7 hours on 1 February and 10 hours on 1 March.
+- Northern lights are visible from the farmyard on clear nights from September to April; there is no streetlight on Mýrar.
+- Route 1 runs past the farm and is cleared in winter but can close in storms. Road conditions: road.is (Vegagerðin). Alerts: safetravel.is. Aurora forecast: vedur.is.
+- Arriving after dark is normal. Check-in runs to 22:00; later arrivals find a note on the table in the lobby saying which room is theirs.
+- Jökulsárlón is about 50 km, roughly 50 minutes when the road is clear. Ice cave and glacier tours run through the winter and leave early; breakfast to go can be arranged the evening before.
+- Full page: ${origin}${prefix}/winter (Icelandic: ${origin}${prefix}/is/vetur)
 
 ## The place
 - The farm stands on a low hill above Mýrar, looking towards the mountains and outlet glaciers of Vatnajökull. The setting is quiet, and from September to April guests can watch for the northern lights on dark, clear evenings.

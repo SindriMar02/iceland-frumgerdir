@@ -15,6 +15,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 
 const Page = lazy(() => import('./preview/nypugardar/Page'))
 const RoomsPage = lazy(() => import('./preview/nypugardar/RoomsPage'))
+const WinterPage = lazy(() => import('./preview/nypugardar/WinterPage'))
 const PrivacyPage = lazy(() => import('./preview/nypugardar/PrivacyPage'))
 
 /** Same guarded scroll reset as the catalogue's App.tsx. The hash guard
@@ -61,6 +62,8 @@ export function NypugardarApp() {
           <Route path="/is" element={<Page />} />
           <Route path="/is/herbergi" element={<RoomsPage />} />
           <Route path="/herbergi" element={<RoomsPage />} />
+          <Route path="/winter" element={<WinterPage />} />
+          <Route path="/is/vetur" element={<WinterPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/is/personuvernd" element={<PrivacyPage />} />
           {/* anything else goes home; a farm site has no useful 404 */}
