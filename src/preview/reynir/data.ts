@@ -426,20 +426,9 @@ export const T = {
     navGallery: 'Gallery',
     navStory: 'Our story',
     navVisit: 'Visit',
-    /* TWO DIFFERENT JOBS, and they used to wear the same word. "Panta" in the
-       header opens the bakery's own cake order; "Panta heim" in the hero threw
-       the visitor out to aha.is. Same verb, opposite errands — a customer who
-       wanted a fermingarterta landed in a delivery app's pastry list.
-       Every label now names its job, and the site keeps one rule: gold means
-       you are ordering from the bakery, an outlined button with an arrow means
-       you are leaving for a delivery platform. */
-    ctaOrderOwn: 'Order a cake',
-    ctaDelivery: 'Home delivery on aha.is',
-    ctaPathsNote: 'Cakes and party platters are ordered ahead, here. Bread and pastries go out the same day through the delivery apps.',
-    deliveryKicker: 'Same-day delivery',
-    orderPrimary: 'aha.is',
-    orderWolt: 'Wolt',
-    extNote: 'opens in a new tab',
+    ctaDelivery: 'Order delivery',
+    orderPrimary: 'Order on aha.is',
+    orderWolt: 'Order on Wolt',
     ctaMenu: 'See the menu',
     statusOpen: (t: string) => `Open now, we close at ${t}`,
     statusOpensToday: (t: string) => `Closed, we open at ${t} today`,
@@ -509,13 +498,9 @@ export const T = {
     navGallery: 'Myndir',
     navStory: 'Sagan',
     navVisit: 'Heimsókn',
-    ctaOrderOwn: 'Panta tertu',
-    ctaDelivery: 'Heimsending á aha.is',
-    ctaPathsNote: 'Tertur og veisluborð eru pöntuð fyrirfram, hér á síðunni. Brauð og bakkelsi fara heim sama dag gegnum sendingarappið.',
-    deliveryKicker: 'Heimsending sama dag',
-    orderPrimary: 'aha.is',
-    orderWolt: 'Wolt',
-    extNote: 'opnast í nýjum flipa',
+    ctaDelivery: 'Panta heim',
+    orderPrimary: 'Panta á aha.is',
+    orderWolt: 'Panta á Wolt',
     ctaMenu: 'Skoða úrvalið',
     statusOpen: (t: string) => `Opið núna, lokum kl. ${t}`,
     statusOpensToday: (t: string) => `Lokað, opnum kl. ${t} í dag`,
