@@ -394,6 +394,16 @@ const ORDER_CSS = `
   .rb-ord-total-value { margin-left:auto; font-family:${DISPLAY}; font-size:27px; color:${GOLD};
     font-variant-numeric:tabular-nums; }
   .rb-ord-slip-note { font-size:12px; color:${DIM}; margin:12px 0 0; line-height:1.5; }
+  /* The cake under construction. A gold hairline down its left edge is the
+     same device the free-text answers use for "this belongs to the thing above
+     it", here meaning "this is live and not yet added". */
+  .rb-ord-draft { display:grid; grid-template-columns:52px minmax(0,1fr); gap:12px; align-items:center;
+    margin:14px 0 2px; padding:10px 0 10px 12px; border-left:2px solid rgba(200,168,119,.42); }
+  .rb-ord-draft:not(:has(.rb-ord-row-pic)) { grid-template-columns:minmax(0,1fr); }
+  .rb-ord-draft-body { min-width:0; display:flex; flex-wrap:wrap; align-items:baseline; gap:8px; }
+  .rb-ord-draft-name { font-family:${DISPLAY}; font-size:17px; color:${IVORY}; line-height:1.15; }
+  .rb-ord-draft-tag { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:${GOLD};
+    border:1px solid rgba(200,168,119,.4); border-radius:2px; padding:2px 6px; }
   /* ── the basket row ──
      Measured off the carts this was built against (nings.is, adidas, Urban
      Outfitters, lululemon, Faire): thumbnail left, name and price sharing the
@@ -506,6 +516,42 @@ const ORDER_CSS = `
      once it applies rather than holding empty height in a row this short. */
   .rb-ord-shelfitem-bulk { font-size:11px; color:${GOLD}; font-variant-numeric:tabular-nums; }
   .rb-ord-shelfitem-bulk:empty { display:none; }
+  /* ── one question per row ──
+     Measured off Starbucks and Blank Street (every option section is a single
+     row with a chevron, opening in place) and Uber Eats (a Required badge on
+     the sections that block the order). The row carries its own answer on the
+     right, so a closed question still tells you what it holds — which is what
+     makes collapsing safe rather than hiding. */
+  .rb-ord-acclist { margin-top:22px; border-top:1px solid ${HAIR}; }
+  .rb-ord-acc { border-bottom:1px solid ${HAIR}; }
+  .rb-ord-acc-head { display:flex; align-items:center; gap:12px; width:100%; padding:15px 2px;
+    background:none; border:0; cursor:pointer; text-align:left; color:${IVORY};
+    font-family:${BODY}; font-size:15px; transition:color .2s ${EASE}; }
+  .rb-ord-acc-head:hover { color:${GOLD_LIGHT}; }
+  .rb-ord-acc-head:focus-visible { outline:2px solid ${GOLD}; outline-offset:-2px; border-radius:3px; }
+  .rb-ord-acc-q { display:flex; align-items:center; gap:9px; min-width:0; }
+  .rb-ord-acc-req { font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:${GOLD};
+    border:1px solid rgba(200,168,119,.42); border-radius:2px; padding:2px 5px; white-space:nowrap; }
+  .rb-ord-acc-a { margin-left:auto; font-size:13.5px; color:${GOLD_LIGHT}; text-align:right;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:45%; }
+  .rb-ord-acc-a[data-empty] { color:${FAINT}; }
+  /* A chevron drawn from two borders: one element, no icon file, and it turns
+     rather than swapping glyphs. */
+  .rb-ord-acc-chev { flex:none; width:7px; height:7px; margin-left:2px;
+    border-right:1.4px solid ${FAINT}; border-bottom:1.4px solid ${FAINT};
+    transform:rotate(45deg) translateY(-2px); transition:transform .22s ${EASE}; }
+  .rb-ord-acc[data-open] .rb-ord-acc-chev { transform:rotate(225deg) translateY(-2px); }
+  .rb-ord-acc[data-err] { border-color:rgba(232,165,148,.5); }
+  .rb-ord-acc[data-err] .rb-ord-acc-a { color:#E8A594; }
+  .rb-ord-acc-body { padding:0 2px 6px; animation:rb-ord-accin .22s ${EASE} both; }
+  @keyframes rb-ord-accin { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .rb-ord-acc-body { animation:none; }
+    .rb-ord-acc-chev { transition:none; }
+  }
+  /* Inside a row the question is already asked by the row, so the fieldset
+     drops its own top margin and its legend. */
+  .rb-ord-group[data-bare] { margin-top:4px; }
   /* ── the optional questions, folded behind one line ── */
   .rb-ord-moreopts { display:inline-flex; align-items:center; gap:8px; margin-top:22px;
     padding:11px 16px; background:none; border:1px dashed rgba(238,211,170,.3); border-radius:4px;
@@ -622,6 +668,15 @@ const ORDER_CSS = `
     .rb-ord-mobiletotal-label { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:${FAINT}; }
     .rb-ord-mobiletotal-value { margin-left:auto; font-family:${DISPLAY}; font-size:19px; color:${GOLD};
       font-variant-numeric:tabular-nums; }
+    /* The bar's action. Small and gold: it is the same commitment as the
+       button in the form, so it wears the same colour, and it sits where the
+       thumb already is. */
+    .rb-ord-mobileadd { flex:none; padding:9px 14px; border:1px solid ${GOLD}; border-radius:4px;
+      background:${GOLD}; color:${INK}; font-family:${BODY}; font-weight:600; font-size:13px;
+      cursor:pointer; transition:background .2s ${EASE}, transform .09s ${EASE}; }
+    .rb-ord-mobileadd:active { transform:scale(.97); }
+    .rb-ord-mobileadd:focus-visible { outline:2px solid ${GOLD_LIGHT}; outline-offset:2px; }
+    .rb-ord-mobilemissing { flex:none; font-size:12px; color:${FAINT}; }
     /* Below the dock's usable width the picker becomes a list: a thumbnail
        beside the name says as much at a quarter of the height. */
     .rb-ord-prods { grid-template-columns:minmax(0,1fr); }
@@ -941,6 +996,21 @@ function OrderForm({
       return { ...prev, [group.id]: [...cur, choiceId] }
     })
     setTouched((prev) => ({ ...prev, [`g_${group.id}`]: true }))
+    /* ANSWER, THEN MOVE ON. Publix's cake builder reveals the next question as
+     * each one is answered rather than showing them all; with the questions in
+     * rows, the equivalent is to close the one just answered and open the next
+     * one that still blocks the order. Only for pick-one questions, and never
+     * when the chosen option owns a field of its own — a free-text answer or a
+     * photo upload lives INSIDE the row, and closing it would take the input
+     * away mid-sentence. A pick-several question stays open because the
+     * customer is probably not finished. */
+    if (group.kind !== 'single' || group.id === product.sizeGroupId) return
+    const chosen = group.choices.find((c) => c.id === choiceId)
+    if (chosen?.freeText || chosen?.needsPhoto) return
+    const next = accGroups.find(
+      (g) => g.id !== group.id && g.required && (picked[g.id] ?? []).length === 0,
+    )
+    setOpenGroup(next ? next.id : null)
   }
 
   /** The size choice a per-person product is priced from, and whether anything
@@ -1220,6 +1290,10 @@ function OrderForm({
       /* Same treatment as submit: mark and take the customer to the first
        * thing missing, rather than silently refusing the button. */
       setTouched((prev) => ({ ...prev, ...Object.fromEntries(draftErrorKeys.map((k) => [k, true])) }))
+      /* With the questions collapsed, the first thing missing may be inside a
+         closed row — and focusing a hidden input does nothing. Open it. */
+      const firstBad = draftErrorKeys.find((k) => k.startsWith('g_'))?.slice(2)
+      if (firstBad && accGroups.some((g) => g.id === firstBad)) setOpenGroup(firstBad)
       const first = formRef.current?.querySelector<HTMLElement>('[data-invalid="true"]')
       first?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
       return false
@@ -1661,7 +1735,7 @@ function OrderForm({
    * required questions render immediately and the optional ones behind a
    * disclosure, and both need the same markup.
    */
-  const renderGroup = (group: OrderGroup) => {
+  const renderGroup = (group: OrderGroup, opts?: { bare?: boolean }) => {
                     const cur = picked[group.id] ?? []
                     const atMax = !!group.max && cur.length >= group.max
                     const err = showErr(`g_${group.id}`)
@@ -1674,13 +1748,15 @@ function OrderForm({
                     const groupHasPrices =
                       isSizeGroup || group.choices.some((c) => c.priceDelta > 0 || c.quoteOnly)
                     return (
-                      <fieldset className="rb-ord-group" key={group.id}>
+                      <fieldset className="rb-ord-group" key={group.id} data-bare={opts?.bare || undefined}>
+                        {!opts?.bare && (
                         <legend className="rb-ord-legend">
                           <span className="rb-ord-legend-row">
                             <span className="rb-ord-legend-text">{group.label[lang]}</span>
                             <span className="rb-ord-tag">{group.required ? t.required : t.optional}</span>
                           </span>
                         </legend>
+                        )}
                         {(group.help || group.max) && (
                           <p className="rb-ord-help">
                             {group.help ? group.help[lang] : t.chooseUpTo(group.max as number)}
@@ -1824,26 +1900,50 @@ function OrderForm({
                     )
   }
 
-  /* Required questions carry the order; optional ones are refinements. The
-     size group counts as required even when it is not marked so — a cake
-     without a size has no price. */
-  const requiredGroups = useMemo(
-    () => product.groups.filter((g) => g.required || g.id === product.sizeGroupId),
+  /* ── ONE QUESTION OPEN AT A TIME ──
+   *
+   * The configurator used to lay every question out at full height: six for
+   * the marsipanterta, about four screens before the customer reached the
+   * button. Sindri's note — "it feels like people need to read a whole page
+   * before they order a cake" — and the references agree on the shape:
+   * Starbucks and Blank Street collapse every option section to a single row
+   * with a chevron, Uber Eats badges the required ones, and Publix's cake
+   * builder only reveals a question once the previous choice is made.
+   *
+   * So each question is a row carrying its own answer, and opens on tap. The
+   * size keeps its own promoted-price row above them, because it is the one
+   * question that IS the price, and because that control was chosen
+   * deliberately after cards and tiles were both rejected.
+   */
+  const sizeGroup = useMemo(
+    () => product.groups.find((g) => g.id === product.sizeGroupId) ?? null,
     [product],
   )
-  const optionalGroups = useMemo(
-    () => product.groups.filter((g) => !(g.required || g.id === product.sizeGroupId)),
+  const accGroups = useMemo(
+    () => product.groups.filter((g) => g.id !== product.sizeGroupId),
     [product],
   )
-  /** Which product's optional groups are open. Keyed by product id rather than
-   *  a boolean, so switching product closes them without an effect to forget. */
-  const [optOptFor, setOptOpenForRaw] = useState<string | null>(null)
-  const setOptOpenFor = setOptOpenForRaw
-  /** Something optional is already answered — restored from "Breyta", or
-   *  chosen before collapsing. Then the panel must stay open: hiding a chosen
-   *  option is how a customer loses an answer without being told. */
-  const optionalAnswered = optionalGroups.some((g) => (picked[g.id] ?? []).length > 0)
-  const optionalOpen = optOptFor === product.id || optionalAnswered
+  /** Which question is open. One at a time: two open panels reintroduce the
+   *  wall this exists to remove. Cleared when the product changes, because the
+   *  ids belong to that product's questions. */
+  const [openGroup, setOpenGroup] = useState<string | null>(null)
+  useEffect(() => { setOpenGroup(null) }, [productId])
+  /** What a collapsed row shows on its right: the answer, in the customer's
+   *  own words, so a closed question still states what it holds. */
+  const groupAnswer = (group: OrderGroup): string =>
+    (picked[group.id] ?? [])
+      .map((id) => group.choices.find((c) => c.id === id)?.label[lang])
+      .filter(Boolean)
+      .join(', ')
+  /** What still blocks adding this cake. The sticky bar counts these instead
+   *  of offering a button that refuses — Skip's own bar says "2 selections
+   *  required" in that state.
+   *
+   *  It counts the SAME keys the button checks (draftErrorKeys), not just
+   *  unanswered groups: "Mynd á tertu" is an answered question that opens a
+   *  required field of its own, and counting groups alone offered an Add
+   *  button that would bounce with the row closed behind it. */
+  const missingRequired = draftErrorKeys.length
 
   const slip = (
     <div className="rb-ord-slip">
@@ -1858,7 +1958,7 @@ function OrderForm({
         {/* The empty state was written but never rendered: before anything was
             chosen the slip showed a placeholder row instead, complete with a
             dotted leader to nowhere. */}
-        {cakes.length === 0 && lines.length === 0 && <p className="rb-ord-slip-empty">{t.slipEmpty}</p>}
+        {cakes.length === 0 && !draftActive && <p className="rb-ord-slip-empty">{t.slipEmpty}</p>}
         {/* Cakes already in the order, exactly as priced when they were added.
             Each is one row — the full option spec lives in the email — plus
             the two small controls that keep the basket honest: change it, or
@@ -1921,6 +2021,26 @@ function OrderForm({
             </div>
           )
         })}
+        {/* THE CAKE BEING CHOSEN. Its lines were already live — size, every
+            option, the writing, the quantity — but nothing said which cake
+            they belonged to: a sized product has no base line, so the panel
+            opened with "40 manna" and no name. With two marsipantertur and a
+            kransakaka in one order that is unreadable. Same photograph and
+            name as a basket row, marked as not yet added, and it appears as
+            soon as a product is live rather than waiting for a price. */}
+        {draftActive && (
+          <div className="rb-ord-draft">
+            {product.image && (
+              <span className="rb-ord-row-pic" aria-hidden="true">
+                <img src={product.image} alt="" loading="lazy" decoding="async" width={1400} height={1400} />
+              </span>
+            )}
+            <div className="rb-ord-draft-body">
+              <span className="rb-ord-draft-name">{product.name[lang]}</span>
+              <span className="rb-ord-draft-tag">{t.draftTag}</span>
+            </div>
+          </div>
+        )}
         {draftActive && lines.map((line) => (
           <div className="rb-ord-slipline" key={line.key}>
             <span className="rb-ord-slipline-name">
@@ -2150,6 +2270,13 @@ function OrderForm({
           <form ref={formRef} className="rb-ord-grid" style={{ marginTop: 'clamp(24px,3.5vh,36px)' }} onSubmit={onSubmit} noValidate>
             <div className="rb-ord-formwrap">
               {/* running total, mobile only */}
+              {/* The phone's version of the basket panel, and now of the
+                  action too. Starbucks, Blank Street, Blue Apron and Skip all
+                  keep the add button in a bar that never leaves the screen;
+                  Skip's bar states what is still missing instead of a price
+                  while the item is incomplete, which is the honest thing to
+                  show. On a phone the customer never has to hunt for the
+                  button, and the total is always in sight. */}
               <div className="rb-ord-mobiletotal">
                 <span className="rb-ord-mobiletotal-label">
                   {basketCount > 0 ? t.basketCount(basketCount) : t.slipTotal}
@@ -2157,6 +2284,15 @@ function OrderForm({
                 <span className="rb-ord-mobiletotal-value" data-bump={bump} data-quote={softTotal} aria-live="polite">
                   {totalText}
                 </span>
+                {draftActive && (
+                  missingRequired > 0
+                    ? <span className="rb-ord-mobilemissing">{t.accMissing(missingRequired)}</span>
+                    : (
+                      <button type="button" className="rb-ord-mobileadd" onClick={commitDraft}>
+                        {t.addToOrder}
+                      </button>
+                    )
+                )}
               </div>
 
               {/* The context bar — who is ordering, and what for. Small and
@@ -2300,35 +2436,46 @@ function OrderForm({
               <div className="rb-ord-step">
                 <div className="rb-ord-steplabel">{t.stepOptions}</div>
                 <div className="rb-ord-groups" data-key={product.id} key={product.id}>
-                  {requiredGroups.map(renderGroup)}
-                  {/* Six questions at once is what made this feel like a long
-                      form — and three of them are optional (extras, colour,
-                      allergies). Nings' own product page asks two. The
-                      optional ones fold behind one line, and open by
-                      themselves when something in them is already chosen, so
-                      editing a cake never hides an answer the customer
-                      gave. */}
-                  {optionalGroups.length > 0 && !optionalOpen && (
-                    <button
-                      type="button"
-                      className="rb-ord-moreopts"
-                      aria-expanded={false}
-                      onClick={() => setOptOpenFor(product.id)}
-                    >
-                      <span aria-hidden="true">+</span>{t.moreOptions(optionalGroups.length)}
-                    </button>
-                  )}
-                  {optionalOpen && optionalGroups.map(renderGroup)}
-                  {optionalGroups.length > 0 && optionalOpen && !optionalAnswered && (
-                    <button
-                      type="button"
-                      className="rb-ord-moreopts"
-                      aria-expanded
-                      onClick={() => setOptOpenFor(null)}
-                    >
-                      <span aria-hidden="true">−</span>{t.fewerOptions}
-                    </button>
-                  )}
+                  {sizeGroup && renderGroup(sizeGroup)}
+                  <div className="rb-ord-acclist">
+                    {accGroups.map((group) => {
+                      const answer = groupAnswer(group)
+                      const open = openGroup === group.id
+                      const gErr = showErr(`g_${group.id}`)
+                      return (
+                        <div className="rb-ord-acc" key={group.id} data-open={open || undefined} data-err={gErr ? 'true' : undefined}>
+                          <button
+                            type="button"
+                            className="rb-ord-acc-head"
+                            aria-expanded={open}
+                            aria-controls={`acc_${group.id}`}
+                            onClick={() => setOpenGroup(open ? null : group.id)}
+                          >
+                            <span className="rb-ord-acc-q">
+                              {group.label[lang]}
+                              {group.required && !answer && <span className="rb-ord-acc-req">{t.required}</span>}
+                            </span>
+                            {/* The answer, or a prompt. Never both, and never
+                                empty: a row that says nothing on the right is
+                                a row you have to open to understand. */}
+                            <span className="rb-ord-acc-a" data-empty={!answer || undefined}>
+                              {answer || (group.required ? t.accChoose : t.optional)}
+                            </span>
+                            <span className="rb-ord-acc-chev" aria-hidden="true" />
+                          </button>
+                          {open && (
+                            <div className="rb-ord-acc-body" id={`acc_${group.id}`}>
+                              {renderGroup(group, { bare: true })}
+                            </div>
+                          )}
+                          {/* A closed question cannot show its own error inside
+                              itself, and an error nobody can see is why the
+                              button would refuse with nothing on screen. */}
+                          {gErr && !open && <p className="rb-ord-err" role="alert">{gErr}</p>}
+                        </div>
+                      )
+                    })}
+                  </div>
 
                   {product.inscription && (
                     <div className="rb-ord-field">

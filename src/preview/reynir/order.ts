@@ -1183,6 +1183,13 @@ export interface OrderCopy {
   basketCount: (n: number) => string
   /** Sub-heads inside step 01, which now holds the whole range. */
   sectionCakes: string
+  /** Marks the cake being configured in the basket panel: its lines are live
+   *  and it is NOT in the order yet. */
+  draftTag: string
+  /** Shown on a collapsed question that has not been answered yet. */
+  accChoose: string
+  /** The sticky bar's button while something required is still missing. */
+  accMissing: (n: number) => string
   /** The optional option groups are folded behind one line. Six questions at
    *  once is what made the flow feel long; three of them are optional. */
   moreOptions: (n: number) => string
@@ -1345,6 +1352,9 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     addedToOrder: (name) => `Added to your order: ${name}`,
     basketCount: (n) => `${n} ${n === 1 ? 'item' : 'items'}`,
     sectionCakes: 'Cakes',
+    draftTag: 'being chosen',
+    accChoose: 'Choose',
+    accMissing: (n) => `${n} ${n === 1 ? 'choice' : 'choices'} left`,
     rowSize: 'Size',
     moreOptions: (n) => `More choices (${n})`,
     fewerOptions: 'Fewer choices',
@@ -1486,6 +1496,9 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     /* 1 vara, 2 vörur, 21 vara — the -1 exception that 11 does not take. */
     basketCount: (n) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? 'vara' : 'vörur'}`,
     sectionCakes: 'Kökur',
+    draftTag: 'í vinnslu',
+    accChoose: 'Velja',
+    accMissing: (n) => `${n} ${n === 1 ? 'val eftir' : 'völ eftir'}`,
     rowSize: 'Stærð',
     moreOptions: (n) => `Fleiri valkostir (${n})`,
     fewerOptions: 'Fela valkosti',
