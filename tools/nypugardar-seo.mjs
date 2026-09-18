@@ -97,7 +97,7 @@ const FAQ_EN = [
   ['How far is Jökulsárlón from the farm?', 'Jökulsárlón is about 50 km from the farm, a little under an hour along Route 1. Höfn is 20 km away, and Nýpugarðar is 4 km off the Ring Road.'],
   ['Can I have dinner at the farm?', 'Yes. In the evening we serve dinner from the menu in the dining room facing the glacier. You do not need to book ahead. Just let us know when you arrive that you would like dinner.'],
   ['What do you serve for breakfast?', 'We serve a buffet in the dining room, with the same glacier view. Vegetarian, vegan and gluten-free options are available. If you are leaving for Jökulsárlón before breakfast starts, we can prepare breakfast to go.'],
-  ['What time can I check in and out?', 'Check in is from 16:00 to 23:30, and check out is from 07:30 to 11:00.'],
+  ['What time can I check in and out?', 'Check in is from 16:00 to 22:00, and check out is from 07:30 to 11:00. If you arrive later than that, a note on the table in the lobby tells you which room is yours.'],
   ['Can I bring a pet, and are children welcome?', 'Pets are not allowed and the guesthouse is non-smoking. Children are welcome, and guests aged 7 and over are charged as adults.'],
   ['Can I book directly with the farm?', 'Yes. A direct booking comes straight to us at the farm, and our booking system shows live prices and availability. Nýpugarðar is also listed on Booking.com, HeyIceland and Guide to Iceland.'],
 ]
@@ -106,7 +106,7 @@ const FAQ_IS = [
   ['Hvað er langt að Jökulsárlóni?', 'Jökulsárlón er í um 50 km fjarlægð frá bænum, tæpan klukkutíma eftir þjóðvegi 1. Til Hafnar eru 20 km og Nýpugarðar eru 4 km frá hringveginum.'],
   ['Er hægt að fá kvöldmat á bænum?', 'Já. Á kvöldin bjóðum við upp á mat af matseðli í matsalnum sem snýr að jöklinum. Það þarf ekki að bóka fyrirfram. Láttu okkur bara vita við komu að þú viljir kvöldmat.'],
   ['Hvað er í morgunmat?', 'Við bjóðum upp á hlaðborð í matsalnum, með sömu jöklasýn. Grænmetis-, vegan- og glútenlausir kostir eru í boði. Ef þú leggur af stað að Jökulsárlóni áður en morgunmatur er borinn fram getum við útbúið morgunmat með í nesti.'],
-  ['Hvenær er innritun og útritun?', 'Innritun er frá 16:00 til 23:30 og útritun frá 07:30 til 11:00.'],
+  ['Hvenær er innritun og útritun?', 'Innritun er frá 16:00 til 22:00 og útritun frá 07:30 til 11:00. Ef þú kemur seinna liggur blað á borðinu í anddyrinu sem segir þér hvar þú gistir.'],
   ['Mega gæludýr koma og eru börn velkomin?', 'Gæludýr eru ekki leyfð og gistihúsið er reyklaust. Börn eru velkomin og gestir 7 ára og eldri greiða sem fullorðnir.'],
   ['Get ég bókað beint hjá bænum?', 'Já. Bein bókun kemur beint til okkar á bænum og bókunarkerfið okkar sýnir verð og laus herbergi í rauntíma. Nýpugarðar eru einnig á Booking.com, HeyIceland og Guide to Iceland.'],
 ]
@@ -403,7 +403,7 @@ function writeLlms() {
 - 4 km off Route 1 (the Ring Road). 20 km to Höfn. About 50 km to Jökulsárlón glacier lagoon.
 - Phone: ${B.phone}
 - Email: ${B.email}
-- Check-in ${B.checkin} to 23:30, check-out 07:30 to ${B.checkout}.
+- Check-in ${B.checkin} to 22:00, check-out 07:30 to ${B.checkout}. Guests arriving later find a note on the table in the lobby saying which room is theirs.
 - ${B.rooms} places to sleep: 11 rooms (2 of them with shared bathroom) and 2 cottages, one for three guests and one for four.
 - No pets. Non-smoking. Children welcome; guests aged 7 and over pay as adults.
 - Facilities: ${FACILITIES.join(', ')}.

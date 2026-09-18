@@ -24,7 +24,7 @@
  *    Booking.com itself translated it.
  *
  * House style: no dashes as sentence punctuation in visible copy, in either
- * language. Ranges like 16:00–23:30 are typography, not prose, and are fine.
+ * language. Ranges like 16:00–22:00 are typography, not prose, and are fine.
  */
 
 export type Lang = 'is' | 'en'
@@ -100,7 +100,7 @@ const en = {
   facts: {
     rooms: 'rooms, two with a shared bathroom',
     cottages: 'cottages beside the guesthouse, sleeping three and four',
-    checkin: 'check in, until 23:30',
+    checkin: 'check in, until 22:00',
   },
 
   band: {
@@ -164,8 +164,9 @@ const en = {
     beforeYouCome: 'Good to know before you arrive',
     arrive: 'Arrive',
     leave: 'Leave',
-    until: 'until 23:30',
+    until: 'until 22:00',
     from: 'from 07:30',
+    lateArrival: 'Arriving later than 22:00? A note on the table in the lobby says which room is yours.',
   },
 
   dinner: {
@@ -308,7 +309,7 @@ const en = {
       },
       {
         q: 'What time can I check in and out?',
-        a: 'Check in is from 16:00 to 23:30, and check out is from 07:30 to 11:00.',
+        a: 'Check in is from 16:00 to 22:00, and check out is from 07:30 to 11:00. If you arrive later than that, a note on the table in the lobby tells you which room is yours.',
       },
       {
         q: 'Can I bring a pet, and are children welcome?',
@@ -455,7 +456,7 @@ const is: typeof en = {
   facts: {
     rooms: 'herbergi, þar af tvö með sameiginlegu baði',
     cottages: 'sumarhús við gistihúsið, fyrir þrjá og fjóra',
-    checkin: 'innritun, til 23:30',
+    checkin: 'innritun, til 22:00',
   },
 
   band: {
@@ -517,8 +518,9 @@ const is: typeof en = {
     beforeYouCome: 'Gott að vita fyrir komu',
     arrive: 'Koma',
     leave: 'Brottför',
-    until: 'til 23:30',
+    until: 'til 22:00',
     from: 'frá 07:30',
+    lateArrival: 'Kemurðu seinna en klukkan 22:00? Þá liggur blað á borðinu í anddyrinu sem segir þér hvar þú gistir.',
   },
 
   dinner: {
@@ -655,7 +657,7 @@ const is: typeof en = {
       },
       {
         q: 'Hvenær er innritun og útritun?',
-        a: 'Innritun er frá 16:00 til 23:30 og útritun frá 07:30 til 11:00.',
+        a: 'Innritun er frá 16:00 til 22:00 og útritun frá 07:30 til 11:00. Ef þú kemur seinna liggur blað á borðinu í anddyrinu sem segir þér hvar þú gistir.',
       },
       {
         q: 'Mega gæludýr koma og eru börn velkomin?',

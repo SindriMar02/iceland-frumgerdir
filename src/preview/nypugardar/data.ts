@@ -94,7 +94,7 @@ export const FACTS = [
  *  (when can I arrive, when must I leave) can be given real weight instead of
  *  being buried in a flat list of seven identical lines. */
 export const CHECK_TIMES = [
-  { key: 'arrive', label: 'Arrive', value: '16:00', tail: 'until 23:30' },
+  { key: 'arrive', label: 'Arrive', value: '16:00', tail: 'until 22:00' },
   { key: 'leave', label: 'Leave', value: '11:00', tail: 'from 07:30' },
 ] as const
 

@@ -326,6 +326,7 @@ export default function RoomsPage() {
                   {t.rooms.beforeYouCome}
                 </h3>
                 <div className="mt-8 grid gap-10 md:grid-cols-[auto_1fr] md:gap-20">
+                  <div>
                   <dl className="flex gap-12 sm:gap-16">
                     {CHECK_TIMES.map((ct) => (
                       <div key={ct.key === "arrive" ? t.rooms.arrive : t.rooms.leave}>
@@ -344,6 +345,10 @@ export default function RoomsPage() {
                       </div>
                     ))}
                   </dl>
+                  <p className="mt-5 max-w-[34ch] text-[14px] leading-snug text-[#F4EEE2]/60">
+                    {t.rooms.lateArrival}
+                  </p>
+                  </div>
                   <ul className="grid gap-x-10 gap-y-3 sm:grid-cols-2 md:self-center">
                     {HOUSE_RULES.map((h) => (
                       <li key={t.rules[h.key as keyof typeof t.rules] ?? h.rule} className="flex items-baseline gap-3">
