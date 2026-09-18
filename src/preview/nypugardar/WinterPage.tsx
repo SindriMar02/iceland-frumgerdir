@@ -253,14 +253,14 @@ export default function WinterPage() {
                   className={`inline-flex items-center gap-2 border px-6 py-3.5 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors duration-200 hover:bg-[#F4EEE2] hover:text-[#15130F] ${FOCUS}`}
                   style={{ borderColor: "rgba(244,238,226,0.45)" }}
                 >
-                  {t.nav.rooms}
+                  {w.ctaRooms}
                 </Link>
                 <Link
                   to={`${homePath(lang)}#book`}
                   className={`-my-2 py-2 font-mono text-[11px] uppercase tracking-[0.16em] underline-offset-4 transition-colors duration-200 hover:underline ${FOCUS}`}
                   style={{ color: ACCENT }}
                 >
-                  {t.footer.book}
+                  {w.ctaBook}
                 </Link>
               </div>
             </Reveal>

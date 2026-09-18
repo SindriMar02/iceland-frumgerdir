@@ -337,10 +337,12 @@ const en = {
     eyebrow: 'Winter',
     heading: 'Winter on Mýrar',
     intro:
-      'Winter is the quiet half of the year here. The light is short and low, the glaciers sit white behind the farm, and on a clear night you can walk out of the door and stand under the aurora with no streetlight anywhere near you. These are the things guests ask us between November and March, answered from the farm.',
+      'Winter is the quiet half of the year here. The light is short and low, the glaciers sit white behind the farm, and on a clear night you can walk out of the door and stand under the aurora with no streetlight anywhere near you. These are the questions guests ask us between November and March, answered by the people who live here.',
+    ctaRooms: 'See rooms and prices',
+    ctaBook: 'Check availability',
     daylight: {
       heading: 'How much daylight you get',
-      note: 'Sunrise and sunset at the farm, to the nearest minute, from the sun\u2019s position at our own coordinates. A minute either way from one year to the next.',
+      note: 'Sunrise and sunset at the farm, to the nearest minute, from the sun\u2019s position at our own coordinates. The times shift by a minute or so from year to year.',
       cols: { date: 'Date', rise: 'Sunrise', set: 'Sunset', length: 'Daylight' },
       rows: [
         { date: '1 November', rise: '08:46', set: '16:45', length: '8 h' },
@@ -353,7 +355,7 @@ const en = {
     },
     items: [
       {
-        q: 'Are you open in the winter?',
+        q: 'Are you open in winter?',
         a: 'Yes, we take guests through the winter, with breakfast in the morning and dinner from the menu in the evening. The booking calendar on this site shows exactly which nights and which rooms are free, so what you see there is what we have.',
       },
       {
@@ -366,11 +368,11 @@ const en = {
       },
       {
         q: 'What are the roads like?',
-        a: 'Route 1, the Ring Road, runs past the farm and is cleared through the winter, but it can close in a storm and it does so with little warning. Vegagerðin publishes live road conditions at road.is, and safetravel.is carries the weather and travel alerts. The farm sits 4 km off Route 1 on a road that is kept passable.',
+        a: 'Route 1, the Ring Road, runs past the farm and is cleared through the winter, but it can close in a storm, often at short notice. Vegagerðin publishes live road conditions at road.is, and safetravel.is carries the weather and travel alerts. The farm sits 4 km off Route 1 on a road that is kept passable.',
       },
       {
         q: 'We will not arrive until after dark. Is that a problem?',
-        a: 'Not at all, it is normal here in winter. Check in is until 22:00. If you arrive later than that, a note on the table in the lobby tells you which room is yours, so you can let yourself in and settle.',
+        a: 'Not at all, it is normal here in winter. Check-in is until 22:00. If you arrive later than that, a note on the table in the lobby tells you which room is yours, so you can let yourself in and settle in.',
       },
       {
         q: 'Can we still get to Jökulsárlón in winter?',
@@ -382,7 +384,7 @@ const en = {
       },
       {
         q: 'What should we bring?',
-        a: 'Warm layers, a waterproof outer layer and shoes with real grip, plus a pair of ice grips if you have them, since the yard can freeze. A head torch is useful in the dark. If you are driving your own car, winter tyres are required in the cold months and studded tyres are allowed from 1 November to mid-April.',
+        a: 'Warm layers, a waterproof outer layer and shoes with real grip, plus a pair of ice grips if you have them, since the yard can freeze. A head torch is useful in the dark. If you are driving, your car needs winter tyres from November to April, and studded tyres are allowed from 1 November to mid-April.',
       },
     ],
     linksHeading: 'Worth a look before you drive',
@@ -392,7 +394,7 @@ const en = {
       { href: 'https://en.vedur.is/weather/forecasts/aurora/', label: 'vedur.is', note: 'The Met Office aurora forecast' },
     ],
     ctaHeading: 'A winter night at the farm',
-    ctaBody: 'Rooms, cottages and live prices are on the rooms page, and the booking calendar shows what is free.',
+    ctaBody: 'Rooms, cottages and current prices are on the rooms page, and the calendar shows exactly which nights are free.',
   },
 
   rules: {
@@ -750,10 +752,12 @@ const is: typeof en = {
     eyebrow: 'Veturinn',
     heading: 'Veturinn á Mýrum',
     intro:
-      'Veturinn er kyrrláti helmingur ársins hjá okkur. Birtan er stutt og lág, jöklarnir standa hvítir fyrir ofan bæinn og á heiðskírum kvöldum gengurðu út um dyrnar og stendur undir norðurljósunum, án þess að nokkur ljósastaur trufli. Hér eru þau atriði sem gestir spyrja okkur um frá nóvember fram í mars.',
+      'Veturinn er kyrrláti helmingur ársins hjá okkur. Dagurinn er stuttur og sólin lág, jöklarnir standa hvítir fyrir ofan bæinn og á heiðskírum kvöldum getið þið gengið út um dyrnar og staðið undir norðurljósunum án þess að nokkur ljósastaur trufli. Hér eru svörin við því sem gestir spyrja okkur oftast um frá nóvember fram í mars.',
+    ctaRooms: 'Skoða herbergi og verð',
+    ctaBook: 'Athuga laus herbergi',
     daylight: {
-      heading: 'Hvað birtan er löng',
-      note: 'Sólarupprás og sólsetur á bænum, reiknað út frá okkar eigin hnitum. Getur munað mínútu milli ára.',
+      heading: 'Hversu löng birtan er',
+      note: 'Sólarupprás og sólsetur á bænum, reiknað út frá hnitum bæjarins. Tímarnir geta hnikast um mínútu milli ára.',
       cols: { date: 'Dagsetning', rise: 'Sólarupprás', set: 'Sólsetur', length: 'Birta' },
       rows: [
         { date: '1. nóvember', rise: '08:46', set: '16:45', length: '8 klst.' },
@@ -767,35 +771,35 @@ const is: typeof en = {
     items: [
       {
         q: 'Er opið hjá ykkur á veturna?',
-        a: 'Já, við tökum á móti gestum allan veturinn, með morgunmat og kvöldmat af matseðli. Bókunarkerfið hér á síðunni sýnir nákvæmlega hvaða nætur og hvaða herbergi eru laus, svo það sem þú sérð þar er það sem við eigum.',
+        a: 'Já, við tökum á móti gestum allan veturinn, með morgunmat og kvöldmat af matseðli. Bókunarkerfið hér á síðunni sýnir nákvæmlega hvaða nætur og hvaða herbergi eru laus, svo það sem þið sjáið þar er það sem við eigum.',
       },
       {
         q: 'Sjást norðurljósin frá bænum?',
-        a: 'Oft, frá september fram í apríl þegar heiðskírt er. Það er hvorki þorp né ljósastaur á Mýrum, svo þú þarft ekki að keyra neitt: farðu út, leyfðu augunum að venjast myrkrinu og horfðu í norður. Veðurstofan birtir norðurljósaspá á vedur.is.',
+        a: 'Oft, frá september fram í apríl þegar heiðskírt er. Það er hvorki þorp né ljósastaur á Mýrum, svo þið þurfið ekki að keyra neitt: farið út, leyfið augunum að venjast myrkrinu og horfið í norður. Veðurstofan birtir norðurljósaspá á vedur.is.',
       },
       {
-        q: 'Hvað er raunverulega dimmt?',
-        a: 'Í kringum stysta daginn er sólin uppi í um fjórar klukkustundir, frá tæplega ellefu til þrjú, og fer aldrei hátt. Á móti kemur löng bláa birtan á undan og eftir, sem er fallegasta birtan sem jöklarnir fá allt árið. Taflan hér að ofan sýnir tímana mánuð fyrir mánuð.',
+        q: 'Hversu dimmt er það í raun?',
+        a: 'Í kringum stysta daginn er sólin uppi í um fjórar klukkustundir, frá tæplega ellefu til þrjú, og fer aldrei hátt. Á móti kemur löng, blá birta á undan og eftir, fallegasta birtan sem jöklarnir fá allt árið. Taflan hér að ofan sýnir tímana mánuð fyrir mánuð.',
       },
       {
         q: 'Hvernig eru vegirnir?',
-        a: 'Þjóðvegur 1 liggur framhjá bænum og er mokaður yfir veturinn, en honum er hægt að loka í illviðri og það gerist með litlum fyrirvara. Vegagerðin birtir færð í rauntíma á road.is og safetravel.is heldur utan um veður og viðvaranir. Bærinn er 4 km frá þjóðveginum, á vegi sem er haldið færum.',
+        a: 'Þjóðvegur 1 liggur framhjá bænum og er mokaður yfir veturinn, en honum getur verið lokað í illviðri, oft með litlum fyrirvara. Vegagerðin birtir færð í rauntíma á road.is og safetravel.is heldur utan um veður og viðvaranir. Bærinn er 4 km frá þjóðveginum, á vegi sem haldið er færum.',
       },
       {
         q: 'Við komum ekki fyrr en eftir myrkur. Er það í lagi?',
-        a: 'Það er ekkert mál og raunar venjan hér á veturna. Innritun er til klukkan 22:00. Ef þú kemur seinna liggur blað á borðinu í anddyrinu sem segir þér hvar þú gistir, svo þú getur komið þér fyrir sjálf eða sjálfur.',
+        a: 'Það er ekkert mál og raunar venjan hér á veturna. Innritun er til klukkan 22:00. Ef þið komið seinna liggur blað á borðinu í anddyrinu sem segir ykkur hvar þið gistið, svo þið getið gengið beint inn og komið ykkur fyrir.',
       },
       {
         q: 'Komumst við að Jökulsárlóni á veturna?',
-        a: 'Já. Það eru um 50 km eftir þjóðvegi 1, um 50 mínútur þegar vegurinn er auður og lengur í snjó. Reyndu að fara í birtu og kíktu á road.is áður en þú leggur af stað. Íshella- og jöklaferðir eru í gangi allan veturinn frá svæðinu við Jökulsárlón og leggja yfirleitt af stað snemma morguns.',
+        a: 'Já. Það eru um 50 km eftir þjóðvegi 1, um 50 mínútur þegar vegurinn er auður og lengur í snjó. Farið helst í birtu og kíkið á road.is áður en þið leggið af stað. Íshella- og jöklaferðir eru í gangi allan veturinn frá svæðinu við Jökulsárlón og leggja yfirleitt af stað snemma morguns.',
       },
       {
-        q: 'Getum við fengið morgunmat fyrir snemmbúna ferð?',
-        a: 'Já. Ef þið leggið af stað áður en morgunmatur er borinn fram, látið okkur vita kvöldið áður og við útbúum morgunmat með í nesti.',
+        q: 'Getum við fengið morgunmat ef við förum snemma í ferð?',
+        a: 'Já. Ef þið leggið af stað áður en morgunmatur er borinn fram, látið okkur vita kvöldið áður og þá útbúum við nesti handa ykkur.',
       },
       {
-        q: 'Hverju eigum við að pakka?',
-        a: 'Hlýjum lögum, vatnsheldri yfirhöfn og skóm með alvöru gripi, og mannbroddum ef þið eigið þá, því hlaðið getur orðið hált. Höfuðljós kemur sér vel í myrkrinu. Ef þið eruð á eigin bíl þarf vetrardekk yfir köldustu mánuðina og negld dekk eru leyfð frá 1. nóvember fram í miðjan apríl.',
+        q: 'Hvað þurfum við að taka með?',
+        a: 'Hlý föt í lögum, vatnshelda yfirhöfn og skó með góðu gripi, og mannbrodda ef þið eigið þá, því hlaðið getur verið hált. Höfuðljós kemur sér vel í myrkrinu. Ef þið eruð á eigin bíl þarf hann vetrardekk frá nóvember fram í apríl, og nagladekk eru leyfð frá 1. nóvember fram í miðjan apríl.',
       },
     ],
     linksHeading: 'Gott að skoða áður en lagt er af stað',
@@ -805,7 +809,7 @@ const is: typeof en = {
       { href: 'https://www.vedur.is/vedur/spar/nordurljos/', label: 'vedur.is', note: 'Norðurljósaspá Veðurstofunnar' },
     ],
     ctaHeading: 'Vetrarnótt á bænum',
-    ctaBody: 'Herbergin, sumarhúsin og verðin eru á gistisíðunni og bókunarkerfið sýnir hvað er laust.',
+    ctaBody: 'Herbergi, sumarhús og verð eru á gistisíðunni og bókunarkerfið sýnir nákvæmlega hvaða nætur eru lausar.',
   },
 
   rules: {
