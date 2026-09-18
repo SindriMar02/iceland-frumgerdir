@@ -302,7 +302,18 @@ const PAGE_CSS = `
   .rb-cta:active { transform:scale(.98); }
   .rb-cta-gold { background:${GOLD}; color:${INK}; border:1px solid ${GOLD}; }
   .rb-cta-gold:hover { background:${GOLD_LIGHT}; border-color:${GOLD_LIGHT}; }
+  /* Screen-reader-only text. The clip technique, not a negative offset: an
+     off-canvas absolute element inside a scroll container drags the container
+     with it (see the .sr-only note in the studio memory). */
+  .rb-sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0; }
   .rb-cta-ghost { background:transparent; color:${IVORY}; border:1px solid rgba(238,211,170,.34); }
+  /* An outlined button with an arrow means this one leaves the site. The arrow
+     is a separate span so it can sit at the size of the text without being
+     read out as a word. */
+  .rb-cta-ext { display:inline-flex; align-items:center; gap:9px; }
+  .rb-cta-ext > span[aria-hidden] { font-size:13px; opacity:.75; transition:transform .2s ${EASE}; }
+  .rb-cta-ext:hover > span[aria-hidden] { transform:translate(2px,-2px); }
   .rb-cta-ghost:hover { border-color:${GOLD}; background:rgba(238,211,170,.05); }
 
   .rb-lang { background:none; border:none; cursor:pointer; padding:14px 13px; margin:-14px -13px; font-family:${BODY};
@@ -1220,12 +1231,24 @@ function ReynirPageInner() {
               {heroLine[lang]}
             </p>
 
-            <div className="rb-cover-ctas rb-enter-4" style={{ display: 'flex', gap: 14, marginTop: 'clamp(24px,3.5vh,36px)' }}>
-              {/* generic in the hero: the platform choice belongs further
-                  down, where both options can be shown side by side */}
-              <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold">{t.ctaDelivery}</a>
-              <a href="#menu" className="rb-cta rb-cta-ghost">{t.ctaMenu}</a>
+            {/* The hero used to offer "Panta heim" in gold, which left the
+                site for aha.is, while the header's "Panta" opened the bakery's
+                own cake order. One verb, two errands, and the gold one was the
+                one that pays a commission. So: the bakery's own order flow is
+                the gold button, the delivery app is an outlined button that
+                says where it goes and marks itself as leaving, and a line
+                under them states which is which. */}
+            <div className="rb-cover-ctas rb-enter-4" style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 'clamp(24px,3.5vh,36px)' }}>
+              <Link to={P.order} className="rb-cta rb-cta-gold">{t.ctaOrderOwn}</Link>
+              <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost rb-cta-ext">
+                {t.ctaDelivery}
+                <span aria-hidden="true">↗</span>
+                <span className="rb-sr">({t.extNote})</span>
+              </a>
             </div>
+            <p className="rb-enter-4" style={{ fontSize: 13.5, color: DIM, margin: '14px 0 0', maxWidth: '42ch', lineHeight: 1.55 }}>
+              {t.ctaPathsNote}
+            </p>
           </div>
         </div>
 
@@ -1584,13 +1607,25 @@ function ReynirPageInner() {
                 </div>
               </div>
 
-              {/* Both delivery platforms they actually trade on, side by side.
-                  aha.is stays the primary because it is the one they already
-                  advertise; Wolt sat unlinked even though their storefront is
-                  live and was the source we price-checked the menu against. */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 'clamp(26px,4vh,36px)' }}>
-                <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold">{t.orderPrimary}</a>
-                <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost">{t.orderWolt}</a>
+              {/* Both delivery platforms they actually trade on, under a head
+                  that says what they are for. Neither is gold any more: gold
+                  is reserved for ordering FROM the bakery, so a customer can
+                  tell the two errands apart by sight anywhere on the page.
+                  The buttons carry only the platform name — the head above
+                  them already says "heimsending", and "Panta á aha.is" was
+                  the third thing on this page starting with "Panta". */}
+              <div style={{ marginTop: 'clamp(26px,4vh,36px)' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', color: GOLD }}>
+                  {t.deliveryKicker}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 14 }}>
+                  <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost rb-cta-ext">
+                    {t.orderPrimary}<span aria-hidden="true">↗</span><span className="rb-sr">({t.extNote})</span>
+                  </a>
+                  <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost rb-cta-ext">
+                    {t.orderWolt}<span aria-hidden="true">↗</span><span className="rb-sr">({t.extNote})</span>
+                  </a>
+                </div>
               </div>
               <p style={{ fontSize: 14.5, color: DIM, margin: '18px 0 0', lineHeight: 1.6, maxWidth: '34ch' }}>{t.deliveryNote}</p>
             </div>

@@ -467,44 +467,53 @@ const ORDER_CSS = `
   .rb-ord-linkbtn { background:none; border:0; padding:0; cursor:pointer; font-size:13px; color:${FAINT};
     text-decoration:underline; text-underline-offset:3px; }
   .rb-ord-linkbtn:hover { color:${GOLD_LIGHT}; }
-  /* ── counter extras: photo cards, the quantity control on the thing it
-     counts. Same card grammar as the product picker so the two read as one
-     form: hairline border, photo bleeding to the card edge, gold when live. */
-  /* min(180px,100%), not a bare 180px: a hard minimum is also the grid's
-     min-content width, and inside the form's grid column that stretched the
-     whole step to 560px on a 375px phone — two of the three cards sat clipped
-     off the right edge. Capping the minimum at the container's own width lets
-     the tracks collapse instead of the layout. */
-  /* Same rule as the picker. auto-fill stranded a fourth extra the moment
-     the owner adds one, and minmax(0,…) keeps the min-content blow-out fixed
-     without needing the min() guard. */
-  .rb-ord-extras { display:grid; justify-content:start; gap:10px; margin-top:14px; max-width:640px;
-    grid-template-columns:repeat(var(--extra-cols,3), minmax(0,200px)); }
-  /* Same rule as the cake cards: the photograph IS the card. The picture used
-     to be a shallow band with a dark block of text and a stepper beneath it;
-     now it fills the tile and the whole body — name, price, the bulk line and
-     the stepper — rides a scrim over its foot. */
-  .rb-ord-extra { position:relative; display:block; aspect-ratio:3 / 4; padding:0;
-    border:1px solid ${HAIR}; border-radius:4px; background:${INK_DEEP}; overflow:hidden;
-    transition:border-color .24s ${EASE}; }
-  .rb-ord-extra[data-on] { border-color:${GOLD}; }
-  .rb-ord-extra-pic { position:absolute; inset:0; margin:0; overflow:hidden; background:${INK_DEEP}; }
-  .rb-ord-extra-pic::after { content:''; position:absolute; inset:0; pointer-events:none;
-    background:linear-gradient(180deg, rgba(11,10,9,0) 26%, rgba(11,10,9,.68) 56%, rgba(11,10,9,.95) 100%); }
-  .rb-ord-extra-body { position:absolute; z-index:2; left:12px; right:12px; bottom:10px;
-    display:flex; flex-direction:column; gap:3px; }
-  .rb-ord-extra-pic img { width:100%; height:100%; object-fit:cover; display:block;
-    filter:saturate(.96) brightness(.92); transition:transform .55s ${EASE}, filter .4s ${EASE}; }
-  .rb-ord-extra:hover .rb-ord-extra-pic img { transform:scale(1.045); filter:saturate(1) brightness(1); }
-  .rb-ord-extra-name { font-family:${DISPLAY}; font-size:16.5px; color:${IVORY}; line-height:1.15;
+  /* ── counter extras: compact rows, not photo cards ──
+     They were 3:4 photo tiles, three across, and they ate about a screen of
+     height for three items you add by the tray. Sindri's note, and he is
+     right: this is the shelf you glance at on the way past, not the thing the
+     page is about — the cakes are. nings.is's own menu and basket both use a
+     small square thumbnail beside a name, a price and a control, which is
+     also exactly the grammar the basket rows now use. So the same row shape
+     appears in the shelf, in the basket and on the phone: one thumbnail, one
+     line of name, one price, one stepper.
+
+     The photographs are not wasted — they are the same files, just read at
+     thumbnail size, and the product cards above still carry full pictures
+     where the decision actually happens. */
+  .rb-ord-extras { display:grid; gap:8px; margin-top:14px; max-width:560px;
+    grid-template-columns:minmax(0,1fr); }
+  /* NOTE ON THE NAME: .rb-ord-extra is already taken, by the free-text answer
+     that opens under a choice ("Annar litur" and friends). Two different
+     things under one class is how this row briefly turned every free-text box
+     into a 48px grid, so the shelf row carries its own name. (And no
+     backticks in here: this whole stylesheet is a template literal.) */
+  .rb-ord-shelfitem { display:grid; grid-template-columns:48px minmax(0,1fr) auto; align-items:center;
+    gap:12px; padding:8px 12px 8px 8px; border:1px solid ${HAIR}; border-radius:4px;
+    background:${INK_DEEP}; transition:border-color .24s ${EASE}; }
+  .rb-ord-shelfitem[data-on] { border-color:${GOLD}; }
+  .rb-ord-shelfitem-pic { width:48px; height:48px; margin:0; border-radius:3px; overflow:hidden;
+    background:${INK}; border:1px solid ${HAIR_SOFT}; }
+  .rb-ord-shelfitem-pic img { width:100%; height:100%; object-fit:cover; display:block;
+    filter:saturate(.96) brightness(.94); }
+  .rb-ord-shelfitem-body { min-width:0; display:flex; flex-direction:column; gap:1px; }
+  .rb-ord-shelfitem-name { font-family:${DISPLAY}; font-size:15.5px; color:${IVORY}; line-height:1.2;
     overflow-wrap:anywhere; }
-  .rb-ord-extra-price { font-size:12.5px; color:${FAINT}; font-variant-numeric:tabular-nums; min-height:16px; }
-  .rb-ord-extra-price s { opacity:.55; margin-right:4px; }
-  .rb-ord-extra-price em { font-style:normal; color:${GOLD}; margin-left:6px; font-size:10.5px;
+  .rb-ord-shelfitem-price { font-size:12px; color:${FAINT}; font-variant-numeric:tabular-nums; }
+  .rb-ord-shelfitem-price s { opacity:.55; margin-right:4px; }
+  .rb-ord-shelfitem-price em { font-style:normal; color:${GOLD}; margin-left:6px; font-size:10.5px;
     text-transform:uppercase; letter-spacing:.08em; }
-  .rb-ord-extra-bulk { font-size:11.5px; color:${GOLD}; font-variant-numeric:tabular-nums; min-height:15px; }
-  .rb-ord-extra-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
-  .rb-ord-extra-sum { text-align:right; font-size:13.5px; color:${GOLD}; font-variant-numeric:tabular-nums; }
+  /* The quantity break is a second line under the price, and it disappears
+     once it applies rather than holding empty height in a row this short. */
+  .rb-ord-shelfitem-bulk { font-size:11px; color:${GOLD}; font-variant-numeric:tabular-nums; }
+  .rb-ord-shelfitem-bulk:empty { display:none; }
+  /* ── the optional questions, folded behind one line ── */
+  .rb-ord-moreopts { display:inline-flex; align-items:center; gap:8px; margin-top:22px;
+    padding:11px 16px; background:none; border:1px dashed rgba(238,211,170,.3); border-radius:4px;
+    color:${GOLD_LIGHT}; font-size:13.5px; cursor:pointer;
+    transition:border-color .2s ${EASE}, background .2s ${EASE}, color .2s ${EASE}; }
+  .rb-ord-moreopts span { font-size:15px; line-height:1; }
+  .rb-ord-moreopts:hover { border-color:${GOLD}; background:rgba(200,168,119,.07); color:${IVORY}; }
+  .rb-ord-moreopts:focus-visible { outline:2px solid ${GOLD}; outline-offset:3px; }
   .rb-ord-qty[data-small] { margin-top:0; }
   .rb-ord-qty[data-small] button { width:44px; height:44px; }
   .rb-ord-qty[data-small] .rb-ord-qty-val { min-width:30px; font-size:16px; }
@@ -625,12 +634,9 @@ const ORDER_CSS = `
     .rb-ord-prod-pic::after { display:none; }
     .rb-ord-prod-name { position:static; grid-area:name; align-self:end; }
     .rb-ord-prod-from { position:static; grid-area:from; align-self:start; }
-    /* One per row on a phone: two 3:4 tiles side by side left the longer
-       names wrapping into a sliver and the steppers cramped. Full width with
-       a shallower crop gives the photograph more of the screen, not less. */
-    .rb-ord-extras { grid-template-columns:minmax(0,1fr); max-width:none; }
-    .rb-ord-extra { aspect-ratio:16 / 10; }
-    .rb-ord-extra-body { left:14px; right:14px; bottom:12px; }
+    /* The shelf is one column everywhere now, so a phone only needs the
+       width. The 3:4 and 16:10 card rules went with the cards. */
+    .rb-ord-extras { max-width:none; }
     /* On a phone the picker becomes a LIST, not three posters.
        Full-width cards with a letterbox photo came to 849px for three
        products: more than a whole screen of pictures before the customer
@@ -1650,6 +1656,195 @@ function OrderForm({
     </div>
   )
 
+  /**
+   * One group's markup, as a function rather than an inline map callback: the
+   * required questions render immediately and the optional ones behind a
+   * disclosure, and both need the same markup.
+   */
+  const renderGroup = (group: OrderGroup) => {
+                    const cur = picked[group.id] ?? []
+                    const atMax = !!group.max && cur.length >= group.max
+                    const err = showErr(`g_${group.id}`)
+                    const isSizeGroup = !!product.sizeGroupId && group.id === product.sizeGroupId
+                    /* If nothing in the group changes the price, the price
+                       column says "included" five times and communicates
+                       nothing. Drop it entirely and the choices read as what
+                       they are: a taste, not a tariff. It reappears the moment
+                       the owner puts a surcharge on any one of them. */
+                    const groupHasPrices =
+                      isSizeGroup || group.choices.some((c) => c.priceDelta > 0 || c.quoteOnly)
+                    return (
+                      <fieldset className="rb-ord-group" key={group.id}>
+                        <legend className="rb-ord-legend">
+                          <span className="rb-ord-legend-row">
+                            <span className="rb-ord-legend-text">{group.label[lang]}</span>
+                            <span className="rb-ord-tag">{group.required ? t.required : t.optional}</span>
+                          </span>
+                        </legend>
+                        {(group.help || group.max) && (
+                          <p className="rb-ord-help">
+                            {group.help ? group.help[lang] : t.chooseUpTo(group.max as number)}
+                          </p>
+                        )}
+                        {group.layout === 'select' ? (
+                          /* One row instead of eleven. The price is not hidden by
+                             the dropdown, it is promoted out of it: chosen size
+                             at display size on the right, rate underneath, and
+                             every option still carries its own price when the
+                             list is open. */
+                          <div className="rb-ord-sizerow">
+                            <select
+                              className="rb-ord-select rb-ord-sizeselect"
+                              value={cur[0] ?? ''}
+                              data-invalid={err ? 'true' : undefined}
+                              aria-invalid={!!err}
+                              aria-label={group.label[lang]}
+                              aria-describedby={err ? `err_g_${group.id}` : undefined}
+                              onChange={(e) => toggle(group, e.target.value)}
+                            >
+                              <option value="" disabled style={{ background: INK }}>
+                                {t.sizePrompt}
+                              </option>
+                              {group.choices.map((choice) => {
+                                const sp = choicePriceOf(product, choice)
+                                return (
+                                  <option key={choice.id} value={choice.id} style={{ background: INK }}>
+                                    {choice.label[lang]}
+                                    {sp !== null ? `  ·  ${isk(sp)}` : ''}
+                                  </option>
+                                )
+                              })}
+                            </select>
+                            {/* Only once there is a price. The rate on its own,
+                                hanging under an empty dropdown, was a line of
+                                text belonging to nothing. It lives in the help
+                                line above until a size makes it a real price. */}
+                            {isSizeGroup && size && (
+                              <div className="rb-ord-sizeprice" aria-live="polite">
+                                <span className="rb-ord-sizeprice-num" data-bump={bump}>
+                                  {isk(choicePriceOf(product, size) ?? 0)}
+                                </span>
+                                {/* The rate underneath explains a per-person
+                                    number. A flat size price is the whole
+                                    story and gets no second line. */}
+                                {product.pricePerPerson && (
+                                  <span className="rb-ord-sizeprice-rate">
+                                    {isk(product.pricePerPerson)} {t.perPerson}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                        <div className="rb-ord-choices" data-layout={group.layout ?? 'list'}>
+                          {group.choices.map((choice) => {
+                            const on = cur.includes(choice.id)
+                            const off = !on && atMax
+                            /* Size chips carry the REAL price of that size, not
+                               a surcharge. That is the whole point of the
+                               owner's model: the customer picks how many people
+                               are coming and reads the finished price off the
+                               same row. True of both pricing models — the rate
+                               times the headcount, or the price he set for that
+                               size — which is why it goes through one helper. */
+                            const sizePrice = isSizeGroup ? choicePriceOf(product, choice) : null
+                            const fx = choice.freeText
+                            const fxKey = `${group.id}_${choice.id}`
+                            const fxErr = showErr(`x_${fxKey}`)
+                            return (
+                              <div key={choice.id}>
+                                <label className="rb-ord-choice" data-on={on} data-off={off}>
+                                  <input
+                                    type={group.kind === 'single' ? 'radio' : 'checkbox'}
+                                    name={`rb-ord-${group.id}`}
+                                    checked={on}
+                                    disabled={off}
+                                    data-invalid={err ? 'true' : undefined}
+                                    aria-describedby={err ? `err_g_${group.id}` : undefined}
+                                    onChange={() => toggle(group, choice.id)}
+                                  />
+                                  <span className="rb-ord-mark" data-shape={group.kind === 'single' ? 'round' : 'box'} aria-hidden="true">
+                                    <Check />
+                                  </span>
+                                  <span className="rb-ord-choice-label">
+                                    {choice.label[lang]}
+                                    {choice.note && <span className="rb-ord-choice-note">{choice.note[lang]}</span>}
+                                  </span>
+                                  {groupHasPrices && (
+                                    <span
+                                      className="rb-ord-choice-price"
+                                      data-free={sizePrice === null && choice.priceDelta === 0 && !choice.quoteOnly}
+                                    >
+                                      {sizePrice !== null
+                                        ? isk(sizePrice)
+                                        : choice.quoteOnly
+                                          ? t.quoteTotal
+                                          : choice.priceDelta === 0
+                                            ? t.included
+                                            : `+ ${isk(choice.priceDelta)}`}
+                                    </span>
+                                  )}
+                                </label>
+                                {/* The field belonging to this choice, revealed only
+                                    when it is picked. Rendering it inside the row it
+                                    belongs to is what keeps "another colour" from
+                                    submitting as just "another colour". */}
+                                {fx && on && (
+                                  <div className="rb-ord-extra">
+                                    <label className="rb-ord-label" htmlFor={`rb-ord-x-${fxKey}`}>
+                                      {fx.label[lang]}
+                                    </label>
+                                    <input
+                                      id={`rb-ord-x-${fxKey}`}
+                                      className="rb-ord-input"
+                                      type="text"
+                                      maxLength={fx.maxLength}
+                                      placeholder={fx.placeholder[lang]}
+                                      value={extras[fxKey] ?? ''}
+                                      data-invalid={fxErr ? 'true' : undefined}
+                                      aria-invalid={!!fxErr}
+                                      aria-describedby={fxErr ? `err_x_${fxKey}` : undefined}
+                                      onChange={(e) => setExtras((x) => ({ ...x, [fxKey]: e.target.value }))}
+                                      onBlur={() => setTouched((prev) => ({ ...prev, [`x_${fxKey}`]: true }))}
+                                    />
+                                    {fxErr && <p className="rb-ord-err" id={`err_x_${fxKey}`} role="alert">{fxErr}</p>}
+                                    {/* The upload belongs to the choice that
+                                        needs a picture, not to a general
+                                        attachments box further down the form. */}
+                                    {choice.needsPhoto && PHOTO_UPLOAD_ENABLED && photoPicker}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                        )}
+                        {err && <p className="rb-ord-err" id={`err_g_${group.id}`} role="alert">{err}</p>}
+                      </fieldset>
+                    )
+  }
+
+  /* Required questions carry the order; optional ones are refinements. The
+     size group counts as required even when it is not marked so — a cake
+     without a size has no price. */
+  const requiredGroups = useMemo(
+    () => product.groups.filter((g) => g.required || g.id === product.sizeGroupId),
+    [product],
+  )
+  const optionalGroups = useMemo(
+    () => product.groups.filter((g) => !(g.required || g.id === product.sizeGroupId)),
+    [product],
+  )
+  /** Which product's optional groups are open. Keyed by product id rather than
+   *  a boolean, so switching product closes them without an effect to forget. */
+  const [optOptFor, setOptOpenForRaw] = useState<string | null>(null)
+  const setOptOpenFor = setOptOpenForRaw
+  /** Something optional is already answered — restored from "Breyta", or
+   *  chosen before collapsing. Then the panel must stay open: hiding a chosen
+   *  option is how a customer loses an answer without being told. */
+  const optionalAnswered = optionalGroups.some((g) => (picked[g.id] ?? []).length > 0)
+  const optionalOpen = optOptFor === product.id || optionalAnswered
+
   const slip = (
     <div className="rb-ord-slip">
       <div className="rb-ord-slip-title">
@@ -2105,168 +2300,35 @@ function OrderForm({
               <div className="rb-ord-step">
                 <div className="rb-ord-steplabel">{t.stepOptions}</div>
                 <div className="rb-ord-groups" data-key={product.id} key={product.id}>
-                  {product.groups.map((group) => {
-                    const cur = picked[group.id] ?? []
-                    const atMax = !!group.max && cur.length >= group.max
-                    const err = showErr(`g_${group.id}`)
-                    const isSizeGroup = !!product.sizeGroupId && group.id === product.sizeGroupId
-                    /* If nothing in the group changes the price, the price
-                       column says "included" five times and communicates
-                       nothing. Drop it entirely and the choices read as what
-                       they are: a taste, not a tariff. It reappears the moment
-                       the owner puts a surcharge on any one of them. */
-                    const groupHasPrices =
-                      isSizeGroup || group.choices.some((c) => c.priceDelta > 0 || c.quoteOnly)
-                    return (
-                      <fieldset className="rb-ord-group" key={group.id}>
-                        <legend className="rb-ord-legend">
-                          <span className="rb-ord-legend-row">
-                            <span className="rb-ord-legend-text">{group.label[lang]}</span>
-                            <span className="rb-ord-tag">{group.required ? t.required : t.optional}</span>
-                          </span>
-                        </legend>
-                        {(group.help || group.max) && (
-                          <p className="rb-ord-help">
-                            {group.help ? group.help[lang] : t.chooseUpTo(group.max as number)}
-                          </p>
-                        )}
-                        {group.layout === 'select' ? (
-                          /* One row instead of eleven. The price is not hidden by
-                             the dropdown, it is promoted out of it: chosen size
-                             at display size on the right, rate underneath, and
-                             every option still carries its own price when the
-                             list is open. */
-                          <div className="rb-ord-sizerow">
-                            <select
-                              className="rb-ord-select rb-ord-sizeselect"
-                              value={cur[0] ?? ''}
-                              data-invalid={err ? 'true' : undefined}
-                              aria-invalid={!!err}
-                              aria-label={group.label[lang]}
-                              aria-describedby={err ? `err_g_${group.id}` : undefined}
-                              onChange={(e) => toggle(group, e.target.value)}
-                            >
-                              <option value="" disabled style={{ background: INK }}>
-                                {t.sizePrompt}
-                              </option>
-                              {group.choices.map((choice) => {
-                                const sp = choicePriceOf(product, choice)
-                                return (
-                                  <option key={choice.id} value={choice.id} style={{ background: INK }}>
-                                    {choice.label[lang]}
-                                    {sp !== null ? `  ·  ${isk(sp)}` : ''}
-                                  </option>
-                                )
-                              })}
-                            </select>
-                            {/* Only once there is a price. The rate on its own,
-                                hanging under an empty dropdown, was a line of
-                                text belonging to nothing. It lives in the help
-                                line above until a size makes it a real price. */}
-                            {isSizeGroup && size && (
-                              <div className="rb-ord-sizeprice" aria-live="polite">
-                                <span className="rb-ord-sizeprice-num" data-bump={bump}>
-                                  {isk(choicePriceOf(product, size) ?? 0)}
-                                </span>
-                                {/* The rate underneath explains a per-person
-                                    number. A flat size price is the whole
-                                    story and gets no second line. */}
-                                {product.pricePerPerson && (
-                                  <span className="rb-ord-sizeprice-rate">
-                                    {isk(product.pricePerPerson)} {t.perPerson}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                        <div className="rb-ord-choices" data-layout={group.layout ?? 'list'}>
-                          {group.choices.map((choice) => {
-                            const on = cur.includes(choice.id)
-                            const off = !on && atMax
-                            /* Size chips carry the REAL price of that size, not
-                               a surcharge. That is the whole point of the
-                               owner's model: the customer picks how many people
-                               are coming and reads the finished price off the
-                               same row. True of both pricing models — the rate
-                               times the headcount, or the price he set for that
-                               size — which is why it goes through one helper. */
-                            const sizePrice = isSizeGroup ? choicePriceOf(product, choice) : null
-                            const fx = choice.freeText
-                            const fxKey = `${group.id}_${choice.id}`
-                            const fxErr = showErr(`x_${fxKey}`)
-                            return (
-                              <div key={choice.id}>
-                                <label className="rb-ord-choice" data-on={on} data-off={off}>
-                                  <input
-                                    type={group.kind === 'single' ? 'radio' : 'checkbox'}
-                                    name={`rb-ord-${group.id}`}
-                                    checked={on}
-                                    disabled={off}
-                                    data-invalid={err ? 'true' : undefined}
-                                    aria-describedby={err ? `err_g_${group.id}` : undefined}
-                                    onChange={() => toggle(group, choice.id)}
-                                  />
-                                  <span className="rb-ord-mark" data-shape={group.kind === 'single' ? 'round' : 'box'} aria-hidden="true">
-                                    <Check />
-                                  </span>
-                                  <span className="rb-ord-choice-label">
-                                    {choice.label[lang]}
-                                    {choice.note && <span className="rb-ord-choice-note">{choice.note[lang]}</span>}
-                                  </span>
-                                  {groupHasPrices && (
-                                    <span
-                                      className="rb-ord-choice-price"
-                                      data-free={sizePrice === null && choice.priceDelta === 0 && !choice.quoteOnly}
-                                    >
-                                      {sizePrice !== null
-                                        ? isk(sizePrice)
-                                        : choice.quoteOnly
-                                          ? t.quoteTotal
-                                          : choice.priceDelta === 0
-                                            ? t.included
-                                            : `+ ${isk(choice.priceDelta)}`}
-                                    </span>
-                                  )}
-                                </label>
-                                {/* The field belonging to this choice, revealed only
-                                    when it is picked. Rendering it inside the row it
-                                    belongs to is what keeps "another colour" from
-                                    submitting as just "another colour". */}
-                                {fx && on && (
-                                  <div className="rb-ord-extra">
-                                    <label className="rb-ord-label" htmlFor={`rb-ord-x-${fxKey}`}>
-                                      {fx.label[lang]}
-                                    </label>
-                                    <input
-                                      id={`rb-ord-x-${fxKey}`}
-                                      className="rb-ord-input"
-                                      type="text"
-                                      maxLength={fx.maxLength}
-                                      placeholder={fx.placeholder[lang]}
-                                      value={extras[fxKey] ?? ''}
-                                      data-invalid={fxErr ? 'true' : undefined}
-                                      aria-invalid={!!fxErr}
-                                      aria-describedby={fxErr ? `err_x_${fxKey}` : undefined}
-                                      onChange={(e) => setExtras((x) => ({ ...x, [fxKey]: e.target.value }))}
-                                      onBlur={() => setTouched((prev) => ({ ...prev, [`x_${fxKey}`]: true }))}
-                                    />
-                                    {fxErr && <p className="rb-ord-err" id={`err_x_${fxKey}`} role="alert">{fxErr}</p>}
-                                    {/* The upload belongs to the choice that
-                                        needs a picture, not to a general
-                                        attachments box further down the form. */}
-                                    {choice.needsPhoto && PHOTO_UPLOAD_ENABLED && photoPicker}
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                        )}
-                        {err && <p className="rb-ord-err" id={`err_g_${group.id}`} role="alert">{err}</p>}
-                      </fieldset>
-                    )
-                  })}
+                  {requiredGroups.map(renderGroup)}
+                  {/* Six questions at once is what made this feel like a long
+                      form — and three of them are optional (extras, colour,
+                      allergies). Nings' own product page asks two. The
+                      optional ones fold behind one line, and open by
+                      themselves when something in them is already chosen, so
+                      editing a cake never hides an answer the customer
+                      gave. */}
+                  {optionalGroups.length > 0 && !optionalOpen && (
+                    <button
+                      type="button"
+                      className="rb-ord-moreopts"
+                      aria-expanded={false}
+                      onClick={() => setOptOpenFor(product.id)}
+                    >
+                      <span aria-hidden="true">+</span>{t.moreOptions(optionalGroups.length)}
+                    </button>
+                  )}
+                  {optionalOpen && optionalGroups.map(renderGroup)}
+                  {optionalGroups.length > 0 && optionalOpen && !optionalAnswered && (
+                    <button
+                      type="button"
+                      className="rb-ord-moreopts"
+                      aria-expanded
+                      onClick={() => setOptOpenFor(null)}
+                    >
+                      <span aria-hidden="true">−</span>{t.fewerOptions}
+                    </button>
+                  )}
 
                   {product.inscription && (
                     <div className="rb-ord-field">
@@ -2357,43 +2419,51 @@ function OrderForm({
                     lives ON the card it counts. Skinned to this page's
                     language (ink ground, hairline border, Lusitana, gold
                     when active), not the reference's white cards. */}
-                <div className="rb-ord-extras" style={{ ['--extra-cols' as string]: String(columnsFor(ORDER_EXTRAS.length)) }}>
+                {/* One column: a shelf reads as a list. The column count the
+                    card grid needed is gone with the cards. */}
+                <div className="rb-ord-extras">
                   {ORDER_EXTRAS.map((ex) => {
                     const nQty = extrasQty[ex.id] ?? 0
                     const unit = extraUnitPrice(ex, nQty, kjor)
                     const cut = unit < ex.unitPrice
                     return (
-                      <div className="rb-ord-extra" key={ex.id} data-on={nQty > 0 || undefined}>
-                        <span className="rb-ord-extra-pic">
-                          <img src={ex.image || undefined} alt="" loading="lazy" decoding="async" width={480} height={480} />
-                        </span>
-                        <span className="rb-ord-extra-body">
-                        <span className="rb-ord-extra-name">{ex.label[lang]}</span>
-                        <span className="rb-ord-extra-price">
-                          {cut ? (
-                            <>
-                              <s>{isk(ex.unitPrice)}</s> {isk(ex.kjorPrice)}
-                              <em>{kjor ? t.extrasKjorTag : t.extrasBulkTag}</em>
-                            </>
-                          ) : (
-                            `${isk(ex.unitPrice)} ${lang === 'is' ? 'stk.' : 'each'}`
-                          )}
-                        </span>
-                        {/* The case price is ADVERTISED, not hidden behind the
-                            crossing — the whole point is that people order in
-                            bulk for events, so the card sells the bulk. Once
-                            the cut is live the line has done its job. */}
-                        <span className="rb-ord-extra-bulk">
-                          {cut || !Number.isFinite(ex.bulkAt) ? '\u00a0' : t.extrasBulkLine(ex.bulkAt, isk(ex.kjorPrice))}
-                        </span>
-                        <span className="rb-ord-extra-foot">
-                          <span className="rb-ord-qty" data-small="true" role="group" aria-label={ex.label[lang]}>
-                            <button type="button" onClick={() => stepExtra(ex.id, -1)} disabled={nQty <= 0} aria-label={`${lang === 'is' ? 'Fækka' : 'Remove'} ${ex.label[lang]}`}>−</button>
-                            <span className="rb-ord-qty-val" aria-live="polite">{nQty}</span>
-                            <button type="button" onClick={() => stepExtra(ex.id, 1)} disabled={nQty >= ex.max} aria-label={`${lang === 'is' ? 'Bæta við' : 'Add'} ${ex.label[lang]}`}>+</button>
+                      <div className="rb-ord-shelfitem" key={ex.id} data-on={nQty > 0 || undefined}>
+                        {ex.image && (
+                          <span className="rb-ord-shelfitem-pic" aria-hidden="true">
+                            <img src={ex.image} alt="" loading="lazy" decoding="async" width={480} height={480} />
                           </span>
-                          <span className="rb-ord-extra-sum" aria-live="polite">{nQty > 0 ? isk(nQty * unit) : ''}</span>
+                        )}
+                        {/* Name, price and the quantity break in one column;
+                            the stepper is the grid's THIRD child, not a child
+                            of that column — nested, it stacked under the text
+                            and made a 48px thumbnail row 120px tall. */}
+                        <span className="rb-ord-shelfitem-body">
+                          <span className="rb-ord-shelfitem-name">{ex.label[lang]}</span>
+                          <span className="rb-ord-shelfitem-price">
+                            {cut ? (
+                              <>
+                                <s>{isk(ex.unitPrice)}</s> {isk(ex.kjorPrice)}
+                                <em>{kjor ? t.extrasKjorTag : t.extrasBulkTag}</em>
+                              </>
+                            ) : (
+                              `${isk(ex.unitPrice)} ${lang === 'is' ? 'stk.' : 'each'}`
+                            )}
+                          </span>
+                          {/* The case price is ADVERTISED, not hidden behind the
+                              crossing — people order these by the tray for
+                              events, so the row sells the bulk. Once the cut is
+                              live the line has done its job and goes. */}
+                          <span className="rb-ord-shelfitem-bulk">
+                            {cut || !Number.isFinite(ex.bulkAt) ? '' : t.extrasBulkLine(ex.bulkAt, isk(ex.kjorPrice))}
+                          </span>
                         </span>
+                        {/* No line total here: the basket beside this carries
+                            every total, and the running total follows the
+                            customer down the phone in the sticky strip. */}
+                        <span className="rb-ord-qty" data-small="true" role="group" aria-label={ex.label[lang]}>
+                          <button type="button" onClick={() => stepExtra(ex.id, -1)} disabled={nQty <= 0} aria-label={`${lang === 'is' ? 'Fækka' : 'Remove'} ${ex.label[lang]}`}>−</button>
+                          <span className="rb-ord-qty-val" aria-live="polite">{nQty}</span>
+                          <button type="button" onClick={() => stepExtra(ex.id, 1)} disabled={nQty >= ex.max} aria-label={`${lang === 'is' ? 'Bæta við' : 'Add'} ${ex.label[lang]}`}>+</button>
                         </span>
                       </div>
                     )

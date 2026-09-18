@@ -1141,6 +1141,9 @@ export function extrasTotal(qty: Record<string, number>, kjor: boolean): number 
 }
 
 export interface OrderCopy {
+  /** The header button into the bakery's OWN order flow. Not "Panta": the page
+   *  also links a delivery app, and one verb for both errands is what sent
+   *  cake customers into a pastry list. */
   navOrder: string
   kicker: string
   title: string
@@ -1180,6 +1183,10 @@ export interface OrderCopy {
   basketCount: (n: number) => string
   /** Sub-heads inside step 01, which now holds the whole range. */
   sectionCakes: string
+  /** The optional option groups are folded behind one line. Six questions at
+   *  once is what made the flow feel long; three of them are optional. */
+  moreOptions: (n: number) => string
+  fewerOptions: string
   /** The label column in a basket row names the ATTRIBUTE, so the size group's
    *  own legend ("Fyrir hvað marga á tertan að vera?") cannot be reused: a
    *  question in a label column reads as a prompt the customer still has to
@@ -1310,7 +1317,7 @@ export interface OrderCopy {
 /** UI copy for the configurator, kept beside its data so the whole flow reviews as one file. */
 export const ORDER_T: Record<Lang, OrderCopy> = {
   en: {
-    navOrder: 'Order',
+    navOrder: 'Order a cake',
     kicker: 'Order ahead',
     title: 'Build your order.',
     intro:
@@ -1339,6 +1346,8 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     basketCount: (n) => `${n} ${n === 1 ? 'item' : 'items'}`,
     sectionCakes: 'Cakes',
     rowSize: 'Size',
+    moreOptions: (n) => `More choices (${n})`,
+    fewerOptions: 'Fewer choices',
     pickNextCake: 'Pick another item above, or carry on with the order.',
     cancelDraftCake: 'Skip this cake',
     btnEditCake: 'Edit',
@@ -1445,7 +1454,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     charsLeft: (n: number) => `${n} characters left`,
   },
   is: {
-    navOrder: 'Panta',
+    navOrder: 'Panta tertu',
     kicker: 'Pantað fyrirfram',
     title: 'Settu saman pöntun.',
     intro:
@@ -1478,6 +1487,8 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     basketCount: (n) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? 'vara' : 'vörur'}`,
     sectionCakes: 'Kökur',
     rowSize: 'Stærð',
+    moreOptions: (n) => `Fleiri valkostir (${n})`,
+    fewerOptions: 'Fela valkosti',
     pickNextCake: 'Veldu næstu vöru hér fyrir ofan, eða haltu áfram með pöntunina.',
     cancelDraftCake: 'Sleppa þessari köku',
     btnEditCake: 'Breyta',
