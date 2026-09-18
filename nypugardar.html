@@ -41,6 +41,10 @@
          ships clean. Get the token at Cloudflare dashboard → Web Analytics →
          the site → JS snippet. -->
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"__CF_ANALYTICS_TOKEN__"}'></script>
+
+    <!-- SNDR Pulse: the owner's monthly report counts what happens here.
+         Same tag as the other live sites; the worker knows the id. -->
+    <script defer src="https://sndr-pulse.sindri-381.workers.dev/p.js" data-site="nypugardar"></script>
   </head>
   <body>
     <div id="root"></div>
