@@ -78,8 +78,8 @@ const en = {
     nextMonth: 'Next month',
     strikeNote: 'Crossed-out nights were fully booked when we last checked.',
     mayBeFull: 'Those nights looked fully booked when we last checked. Our booking system has the latest availability.',
-    checkIn: 'Check in',
-    checkOut: 'Check out',
+    checkIn: 'Check-in',
+    checkOut: 'Check-out',
     pickDate: 'Choose a date',
     afterCheckIn: 'After check-in',
     clearDates: 'Clear dates',
@@ -101,7 +101,7 @@ const en = {
   facts: {
     rooms: 'rooms, two with a shared bathroom',
     cottages: 'cottages beside the guesthouse, sleeping three and four',
-    checkin: 'check in, until 22:00',
+    checkin: 'check-in, until 22:00',
   },
 
   band: {
@@ -118,7 +118,7 @@ const en = {
 
   journey: {
     heading: 'Just four kilometres off the Ring Road',
-    body: 'We are reached by a short turn off Route 1 between Höfn and Jökulsárlón. From the farm, Höfn lies to the east and the glacier lagoons to the west, so you can spend the day exploring either direction and come back to the quiet of Nýpugarðar in the evening.',
+    body: 'A short turn off Route 1 between Höfn and Jökulsárlón brings you to the farm. From here, Höfn lies to the east and the glacier lagoons to the west, so you can spend the day exploring either direction and come back to the quiet of Nýpugarðar in the evening.',
     mapAria: 'Map of the coast around Nýpugarðar, with the driving routes from the farm to Höfn, Þórbergssetur, Jökulsárlón, Diamond Beach, Fjallsárlón and Stokksnes.',
     drivesHeading: 'From Nýpugarðar',
     ocean: 'North Atlantic',
@@ -189,7 +189,7 @@ const en = {
       'The breakfast buffet at Nýpugarðar, with bread, cold cuts, jams and coffee set out for guests',
     breakfastCaption: 'The breakfast table',
     served: 'Served',
-    weCanCover: 'We can cover',
+    weCanCover: 'We cater for',
     toGoLead: 'Leaving for Jökulsárlón before breakfast?',
     toGoTail: 'Tell us the night before and we can prepare breakfast to go.',
   },
@@ -311,7 +311,7 @@ const en = {
       },
       {
         q: 'What time can I check in and out?',
-        a: 'Check in is from 16:00 to 22:00, and check out is from 07:30 to 11:00. If you arrive later than that, a note on the table in the lobby tells you which room is yours.',
+        a: 'Check-in is from 16:00 to 22:00 and check-out from 07:30 to 11:00. If you arrive after 22:00, a note on the table in the lobby tells you which room is yours.',
       },
       {
         q: 'Can I bring a pet, and are children welcome?',
@@ -475,7 +475,7 @@ const is: typeof en = {
     dinner: 'Matur',
     gallery: 'Myndir',
     reviews: 'Umsagnir',
-    info: 'Að rata',
+    info: 'Leiðin hingað',
     winter: 'Veturinn',
     menu: 'Valmynd',
   },
@@ -570,12 +570,12 @@ const is: typeof en = {
     heading: 'Ellefu herbergi og tvö sumarhús',
     body: 'Hlýleg, þægileg og kyrrlát gisting með landslagið rétt fyrir utan gluggann. Tvö herbergjanna deila baðherbergi. Timbursumarhúsin tvö standa við hlið gistihússins, annað fyrir þrjá gesti og hitt fyrir fjóra, hvort með sínu baðherbergi og túnin beint fyrir utan.',
     seeAll: 'Skoða öll herbergi, sumarhús og myndir',
-    seeAllNote: 'Skoðaðu allar sjö herbergisgerðirnar, sumarhúsin tvö þar á meðal, með myndum, upplýsingum og verði fyrir hvern kost.',
+    seeAllNote: 'Skoðaðu allar sjö herbergisgerðirnar, sumarhúsin tvö þar á meðal, með myndum, upplýsingum og verði fyrir hverja gerð.',
     stripLabel: 'Herbergisgerðir',
     prevRooms: 'Fyrri herbergisgerðir',
     nextRooms: 'Næstu herbergisgerðir',
     stripHint: 'Örvatakkar til vinstri og hægri fletta milli herbergisgerða.',
-    openRoom: 'Skoða myndir og nánar',
+    openRoom: 'Skoða myndir og upplýsingar',
     short: {
       twinSharedEconomy: 'Tveggja manna, sameiginlegt bað',
       doubleTwinShared: 'Hjóna- eða tveggja manna, sameiginlegt bað',
@@ -602,7 +602,7 @@ const is: typeof en = {
   dinner: {
     heading: 'Kvöldmatur með útsýni',
     intro:
-      'Á kvöldin er borinn fram matur í matsalnum, með jöklana enn fyrir augunum. Veldu rétt af matseðlinum, komdu þér vel fyrir við borðið og njóttu máltíðar sem kemur sér sérstaklega vel eftir dag á ferðinni.\n\nÞað þarf ekki að bóka kvöldmat fyrirfram. Láttu okkur bara vita við komu að þú viljir borða hjá okkur.',
+      'Á kvöldin er borinn fram matur í matsalnum, með jöklana enn fyrir augunum. Veldu rétt af matseðlinum, komdu þér vel fyrir við borðið og njóttu máltíðar sem bragðast sérstaklega vel eftir dag á ferðinni.\n\nÞað þarf ekki að bóka kvöldmat fyrirfram. Láttu okkur bara vita við komu að þú viljir borða hjá okkur.',
     body: 'Eftir matinn hægist á öllu. Kyrrð færist yfir bæinn, birtan dofnar yfir landinu og það sem eftir er kvöldsins er þitt.',
     diningAlt:
       'Matsalurinn á Nýpugörðum, með borðum við gólfsíða glugga sem snúa að jöklinum',
@@ -618,9 +618,9 @@ const is: typeof en = {
       'Morgunverðarhlaðborðið á Nýpugörðum, með brauði, áleggi, sultum og kaffi fyrir gesti',
     breakfastCaption: 'Morgunverðarborðið',
     served: 'Borið fram',
-    weCanCover: 'Við ráðum við',
+    weCanCover: 'Við bjóðum',
     toGoLead: 'Leggurðu af stað að Jökulsárlóni áður en morgunmatur er borinn fram?',
-    toGoTail: 'Láttu okkur vita kvöldið áður og við getum útbúið morgunmat með í nesti.',
+    toGoTail: 'Láttu okkur vita kvöldið áður og þá útbúum við nesti handa þér.',
   },
 
   reviews: {
@@ -730,11 +730,11 @@ const is: typeof en = {
       },
       {
         q: 'Hvað er í morgunmat?',
-        a: 'Við bjóðum upp á hlaðborð í matsalnum, með sömu jöklasýn. Grænmetis-, vegan- og glútenlausir kostir eru í boði. Ef þú leggur af stað að Jökulsárlóni áður en morgunmatur er borinn fram getum við útbúið morgunmat með í nesti.',
+        a: 'Við bjóðum upp á hlaðborð í matsalnum, með sömu jöklasýn. Grænmetis-, vegan- og glútenlausir kostir eru í boði. Ef þú leggur af stað að Jökulsárlóni áður en morgunmatur er borinn fram útbúum við nesti handa þér.',
       },
       {
         q: 'Hvenær er innritun og útritun?',
-        a: 'Innritun er frá 16:00 til 22:00 og útritun frá 07:30 til 11:00. Ef þú kemur seinna liggur blað á borðinu í anddyrinu sem segir þér hvar þú gistir.',
+        a: 'Innritun er frá 16:00 til 22:00 og útritun frá 07:30 til 11:00. Ef þú kemur eftir klukkan 22:00 liggur blað á borðinu í anddyrinu sem segir þér hvar þú gistir.',
       },
       {
         q: 'Mega gæludýr koma og eru börn velkomin?',
@@ -754,7 +754,7 @@ const is: typeof en = {
     intro:
       'Veturinn er kyrrláti helmingur ársins hjá okkur. Dagurinn er stuttur og sólin lág, jöklarnir standa hvítir fyrir ofan bæinn og á heiðskírum kvöldum getið þið gengið út um dyrnar og staðið undir norðurljósunum án þess að nokkur ljósastaur trufli. Hér eru svörin við því sem gestir spyrja okkur oftast um frá nóvember fram í mars.',
     ctaRooms: 'Skoða herbergi og verð',
-    ctaBook: 'Athuga laus herbergi',
+    ctaBook: 'Kanna laus herbergi',
     daylight: {
       heading: 'Hversu löng birtan er',
       note: 'Sólarupprás og sólsetur á bænum, reiknað út frá hnitum bæjarins. Tímarnir geta hnikast um mínútu milli ára.',
