@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from 'react'
 import { ArrowUpRight, Minus, Plus } from 'lucide-react'
 import type { Copy, Lang } from './copy'
 import { bookingHref, bookingReady, nightsBetween, type GodoRoomKey } from './godo'
+import { countBookingHandoff } from './Page'
 import { availKnown, stayBookable } from './avail'
 import StayCalendar, { fmtShort } from './StayCalendar'
 import type { Stay } from './stay'
@@ -181,6 +182,7 @@ export default function BookingBar({
           {ready && href ? (
             <a
               href={href}
+              onClick={countBookingHandoff}
               className={`group mt-auto inline-flex w-full items-center justify-between gap-2 bg-[#D97D3D] py-2 pl-5 pr-2 text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-150 ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS}`}
             >
               <span>

@@ -786,6 +786,18 @@ export function LangToggle({
  * The accessible name carries the room, because "Book · Book · Book" seven
  * times is useless to anyone listing the links on a screen reader.
  */
+/** The guest leaves for Godo: the last thing this site can see of a booking.
+ *  Counted as a start, never as a confirmed booking, because the
+ *  confirmation happens on Godo where this site cannot follow. sendBeacon
+ *  inside the tag survives the navigation that follows. */
+export function countBookingHandoff() {
+  try {
+    (window as unknown as { sndrPulse?: (e: string) => void }).sndrPulse?.('booking')
+  } catch {
+    /* the counter is never allowed to break a booking */
+  }
+}
+
 export function RoomBookLink({
   room,
   name,
@@ -812,6 +824,7 @@ export function RoomBookLink({
   return (
     <a
       href={href}
+      onClick={countBookingHandoff}
       aria-label={`${t.cta.bookRoom} ${name}`}
       /* A quiet outline that commits on hover: the ember fills in from the
        * left (transform only, 260ms strong ease-out) and the label turns to
@@ -864,7 +877,10 @@ export function BookLink({
             }
           : { lang },
       )!}
-      onClick={onClick}
+      onClick={() => {
+        countBookingHandoff()
+        onClick?.()
+      }}
       className={`group inline-flex items-center gap-2 bg-[#D97D3D] py-2 pl-6 pr-2 font-supreme text-[15px] font-semibold text-[#15130F] transition-[transform,background-color] duration-[160ms] ease-out hover:bg-[#E68C4C] active:scale-[0.98] ${FOCUS} ${className}`}
     >
       {children}
