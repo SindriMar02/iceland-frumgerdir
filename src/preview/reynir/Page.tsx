@@ -124,9 +124,22 @@ const PAGE_CSS = `
   .rb-craftband { position:relative; z-index:2; display:block; overflow:hidden;
     margin-inline:calc(-1 * clamp(20px,4.5vw,72px));
     border-top:1px solid ${HAIR}; border-bottom:1px solid ${HAIR}; background:${INK_DEEP}; }
+  /* The frame is 1900x882 and its subject sits LOW: the scissors and the tray
+     of snúðar fill the bottom half, the top is out-of-focus bakery. Capping
+     the height and cropping from the centre (the default 50% 50%) therefore
+     cut the pastries off on a wide screen — the band showed a slice of hand
+     and a dark blur, which is the one thing in the photograph that says
+     nothing. Two changes: the band is allowed more height on a big screen,
+     and the crop is anchored low enough to keep the tray in it.
+     62%, measured: at 1440px wide the image scales to 0.758, so a 420px band
+     shows ~554px of the 882, and 62% puts that window over the scissors and
+     the full row of snúðar while dropping the empty top. */
   .rb-craftband img { display:block; width:100%; height:100%; object-fit:cover;
-    aspect-ratio:1900 / 882; max-height:clamp(190px,26vh,300px); filter:${ARCHIVAL}; }
-  @media (max-width:760px) { .rb-craftband img { max-height:none; aspect-ratio:3 / 2; } }
+    object-position:50% 62%;
+    aspect-ratio:1900 / 882; max-height:clamp(220px,34vh,420px); filter:${ARCHIVAL}; }
+  /* On a phone the band is nearly square, so the same anchor would push the
+     hand out of frame entirely; 3:2 keeps both and needs no shift. */
+  @media (max-width:760px) { .rb-craftband img { max-height:none; aspect-ratio:3 / 2; object-position:50% 55%; } }
 
   /* Section intros. Full-bleed ones are centred and carry no rule; the
      kicker's letterspacing already reads as a masthead without one. */
