@@ -4464,7 +4464,9 @@ PREVIEW_COMPANIES.push(HULDAMARGRET_ENTRY)
 import { companyEntry as KATRINISFELD_ENTRY } from './katrinisfeld/data'
 PREVIEW_COMPANIES.push(KATRINISFELD_ENTRY)
 import { companyEntry as HBH_ENTRY } from './hbh/data'
+import { companyEntry as ICEHERBS_ENTRY } from './iceherbs/data'
 PREVIEW_COMPANIES.push(HBH_ENTRY)
+PREVIEW_COMPANIES.push(ICEHERBS_ENTRY)
 import { companyEntry as CHRISLUND_ENTRY } from './chrislund/data'
 PREVIEW_COMPANIES.push(CHRISLUND_ENTRY)
 
