@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 
 /* The noho.ink system, transplanted. See _docs/noho-teardown.md.
    The two rules that carry the whole thing:
@@ -31,7 +31,24 @@ const finePointer = () =>
  * interpolate rather than snap: the reference tweens all 24 of its
  * custom properties individually, and this is the CSS equivalent.
  * ---------------------------------------------------------------- */
+const F = (n: string) => `${import.meta.env.BASE_URL}fonts/switzer/${n}`
+
 export const CSS = `
+/* Switzer, which is the reference's own typeface (measured off noho.ink:
+   font-family "Switzer, sans-serif", display weight 600). It is already in
+   this repo and carries full Icelandic: Þ Ð æ and every acute, checked with
+   fontTools rather than by eye. The previous build named 'Technor' with no
+   @font-face behind it anywhere, so every word on the page was actually
+   rendering in system-ui. */
+@font-face{font-family:'IH Switzer';src:url('${F('Switzer-Regular.woff2')}') format('woff2');
+  font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'IH Switzer';src:url('${F('Switzer-Medium.woff2')}') format('woff2');
+  font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'IH Switzer';src:url('${F('Switzer-Semibold.woff2')}') format('woff2');
+  font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:'IH Switzer';src:url('${F('Switzer-Bold.woff2')}') format('woff2');
+  font-weight:700;font-style:normal;font-display:swap}
+
 @property --c-bg { syntax: '<color>'; inherits: true; initial-value: #F2F0EB }
 @property --c-ink { syntax: '<color>'; inherits: true; initial-value: #24232C }
 @property --c-mosi { syntax: '<color>'; inherits: true; initial-value: #25422D }
@@ -45,9 +62,8 @@ export const CSS = `
   --gut:clamp(1.1rem,4.2vw,4.5rem);
   --band:clamp(4.4rem,9vw,12.5rem);
   --col:clamp(.9rem,1.6vw,2rem);
-  --stem:calc(var(--gut) + clamp(0px,1.4vw,26px));
   background:var(--c-bg); color:var(--c-ink);
-  font-family:'Technor',system-ui,sans-serif;
+  font-family:'IH Switzer',system-ui,sans-serif;
   font-size:clamp(16px,1.02vw,18px); line-height:1.55;
   -webkit-font-smoothing:antialiased;
   transition:--c-bg .6s var(--ease), --c-ink .6s var(--ease), --c-flotur .6s var(--ease), --c-lina .6s var(--ease);
@@ -57,6 +73,18 @@ export const CSS = `
   --c-lina:rgba(231,228,221,.18);
 }
 .ih-root *,.ih-root *::before,.ih-root *::after{box-sizing:border-box}
+/* Guidelines pass. touch-action kills the synthetic tap delay, and the tap
+   highlight is set deliberately rather than left as the UA's grey flash -
+   on the colour tiles the default reads as a dirty rectangle. */
+.ih-root{touch-action:manipulation;-webkit-tap-highlight-color:rgba(37,66,45,.14)}
+/* Native UI - scrollbars, form controls, the caret - has to follow the
+   theme too, or the dark page keeps light scrollbars. */
+.ih-root{color-scheme:light}
+.ih-root[data-tema="dokkt"]{color-scheme:dark}
+/* A pasted #solustadir link, or a browser restoring one, lands under the
+   fixed header. The nav handler offsets for it; this covers everything
+   that does not go through the handler. */
+.ih-root :is(section[id]){scroll-margin-top:calc(var(--haus-h,64px) + .75rem)}
 .ih-root img{display:block;max-width:100%;height:auto}
 .ih-root a{color:inherit;text-decoration:none}
 .ih-root :focus-visible{outline:2px solid var(--c-jokull);outline-offset:3px}
@@ -77,18 +105,43 @@ export const CSS = `
 .ih-brod{max-width:62ch;margin:0;color:var(--c-ink)}
 .ih-verd{font-variant-numeric:tabular-nums;font-weight:500}
 
-/* the stem: one hairline doing three jobs, the grid, the timeline and the
-   moss. It draws itself as the page scrolls. ---------------------- */
-.ih-stem{position:absolute;left:var(--stem);top:0;bottom:0;width:1px;background:var(--c-lina);
-  transform-origin:top;transform:scaleY(0);pointer-events:none;will-change:transform}
 .ih-band{position:relative;padding:var(--band) 0}
 .ih-wrap{padding:0 var(--gut);position:relative}
-.ih-inn{padding-left:calc(var(--stem) - var(--gut) + 1.6rem)}
-@media (max-width:760px){ .ih-inn{padding-left:1.4rem} }
 
 /* mask rise. opacity is never animated anywhere on this page. --- */
 .ih-mask{overflow:hidden;display:block}
-.ih-up{transform:translateY(100%);transition:transform .95s var(--ease);transition-delay:var(--d,0s);will-change:transform}
+/* A mask is exactly as tall as its content, so the descenders on the last
+   line of a paragraph sit on the cut. Give those masks room and pay for it
+   with negative margin; because the mask is now taller, the content has to
+   start at 118% rather than 100% to stay hidden behind it. */
+.ih-maskP{padding-bottom:.16em;margin-bottom:-.16em}
+.ih-maskP > .ih-up{transform:translateY(118%)}
+.on .ih-maskP > .ih-up,.ih-maskP > .ih-up.on{transform:translateY(0)}
+.ih-root.ih-allt .ih-maskP > .ih-up{transform:translateY(0)}
+
+/* Display masks need room at BOTH ends, and Icelandic is why. The acute on
+   Ú and Í sits above cap height and the mask cut it off the top of the
+   footer slogan; ð, g, ö, þ and the comma hang below the baseline and were
+   cut off the bottom of the quote lines. Measured, not guessed: probes/
+   ih-clip.mjs resolves each line's baseline from the font's own metrics
+   and compares the ink box to the clipping ancestor. The padding is paid
+   back with negative margin so the vertical rhythm does not move, and
+   because the mask is taller the lines now start at 125% instead of 108%
+   to stay hidden behind it. */
+.ih-disp .ih-mask{padding:.13em 0 .17em;margin:-.13em 0 -.17em}
+/* The footer slogan sets line-height .9, so its box is tighter than the
+   display lines and the acutes need proportionally more room. The mask
+   carries the slogan's own font-size because em on the mask would
+   otherwise resolve against the inherited 16px root size, not the 144px
+   the glyphs are actually drawn at - which is why .2em here bought 3px
+   instead of 29px on the first attempt. */
+.ih-slagM{font-size:clamp(2.4rem,11vw,9rem);padding:.2em 0 .17em;margin:-.2em 0 -.17em}
+.ih-disp .ih-lina,.ih-slagM > .ih-up{transform:translateY(125%)}
+.on .ih-disp .ih-lina,.ih-disp .ih-lina.on,
+.on .ih-slagM > .ih-up,.ih-slagM > .ih-up.on{transform:translateY(0)}
+.ih-root.ih-allt .ih-disp .ih-lina,
+.ih-root.ih-allt .ih-slagM > .ih-up{transform:translateY(0)}
+.ih-up{transform:translateY(100%);transition:transform 1s var(--ease);transition-delay:var(--d,0s);will-change:transform}
 .ih-lina{transform:translateY(108%)}
 .on .ih-up,.ih-up.on{transform:translateY(0)}
 
@@ -108,8 +161,41 @@ export const CSS = `
   justify-content:space-between;gap:1rem;padding:.75rem var(--gut);
   transition:background .4s var(--ease)}
 .ih-haus.fest{background:color-mix(in srgb,var(--c-bg) 92%,transparent);backdrop-filter:blur(8px)}
-.ih-merkid{font-weight:600;letter-spacing:.12em;font-size:.95rem}
-.ih-hausH{display:flex;align-items:center;gap:.5rem}
+.ih-merkid{display:inline-flex;align-items:center;line-height:0;min-height:36px}
+.ih-merkid img{height:clamp(19px,1.7vw,25px);width:auto}
+.ih-merkid .ih-merkidD{display:none}
+.ih-root[data-tema="dokkt"] .ih-merkid img{display:none}
+.ih-root[data-tema="dokkt"] .ih-merkid .ih-merkidD{display:block}
+/* The reference groups everything except the logo on the right: nav at
+   x=768..1372 of 1440, burger at 1374. space-between with three children
+   centred the nav instead, which put it straight on top of the hero tiles. */
+.ih-hausH{display:flex;align-items:center;gap:clamp(1rem,2vw,2.2rem)}
+
+.ih-nav{display:flex;align-items:center;gap:clamp(1rem,2vw,2.1rem)}
+.ih-nav a{font-size:.92rem;padding:.55rem 0;min-height:32px;display:inline-flex;align-items:center;
+  position:relative}
+.ih-nav a::after{content:'';position:absolute;left:0;right:0;bottom:.3rem;height:1px;
+  background:currentColor;transform:scaleX(0);transform-origin:right;
+  transition:transform .45s var(--ease)}
+@media (hover:hover) and (pointer:fine){
+  .ih-nav a:hover::after{transform:scaleX(1);transform-origin:left}
+}
+/* the burger is the narrow-width path; the reference carries one too */
+.ih-braud{display:none;width:36px;height:36px;border:0;background:transparent;cursor:pointer;
+  padding:9px 7px;flex-direction:column;justify-content:space-between}
+.ih-braud i{display:block;height:1.5px;width:100%;background:var(--c-ink);
+  transform-origin:center;transition:transform .4s var(--ease)}
+.ih-braud.opin i:nth-child(1){transform:translateY(7.5px) rotate(45deg)}
+.ih-braud.opin i:nth-child(2){transform:scaleX(0)}
+.ih-braud.opin i:nth-child(3){transform:translateY(-7.5px) rotate(-45deg)}
+.ih-braudSpjald{overscroll-behavior:contain;position:absolute;top:100%;left:0;right:0;background:var(--c-flotur);
+  display:grid;padding:.4rem var(--gut) 1rem;box-shadow:inset 0 1px 0 var(--c-lina)}
+.ih-braudSpjald a{padding:.85rem 0;font-size:1.05rem;box-shadow:inset 0 -1px 0 var(--c-lina)}
+.ih-braudSpjald a:last-child{box-shadow:none}
+@media (max-width:900px){
+  .ih-nav{display:none}
+  .ih-braud{display:flex}
+}
 
 /* Orkunotkun. The reference's best idea: the two accessibility switches
    report as a live energy reading in the header. ------------------ */
@@ -118,7 +204,7 @@ export const CSS = `
 .ih-orkaG{height:1.15em;overflow:hidden;display:inline-block}
 .ih-orkaR{display:block;transition:transform .4s var(--ease);transform:translateY(calc(var(--stig,0) * -1.15em))}
 .ih-orkaR span{display:block;height:1.15em;line-height:1.15em;font-weight:600;color:var(--c-mosi)}
-.ih-spjald{position:absolute;top:100%;right:var(--gut);width:min(22rem,calc(100vw - 2 * var(--gut)));
+.ih-spjald{overscroll-behavior:contain;position:absolute;top:100%;right:var(--gut);width:min(22rem,calc(100vw - 2 * var(--gut)));
   background:var(--c-flotur);padding:1.15rem;display:grid;gap:1rem;
   box-shadow:inset 0 1px 0 var(--c-lina)}
 .ih-rofiRod{display:flex;align-items:center;justify-content:space-between;gap:1rem}
@@ -145,30 +231,15 @@ export const CSS = `
 .ih-bendill.stor b{opacity:1}
 @media (hover:none),(pointer:coarse){ .ih-bendill{display:none} }
 
-/* intro. Two stages with a hitch in the middle, exactly as measured. */
-.ih-intro{position:fixed;inset:0;z-index:90;background:var(--c-mosi);
-  display:grid;place-items:center;transform:translateY(0);
-  transition:transform 1.5s cubic-bezier(.5,0,0,1)}
-.ih-intro.farid{transform:translateY(-100%)}
-.ih-intro p{color:var(--c-bg);font-size:clamp(1.4rem,3vw,2.4rem);font-weight:600;letter-spacing:-.03em;margin:0}
 
-/* screensaver ---------------------------------------------------- */
-.ih-hvild{position:fixed;inset:0;z-index:80;background:var(--c-mosi);
-  opacity:0;visibility:hidden;transition:opacity .38s var(--ease),visibility .38s}
-.ih-hvild.a{opacity:1;visibility:visible}
-.ih-hvild canvas{display:block;width:100%;height:100%}
 
 @media (prefers-reduced-motion:reduce){
   .ih-root *{transition-duration:.15s !important;animation-duration:.15s !important}
   .ih-up{transform:none !important}
-  .ih-stem{transform:none !important}
-  .ih-intro{display:none}
 }
 .ih-root[data-hreyfing="min"] .ih-up{transform:none !important;transition:none !important}
 /* watchdog: nothing may stay masked forever because an observer never fired */
 .ih-root.ih-allt .ih-up{transform:translateY(0)}
-.ih-root[data-hreyfing="min"] .ih-stem,.ih-root.ih-allt .ih-stem{transform:scaleY(1) !important}
-.ih-root[data-hreyfing="min"] .ih-stem{transform:none !important}
 `
 
 /* ---------------------------------------------------------------- *
@@ -215,7 +286,54 @@ export function Reveal({ as: Tag = 'div', className = '', children, style }: {
 }
 
 /** 0.07s per step, the reference's stagger rounded to this page's tempo. */
-export const step = (i: number): CSSProperties => ({ ['--d' as string]: `${(i * 0.07).toFixed(2)}s` })
+/* stagger 0.12s and duration 1s are the reference's own defaults for
+   addAppearanceByTrigger({ duration: 1, stagger: 0.12, ease: "custom-our" }).
+   This build was running 0.07s, which read as a faster, busier cascade. */
+/* ------------------------------------------------------------------
+   The scroll. This is the reference's dominant sensation and the one
+   thing a CSS-only build cannot fake: Lenis at duration 3, which puts
+   half a wheel notch away in ~270ms, 90% in ~1.0s, and spends another
+   1.3s on the last ten pixels. It is why a 1s reveal never reads as
+   late there: the scroll is slower than the animation.
+
+   One recorded deviation. The reference also sets syncTouch:true with
+   syncTouchLerp:0.075, which intercepts touch scrolling and kills iOS
+   momentum. noho accepts that because it is one pinned page; this is a
+   shop, so smooth scroll is bound to fine pointers only and phones keep
+   native momentum.
+   ------------------------------------------------------------------ */
+export function useMjukSkrun() {
+  useEffect(() => {
+    if (reduced()) return
+    if (!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return
+    let lifandi = true
+    let raf = 0
+    let lenis: { raf: (t: number) => void; destroy: () => void; scrollTo: (t: number, o?: object) => void } | null = null
+    void import('lenis').then(({ default: Lenis }) => {
+      if (!lifandi) return
+      lenis = new Lenis({
+        duration: 3,
+        smoothWheel: true,
+        gestureOrientation: 'vertical',
+        allowNestedScroll: true,
+      })
+      /* Lenis restores its own scroll position over any route reset,
+         so the top has to be asserted after it exists, not before. */
+      lenis.scrollTo(0, { immediate: true })
+      /* exposed so the probes can jump the real scroller; a plain
+         window.scrollTo is intercepted and animated over three seconds. */
+      ;(window as unknown as { __ihLenis?: unknown }).__ihLenis = lenis
+      const tikk = (t: number) => { lenis?.raf(t); raf = requestAnimationFrame(tikk) }
+      raf = requestAnimationFrame(tikk)
+    })
+    return () => {
+      lifandi = false; cancelAnimationFrame(raf); lenis?.destroy()
+      delete (window as unknown as { __ihLenis?: unknown }).__ihLenis
+    }
+  }, [])
+}
+
+export const step = (i: number): CSSProperties => ({ ['--d' as string]: `${(i * 0.12).toFixed(2)}s` })
 
 /** A headline, split to lines, each rising out of its own mask at 108%. */
 export function Ord({ text, className = '', tag: Tag = 'h2', hold = 0 }: {
@@ -241,30 +359,6 @@ export function Merki({ children }: { children: ReactNode }) {
  * The stem. Draws itself against scroll progress through its own
  * section, driven by rAF that only runs while the section is on screen.
  * ---------------------------------------------------------------- */
-export function Stem() {
-  const ref = useRef<HTMLDivElement | null>(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!el || reduced()) return
-    const host = el.parentElement
-    if (!host) return
-    let raf = 0
-    let live = false
-    const run = () => {
-      const r = host.getBoundingClientRect()
-      const p = Math.max(0, Math.min(1, (window.innerHeight - r.top) / (r.height + window.innerHeight * 0.4)))
-      el.style.transform = `scaleY(${p.toFixed(3)})`
-      raf = live ? requestAnimationFrame(run) : 0
-    }
-    const io = new IntersectionObserver(([e]) => {
-      live = e.isIntersecting
-      if (live && !raf) raf = requestAnimationFrame(run)
-    }, { rootMargin: '30% 0px' })
-    io.observe(host)
-    return () => { live = false; io.disconnect(); if (raf) cancelAnimationFrame(raf) }
-  }, [])
-  return <div className="ih-stem" ref={ref} aria-hidden="true" />
-}
 
 /* ---------------------------------------------------------------- *
  * Magnet cursor. A dot that grows and puts a word in itself, so the
@@ -298,50 +392,6 @@ export function Bendill() {
   return (
     <div className={`ih-bendill${ord ? ' stor' : ''}`} ref={ref} aria-hidden="true">
       <i /><b>{ord}</b>
-    </div>
-  )
-}
-
-/* ---------------------------------------------------------------- *
- * Intro. The reference releases scroll from the title tween rather
- * than from the timeline, and carries three escape hatches. Both are
- * reproduced: a 2.4s normal exit, plus visibilitychange, pageshow and
- * a hard watchdog.
- * ---------------------------------------------------------------- */
-export function Intro() {
-  const [farid, setFarid] = useState(false)
-  const [burt, setBurt] = useState(() => reduced() || !finePointer())
-  useEffect(() => {
-    if (burt) { document.documentElement.style.removeProperty('overflow'); return }
-    document.documentElement.style.overflow = 'hidden'
-    const t0 = Date.now()
-    let done = false
-    const ljuka = () => {
-      if (done) return
-      done = true
-      setFarid(true)
-      document.documentElement.style.removeProperty('overflow')
-      window.setTimeout(() => setBurt(true), 1500)
-    }
-    const timer = window.setTimeout(ljuka, Math.max(0, 1500 - (Date.now() - t0)))
-    const watchdog = window.setTimeout(ljuka, 6000)
-    const onHide = () => { if (document.hidden) ljuka() }
-    const onShow = (e: PageTransitionEvent) => { if (e.persisted) ljuka() }
-    document.addEventListener('visibilitychange', onHide)
-    window.addEventListener('pageshow', onShow)
-    window.addEventListener('pointerdown', ljuka, { once: true })
-    window.addEventListener('keydown', ljuka, { once: true })
-    return () => {
-      window.clearTimeout(timer); window.clearTimeout(watchdog)
-      document.removeEventListener('visibilitychange', onHide)
-      window.removeEventListener('pageshow', onShow)
-      document.documentElement.style.removeProperty('overflow')
-    }
-  }, [burt])
-  if (burt) return null
-  return (
-    <div className={`ih-intro${farid ? ' farid' : ''}`} aria-hidden="true">
-      <p>Úr sama grasi</p>
     </div>
   )
 }
@@ -403,115 +453,86 @@ export function Orkunotkun() {
   )
 }
 
+/* Their own logo, from iceherbs.is/wp-content/uploads/2021/02/iceherbs-vefur-2.png,
+   which is the file their live header serves (at 3000px into a 348px slot, the
+   thing the audit flags). Two deliberate changes, both stated rather than
+   quiet: the "NATURAL SUPPLEMENTS" line is cut, because at header height it
+   renders about four pixels tall and turns to mush - the crop point was
+   measured off the alpha channel's row profile, not eyeballed; and a second
+   file carries the wordmark in paper for the dark theme, since #165228 does
+   not read on #1B211C. The leaf mark is untouched in both. */
+const NAV = [
+  { h: '#vorur', t: 'Vörur' },
+  { h: '#pakkar', t: 'Pakkar' },
+  { h: '#sagan', t: 'Sagan' },
+  { h: '#solustadir', t: 'Sölustaðir' },
+  { h: '#greinar', t: 'Greinar' },
+]
+
+/* Lenis owns the scroll, so a bare anchor jump would either be ignored or
+   fight the smooth scroller. Hand the target to Lenis when it is there and
+   fall back to scrollIntoView when it is not (touch, reduced motion). */
+function faraA(e: MouseEvent<HTMLAnchorElement>, href: string) {
+  const mark = document.querySelector(href)
+  if (!mark) return
+  e.preventDefault()
+  const haus = document.querySelector('.ih-haus')
+  const offset = -((haus?.getBoundingClientRect().height ?? 56) + 12)
+  const l = (window as unknown as { __ihLenis?: { scrollTo: (t: Element, o?: object) => void } }).__ihLenis
+  if (l) l.scrollTo(mark, { offset })
+  else window.scrollTo({ top: mark.getBoundingClientRect().top + window.scrollY + offset, behavior: 'smooth' })
+}
+
 export function Haus() {
   const [fest, setFest] = useState(false)
+  const [opin, setOpin] = useState(false)
   const sentinel = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
     const el = sentinel.current
     if (!el) return
     const io = new IntersectionObserver(([e]) => setFest(!e.isIntersecting), { threshold: 0 })
     io.observe(el)
-    return () => io.disconnect()
+    /* scroll-margin-top needs the header's real height, which changes with
+       the clamp on the logo, so publish it rather than hard-coding 64px. */
+    const publish = () => {
+      const h = document.querySelector('.ih-haus')?.getBoundingClientRect().height
+      if (h) document.querySelector('.ih-root')?.setAttribute('style', `--haus-h:${Math.round(h)}px`)
+    }
+    publish()
+    window.addEventListener('resize', publish)
+    return () => { io.disconnect(); window.removeEventListener('resize', publish) }
   }, [])
   return (
     <>
       <div ref={sentinel} style={{ position: 'absolute', top: 0, left: 0, width: 1, height: 24, pointerEvents: 'none' }} />
       <header className={`ih-haus${fest ? ' fest' : ''}`}>
-        <span className="ih-merkid">ICEHERBS</span>
-        <div className="ih-hausH"><Orkunotkun /></div>
+        <a className="ih-merkid" href="#top" aria-label="ICEHERBS, á forsíðu"
+          onClick={(e) => { e.preventDefault(); const l = (window as unknown as { __ihLenis?: { scrollTo: (t: number, o?: object) => void } }).__ihLenis; if (l) l.scrollTo(0); else window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+          <img src={`${import.meta.env.BASE_URL}iceherbs/iceherbs-merki.webp`}
+            alt="ICEHERBS" width={494} height={112} decoding="async" />
+          <img className="ih-merkidD" src={`${import.meta.env.BASE_URL}iceherbs/iceherbs-merki-ljos.webp`}
+            alt="" aria-hidden="true" width={495} height={112} decoding="async" />
+        </a>
+        <div className="ih-hausH">
+          <nav className="ih-nav" aria-label="Aðalvalmynd">
+            {NAV.map((n) => (
+              <a key={n.h} href={n.h} onClick={(e) => faraA(e, n.h)}>{n.t}</a>
+            ))}
+          </nav>
+          <Orkunotkun />
+          <button className={`ih-braud${opin ? ' opin' : ''}`} aria-expanded={opin}
+            aria-label={opin ? 'Loka valmynd' : 'Opna valmynd'}
+            onClick={() => setOpin((v) => !v)}><i /><i /><i /></button>
+        </div>
+        {opin ? (
+          <div className="ih-braudSpjald">
+            {NAV.map((n) => (
+              <a key={n.h} href={n.h} onClick={(e) => { faraA(e, n.h); setOpin(false) }}>{n.t}</a>
+            ))}
+          </div>
+        ) : null}
       </header>
     </>
   )
 }
 
-/* ---------------------------------------------------------------- *
- * Screensaver. 60s idle, fine pointer only, never while the tab is
- * hidden. A cut-out of their own bottle bouncing on the moss green,
- * recoloured on every wall hit from their own product range.
- * ---------------------------------------------------------------- */
-const LITIR = ['#B5D4D3', '#E7E4DD', '#8FA98C', '#CAE4E2', '#A8B6AC']
-
-export function Hvild({ mynd }: { mynd: string }) {
-  const [virk, setVirk] = useState(false)
-  const wrap = useRef<HTMLDivElement | null>(null)
-  const cv = useRef<HTMLCanvasElement | null>(null)
-
-  useEffect(() => {
-    if (!finePointer() || reduced()) return
-    let t = 0
-    const arm = () => { window.clearTimeout(t); setVirk(false); t = window.setTimeout(() => { if (!document.hidden) setVirk(true) }, 60000) }
-    const evts: (keyof WindowEventMap)[] = ['pointermove', 'pointerdown', 'keydown', 'wheel']
-    evts.forEach((e) => window.addEventListener(e, arm, { passive: true, capture: true }))
-    document.addEventListener('visibilitychange', arm)
-    arm()
-    return () => {
-      window.clearTimeout(t)
-      evts.forEach((e) => window.removeEventListener(e, arm, { capture: true } as never))
-      document.removeEventListener('visibilitychange', arm)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!virk) return
-    const c = cv.current
-    if (!c) return
-    const ctx = c.getContext('2d')
-    if (!ctx) return
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    let w = 0, h = 0
-    const size = () => {
-      w = window.innerWidth; h = window.innerHeight
-      c.width = Math.round(w * dpr); c.height = Math.round(h * dpr)
-      c.style.width = `${w}px`; c.style.height = `${h}px`
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    }
-    size()
-    const im = new Image()
-    im.src = mynd
-    let raf = 0
-    const H = () => Math.max(120, h * 0.42)
-    let bw = 120, bh = 160
-    let x = w * 0.3, y = h * 0.3
-    const ang = Math.random() * Math.PI * 2
-    let vx = Math.cos(ang) * 190, vy = Math.sin(ang) * 190
-    if (Math.abs(vx) < 60) vx = vx < 0 ? -90 : 90
-    if (Math.abs(vy) < 60) vy = vy < 0 ? -90 : 90
-    let litur = 0
-    let last = performance.now()
-    const draw = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000)
-      last = now
-      if (im.naturalWidth) {
-        bh = H(); bw = (im.naturalWidth / im.naturalHeight) * bh
-      }
-      x += vx * dt; y += vy * dt
-      let hit = false
-      if (x <= 0) { x = 0; vx = Math.abs(vx); hit = true }
-      if (y <= 0) { y = 0; vy = Math.abs(vy); hit = true }
-      if (x + bw >= w) { x = w - bw; vx = -Math.abs(vx); hit = true }
-      if (y + bh >= h) { y = h - bh; vy = -Math.abs(vy); hit = true }
-      if (hit) litur = (litur + 1) % LITIR.length
-      ctx.clearRect(0, 0, w, h)
-      if (im.naturalWidth) {
-        ctx.save()
-        ctx.globalAlpha = 0.92
-        ctx.drawImage(im, x, y, bw, bh)
-        ctx.globalCompositeOperation = 'source-atop'
-        ctx.fillStyle = LITIR[litur]
-        ctx.globalAlpha = 0.55
-        ctx.fillRect(x, y, bw, bh)
-        ctx.restore()
-      }
-      raf = requestAnimationFrame(draw)
-    }
-    raf = requestAnimationFrame(draw)
-    window.addEventListener('resize', size)
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', size) }
-  }, [virk, mynd])
-
-  return (
-    <div className={`ih-hvild${virk ? ' a' : ''}`} ref={wrap} aria-hidden="true">
-      <canvas ref={cv} />
-    </div>
-  )
-}
