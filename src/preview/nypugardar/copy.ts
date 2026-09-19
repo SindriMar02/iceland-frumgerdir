@@ -356,7 +356,7 @@ const en = {
     items: [
       {
         q: 'Are you open in winter?',
-        a: 'Yes, we take guests through the winter, with breakfast in the morning and dinner from the menu in the evening. The booking calendar on this site shows exactly which nights and which rooms are free, so what you see there is what we have.',
+        a: 'Yes, through most of it, with breakfast in the morning and dinner from the menu in the evening. The farm is closed over Christmas and New Year. For the rest of the season the booking calendar on this site shows exactly which nights and which rooms are free, so what you see there is what we have.',
       },
       {
         q: 'Can we see the northern lights from the farm?',
@@ -398,7 +398,6 @@ const en = {
   },
 
   rules: {
-    openAllYear: 'Open all year',
     childrenWelcome: 'Children welcome',
     childrenNote: 'guests 7 and older pay as adults',
     noPets: 'No pets',
@@ -771,7 +770,7 @@ const is: typeof en = {
     items: [
       {
         q: 'Er opið hjá ykkur á veturna?',
-        a: 'Já, við tökum á móti gestum allan veturinn, með morgunmat og kvöldmat af matseðli. Bókunarkerfið hér á síðunni sýnir nákvæmlega hvaða nætur og hvaða herbergi eru laus, svo það sem þið sjáið þar er það sem við eigum.',
+        a: 'Já, nær allan veturinn, með morgunmat og kvöldmat af matseðli. Lokað er um jól og áramót. Að öðru leyti sýnir bókunarkerfið hér á síðunni nákvæmlega hvaða nætur og hvaða herbergi eru laus, svo það sem þið sjáið þar er það sem við eigum.',
       },
       {
         q: 'Sjást norðurljósin frá bænum?',
@@ -813,7 +812,6 @@ const is: typeof en = {
   },
 
   rules: {
-    openAllYear: 'Opið allt árið',
     childrenWelcome: 'Börn velkomin',
     childrenNote: 'gestir 7 ára og eldri greiða sem fullorðnir',
     noPets: 'Gæludýr ekki leyfð',

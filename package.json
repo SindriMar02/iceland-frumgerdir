@@ -12,7 +12,7 @@
     "news:sync": "node scripts/bofs-news-sync.mjs",
     "build:reynir": "vite build --config vite.reynir.config.ts && vite build --config vite.reynir.config.ts --ssr src/reynir-entry-server.tsx --outDir dist-reynir-server && node tools/reynir-standalone-post.mjs",
     "prices:nypugardar": "node tools/nypugardar-prices.mjs",
-    "build:nypugardar": "NYPUGARDAR_SITE_URL=${NYPUGARDAR_SITE_URL:-https://glacierview.is} vite build --config vite.nypugardar.config.ts && vite build --config vite.nypugardar.config.ts --ssr src/nypugardar-entry-server.tsx --outDir dist-nypugardar-server && node tools/nypugardar-standalone-post.mjs"
+    "build:nypugardar": "vite build --config vite.nypugardar.config.ts && vite build --config vite.nypugardar.config.ts --ssr src/nypugardar-entry-server.tsx --outDir dist-nypugardar-server && node tools/nypugardar-standalone-post.mjs"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.3",

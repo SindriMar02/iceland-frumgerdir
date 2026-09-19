@@ -41,9 +41,18 @@ import { join } from 'node:path'
 const dist = process.argv[2] || 'dist'
 const basePath = (process.argv.find((a) => a.startsWith('--base=')) || '--base=/').slice(7)
 
-const SITE = process.env.NYPUGARDAR_SITE_URL || ''
-const LIVE = Boolean(SITE)
 const STANDALONE_DIST = process.env.NYPUGARDAR_STANDALONE === '1'
+
+/* HER OWN BUILD IS ALWAYS THE LIVE DOMAIN. The standalone dist is only ever
+   deployed to glacierview.is, so it defaults to the live origin and is
+   indexable; only the catalogue preview on github.io stays noindex. This used
+   to hang on NYPUGARDAR_SITE_URL alone, and a rebuild that forgot it published
+   `noindex, nofollow` + `Disallow: /` to the live client site for about four
+   hours on 2026-09-19. Putting the default in the npm script did NOT fix it:
+   `VAR=x a && b && c` only exports to `a`, so the injector still ran without
+   it. The signal has to live here, where the decision is made. */
+const SITE = process.env.NYPUGARDAR_SITE_URL || (STANDALONE_DIST ? 'https://glacierview.is' : '')
+const LIVE = Boolean(SITE)
 const origin = LIVE ? SITE.replace(/\/$/, '') : 'https://sindrimar02.github.io'
 const prefix = LIVE ? '' : basePath.replace(/\/$/, '')
 
@@ -271,7 +280,9 @@ function lodging(lang) {
     currenciesAccepted: 'EUR',
     paymentAccepted: 'Credit card',
     priceRange: `€${lowest}–€${highest}`,
-    /* No openingHoursSpecification: "open every day, all year" is question 7
+    /* No openingHoursSpecification: the farm is closed over Christmas and New
+       Year (Bogga, 2026-09-19) and the booking calendar is the only source that
+       stays true year to year. This was question 7
      * for Bogga (Godo shows no rooms 22 to 31 December). */
     amenityFeature: FACILITIES.map((f) => ({ '@type': 'LocationFeatureSpecification', name: f, value: true })),
     servesCuisine: 'Icelandic',
@@ -450,7 +461,7 @@ ${rooms}
 - Breakfast: buffet and continental in the same dining room, with vegetarian, vegan and gluten-free options. Breakfast to go is available for guests leaving before service begins.
 
 ## Winter (November to March)
-- The farm takes guests through the winter; the booking system shows which nights are free.
+- The farm takes guests through the winter, apart from Christmas and New Year, when it is closed; the booking system shows which nights are free.
 - Daylight at the farm: about 8 hours on 1 November, 5 hours on 1 December, about 4 hours around 21 December (sunrise 10:58, sunset 15:01), 7 hours on 1 February and 10 hours on 1 March.
 - Northern lights are visible from the farmyard on clear nights from September to April; there is no streetlight on Mýrar.
 - Route 1 runs past the farm and is cleared in winter but can close in storms. Road conditions: road.is (Vegagerðin). Alerts: safetravel.is. Aurora forecast: vedur.is.
