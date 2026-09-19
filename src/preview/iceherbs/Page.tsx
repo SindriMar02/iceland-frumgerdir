@@ -181,8 +181,15 @@ const PAGE_CSS = `
    that background flood-filled away from the four corners - a corner fill
    rather than -transparent white, which would have punched holes through
    the white labels. */
+/* Every image path in products.ts and data.ts is site-absolute (/iceherbs/..),
+   which resolves to the ORIGIN root on GitHub Pages, where this deploys under
+   /iceland-frumgerdir/. Locally the two are identical, so the 404s only exist
+   once it is live - caught by loading the deployed URL, not the dev server. */
+const S = (img: string | null) =>
+  img ? import.meta.env.BASE_URL + img.replace(/^\//, '') : ''
+
 const reit = (img: string | null) =>
-  img ? img.replace('/iceherbs/', '/iceherbs/reitir/') : ''
+  img ? S(img.replace('/iceherbs/', '/iceherbs/reitir/')) : ''
 
 function VoruLina({ titill, nota, ar, vorur, grunnur, mynd, n }: {
   titill: string; nota: string; ar: string; vorur: Vara[]
@@ -193,7 +200,7 @@ function VoruLina({ titill, nota, ar, vorur, grunnur, mynd, n }: {
     <Reveal className="ih-mask">
       <article className="ih-spjaldL ih-up" data-bendill="Skoða"
         style={{ ...step(n), '--grunnur': grunnur, '--blek': BLEK_A[grunnur] } as CSSProperties}>
-        <img src={mynd} alt={titill} width={420} height={560} loading="lazy" decoding="async" />
+        <img src={S(mynd)} alt={titill} width={420} height={560} loading="lazy" decoding="async" />
         <h3>{titill}</h3>
         <p className="ih-ar">{ar}</p>
         <p className="ih-tolur"><b>{vorur.length}</b><span>vörur</span></p>
@@ -263,7 +270,7 @@ export default function IceherbsPage() {
           <Reveal className="ih-rist">
             {HERO_REITIR.map((r, i) => (
               <figure className="ih-reit ih-mask" key={r.img} style={{ '--grunnur': r.grunnur } as CSSProperties}>
-                <img className="ih-up" style={step(i)} src={r.img} alt={r.n}
+                <img className="ih-up" style={step(i)} src={S(r.img)} alt={r.n}
                   width={300} height={400} loading={i < 4 ? 'eager' : 'lazy'} decoding="async" />
               </figure>
             ))}
@@ -284,7 +291,7 @@ export default function IceherbsPage() {
                         ) : (
                           <span className="ih-bitiM" key={i}
                             style={{ '--grunnur': b.grunnur } as CSSProperties}>
-                            <img src={b.img} alt={b.n} width={120} height={106}
+                            <img src={S(b.img)} alt={b.n} width={120} height={106}
                               loading="lazy" decoding="async" />
                           </span>
                         ),
@@ -383,7 +390,7 @@ export default function IceherbsPage() {
                 <figure key={h.n} style={{ margin: 0 }}>
                   <div className="ih-mask">
                     <figure className="ih-up" style={step(i)}>
-                      {h.img ? <img src={h.img} alt={h.n} width={400} height={500} loading="lazy" decoding="async" /> : null}
+                      {h.img ? <img src={S(h.img)} alt={h.n} width={400} height={500} loading="lazy" decoding="async" /> : null}
                     </figure>
                   </div>
                   <figcaption>{h.n}<br /><span className="ih-verd">{kr(h.v)}</span></figcaption>
