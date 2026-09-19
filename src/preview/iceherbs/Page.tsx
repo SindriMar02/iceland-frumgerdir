@@ -114,8 +114,9 @@ const PAGE_CSS = `
 .ih-pakki{background:transparent;padding:0;display:flex;flex-direction:column;gap:.75rem;
   transition:transform .4s var(--ease)}
 .ih-pakki figure{margin:0;aspect-ratio:4/5;overflow:hidden;position:relative;
-  background:var(--grunnur,var(--c-flotur))}
-.ih-pakki figure img{position:absolute;inset:9%;width:82%;height:82%;object-fit:contain;
+  background:var(--grunnur,var(--c-flotur));display:grid;place-items:center;
+  padding:clamp(.7rem,2.4vw,1.4rem)}
+.ih-pakki figure img{width:100%;height:100%;object-fit:contain;background:#fff;
   transition:transform .8s var(--ease)}
 @media (hover:hover) and (pointer:fine){.ih-pakki:hover figure img{transform:scale(1.06)}}
 .ih-pakki h3{margin:0;font-size:1rem;font-weight:500}
@@ -188,8 +189,16 @@ const PAGE_CSS = `
 const S = (img: string | null) =>
   img ? import.meta.env.BASE_URL + img.replace(/^\//, '') : ''
 
-const reit = (img: string | null) =>
-  img ? S(img.replace('/iceherbs/', '/iceherbs/reitir/')) : ''
+/* The bundle photographs ship with a solid white studio background baked in
+   (alpha coverage 100%). Keying it out is a dead end, proven both ways on the
+   iPhone: flood-filling from the four corners leaves white blocks in the
+   regions a shadow encloses between and under the bottles, and seeding along
+   the whole border removes those but reaches into the white LABELS through
+   near-white paths and eats them. So they are not keyed. The photo is shown as
+   a white card inset on the colour ground, which needs no cutout and reads as
+   a deliberate device rather than a failed one. The single-product hero tiles
+   are unaffected: those PNGs already carry real transparency and are only
+   trimmed. */
 
 function VoruLina({ titill, nota, ar, vorur, grunnur, mynd, n }: {
   titill: string; nota: string; ar: string; vorur: Vara[]
@@ -365,7 +374,7 @@ export default function IceherbsPage() {
                 <article className="ih-pakki ih-mask" key={p.n} data-bendill="Skoða"
                   style={{ '--grunnur': GRUNNROD[i % GRUNNROD.length] } as CSSProperties}>
                   <div className="ih-up" style={step(i % 4)}>
-                    <figure>{p.img ? <img src={reit(p.img)} alt={p.n} width={300} height={375} loading="lazy" decoding="async" /> : null}</figure>
+                    <figure>{p.img ? <img src={S(p.img)} alt={p.n} width={300} height={375} loading="lazy" decoding="async" /> : null}</figure>
                     <h3>{p.n}</h3>
                     <div className="ih-pakkiF">
                       <span className="ih-verd">{kr(p.v)}</span>
