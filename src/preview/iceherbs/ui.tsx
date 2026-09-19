@@ -199,6 +199,12 @@ export const CSS = `
 
 /* Orkunotkun. The reference's best idea: the two accessibility switches
    report as a live energy reading in the header. ------------------ */
+/* No position:relative here. The panel is 22rem wide and this wrapper is the
+   width of a small button, so making it the containing block anchored the
+   panel to the button and pushed it off the LEFT edge of a phone, cutting
+   "Dökkt útlit" to "kkt útlit". It anchors to .ih-haus instead, which is fixed
+   and spans the viewport, so right:var(--gut) means what it says. */
+.ih-orkaW{position:static}
 .ih-orka{display:flex;align-items:center;gap:.5rem;background:transparent;border:0;cursor:pointer;
   font:inherit;font-size:.82rem;color:inherit;padding:.4rem .2rem}
 .ih-orkaG{height:1.15em;overflow:hidden;display:inline-block}
@@ -208,10 +214,19 @@ export const CSS = `
   background:var(--c-flotur);padding:1.15rem;display:grid;gap:1rem;
   box-shadow:inset 0 1px 0 var(--c-lina)}
 .ih-rofiRod{display:flex;align-items:center;justify-content:space-between;gap:1rem}
-.ih-rofi{width:34px;height:18px;border-radius:999px;background:var(--c-lina);border:0;cursor:pointer;
-  padding:2px;display:flex;flex-shrink:0;transition:background .2s var(--ease)}
-.ih-rofi[aria-checked="true"]{background:var(--c-mosi)}
-.ih-rofi i{width:14px;height:14px;border-radius:999px;background:var(--c-bg);display:block;
+/* The switch READS as 34x18, which is well under a finger, so the button is a
+   real 44x44 and the track is drawn inside it. A pseudo element on a 34x18
+   button would enlarge the hit area too, but the element's own rect would stay
+   34x18 and a tap-target check could never see the difference: the control has
+   to measure correct, not just behave correct. Only visible once the panel is
+   open, which is why the gate now opens the disclosures before measuring. */
+.ih-rofi{position:relative;width:44px;height:44px;border:0;background:transparent;
+  cursor:pointer;padding:0;flex-shrink:0;display:grid;place-items:center}
+.ih-rofi::before{content:'';width:34px;height:18px;border-radius:999px;
+  background:var(--c-lina);transition:background .2s var(--ease)}
+.ih-rofi[aria-checked="true"]::before{background:var(--c-mosi)}
+.ih-rofi i{position:absolute;left:calc(50% - 15px);top:50%;margin-top:-7px;
+  width:14px;height:14px;border-radius:999px;background:var(--c-bg);display:block;
   transition:transform .2s var(--ease)}
 .ih-rofi[aria-checked="true"] i{transform:translateX(16px)}
 .ih-smatt{font-size:.78rem;line-height:1.45;color:var(--c-ink);opacity:.75;margin:.25rem 0 0}
@@ -417,7 +432,7 @@ export function Orkunotkun() {
   }, [dokkt, min])
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="ih-orkaW">
       <button className="ih-orka" aria-expanded={opid} onClick={() => setOpid((v) => !v)}>
         <span>Orkunotkun</span>
         <span className="ih-orkaG" aria-live="polite">

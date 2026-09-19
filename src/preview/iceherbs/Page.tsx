@@ -236,8 +236,26 @@ export default function IceherbsPage() {
     syncTheme()
     const mo = root ? new MutationObserver(syncTheme) : null
     mo?.observe(root as HTMLElement, { attributes: true, attributeFilter: ['data-tema'] })
-    window.scrollTo(0, 0)
+    /* A #solustadir link lands at the top: this route renders after the
+       browser has already tried to resolve the hash, so the section does not
+       exist yet when it looks. Resolve it ourselves once the page is up, and
+       hand it to Lenis when Lenis is the scroller. */
+    const hash = window.location.hash
+    let hashTimer = 0
+    if (hash.length > 1 && document.querySelector(hash)) {
+      hashTimer = window.setTimeout(() => {
+        const mark = document.querySelector(hash)
+        if (!mark) return
+        const off = -((document.querySelector('.ih-haus')?.getBoundingClientRect().height ?? 56) + 12)
+        const l = (window as unknown as { __ihLenis?: { scrollTo: (t: Element, o?: object) => void } }).__ihLenis
+        if (l) l.scrollTo(mark, { offset: off })
+        else window.scrollTo({ top: mark.getBoundingClientRect().top + window.scrollY + off })
+      }, 260)
+    } else {
+      window.scrollTo(0, 0)
+    }
     return () => {
+      window.clearTimeout(hashTimer)
       mo?.disconnect()
       document.title = prevTitle; document.documentElement.lang = prevLang
     }
