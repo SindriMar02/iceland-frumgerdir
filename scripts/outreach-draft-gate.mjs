@@ -165,7 +165,12 @@ if (proposal) {
   check(!/\d[\d.]*\s*(kr|ISK)\b|verðskrá|áskrift á|á mánuði/i.test(body),
     'no pricing in the body')
 }
-check(/^Bestu kveðjur,\nSindri Már\n845 1758\n(https:\/\/)?sndrstudio\.is$/m.test(body.trim()),
+/* The phone number is written both ways in real sent mail: memory
+   email-signature-footer was read off Sindri's own sent messages on 2026-09-16
+   and records the Icelandic sign-off as 845-1758, while this gate predated that
+   and only accepted 845 1758. The hyphen inside a phone number is ordinary
+   orthography, not the em/en dash rule 1 bans. Accept either. */
+check(/^Bestu kveðjur,\nSindri Már\n845[ -]1758\n(https:\/\/)?sndrstudio\.is$/m.test(body.trim()),
   'sign-off is the canonical four lines')
 
 if (bad) { console.error(`\n${bad} problem(s). No payload written.`); process.exit(1) }

@@ -175,22 +175,26 @@ export const companyEntry: PreviewCompany = {
     'á Norðurlandi til að vinna fjallagrös hér heima í stað þess að flytja þau út óunnin, og sama ' +
     'grasið er enn í mixtúrunni, hylkinu og handkreminu. Vefurinn á að byrja þar og láta vöruúrvalið ' +
     'hanga á því, í stað þess að opna á 216 vörur í stafrófsröð á bak við tvo glugga.',
+  /* Draft, NOT sent. Source of truth is _hq/data/outreach-drafts/iceherbs.md,
+     which passes scripts/outreach-draft-gate.mjs (all ten shape checks). The
+     link is live and preflight-outreach.mjs PASSED against it on 2026-09-19.
+     Paragraph three was re-verified on the live Icelandic product page the
+     same day; the earlier "two layers over the buy button" framing was cut
+     because the Klaviyo popup did not fire on re-check. */
+  /* Draft, NOT sent. Source of truth is _hq/data/outreach-drafts/iceherbs.md,
+     which passes scripts/outreach-draft-gate.mjs. The link is live and
+     preflight-outreach.mjs PASSED against it on 2026-09-19.
+
+     Two claims were cut on re-check, both of which had survived into an
+     earlier draft. Paragraph three no longer says a newsletter popup and a
+     cookie banner sat over the buy button at once: the Klaviyo popup did not
+     fire on re-check. Paragraph two no longer says the site is worked on
+     "nánast í hverri viku": 67 uploads in the last 365 days fall in only 20
+     distinct weeks of 52, with a 41 day gap and two empty months in 2026.
+     Same-day bursts are what made the yearly total read as weekly work. */
   outreach: {
-    subject: 'Hugmynd að nýrri vefsíðu fyrir ICEHERBS',
-    body: `Sæl Katrín,
-
-Ég rakst á söguna á bak við ICEHERBS um daginn og hún sat eftir í mér. Að sveitarfélög fyrir norðan hafi stofnað félag árið 1993 til þess eins að fjallagrösin hættu að fara óunnin úr landi, og að sama grasið sé enn í hálsmixtúrunni, hylkinu og handkreminu rúmum þrjátíu árum síðar, það er saga sem fá íslensk vörumerki eiga. Ég sé líka að það er unnið í vefnum hjá ykkur nánast í hverri viku.
-
-Þess vegna langaði mig að nefna eitt. Þegar ég opnaði vörusíðu í síma lá póstlistagluggi yfir vörumyndinni og vafrakökuborði á ensku yfir kaupahnappnum, á sama tíma. Ég komst ekki að kaupunum fyrr en ég hafði lokað hvoru tveggja. Mér fannst rétt að þið vissuð af því, því þetta er fólkið sem er þegar komið alla leið að því að kaupa.
-
-Ég bjó til hugmynd að því hvernig forsíðan gæti litið út ef sagan frá 1993 fengi að byrja hana og línurnar fjórar röðuðust utan um grasið sjálft, með ykkar eigin myndum, verðum og texta. Hana má skoða hvenær sem er á [HLEKKUR Á FRUMGERÐ], og hún virkar vel í síma. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.
-
-Ef þetta á ekki við hjá ykkur er það að sjálfsögðu allt í lagi. Endilega látið mig vita ef þið hafið áhuga á að heyra meira.
-
-Bestu kveðjur,
-Sindri Már
-845-1758
-sndrstudio.is`,
+    subject: "Hugmynd að nýrri vefsíðu fyrir ICEHERBS",
+    body: "Sæl Katrín,\n\nÉg rakst á söguna á bak við ICEHERBS um daginn og hún sat eftir í mér. Að sveitarfélög fyrir norðan hafi stofnað félag árið 1993 til þess eins að fjallagrösin hættu að fara óunnin úr landi, og að sama grasið sé enn í hálsmixtúrunni, í hylkinu og í handkreminu rúmum þrjátíu árum síðar. Það eru ekki mörg íslensk vörumerki sem eiga svoleiðis sögu, og enn færri sem framleiða enn sjálf.\n\nÉg sé líka að þið eruð enn að bæta við efni, nýjustu vörumyndirnar fóru inn núna í september. Það er greinilega fólk á bak við þetta sem hefur áhuga á því sem það er að gera, og það skilar sér í textanum. Nöfnin á pökkunum finnst mér það besta á vefnum, Flensubaninn og Næturbrölt og Álagstímar.\n\nÞess vegna langaði mig að nefna eitt lítið. Þegar ég opnaði vörusíðu í símanum kom vafrakökuborðinn upp á ensku, á annars íslenskri síðu. Þetta er lítið atriði en það er það fyrsta sem fólk sér.\n\nMér datt í hug að prófa hvernig forsíðan gæti litið út ef sagan frá 1993 fengi að byrja hana, og línurnar fjórar röðuðust utan um grasið sjálft frekar en að opna á allar vörurnar í einu. Ég notaði ykkar eigin vörumyndir, verð og texta, svo þið sjáið þetta með ykkar eigin efni en ekki einhverju sýnishorni. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.\n\nHana má skoða hér hvenær sem er, og hún virkar vel í síma:\nhttps://sindrimar02.github.io/iceland-frumgerdir/preview/iceherbs\n\nÉg sé líka um hýsingu, viðhald og uppfærslur á síðum sem ég geri, ef það er eitthvað sem þið hafið áhuga á.\n\nEf þetta á ekki við hjá ykkur er það að sjálfsögðu allt í lagi. Endilega látið mig vita ef þið viljið heyra meira.\n\nBestu kveðjur,\nSindri Már\n845-1758\nsndrstudio.is",
   },
 }
 
