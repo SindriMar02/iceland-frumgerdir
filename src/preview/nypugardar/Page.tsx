@@ -1799,7 +1799,10 @@ export default function Page() {
         {/* ── 2 · The glacier band (Kleif season, inset unclip) ────────── */}
         <InsetBand
           reduced={reduced}
-          className="h-[115svh] md:h-[150svh]"
+          /* min-height, not height: the copy is bottom-anchored and grows with
+             the reader's text size (iOS Larger Text), and a fixed band let it
+             climb out of the image onto the mist (seen on a phone 2026-09-19). */
+          className="min-h-[115svh] md:min-h-[150svh]"
           style={{ background: MIST }}
           image={
             <>
@@ -1813,8 +1816,8 @@ export default function Page() {
             </>
           }
         >
-          <div className="absolute inset-x-0 bottom-0 z-[1]">
-            <div className="mx-auto max-w-6xl px-5 pb-16 md:px-8 md:pb-24">
+          <div className="relative z-[1] flex min-h-[115svh] flex-col justify-end md:min-h-[150svh]">
+            <div className="mx-auto w-full max-w-6xl px-5 pb-16 pt-24 md:px-8 md:pb-24">
               <MaskHeading text={t.band.heading} className={`max-w-3xl ${H2}`} />
               <Reveal delay={100}>
                 {t.band.body.split("\n\n").map((para, i) => (
