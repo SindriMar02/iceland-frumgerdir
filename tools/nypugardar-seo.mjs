@@ -18,7 +18,11 @@
  *                          each pointing at the other with hreflang.
  *
  * INDEXING
- * Stays `noindex` until NYPUGARDAR_SITE_URL is set at build time, on launch
+ * Stays `noindex` until NYPUGARDAR_SITE_URL is set at build time, on launch.
+ * SINCE THE LAUNCH (2026-09-18) the npm script supplies it, because forgetting
+ * it silently ships `noindex, nofollow` and `Disallow: /` to a live client
+ * site: that happened on 2026-09-19 and stood for about four hours before the
+ * monthly-report verifier caught it. Override it only to build a preview copy
  * day, which flips it to indexable with correct canonicals:
  *
  *   NYPUGARDAR_SITE_URL=https://glacierview.is npm run build:nypugardar
