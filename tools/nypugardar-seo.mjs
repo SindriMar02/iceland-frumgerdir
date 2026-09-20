@@ -286,13 +286,8 @@ function lodging(lang) {
      * for Bogga (Godo shows no rooms 22 to 31 December). */
     amenityFeature: FACILITIES.map((f) => ({ '@type': 'LocationFeatureSpecification', name: f, value: true })),
     servesCuisine: 'Icelandic',
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: B.rating,
-      bestRating: 10,
-      worstRating: 1,
-      reviewCount: B.reviewCount,
-    },
+    // Third-party Booking.com ratings remain attributed in visible copy.
+    // They are not our own aggregate review collection.
     containsPlace: ROOMS.map((r) => {
       const price = fromPrice(r.key)
       const room = {
@@ -306,7 +301,7 @@ function lodging(lang) {
           priceCurrency: PRICES.currency || 'EUR',
           price,
           priceSpecification: { '@type': 'UnitPriceSpecification', priceCurrency: PRICES.currency || 'EUR', price, unitText: en ? 'per night' : 'á nótt' },
-          availability: 'https://schema.org/InStock',
+          // A cached minimum price does not establish availability for dates.
           url: `https://property.godo.is/booking2.php?propid=62130&roomid=${r.id}&lang=${lang}&referer=nypugardar-web`,
         }
       }
@@ -427,7 +422,12 @@ function inject(page) {
     .replace(/<link[^>]+rel="(?:icon|shortcut icon|apple-touch-icon)"[^>]*>/g, '')
     .replace(/<link[^>]+rel='(?:icon|shortcut icon|apple-touch-icon)'[^>]*>/g, '')
     .replace(/<meta name="theme-color"[^>]*>/g, '')
-  html = html.replace('</head>', `${headFor(page)}  </head>`)
+  // The shared shell's home photograph is unused on these pages.
+  if (page.key !== 'home') html = html.replace(/<link\b[^>]*rel="preload"[^>]*as="image"[^>]*>/g, '')
+  const routeHeads = STANDALONE_DIST
+    ? `<script id="nyp-route-heads" type="application/json">${JSON.stringify(Object.fromEntries(PAGES.map(p => ['/' + p.dir, headFor(p)]))).replace(/</g, '\\u003c')}</script>`
+    : ''
+  html = html.replace('</head>', `${headFor(page)}${routeHeads}  </head>`)
   writeFileSync(file, html)
   console.log(`nypugardar-seo: ${page.dir || '/'} [${page.lang}] (${LIVE ? 'indexable' : 'noindex, preview host'})`)
 }
@@ -451,7 +451,7 @@ function writeLlms() {
 - No pets. Non-smoking. Children welcome; guests aged 7 and over pay as adults.
 - Facilities: ${FACILITIES.join(', ')}.
 - Rated ${B.rating} out of 10 ("Fabulous") from over 2,200 guest reviews on Booking.com.
-- Prices are in EUR and come live from the farm's own booking system (Godo).
+- Prices are in EUR. The indicative lowest rates below are cached from Godo; confirm current prices and availability for your dates in the booking system.
 
 ## Rooms and lowest nightly rates
 ${rooms}

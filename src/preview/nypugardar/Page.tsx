@@ -17,7 +17,7 @@ import type {
 } from "react";
 import { Suspense, lazy } from "react";
 import type Lenis from "lenis";
-import { useReducedMotion } from "framer-motion";
+import { useMotionPreference } from "./useMotionPreference";
 import {
   ArrowUpRight,
   Armchair,
@@ -313,7 +313,7 @@ export function Reveal({
   y?: number;
   className?: string;
 }) {
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useMotionPreference();
   const ref = useRef<HTMLDivElement>(null);
   const phase = useRevealPhase(ref, reduced);
   const style: CSSProperties | undefined =
@@ -363,7 +363,7 @@ export function MaskHeading({
   stagger?: number;
   style?: CSSProperties;
 }) {
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useMotionPreference();
   const ref = useRef<HTMLElement>(null);
   const phase = useRevealPhase(ref, reduced, { settle: 80 });
   const words = text.split(" ");
@@ -420,7 +420,7 @@ export function Count({
   className?: string;
   style?: CSSProperties;
 }) {
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useMotionPreference();
   const ref = useRef<HTMLSpanElement>(null);
   const phase = useRevealPhase(ref, reduced, { settle: 120, threshold: 0.5 });
   const fmt = (n: number) => n.toFixed(decimals);
@@ -498,7 +498,7 @@ export function ClipImg({
    *  answered with an empty frame. */
   observe?: { current: HTMLElement | null };
 }) {
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useMotionPreference();
   const ref = useRef<HTMLElement>(null);
   const [inView, setInView] = useState(false);
   const [ready, setReady] = useState(false);
@@ -1437,7 +1437,7 @@ export default function Page() {
    * and every other booking link read it, so a guest who picked nights is
    * never asked for them again on Godo. */
   const { stay, setStay, today } = useStay();
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useMotionPreference();
   const rootRef = useRef<HTMLDivElement>(null);
 
   const [menuOpen, setMenuOpen] = useState(false);

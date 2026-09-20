@@ -27,7 +27,7 @@ import { ArrowUpRight, Phone } from "lucide-react";
 import { setNoindex } from "../../lib/preview";
 import { COPY, type Copy } from "./copy";
 import { useLang } from "./useLang";
-import { useReducedMotion } from "framer-motion";
+import { useMotionPreference } from "./useMotionPreference";
 import Footer from "./Footer";
 import { IMG, PHONE, PHONE_HREF } from "./data";
 import { STANDALONE, homePath, roomsPath } from "./paths";
@@ -39,7 +39,7 @@ import {
 export default function WinterPage() {
   const [lang, setLang] = useLang();
   const t: Copy = COPY[lang];
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useMotionPreference();
   usePageCss();
   /* The Eyebrow contract wants a scroll register; this page has no scrubbed
      rule, so it gets one that registers nothing (as on the rooms page). */

@@ -12,7 +12,7 @@
  */
 import { Suspense, lazy, useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
-import { STANDALONE, standaloneTitle } from './preview/nypugardar/paths'
+import { RouteHead } from './preview/nypugardar/RouteHead'
 
 const Page = lazy(() => import('./preview/nypugardar/Page'))
 const RoomsPage = lazy(() => import('./preview/nypugardar/RoomsPage'))
@@ -28,11 +28,6 @@ const PrivacyPage = lazy(() => import('./preview/nypugardar/PrivacyPage'))
  *  still has. Effect-only, so it is inert during the server render. */
 export function ScrollToTop() {
   const { pathname, hash } = useLocation()
-  /* The title follows the route; see STANDALONE_TITLES for why the pages
-     themselves no longer set it on her domain. */
-  useEffect(() => {
-    if (STANDALONE) document.title = standaloneTitle(pathname)
-  }, [pathname])
   useEffect(() => {
     if (hash) {
       let tries = 0
@@ -61,6 +56,7 @@ export function NypugardarApp() {
   return (
     <>
       <ScrollToTop />
+      <RouteHead />
       <Suspense fallback={null}>
         <Routes>
           <Route path="/" element={<Page />} />
@@ -72,8 +68,7 @@ export function NypugardarApp() {
           <Route path="/is/vetur" element={<WinterPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/is/personuvernd" element={<PrivacyPage />} />
-          {/* anything else goes home; a farm site has no useful 404 */}
-          <Route path="*" element={<Page />} />
+          <Route path="*" element={<main style={{ padding: '5rem 2rem' }}><h1>Page not found</h1><p>This address does not exist.</p><a href="/">Return to Nýpugarðar</a></main>} />
         </Routes>
       </Suspense>
     </>

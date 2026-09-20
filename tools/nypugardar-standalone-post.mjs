@@ -67,7 +67,7 @@ const cfToken = process.env.VITE_NYPUGARDAR_CF_ANALYTICS_TOKEN
 /* 4 ── real HTML in every route, then the host rules */
 execFileSync('node', ['tools/nypugardar-prerender.mjs'], { stdio: 'inherit' })
 
-writeFileSync(join(dist, '404.html'), readFileSync(join(dist, 'index.html')))
+writeFileSync(join(dist, '404.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Page not found | Nýpugarðar</title><link rel="icon" href="/nypugardar/brand/favicon-32.png"><style>body{margin:0;padding:10vh 8vw;background:#15130f;color:#f6f1e7;font:20px/1.6 system-ui}a{color:inherit}</style></head><body><main><h1>Page not found</h1><p>This address does not exist. / Þessi síða fannst ekki.</p><a href="/">Return to Nýpugarðar</a> · <a href="/is/">Forsíða</a></main></body></html>`)
 writeFileSync(
   join(dist, '_redirects'),
   [
@@ -83,12 +83,6 @@ writeFileSync(
     '/feed / 301',
     '/feed/* / 301',
     '/comments/feed / 301',
-    '/wp-content/* / 301',
-    '/wp-includes/* / 301',
-    '/wp-json/* / 301',
-    '/wp-login.php / 301',
-    '/wp-admin/* / 301',
-    '/xmlrpc.php / 301',
     '/en / 301',
     '/en/* / 301',
     '/herbergi /rooms 301',
@@ -96,8 +90,7 @@ writeFileSync(
     '/is /is/ 301',
     '# Browsers and some crawlers ask for /favicon.ico regardless of <link rel=icon>',
     '/favicon.ico /nypugardar/brand/favicon-32.png 200',
-    '# Everything else is the SPA',
-    '/* /index.html 200',
+    '# Unknown paths use the real 404.html; every valid route is prerendered.',
     '',
   ].join('\n'),
 )

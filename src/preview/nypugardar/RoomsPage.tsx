@@ -20,7 +20,7 @@ import { setNoindex } from "../../lib/preview";
 import { COPY, type Copy } from "./copy";
 import { useLang } from "./useLang";
 import { useStay } from "./stay";
-import { useReducedMotion } from "framer-motion";
+import { useMotionPreference } from "./useMotionPreference";
 import BookingBar from "./BookingBar";
 import Footer from "./Footer";
 import PRICES from "./prices.json";
@@ -36,7 +36,7 @@ import {
 export default function RoomsPage() {
   const [lang, setLang] = useLang();
   const t: Copy = COPY[lang];
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useMotionPreference();
   const { stay, setStay, today } = useStay();
   usePageCss();
   /* No scroll-driven rule fill on this page; the Eyebrow contract wants a
