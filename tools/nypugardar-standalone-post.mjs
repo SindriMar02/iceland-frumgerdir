@@ -102,14 +102,36 @@ writeFileSync(
   ].join('\n'),
 )
 
-/* Security headers Pages does not send on its own. HSTS without
-   includeSubDomains: mail.glacierview.is and smtp. are Opex's, not ours.
-   frame-ancestors 'none' is the modern X-Frame-Options; both are sent for
+/* Security headers Pages does not send on its own, and the cache policy.
+
+   HSTS without includeSubDomains: mail.glacierview.is and smtp. are Opex's, not
+   ours. frame-ancestors 'none' is the modern X-Frame-Options; both are sent for
    older browsers. No full CSP: the page carries inline JSON-LD and Vite's
-   modulepreload, and a wrong CSP breaks a live site silently. */
+   modulepreload, and a wrong CSP breaks a live site silently.
+
+   Cache-Control was missing until 2026-09-20, so everything fell back to
+   Cloudflare's four-hour browser TTL with must-revalidate: every returning
+   visitor re-checked the CSS, the JS and all six Erode weights against the
+   origin. Measured over the week before the fix, /assets/ served 259 misses and
+   124 revalidations and not one edge hit.
+
+   The pages.dev rules keep nypugardar.pages.dev out of the index. It serves this
+   exact site, so without them it is a crawlable duplicate competing with
+   glacierview.is; rel=canonical asks Google to consolidate, X-Robots-Tag tells
+   it. The :version form covers the per-deploy preview hosts. */
 writeFileSync(
   join(dist, '_headers'),
   [
+    '# Vite fingerprints every name in /assets/, so a year is safe: a changed file',
+    '# is a changed URL, and a returning visitor fetches none of it twice.',
+    '/assets/*',
+    '  Cache-Control: public, max-age=31536000, immutable',
+    '',
+    '# Photographs and film keep their names across builds. A month is long enough',
+    '# to help a repeat visitor and short enough that a replaced photo appears.',
+    '/nypugardar/*',
+    '  Cache-Control: public, max-age=2592000',
+    '',
     '/*',
     '  Strict-Transport-Security: max-age=31536000',
     '  X-Frame-Options: DENY',
@@ -117,6 +139,13 @@ writeFileSync(
     '  X-Content-Type-Options: nosniff',
     '  Referrer-Policy: strict-origin-when-cross-origin',
     '  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+    '',
+    '# The Pages host must never compete with glacierview.is in search.',
+    'https://nypugardar.pages.dev/*',
+    '  X-Robots-Tag: noindex',
+    '',
+    'https://:version.nypugardar.pages.dev/*',
+    '  X-Robots-Tag: noindex',
     '',
   ].join('\n'),
 )
