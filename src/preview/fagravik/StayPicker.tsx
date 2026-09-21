@@ -185,7 +185,7 @@ export const STAY_CSS = `
 .fv-stay .d.s,.fv-stay .d.e{background:var(--ink);color:#fff}
 .fv-stay .d.ghost{aspect-ratio:1}
 .fv-stay-read{display:grid;align-content:start;gap:.9rem}
-.fv-stay-read .cells{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.fv-stay-read .cells{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:clip}
 .fv-stay-read .cells div{padding:.7rem .85rem;display:grid;gap:.15rem}
 .fv-stay-read .cells div+div{border-left:1px solid var(--line)}
 .fv-stay-read .cells span,.fv-stay-read .guests>span{font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}

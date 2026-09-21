@@ -19,7 +19,7 @@ const B = import.meta.env.BASE_URL
  *    Frames 396-428 of the reference: the photo does not move a pixel while
  *    the copy rides up and the white sheet slides over it.
  *    Built as clip-path on the section + position:fixed on the image:
- *    background-attachment:fixed is ignored by iOS Safari, and overflow:hidden
+ *    background-attachment:fixed is ignored by iOS Safari, and overflow:clip
  *    does not clip fixed descendants, clip-path does.
  *  - every section after the hero is a sheet with rounded TOP corners,
  *    radius 3.8% of viewport width, pulled up over the previous section by
@@ -51,7 +51,10 @@ html,body{background-color:${INK}}
 .fv section{scroll-margin-top:72px}
 
 /* the sheet: rounded top, pulled up over whatever came before */
-.fv .sheet{position:relative;border-radius:var(--r) var(--r) 0 0;margin-top:calc(var(--r) * -1);overflow:hidden}
+/* overflow:CLIP, never hidden: hidden makes the sheet a scroll container, and
+   every scroll-driven reveal inside it then measures its position inside a
+   sheet that never scrolls, so the timeline freezes and nothing animates. */
+.fv .sheet{position:relative;border-radius:var(--r) var(--r) 0 0;margin-top:calc(var(--r) * -1);overflow:clip}
 /* photo windows: the section clips, the image is fixed to the viewport and
    never moves. No ancestor of .still may carry a transform or filter, or
    fixed turns back into absolute. */
@@ -60,11 +63,19 @@ html,body{background-color:${INK}}
 /* measured on the reference: cottage-panel photos hold at 0px while their
    copy rises; the hero photo and the closing photo scroll with the page */
 .fv .win .still{position:fixed;inset:0;height:100vh;height:100lvh;z-index:0}
+/* A fixed layer is always "on screen" to the compositor, so five panels mean
+   five full-viewport photo layers composited every scroll frame. Windows far
+   from the viewport stand theirs down ('far' is set by an observer, so with no
+   JS nothing is ever hidden). */
+.fv .win.far .still,.fv .win.far .fv-edge{visibility:hidden}
 .fv .win .veil,.fv .win .inner,.fv .win .in{z-index:1}
 
 /* chrome: the house mobile standard (fixed from first paint, never moves,
    sticky awning in the island strip) carrying the reference's centred pill nav */
-.fv-awning{position:sticky;top:-100px;height:106px;margin-bottom:-106px;z-index:140;background:${INK};pointer-events:none}
+/* 106px tall but the bar is 64px: at rest its bottom must end under the bar
+   (spans -42..64), or 42px of it shows as a second dark band over the hero.
+   Stuck, it rests at -100..6, inside the island strip, behind the bar. */
+.fv-awning{position:sticky;top:-100px;height:106px;margin-top:-42px;margin-bottom:-64px;z-index:140;background:${INK};pointer-events:none}
 .fv-bar{position:fixed;inset:0 0 auto 0;z-index:150;height:64px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 var(--gut);
   background-color:rgba(20,27,26,.88);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08);color:#fff}
 .fv-bar .mark{font-family:'FvD',Georgia,serif;font-size:21px;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;justify-self:center;grid-column:2;grid-row:1}
@@ -108,7 +119,7 @@ html,body{background-color:${INK}}
    the name itself is the hero, huge and centred over a full-bleed photo,
    two pills under it, small place text in the corners. It scrolls away
    under the first rounded sheet. */
-.fv-hero{position:relative;min-height:100svh;color:#fff;background:${INK};overflow:hidden;display:grid}
+.fv-hero{position:relative;min-height:100svh;color:#fff;background:${INK};overflow:clip;display:grid}
 .fv-hero .bg{position:absolute;inset:0}
 .fv-hero .veil{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 55%,rgba(10,14,14,.18),rgba(10,14,14,.58)),linear-gradient(to top,rgba(10,14,14,.55),rgba(10,14,14,0) 40%)}
 .fv-hero .inner{position:relative;display:grid;place-items:center;align-content:center;text-align:center;padding:96px var(--gut) calc(var(--r) + 5rem);gap:1.6rem}
@@ -132,7 +143,7 @@ html,body{background-color:${INK}}
 .fv-about h2{font-size:clamp(2.2rem,4.2vw,4rem);margin:1.4rem 0 0;max-width:18ch}
 .fv-about .cols{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.5rem,5vw,5rem);margin-top:clamp(1.8rem,3vw,2.6rem);max-width:1080px}
 .fv-about .cols p{color:var(--mute);font-size:15.5px}
-.fv-pano{margin:clamp(3rem,6vw,5rem) 0 0;height:clamp(220px,34vw,560px);overflow:hidden}
+.fv-pano{margin:clamp(3rem,6vw,5rem) 0 0;height:clamp(220px,34vw,560px);overflow:clip}
 .fv-rowhead{padding:0 var(--gut);margin-top:clamp(3.5rem,7vw,6rem);display:flex;justify-content:space-between;align-items:end;gap:2rem;flex-wrap:wrap}
 .fv-rowhead h2{margin:0;font-size:clamp(2rem,3.6vw,3.3rem)}
 .fv-step{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap}
@@ -143,7 +154,7 @@ html,body{background-color:${INK}}
 .fv-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(10px,1.4vw,20px);padding:0 var(--gut);margin-top:clamp(1.6rem,3vw,2.4rem)}
 .fv-tile{display:grid;gap:.75rem;text-decoration:none;transition:opacity .45s var(--ease)}
 .fv-tile[data-fit="no"]{opacity:.32}
-.fv-tile .ph{aspect-ratio:4/5;border-radius:10px;overflow:hidden;background:#dfe3e0}
+.fv-tile .ph{aspect-ratio:4/5;border-radius:10px;overflow:clip;background:#dfe3e0}
 .fv-tile .ph img{transition:transform 1.2s var(--ease)}
 .fv-tile:hover .ph img{transform:scale(1.045)}
 .fv-tile .k{font-size:11px;font-weight:560;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
@@ -158,7 +169,7 @@ html,body{background-color:${INK}}
 .fv-faq{margin-top:clamp(3rem,6vw,5rem);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:clamp(1.5rem,5vw,5rem)}
 .fv-faq h3{font-size:clamp(1.8rem,3vw,2.6rem)}
 .fv-faq .side{position:sticky;top:96px;align-self:start;display:grid;gap:1.4rem}
-.fv-faq .side .ph{aspect-ratio:4/5;border-radius:12px;overflow:hidden}
+.fv-faq .side .ph{aspect-ratio:4/5;border-radius:12px;overflow:clip}
 @media (max-width:900px){.fv-faq .side{position:static}.fv-faq .side .ph{aspect-ratio:4/3}}
 .fv-faq details{border-top:1px solid var(--line);padding:1.1rem 0}
 .fv-faq details:last-child{border-bottom:1px solid var(--line)}
@@ -190,7 +201,7 @@ html,body{background-color:${INK}}
 .fv-proof b{display:block;font-family:'FvD',Georgia,serif;font-weight:400;font-size:clamp(3rem,6vw,5.5rem);line-height:.95;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .fv-proof span{display:block;margin-top:.6rem;font-size:13.5px;color:var(--mute)}
 .fv-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,1.9vw,28px);margin-top:clamp(2rem,4vw,3rem)}
-.fv-card{position:relative;border-radius:12px;overflow:hidden;min-height:clamp(300px,27vw,420px);color:#fff;display:flex;align-items:flex-start}
+.fv-card{position:relative;border-radius:12px;overflow:clip;min-height:clamp(300px,27vw,420px);color:#fff;display:flex;align-items:flex-start}
 .fv-card .bg{position:absolute;inset:0}
 .fv-card .bg img{transition:transform 1.4s var(--ease)}
 .fv-card:hover .bg img{transform:scale(1.035)}
@@ -232,7 +243,7 @@ html,body{background-color:${INK}}
 /* lightbox for "see inside" */
 .fv-lb{border:0;padding:0;background:transparent;max-width:min(1100px,94vw);width:100%}
 .fv-lb::backdrop{background:rgba(10,14,14,.86)}
-.fv-lb .fr{border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:#222}
+.fv-lb .fr{border-radius:12px;overflow:clip;aspect-ratio:4/3;background:#222}
 .fv-lb .bar{display:flex;justify-content:space-between;align-items:center;gap:1rem;color:#fff;padding:.9rem .2rem;flex-wrap:wrap}
 .fv-lb .bar .n{font-size:13px;opacity:.75;font-variant-numeric:tabular-nums}
 .fv-lb .bar .b{display:flex;gap:.5rem}
@@ -299,8 +310,14 @@ html.lenis,html.lenis body{height:auto}
 /* photos drift inside their frames, tied to scroll position */
 @keyframes fvDrift{from{transform:translate3d(0,-7%,0)}to{transform:translate3d(0,7%,0)}}
 @keyframes fvAway{to{transform:translate3d(0,-110px,0);opacity:.06}}
-.fv .rv-img:not(.bg){height:118%;margin-top:-9%}
+/* the drifting photo is oversized INSIDE its frame by absolute position, never
+   by negative margin: with overflow:clip (no new formatting context) a negative
+   margin collapses through the frame and drags the whole frame up over the
+   text above it (the panorama covered the story copy by ~100px). */
+.fv .rv-img:not(.bg){position:absolute;inset:-9% 0;height:auto}
+.fv-pano,.fv-tile .ph,.fv-faq .ph,.fv-about .card{position:relative}
 .fv .fv-card .bg.rv-img{inset:-9% 0}
+@media (max-width:900px){.fv .fv-row .rv,.fv .fv-row .rv-img{animation:none !important}}
 @media (prefers-reduced-motion:no-preference){
   @supports (animation-timeline: view()){
     .fv .rv-img{animation:fvDrift linear both;animation-timeline:view();animation-range:cover 0% cover 100%}
@@ -312,7 +329,7 @@ html.lenis,html.lenis body{height:auto}
 
 /* footer: the site's own, the last rounded sheet, over the closing panel */
 .fv-foot{position:relative;z-index:40;margin-top:calc(var(--r) * -1);border-radius:var(--r) var(--r) 0 0;background:#0E1413;color:#fff;
-  padding:clamp(4rem,8vw,6.5rem) var(--gut) 2rem;overflow:hidden}
+  padding:clamp(4rem,8vw,6.5rem) var(--gut) 2rem;overflow:clip}
 .fv-foot .big{font-family:'FvD',Georgia,serif;font-weight:400;font-size:clamp(4.2rem,15vw,14rem);line-height:.9;letter-spacing:-.025em;margin:0 0 clamp(2.5rem,5vw,4rem);color:#fff}
 .fv-foot .grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:clamp(1.8rem,4vw,3.5rem);padding-top:clamp(2rem,4vw,3rem);border-top:1px solid rgba(255,255,255,.12)}
 .fv-foot h4{margin:0 0 1rem;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;opacity:.55}
@@ -378,7 +395,7 @@ function CottageRow() {
           </span>
         </div>
       </div>
-      <div className="fv-row" data-lenis-prevent-wheel>
+      <div className="fv-row">
         {COTTAGES.map((c, i) => (
           <a key={c.id} className="fv-tile rv" style={iv(i)} href={`#c-${c.id}`} data-fit={fits(c) ? 'yes' : 'no'}>
             <div className="ph"><div className="rv-img"><Img p={c.photos[0]} sizes="(max-width:900px) 64vw, 18vw" /></div></div>
@@ -425,12 +442,27 @@ function useLenis() {
   useEffect(() => {
     const touch = window.matchMedia('(hover: none) and (pointer: coarse)').matches
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (touch || reduce) return
+    // ?nolenis turns smooth scroll off, to compare native scrolling on the same page
+    const off = new URLSearchParams(window.location.search).has('nolenis')
+    if (touch || reduce || off) return
     const lenis = new Lenis({ duration: 1.1, smoothWheel: true, anchors: { offset: -72 } })
     let id = 0
     const raf = (time: number) => { lenis.raf(time); id = requestAnimationFrame(raf) }
     id = requestAnimationFrame(raf)
     return () => { cancelAnimationFrame(id); lenis.destroy() }
+  }, [])
+}
+
+/** Mark photo windows more than a screen away as far, so their fixed layers stop compositing. */
+function useFarWindows() {
+  useEffect(() => {
+    const wins = Array.from(document.querySelectorAll<HTMLElement>('.fv .win'))
+    if (!('IntersectionObserver' in window)) return
+    const io = new IntersectionObserver((es) => {
+      for (const e of es) e.target.classList.toggle('far', !e.isIntersecting)
+    }, { rootMargin: '100% 0px' })
+    wins.forEach((w) => io.observe(w))
+    return () => { io.disconnect(); wins.forEach((w) => w.classList.remove('far')) }
   }, [])
 }
 
@@ -513,6 +545,7 @@ const BAY_CARDS: { title: string; tags: string[]; text: string; p: Photo }[] = [
 export default function FagravikPage() {
   const [box, setBox] = useState<Cottage | null>(null)
   useLenis()
+  useFarWindows()
   const [intro, setIntro] = useState<'pending' | 'play' | 'done'>(introStart)
   useEffect(() => {
     if (intro !== 'pending') return
