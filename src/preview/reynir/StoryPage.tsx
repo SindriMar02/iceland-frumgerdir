@@ -209,7 +209,7 @@ function StoryPageInner() {
       <section style={{ background: BURGUNDY, padding: 'clamp(72px,11vh,140px) clamp(20px,4.5vw,72px)' }}>
         <div style={{ maxWidth: 980, margin: '0 auto' }}>
           <blockquote style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,4.8vw,64px)', lineHeight: 1.14, color: IVORY, margin: 0 }}>
-            “{statementQuote[lang]}”
+            {lang === 'is' ? '„' : '“'}{statementQuote[lang]}{lang === 'is' ? '“' : '”'}
           </blockquote>
           <div style={{ fontSize: 14, color: 'rgba(243,234,211,.7)', marginTop: 20 }}>{statementWho[lang]}</div>
         </div>

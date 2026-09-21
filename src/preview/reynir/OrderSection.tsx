@@ -846,6 +846,9 @@ interface SlipLine {
   pending?: boolean
 }
 
+/** The relay caps an order at 200 option rows; a dozen cakes stays far inside it. */
+const MAX_CAKES = 12
+
 export default function OrderSection(props: Parameters<typeof OrderForm>[0]) {
   const { ORDER_PRODUCTS, PICKUP_LOCATIONS, ordersPaused, ordersPauseMessage, LINKS } = useSiteContent()
   if (ordersPaused || !ORDER_PRODUCTS.length || !PICKUP_LOCATIONS.length) return <section style={{padding: '80px 24px', color: IVORY, background: INK}}>
@@ -1180,7 +1183,7 @@ function OrderForm({
 
     const written = inscription.trim()
     if (written && product.inscription) {
-      out.push({ key: 'inscription', name: `“${written}”`, sub: product.inscription.label[lang], price: null })
+      out.push({ key: 'inscription', name: lang === 'is' ? `„${written}“` : `“${written}”`, sub: product.inscription.label[lang], price: null })
     }
     // Quantity multiplies the whole configured item, so it is shown as its own
     // line rather than silently changing the numbers above it.
@@ -1463,6 +1466,7 @@ function OrderForm({
     target?.focus()
   }
   const addMore = () => {
+    if (cakes.length >= MAX_CAKES) return
     setDraftActive(true)
     backToRange()
   }
@@ -2115,6 +2119,9 @@ function OrderForm({
                                     {choice.needsPhoto && PHOTO_UPLOAD_ENABLED && photoPicker}
                                   </div>
                                 )}
+                                {/* A choice that needs a picture but opens no
+                                    text box must still offer the upload. */}
+                                {!fx && on && choice.needsPhoto && PHOTO_UPLOAD_ENABLED && <div className="rb-ord-extra">{photoPicker}</div>}
                               </div>
                             )
                           })}
@@ -2363,7 +2370,10 @@ function OrderForm({
           added something to that half of it. While a cake is being configured
           the filled button in the range IS this path, so it stays hidden then
           rather than competing with it. */}
-      {!draftActive && cakes.length > 0 && (
+      {!draftActive && cakes.length >= MAX_CAKES && (
+        <p className="rb-ord-help" style={{ margin: '10px 0 0' }}>{lang === 'is' ? `Mest ${MAX_CAKES} vörur í einni pöntun. Hringdu í okkur fyrir stærri pantanir.` : `Up to ${MAX_CAKES} items per order. Please call us for larger orders.`}</p>
+      )}
+      {!draftActive && cakes.length > 0 && cakes.length < MAX_CAKES && (
         <button type="button" className="rb-ord-addmore" onClick={addMore} ref={addMoreRef}>
           <span aria-hidden="true">+</span>{t.addMore}
         </button>
@@ -3173,6 +3183,10 @@ function OrderForm({
                     id="rb-ord-notes"
                     className="rb-ord-textarea"
                     placeholder={t.fieldNotesPlaceholder}
+                    /* The relay rejects, never shortens, a note over 2000
+                       characters, so a longer one failed on every retry with
+                       nothing pointing here. */
+                    maxLength={1800}
                     value={customer.notes}
                     onChange={(e) => setCustomer({ ...customer, notes: e.target.value })}
                   />
@@ -3288,6 +3302,14 @@ function OrderForm({
                       </div>
                     )
                   })}
+                  {kjor && !anyQuote && (
+                    <div className="rb-ord-review-item">
+                      <div className="rb-ord-review-top">
+                        <span className="rb-ord-review-name">{t.kjorLine} ({VEISLUKJOR.discountPct}%)</span>
+                        <span className="rb-ord-review-price">{isk(-kjorDiscount)}</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="rb-ord-review-total">
                     <span>{t.slipTotal}</span>
                     <span>{totalText}</span>

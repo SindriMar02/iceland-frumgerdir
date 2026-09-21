@@ -324,6 +324,10 @@ export function isProductOrderable(product: OrderProduct): boolean {
   const ids = product.groups.map(g => g.id)
   if (ids.some(id => !id) || new Set(ids).size !== ids.length) return false
   for (const group of product.groups) {
+    /* The relay requires a label on every row it prints. A question or a
+       choice saved with no words at all would 400 every order that touches
+       it, so the product is unavailable until it has them. */
+    if (!(group.label.is || group.label.en) || group.choices.some(c => !(c.label.is || c.label.en))) return false
     if (!group.choices.length || new Set(group.choices.map(c => c.id)).size !== group.choices.length) return false
     if (group.choices.some(c => !c.id || !Number.isSafeInteger(c.priceDelta) || c.priceDelta < 0)) return false
   }

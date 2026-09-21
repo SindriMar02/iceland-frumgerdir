@@ -408,6 +408,8 @@ check('no choice swaps out a layer that does not exist', problems === 0, `${prob
 
   const liveOcc = merge(clone(LIVE)).OCCASIONS.filter((o) => o.audience === 'person')
   check('the private occasions on the site are the ones in the Studio', (LIVE.occasions || []).filter((o) => o.audience === 'person').length === liveOcc.length && liveOcc.length > 0)
+  r = clone(LIVE); r.orderProducts[0].groups[0].label = { is: '', en: '' }
+  check('a product with an unlabelled question is unavailable (the relay would reject its orders)', !merge(r).ORDER_PRODUCTS.some((p) => p.id === LIVE.orderProducts[0].id))
   check('the party offer is off in the live data', merge(clone(LIVE)).VEISLUKJOR.discountPct === 0)
 }
 

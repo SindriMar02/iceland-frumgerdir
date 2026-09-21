@@ -39,8 +39,8 @@ import { SiteContentProvider, usePageText, useOrderText, useSiteArt, useSiteCont
 const MED_BASE = 440
 
 const PAGE_CSS = `
-  .rb-skip { position:fixed; top:8px; left:8px; z-index:1000; padding:14px 20px; background:#F3EAD3; color:#131313; transform:translateY(-200%); }
-  .rb-skip:focus { transform:none; }
+  .rb-skip { position:fixed; top:8px; left:8px; z-index:1000; padding:14px 20px; background:#F3EAD3; color:#131313; /* Far enough up AND transparent: iOS 26 draws the page under its 62pt status bar, so a link parked just above the viewport showed there as a beige block. */ transform:translateY(calc(-100% - 160px)); opacity:0; }
+  .rb-skip:focus { transform:none; opacity:1; }
   /* ── paper grain ────────────────────────────────────────────────────────
      The single cheapest thing that separates "dark website" from "printed on
      something". A fixed, non-interactive noise plate over the whole page, at
@@ -576,7 +576,8 @@ const PAGE_CSS = `
   .rb-testi-item[data-active] { opacity:1; visibility:visible; transform:none;
     transition:opacity .5s ${EASE} .08s, transform .5s ${EASE} .08s, visibility 0s; }
   /* 44px tap target with a small 7px visible dot centered inside (WCAG target size) */
-  .rb-testi-dot { width:44px; height:44px; padding:0; border:0; background:transparent; cursor:pointer;
+  /* 44px tall always; the width gives way so ten dots stay on one row of a 390px phone instead of wrapping 8 + 2. */
+  .rb-testi-dot { flex:0 1 44px; min-width:20px; height:44px; padding:0; border:0; background:transparent; cursor:pointer;
     display:flex; align-items:center; justify-content:center; }
   .rb-testi-dot::after { content:''; width:7px; height:7px; border-radius:50%; border:1px solid rgba(238,211,170,.4);
     transition:background .25s ${EASE}, border-color .25s ${EASE}, transform .2s ${EASE}; }
@@ -1042,7 +1043,7 @@ function TestimonialRotator({ lang, reduced, reviews }: { lang: Lang; reduced: b
               <blockquote
                 style={{ margin: '0 auto', maxWidth: '38ch', fontFamily: DISPLAY, fontWeight: 400, fontSize: r.quote[lang].length > 140 ? 'clamp(21px,2.6vw,32px)' : 'clamp(26px,3.6vw,46px)', lineHeight: 1.28, color: IVORY }}
               >
-                “{r.quote[lang]}”
+                {lang === 'is' ? '„' : '“'}{r.quote[lang]}{lang === 'is' ? '“' : '”'}
               </blockquote>
               <figcaption style={{ fontSize: 14, color: FAINT, marginTop: 16 }}>{r.who}</figcaption>
             </figure>
@@ -1052,7 +1053,7 @@ function TestimonialRotator({ lang, reduced, reviews }: { lang: Lang; reduced: b
 
       {reviews.length > 1 && <button type="button" aria-pressed={manualPause} onClick={() => setManualPause(value => !value)} style={{background: 'transparent', color: IVORY, border: `1px solid ${HAIR}`, padding: '10px 16px', marginTop: 16, minHeight: 44}}>{manualPause ? (lang === 'is' ? 'Halda áfram' : 'Resume reviews') : (lang === 'is' ? 'Stöðva umsagnir' : 'Pause reviews')}</button>}
       {reviews.length > 1 && (
-        <div role="group" aria-label={lang === 'en' ? 'Choose a review' : 'Veldu umsögn'} style={{ display: 'flex', flexWrap: 'wrap', gap: 0, justifyContent: 'center', marginTop: 4 }}>
+        <div role="group" aria-label={lang === 'en' ? 'Choose a review' : 'Veldu umsögn'} style={{ display: 'flex', flexWrap: 'nowrap', gap: 0, justifyContent: 'center', marginTop: 4 }}>
           {reviews.map((_, i) => (
             <button
               key={i}
@@ -1597,12 +1598,12 @@ function ReynirPageInner() {
                   bakery's primary delivery partner. */}
               <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold rb-cta-ext">
                 {t.ctaDelivery}
-                <span aria-hidden="true">↗</span>
+                <span aria-hidden="true">{'\u2197\uFE0E'}</span>
                 <span className="rb-sr">({t.extNote})</span>
               </a>
               <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost rb-cta-ext">
                 {t.ctaWolt}
-                <span aria-hidden="true">↗</span>
+                <span aria-hidden="true">{'\u2197\uFE0E'}</span>
                 <span className="rb-sr">({t.extNote})</span>
               </a>
             </div>
@@ -1763,7 +1764,7 @@ function ReynirPageInner() {
                 {t.statementKicker}
               </div>
               <blockquote data-reveal style={{ ...revealInit(reduced, 0.08), fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(32px,5.4vw,76px)', lineHeight: 1.1, letterSpacing: '.005em', color: IVORY, margin: '18px 0 0', maxWidth: '18ch' }}>
-                “{statementQuote[lang]}”
+                {lang === 'is' ? '„' : '“'}{statementQuote[lang]}{lang === 'is' ? '“' : '”'}
               </blockquote>
               <div data-reveal style={{ ...revealInit(reduced, 0.14), fontSize: 14, color: 'rgba(243,234,211,.72)', marginTop: 18 }}>{statementWho[lang]}</div>
             </div>
@@ -1971,10 +1972,10 @@ function ReynirPageInner() {
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 14 }}>
                   <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost rb-cta-ext">
-                    {t.orderPrimary}<span aria-hidden="true">↗</span><span className="rb-sr">({t.extNote})</span>
+                    {t.orderPrimary}<span aria-hidden="true">{'\u2197\uFE0E'}</span><span className="rb-sr">({t.extNote})</span>
                   </a>
                   <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost rb-cta-ext">
-                    {t.orderWolt}<span aria-hidden="true">↗</span><span className="rb-sr">({t.extNote})</span>
+                    {t.orderWolt}<span aria-hidden="true">{'\u2197\uFE0E'}</span><span className="rb-sr">({t.extNote})</span>
                   </a>
                 </div>
               </div>
