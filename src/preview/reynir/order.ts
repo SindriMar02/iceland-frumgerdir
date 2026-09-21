@@ -1307,6 +1307,7 @@ export interface OrderCopy {
   reviewLede: string
   reviewSend: string
   reviewEdit: string
+  receiptSent: (email: string) => string
   submit: string
   submitting: string
   doneTitle: string
@@ -1463,6 +1464,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     reviewLede: 'We confirm every order by phone. Nothing is paid online; you pay when you collect.',
     reviewSend: 'Send order',
     reviewEdit: 'Make changes',
+    receiptSent: (email: string) => `A copy of your request is on its way to ${email}. It is a receipt, not a confirmation: we confirm by phone.`,
     submit: 'Send the order request',
     submitting: 'Sending',
     doneTitle: 'Request sent.',
@@ -1614,6 +1616,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     reviewLede: 'Við staðfestum allar pantanir símleiðis. Ekkert er greitt á netinu, greitt er þegar sótt er.',
     reviewSend: 'Senda pöntun',
     reviewEdit: 'Breyta pöntun',
+    receiptSent: (email: string) => `Afrit af beiðninni er á leiðinni á ${email}. Það er kvittun, ekki staðfesting: við staðfestum símleiðis.`,
     submit: 'Senda pöntunarbeiðni',
     submitting: 'Sendi',
     doneTitle: 'Beiðnin er komin til okkar.',

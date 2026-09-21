@@ -20,6 +20,7 @@
  * and the line are simply there.
  */
 import { useEffect, useRef, useState } from 'react'
+import { useIsomorphicLayoutEffect } from './ssr'
 import type { CSSProperties, ReactNode } from 'react'
 import { GOLD, GOLD_LIGHT } from './tokens'
 
@@ -58,7 +59,10 @@ const CSS = `
 .rb-piped { position:relative; width:fit-content; max-width:100%; }
 .rb-piped[data-align="center"] { margin-inline:auto; }
 .rb-piped-words { position:relative; }
-.rb-piped-words > h2 { clip-path:inset(-0.1em 100% -0.3em -0.1em); }
+/* Hidden only once JavaScript has ARMED the title (data-armed, set before
+   paint). Without JavaScript the heading and its line are simply visible —
+   the prerendered page must never ship a heading nobody can see. */
+.rb-piped[data-armed] .rb-piped-words > h2 { clip-path:inset(-0.1em 100% -0.3em -0.1em); }
 .rb-piped[data-shown] .rb-piped-words > h2 { animation:rb-pipe-words 1.05s cubic-bezier(.5,.05,.2,1) both; }
 @keyframes rb-pipe-words { to { clip-path:inset(-0.1em -0.1em -0.3em -0.1em); } }
 
@@ -80,7 +84,8 @@ const CSS = `
 .rb-piped-line { display:block; width:${LINE_W}px; max-width:60%; height:auto; margin-top:16px; overflow:visible; }
 .rb-piped[data-align="center"] .rb-piped-line { margin-inline:auto; }
 .rb-piped-line path { fill:none; stroke:${GOLD}; stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round;
-  opacity:.62; stroke-dasharray:1; stroke-dashoffset:1; }
+  opacity:.62; stroke-dasharray:1; stroke-dashoffset:0; }
+.rb-piped[data-armed] .rb-piped-line path { stroke-dashoffset:1; }
 .rb-piped[data-shown] .rb-piped-line path { animation:rb-pipe-line 1.25s cubic-bezier(.45,0,.2,1) .75s both; }
 @keyframes rb-pipe-line { to { stroke-dashoffset:0; } }
 
@@ -100,6 +105,12 @@ export function PipedTitle({
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const [shown, setShown] = useState(false)
+  const [armed, setArmed] = useState(false)
+  /* Arm before the first client paint, and only when motion is welcome;
+     under reduced motion the title is never hidden in the first place. */
+  useIsomorphicLayoutEffect(() => {
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setArmed(true)
+  }, [])
 
   useEffect(() => {
     const el = ref.current
@@ -124,7 +135,7 @@ export function PipedTitle({
   }, [])
 
   return (
-    <div ref={ref} className="rb-piped" data-align={align} data-shown={shown || undefined}>
+    <div ref={ref} className="rb-piped" data-align={align} data-armed={armed || undefined} data-shown={shown || undefined}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="rb-piped-words">
         <h2 style={style}>{children}</h2>

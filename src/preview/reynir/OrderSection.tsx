@@ -977,6 +977,8 @@ function OrderForm({
   /** Whether the photo actually travelled, as reported by the send, not
    *  assumed from the fact that one was chosen. */
   const [photoDelivered, setPhotoDelivered] = useState(false)
+  /** The address a receipt went to, or '' when none was sent. */
+  const [receiptSent, setReceiptSent] = useState('')
   /**
    * The picture the customer wants on the cake, or the one they want us to work
    * from. It travels WITH the order as a mail attachment rather than being
@@ -1368,7 +1370,16 @@ function OrderForm({
       }))
       return
     }
-    land(document.getElementById(key.startsWith('x_') ? `rb-ord-x-${key.slice(2)}` : FIELD_ID[key] ?? ''))
+    if (key.startsWith('x_')) {
+      /* The text box only exists while its question is open, so open the
+         question first. The group is found from the full key rather than by
+         splitting it, because ids can themselves contain underscores. */
+      const hit = freeTextChoices(product, picked).find(({ group, choice }) => `x_${group.id}_${choice.id}` === key)
+      if (hit && accGroups.some((g) => g.id === hit.group.id)) setOpenGroup(hit.group.id)
+      requestAnimationFrame(() => requestAnimationFrame(() => land(document.getElementById(`rb-ord-x-${key.slice(2)}`))))
+      return
+    }
+    land(document.getElementById(FIELD_ID[key] ?? ''))
   }
 
   /* ── THE LAST LOOK ──
@@ -1381,6 +1392,14 @@ function OrderForm({
   /* Close back to the send button. The shared hook restores whatever had focus
      when the sheet opened, but Safari does not focus a button on click, so
      that is often <body>. The frame lets the hook's restore run first. */
+  /** A basket cake as label/value pairs, the way the review sheet and the
+   *  customer's receipt both show it. */
+  const specsOf = (c: CakeInOrder) => [
+    ...c.lines
+      .filter((l) => l.key !== 'qty' && l.key !== 'base')
+      .map((l) => ({ key: l.key, label: (l.key === 'size' ? t.rowSize : l.sub) ?? '', value: l.name })),
+    ...(c.qty > 1 ? [{ key: 'qty', label: t.fieldQty, value: String(c.qty) }] : []),
+  ]
   const closeReview = () => {
     setReviewing(false)
     requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('.rb-ord-submit')?.focus())
@@ -1528,6 +1547,12 @@ function OrderForm({
   const onSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault()
     if (submitting.current || status === 'done') return
+    /* The review sheet's approval is good for ONE attempt. Consumed here,
+       before any check can return early: otherwise a slot that expires while
+       the sheet is open leaves the flag set, and the corrected order would
+       then send without being reviewed again (found by the Codex audit). */
+    const confirmed = confirmedRef.current
+    confirmedRef.current = false
     setTriedSubmit(true)
     if (!pickupSlots(customer.date, HOURS_BY_DAY, dateExceptions, noticeAt(requiredNotice, Date.now())).includes(customer.time)) {
       setNow(Date.now())
@@ -1543,11 +1568,10 @@ function OrderForm({
       first?.focus({ preventScroll: true })
       return
     }
-    if (!confirmedRef.current) {
+    if (!confirmed) {
       setReviewing(true)
       return
     }
-    confirmedRef.current = false
     submitting.current = true
     setStatus('sending')
     setSendError(false)
@@ -1806,8 +1830,34 @@ function OrderForm({
             occasion: occ,
             message: customer.notes.trim(),
             totalIsk: anyQuote ? 0 : orderTotal,
+            quote: anyQuote,
             provisional: PLACEHOLDER_DATA,
             options: mailRows,
+          },
+          /* The customer's RECEIPT, in the language they ordered in and built
+           * from the same values the review sheet showed them, so the mail they
+           * keep matches what they approved. The Worker only sends it once the
+           * bakery's copy is accepted, and only from a verified bakery address;
+           * without an email here there is simply no receipt. */
+          receipt: {
+            lang,
+            ref,
+            name: who === 'company' ? customer.contact.trim() : customer.name.trim(),
+            when: `${prettyDateFull(customer.date, lang)}, ${lang === 'is' ? 'kl.' : 'at'} ${customer.time}`,
+            where: delivering ? customer.address.trim() : (PICKUP_LOCATIONS.find((l) => l.id === customer.location)?.label[lang] ?? loc),
+            items: [
+              ...allCakes.map((c) => ({
+                name: c.product.name[lang],
+                price: c.quote ? null : c.total,
+                specs: specsOf(c).map(({ label, value }) => ({ label, value })),
+              })),
+              ...ORDER_EXTRAS.filter((ex) => (extrasQty[ex.id] ?? 0) > 0).map((ex) => {
+                const q = extrasQty[ex.id] ?? 0
+                return { name: `${ex.label[lang]} × ${q}`, price: q * extraUnitPrice(ex, q, kjor), specs: [] }
+              }),
+            ],
+            total: anyQuote ? null : orderTotal,
+            notes: customer.notes.trim(),
           },
         }),
       )
@@ -1822,7 +1872,7 @@ function OrderForm({
       // itself, and setting it by hand breaks the parse on the other side.
       const res = await fetch(ORDER_ENDPOINT, { method: 'POST', body: fd, signal: AbortSignal.timeout(45_000) })
       const body = (await res.json().catch(() => null)) as
-        | { ok?: boolean; id?: string; attached?: boolean; reason?: string }
+        | { ok?: boolean; id?: string; attached?: boolean; reason?: string; receipt?: 'sent' | 'skipped' | 'failed' }
         | null
       if (!res.ok || !body?.ok || !body.id) {
         throw new Error(body?.reason ? String(body.reason) : `http-${res.status}`)
@@ -1830,6 +1880,7 @@ function OrderForm({
       // The relay confirms attachment inclusion in the provider-accepted message.
       setPhotoDelivered(!!body.attached && allCakes.filter(c => c.wantsPhoto).every(c => !!c.photo))
 
+      setReceiptSent(body.receipt === 'sent' ? customer.email.trim() : '')
       setStatus('done')
     } catch {
       // Never swallow this: a bakery order that silently vanishes is worse than
@@ -2389,6 +2440,12 @@ function OrderForm({
           <div className="rb-ord-done" style={{ marginTop: 'clamp(30px,4.5vh,46px)' }} role="status">
             <h3 className="rb-ord-done-title" style={{ ...GOLD_TEXT }}>{t.doneTitle}</h3>
             <p style={{ fontSize: 16, color: IVORY, lineHeight: 1.65, margin: '14px auto 0', maxWidth: '46ch' }}>{t.doneBody}</p>
+            {/* Only claimed when the Worker says the receipt was accepted. */}
+            {receiptSent && (
+              <p style={{ fontSize: 14.5, color: DIM, lineHeight: 1.6, margin: '10px auto 0', maxWidth: '46ch' }}>
+                {t.receiptSent(receiptSent)}
+              </p>
+            )}
             {/* WHEN, and how to reach us. Silence is the thing that makes an
                 order feel lost: someone ordering on a Saturday evening cannot
                 tell a slow reply from a failed submission. The hours phrase is
@@ -3170,12 +3227,6 @@ function OrderForm({
           const loc = PICKUP_LOCATIONS.find((l) => l.id === customer.location)?.label[lang] ?? ''
           const delivering = who === 'company' && customer.handover === 'delivery'
           const extrasIn = ORDER_EXTRAS.filter((ex) => (extrasQty[ex.id] ?? 0) > 0)
-          const specsOf = (c: CakeInOrder) => [
-            ...c.lines
-              .filter((l) => l.key !== 'qty' && l.key !== 'base')
-              .map((l) => ({ key: l.key, label: (l.key === 'size' ? t.rowSize : l.sub) ?? '', value: l.name })),
-            ...(c.qty > 1 ? [{ key: 'qty', label: t.fieldQty, value: String(c.qty) }] : []),
-          ]
           const send = () => {
             confirmedRef.current = true
             setReviewing(false)
