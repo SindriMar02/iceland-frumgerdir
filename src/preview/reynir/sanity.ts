@@ -399,7 +399,7 @@ export function merge(raw: any): SiteContent {
     bulkAt: e.bulkAt ?? Infinity, step: e.step, max: e.max, image: mkProductPic(e.image) || '',
   })).filter((e: OrderExtra) => e.id && Number.isSafeInteger(e.unitPrice) && e.unitPrice > 0 && Number.isSafeInteger(e.kjorPrice) && e.kjorPrice > 0 && e.kjorPrice <= e.unitPrice && Number.isSafeInteger(e.step) && e.step > 0 && Number.isSafeInteger(e.max) && e.max >= e.step && (e.bulkAt === Infinity || (Number.isSafeInteger(e.bulkAt) && e.bulkAt > 0)))
     : FALLBACK.ORDER_EXTRAS.map(e => {
-      const name = ({kleinur: 'Kleina', lengjur: 'Vínarbrauðslengja með súkkulaði', pistasiusnudar: 'Pistasíusnúður'} as Record<string, string>)[e.id]
+      const name = ({kleinur: 'Kleina', lengjur: 'Vínarbrauðslengja með súkkulaðiglassúr', pistasiusnudar: 'Pistasíusnúður'} as Record<string, string>)[e.id]
       const entry = menuItems.find(m => m.name === name)
       const price = entry ? priceNumber(entry.price) : e.unitPrice
       return {...e, unitPrice: price, kjorPrice: price}

@@ -1539,9 +1539,17 @@ function ReynirPageInner() {
                 says where it goes and marks itself as leaving, and a line
                 under them states which is which. */}
             <div className="rb-cover-ctas rb-enter-4" style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 'clamp(24px,3.5vh,36px)' }}>
-              <Link to={P.order} className="rb-cta rb-cta-gold">{t.ctaOrderOwn}</Link>
-              <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost rb-cta-ext">
+              {/* Þorleifur, 2026-09-21: the cover carries the two delivery
+                  apps; ordering ahead lives under "Pantanir" in the bar and in
+                  its own block further down. aha.is leads because it is the
+                  bakery's primary delivery partner. */}
+              <a href={LINKS.order} target="_blank" rel="noreferrer" className="rb-cta rb-cta-gold rb-cta-ext">
                 {t.ctaDelivery}
+                <span aria-hidden="true">↗</span>
+                <span className="rb-sr">({t.extNote})</span>
+              </a>
+              <a href={LINKS.wolt} target="_blank" rel="noreferrer" className="rb-cta rb-cta-ghost rb-cta-ext">
+                {t.ctaWolt}
                 <span aria-hidden="true">↗</span>
                 <span className="rb-sr">({t.extNote})</span>
               </a>
@@ -1734,7 +1742,7 @@ function ReynirPageInner() {
               <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.8vw,64px)', lineHeight: 1.03, margin: '16px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.breadTitle}</h2>
               <p style={{ fontSize: 16, lineHeight: 1.7, color: DIM, margin: '16px 0 0' }}>{t.breadIntro}</p>
             </div>
-            <div style={{ fontSize: 13.5, color: FAINT, fontStyle: 'italic' }}>{t.breadNote}</div>
+            {t.breadNote && <div style={{ fontSize: 13.5, color: FAINT, fontStyle: 'italic' }}>{t.breadNote}</div>}
           </div>
 
           {/* The loaves themselves carry the left of this section — the rack

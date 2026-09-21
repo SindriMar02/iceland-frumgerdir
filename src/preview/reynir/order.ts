@@ -709,7 +709,7 @@ export const ORDER_PRODUCTS: OrderProduct[] = [
     basePrice: 0,
     pricePerPerson: 930,
     sizeGroupId: 'staerd',
-    image: `${import.meta.env.BASE_URL}reynir/order/kransakaka.webp`,
+    image: `${import.meta.env.BASE_URL}reynir/order/kransakaka-030.webp`,
     leadDays: 2,
     groups: [
       {
@@ -1321,7 +1321,7 @@ export interface OrderCopy {
 /** UI copy for the configurator, kept beside its data so the whole flow reviews as one file. */
 export const ORDER_T: Record<Lang, OrderCopy> = {
   en: {
-    navOrder: 'Order',
+    navOrder: 'Orders',
     kicker: 'Order ahead',
     title: 'Build your order.',
     intro:
@@ -1461,7 +1461,7 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     charsLeft: (n: number) => `${n} characters left`,
   },
   is: {
-    navOrder: 'Panta',
+    navOrder: 'Pantanir',
     kicker: 'Pantað fyrirfram',
     title: 'Settu saman pöntun.',
     intro:

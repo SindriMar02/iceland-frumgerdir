@@ -266,11 +266,11 @@ export const FEATURE: MenuItem = {
  *  we can get without the owner's till. */
 export const MENU: MenuItem[] = [
   {
-    name: 'Vínarbrauðslengja með súkkulaði',
+    name: 'Vínarbrauðslengja með súkkulaðiglassúr',
     price: '1.395 kr.',
     desc: {
-      en: 'A long Danish pastry finished with chocolate, made to share.',
-      is: 'Vínarbrauðslengja með súkkulaði, tilvalin til að deila.',
+      en: 'A long Danish pastry under chocolate glaze, made to share.',
+      is: 'Vínarbrauðslengja með súkkulaðiglassúr, tilvalin til að deila.',
     },
   },
   {
@@ -333,7 +333,7 @@ export const MENU: MenuItem[] = [
   {
     name: 'Ostaslaufa',
     price: '640 kr.',
-    desc: { en: 'Cheese pastry, for when it should be savoury.', is: 'Ostaslaufa, þegar það á að vera salt.' },
+    desc: { en: 'Cheese pastry, one of our most popular.', is: 'Ostaslaufa, ein af okkar allra vinsælustu vörum.' },
   },
   {
     name: 'Kleina',
@@ -435,7 +435,8 @@ export const T = {
        you are leaving for a delivery platform. */
     ctaOrderOwn: 'Order a cake',
     ctaDelivery: 'Home delivery on aha.is',
-    ctaPathsNote: 'Cakes and party platters are ordered ahead, here on the site. Bread and pastries go out the same day through aha.is and Wolt.',
+    ctaWolt: 'Order on Wolt',
+    ctaPathsNote: 'Bread and pastries go out the same day through aha.is and Wolt. Cakes and party platters are ordered ahead, under Orders.',
     deliveryKicker: 'Same-day delivery',
     orderPrimary: 'aha.is',
     orderWolt: 'Wolt',
@@ -467,8 +468,8 @@ export const T = {
     featuredLabel: 'The house favourite',
     breadKicker: 'Baked from scratch',
     breadTitle: 'The bread.',
-    breadIntro: 'Sourdough and traditional Icelandic loaves, many of them sugar-free and made with Icelandic rapeseed oil.',
-    breadNote: 'Sugar-free and baked with Icelandic rapeseed oil.',
+    breadIntro: 'Sourdough, made to a century-old tradition and proved slowly for 24 hours.',
+    breadNote: '',
     galleryKicker: 'Behind the counter',
     galleryTitle: 'In the bakery.',
     galleryIntro: 'Sourdough on the bench and the ovens already running before the doors open. A look at the everyday craft, in photos.',
@@ -518,7 +519,8 @@ export const T = {
     navVisit: 'Heimsókn',
     ctaOrderOwn: 'Panta tertu',
     ctaDelivery: 'Heimsending á aha.is',
-    ctaPathsNote: 'Tertur og veisluborð eru pöntuð fyrirfram hér á síðunni. Brauð og bakkelsi fara heim sama dag gegnum aha.is og Wolt.',
+    ctaWolt: 'Panta á Wolt',
+    ctaPathsNote: 'Brauð og bakkelsi fara heim sama dag gegnum aha.is og Wolt. Tertur og veisluborð eru pöntuð fyrirfram undir Pantanir.',
     deliveryKicker: 'Heimsending sama dag',
     orderPrimary: 'aha.is',
     orderWolt: 'Wolt',
@@ -544,8 +546,8 @@ export const T = {
     featuredLabel: 'Uppáhald hússins',
     breadKicker: 'Bakað frá grunni',
     breadTitle: 'Brauðin.',
-    breadIntro: 'Súrdeigsbrauð og hefðbundin íslensk brauð, mörg sykurlaus og bökuð með íslenskri repjuolíu.',
-    breadNote: 'Sykurlaus og bökuð með íslenskri repjuolíu.',
+    breadIntro: 'Súrdeigsbrauð, löguð eftir aldargamalli hefð og langhefuð í 24 klukkutíma.',
+    breadNote: '',
     galleryKicker: 'Bakvið borðið',
     galleryTitle: 'Í bakaríinu.',
     galleryIntro: 'Súrdeigið á borðinu og ofnarnir komnir í gang áður en opnað er. Innsýn í daglegt handverk, í myndum.',

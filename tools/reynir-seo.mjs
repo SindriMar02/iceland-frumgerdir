@@ -634,7 +634,7 @@ function writeLlms() {
 - Orders: ${B.orderEmail}
 - Founded: ${B.founded} by Reynir Þorleifsson; run today by his sons Þorleifur Karl and Henry Þór
 - One location only. A former second shop at Hamraborg 14 closed around 2024.
-- Everything is baked on site from scratch. Many breads are sugar-free and made with Icelandic rapeseed oil.
+- Everything is baked on site from scratch. The sourdough is made to a century-old tradition and proved for 24 hours.
 
 ## What they sell
 - Sourdough and traditional Icelandic breads (hvítt and gróft súrdeigsbrauð, normalbrauð, döðlubrauð, rúnstykki)

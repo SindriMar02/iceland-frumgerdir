@@ -34,7 +34,7 @@ const PUB = join(dirname(fileURLToPath(import.meta.url)), '../public/reynir/orde
 
 const PHOTOS = [
   { docId: 'orderProduct-marsipanterta', file: 'marsipanterta.webp' },
-  { docId: 'orderProduct-kransakaka', file: 'kransakaka.webp' },
+  { docId: 'orderProduct-kransakaka', file: 'kransakaka-030.webp' },
   { docId: 'orderProduct-ricecrispies', file: 'ricecrispies.webp' },
   { docId: 'orderProduct-barnaterta', file: 'barnaterta.webp' },
 ]
