@@ -1,144 +1,145 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { isCompact, lenisOf } from './ui'
 
-/* The loading screen. Góa red, the crest rising out of a mask in the middle,
-   a paper hairline that fills with REAL progress (the fonts and the hero pack
-   shots), then the red wipes up and the crest flies into its slot in the
-   header. The header crest stays hidden until the flying one lands on it, so
-   the hand-off reads as one object.
+/* The intro, as noho plays it (§4.2 of _docs/noho-teardown.md), in Góa red
+   with the crest in the panel:
 
-   Bounded both ways: never shorter than MIN (a flash reads as a glitch),
-   never longer than MAX (a stalled image must not hold the page hostage).
-   Reduced motion: no flight, a short cross-fade, done. */
+     t 0.0  the panel rises from below and covers the screen   1.5s  preloader
+     t 0.5  the hero rises from a full viewport low to 31.9%   0.5s  hero1
+     t 1.0  ...and completes, covering the panel               1.0s  hero2
+            (the header rides the identical curve on desktop)
+     t 1.0  title lines + image grid rise out of their masks   1.0s  custom-our, 0.12 stagger
+     t 1.5  hero slogan                                        0.75s
 
-const MIN = 1250
-const MAX = 3600
+   The hitch at 31.9% is the whole effect: one continuous lift that reads as
+   weight rather than a slide. Scroll is released when the title lines land,
+   not when the timeline ends, so a visitor can leave before it is over.
+
+   Escape hatches (§4.2): a 12s watchdog, visibilitychange and bfcache
+   pageshow all jump to the end state. Declared deviation 9: the wait for
+   fonts and hero images before starting is capped at 1.2s. Reduced motion
+   skips the whole thing. On compact widths the header does not ride (the
+   mobile chrome standard: the bar never moves); it simply appears above the
+   rising hero. */
+
+const E = {
+  preloader: 'cubic-bezier(.5,0,0,1)',
+  hero1: 'cubic-bezier(.64,0,.47,.57)',
+  hero2: 'cubic-bezier(.16,.56,.44,1)',
+}
 
 export const HLEDSLA_CSS = `
-html:has(.goa-root.goa-hled){overflow:hidden}
+html:has(.goa-root.goa-laest){overflow:hidden}
 .goa-root.goa-hled .goa-hero .goa-up{transform:translateY(125%) !important;transition:none !important}
-.goa-root.goa-hled .goa-merkid img,.goa-root.goa-flug .goa-merkid img{visibility:hidden}
-
-.goa-hledB{position:fixed;inset:0;z-index:95;background:#C21514;
-  clip-path:inset(0 0 0 0);transition:clip-path .9s cubic-bezier(.76,0,.24,1)}
-.goa-hledB.ut{clip-path:inset(0 0 100% 0)}
-.goa-hledF{position:fixed;left:0;top:0;z-index:96;pointer-events:none;transform-origin:0 0;
-  will-change:transform;transition:transform 1s cubic-bezier(.76,0,.24,1)}
-.goa-hledM{overflow:hidden}
-.goa-hledM img{display:block;width:100%;height:auto;transform:translateY(105%);
-  transition:transform 1s cubic-bezier(.17,.17,0,1)}
-.goa-hledF.inn .goa-hledM img{transform:translateY(0)}
-.goa-hledL{position:fixed;z-index:96;left:50%;bottom:clamp(2.5rem,9vh,5rem);width:min(12rem,40vw);height:2px;
-  margin-left:calc(min(12rem,40vw) / -2);background:rgba(248,241,228,.28);overflow:hidden;
-  transition:opacity .3s ease-out}
-.goa-hledL i{display:block;height:100%;background:#F8F1E4;transform-origin:0 50%;
-  transform:scaleX(var(--p,0));transition:transform .35s ease-out}
-.goa-hledL.ut{opacity:0}
-.goa-hledT{position:fixed;z-index:96;left:0;right:0;bottom:calc(clamp(2.5rem,9vh,5rem) + 1rem);text-align:center;
-  color:#F8F1E4;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;font-variant-numeric:tabular-nums;
-  transition:opacity .3s ease-out}
-.goa-hledT.ut{opacity:0}
-@media (prefers-reduced-motion:reduce){
-  .goa-hledB{transition:opacity .3s ease-out}
-  .goa-hledB.ut{clip-path:inset(0 0 0 0);opacity:0}
-  .goa-hledF{transition:opacity .3s ease-out}
-  .goa-hledF.flug{opacity:0}
-  .goa-hledM img{transform:none;transition:none}
-}
+.goa-root.goa-hledB0 .goa-heroP{transform:translateY(100vh)}
+.goa-root.goa-hledB0 .goa-haus{visibility:hidden}
+.goa-root.goa-hledU .goa-heroP{position:relative;z-index:96;will-change:transform}
+.goa-root.goa-hledU .goa-haus{z-index:97;visibility:visible}
+.goa-plota{position:fixed;inset:0;z-index:95;background:#C21514;transform:translateY(100%);
+  display:grid;place-items:center;pointer-events:none}
+.goa-plotaM{overflow:hidden;width:min(34vh,15rem)}
+.goa-plotaM img{width:100%;height:auto;display:block;transform:translateY(105%);transition:transform 1s cubic-bezier(.17,.17,0,1) .35s}
+.goa-plota.inn .goa-plotaM img{transform:none}
 `
 
 const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
 
-type Stig = 'inn' | 'ut' | 'buid'
-
 export function Hledsla() {
-  const [stig, setStig] = useState<Stig>('inn')
-  const [p, setP] = useState(0)
-  const [kominn, setKominn] = useState(false)
-  const [ferd, setFerd] = useState<string | null>(null)
-
-  /* place the crest centred on screen; its width is what the flight scales from */
-  const [box, setBox] = useState(() => {
-    const vh = typeof window === 'undefined' ? 800 : window.innerHeight
-    const vw = typeof window === 'undefined' ? 1200 : window.innerWidth
-    const h = Math.min(vh * 0.42, 380)
-    const w = h * (184 / 230)
-    return { w, x: (vw - w) / 2, y: (vh - h) / 2 - vh * 0.03 }
-  })
-  const boxRef = useRef(box)
-  boxRef.current = box
+  const [buid, setBuid] = useState(() => typeof window === 'undefined' ? false : reduced())
+  const [inn, setInn] = useState(false)
 
   useEffect(() => {
+    if (buid) return
     const root = document.querySelector('.goa-root') as HTMLElement | null
-    root?.classList.add('goa-hled')
-    const lenis = (window as unknown as { __goaLenis?: { stop: () => void; start: () => void } }).__goaLenis
-    lenis?.stop()
-    const t0 = performance.now()
-    const rm = reduced()
-    const onResize = () => {
-      const vh = window.innerHeight, vw = window.innerWidth
-      const h = Math.min(vh * 0.42, 380), w = h * (184 / 230)
-      setBox({ w, x: (vw - w) / 2, y: (vh - h) / 2 - vh * 0.03 })
-    }
-    window.addEventListener('resize', onResize)
-
-    /* real progress: fonts + every hero pack shot */
-    const imgs = [...document.querySelectorAll<HTMLImageElement>('.goa-hero img, .goa-hledM img')]
-    const jobs: Promise<unknown>[] = [
-      document.fonts?.ready ?? Promise.resolve(),
-      ...imgs.map((im) => (im.complete ? Promise.resolve() : new Promise((r) => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }) }))),
-    ]
-    let done = 0
-    jobs.forEach((j) => j.then(() => { done += 1; setP(done / jobs.length) }))
-
+    const plota = document.querySelector('.goa-plota') as HTMLElement | null
+    const heroP = document.querySelector('.goa-heroP') as HTMLElement | null
+    const haus = document.querySelector('.goa-haus') as HTMLElement | null
+    if (!root || !plota || !heroP) { setBuid(true); return }
+    root.classList.add('goa-hled', 'goa-hledB0', 'goa-laest')
+    const anims: Animation[] = []
+    const timers: number[] = []
     let lokid = false
+
     const klara = () => {
       if (lokid) return
       lokid = true
-      setP(1)
-      const wait = Math.max(0, (rm ? 300 : MIN) - (performance.now() - t0))
-      window.setTimeout(() => {
-        /* aim the flying crest at the header crest's real box */
-        const target = document.querySelector('.goa-merkid img')?.getBoundingClientRect()
-        if (target && target.width && !rm) {
-          setFerd(`translate3d(${target.left}px,${target.top}px,0) scale(${target.width / boxRef.current.w})`)
-        }
-        root?.classList.remove('goa-hled')
-        root?.classList.add('goa-flug')
-        setStig('ut')
-        lenis?.start()
-        window.setTimeout(() => {
-          root?.classList.remove('goa-flug')
-          setStig('buid')
-        }, rm ? 320 : 1050)
-      }, wait)
+      /* land every animated element on its end state, then drop the
+         animations so nothing keeps a compositing layer afterwards */
+      anims.forEach((a) => { try { a.finish(); a.cancel() } catch { /* already done */ } })
+      timers.forEach((t) => window.clearTimeout(t))
+      root.classList.remove('goa-hled', 'goa-hledB0', 'goa-hledU', 'goa-laest')
+      heroP.style.transform = ''
+      if (haus) haus.style.transform = ''
+      root.querySelectorAll('.goa-hero .goa-up, .goa-hero [class*="goa-"]').forEach((n) => n.classList.add('on'))
+      lenisOf()?.start(); lenisOf()?.resize()
+      setBuid(true)
     }
-    Promise.all(jobs).then(klara)
-    const cap = window.setTimeout(klara, MAX)
+
+    const byrja = () => {
+      if (lokid) return
+      const ride = !isCompact()
+      /* 0.0: the panel rises */
+      anims.push(plota.animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
+        { duration: 1500, easing: E.preloader, fill: 'forwards' }))
+      setInn(true)
+      /* 0.5: the hero, and on desktop the header, rise in two stages */
+      timers.push(window.setTimeout(() => {
+        root.classList.remove('goa-hledB0'); root.classList.add('goa-hledU')
+        const k: Keyframe[] = [
+          { transform: 'translateY(100vh)', easing: E.hero1 },
+          { transform: 'translateY(31.9vh)', offset: 1 / 3, easing: E.hero2 },
+          { transform: 'translateY(0)' },
+        ]
+        anims.push(heroP.animate(k, { duration: 1500, fill: 'forwards' }))
+        if (ride && haus) anims.push(haus.animate(k, { duration: 1500, fill: 'forwards' }))
+      }, 500))
+      /* 1.0: title lines and grid */
+      timers.push(window.setTimeout(() => {
+        root.classList.remove('goa-hled')
+        root.querySelectorAll('.goa-hero .goa-heroT, .goa-hero .goa-rist').forEach((n) => n.classList.add('on'))
+      }, 1000))
+      /* ~2.36: the title lines have landed, scroll is released */
+      timers.push(window.setTimeout(() => { root.classList.remove('goa-laest'); lenisOf()?.start() }, 2360))
+      /* 2.0 + settle: tidy up */
+      timers.push(window.setTimeout(klara, 2600))
+    }
+
+    lenisOf()?.stop()
+    /* fonts and the hero pack shots, capped at 1.2s */
+    const imgs = [...root.querySelectorAll<HTMLImageElement>('.goa-hero img')]
+    const klar = Promise.all([
+      document.fonts?.ready ?? Promise.resolve(),
+      ...imgs.map((im) => (im.complete ? Promise.resolve() : new Promise((r) => { im.addEventListener('load', r, { once: true }); im.addEventListener('error', r, { once: true }) }))),
+    ])
+    const cap = new Promise((r) => window.setTimeout(r, 1200))
+    void Promise.race([klar, cap]).then(byrja)
+
+    const wd = window.setTimeout(klara, 12000)
+    const vis = () => { if (document.hidden) klara() }
+    const show = (e: PageTransitionEvent) => { if (e.persisted) klara() }
+    document.addEventListener('visibilitychange', vis)
+    window.addEventListener('pageshow', show)
     return () => {
-      window.clearTimeout(cap)
-      window.removeEventListener('resize', onResize)
-      root?.classList.remove('goa-hled', 'goa-flug')
-      lenis?.start()
+      /* teardown without finishing: under StrictMode the effect runs twice
+         in development, and finishing here would skip the intro entirely */
+      lokid = true
+      window.clearTimeout(wd)
+      timers.forEach((t) => window.clearTimeout(t))
+      anims.forEach((a) => a.cancel())
+      root.classList.remove('goa-hled', 'goa-hledB0', 'goa-hledU', 'goa-laest')
+      document.removeEventListener('visibilitychange', vis)
+      window.removeEventListener('pageshow', show)
+      lenisOf()?.start()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (stig === 'buid') return null
-  const ut = stig === 'ut'
+  if (buid) return null
   return (
-    <div aria-hidden="true">
-      <div className={`goa-hledB${ut ? ' ut' : ''}`} />
-      <div className={`goa-hledF${kominn ? ' inn' : ''}${ut ? ' flug' : ''}`}
-        style={{ width: box.w, transform: ut && ferd ? ferd : `translate3d(${box.x}px,${box.y}px,0)` }}>
-        <div className="goa-hledM">
-          {/* rise only once the crest has actually loaded, or on a slow
-              connection the mask lifts an empty box */}
-          <img src={`${import.meta.env.BASE_URL}goa/goa-merki-stort.svg`} alt="" width={184} height={230}
-            ref={(im) => { if (im?.complete && im.naturalWidth && !kominn) requestAnimationFrame(() => setKominn(true)) }}
-            onLoad={() => requestAnimationFrame(() => requestAnimationFrame(() => setKominn(true)))} />
-        </div>
+    <div className={`goa-plota${inn ? ' inn' : ''}`} aria-hidden="true">
+      <div className="goa-plotaM">
+        <img src={`${import.meta.env.BASE_URL}goa/goa-merki-stort.svg`} alt="" width={184} height={230} />
       </div>
-      <p className={`goa-hledT${ut ? ' ut' : ''}`}>Sælgætisgerð síðan 1968</p>
-      <div className={`goa-hledL${ut ? ' ut' : ''}`} style={{ ['--p' as string]: p }}><i /></div>
     </div>
   )
 }

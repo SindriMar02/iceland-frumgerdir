@@ -40,7 +40,7 @@ const MYNDIR: Mynd[] = [
 ]
 
 export const REGN_CSS = `
-.goa-regn{position:relative;padding:var(--band) 0 0}
+.goa-regn{position:relative}
 .goa-regnH{padding:0 var(--gut);position:relative;z-index:3;pointer-events:none}
 .goa-regnH p{margin:.9rem 0 0;max-width:34ch;opacity:.8}
 .goa-svid{position:relative;z-index:1;height:clamp(30rem,82svh,52rem);margin-top:calc(clamp(8rem,22vh,14rem) * -1);

@@ -241,3 +241,94 @@ export const companyEntry: PreviewCompany = {
   /* No outreach drafted: Sindri has authorized the build only. */
   outreach: { subject: '', body: '' },
 }
+
+/* ------------------------------------------------------------------
+   Copy for the noho-fidelity rebuild (2026-09-21). Same rule as above:
+   every fact is Góa's own, from goa.is.
+   ------------------------------------------------------------------ */
+
+/* The three cards under "Góðgæti síðan 1968" (noho's advantages strip). */
+export const KORT3 = [
+  { m: 'Stofnuð 1. janúar 1968', t: 'Ein karamelluvél', nr: '01' },
+  { m: 'Hraun síðan 1973', t: 'Vinsælasta varan frá upphafi', nr: '02' },
+  { m: 'Um fimmtíu starfsmenn', t: 'Sumir í yfir fjörutíu ár', nr: '03' },
+]
+
+/* The two product panels, with their variants as swatches. The swatch
+   colour is sampled off each wrapper. */
+export const SPJOLD = [
+  {
+    merki: 'Góa · síðan 1973', titill: 'Hraun',
+    tegundir: [
+      { nr: '11101', n: 'Hraun', pk: '30 g × 24 stk.', img: 'hraun', lit: '#DD9C2F', pdf: '/uploads/hraun-bitar-vorulysing.pdf' },
+      { nr: '11105', n: 'Risahraun', pk: '55 g × 20 stk.', img: 'risahraun', lit: '#B8411E', pdf: '/uploads/hraun-bitar-vorulysing_(2).pdf' },
+      { nr: '11104', n: 'Lava', pk: '30 g × 24 stk.', img: 'lava', lit: '#2B2E3F', pdf: '' },
+    ],
+  },
+  {
+    merki: 'Linda · frá Akureyri', titill: 'Lindu súkkulaði',
+    tegundir: [
+      { nr: '121320', n: 'Lindu mjólkursúkkulaði', pk: '100 g × 24 stk.', img: 'lindu-mjolkursukkuladi', lit: '#6D4A2B', pdf: '/uploads/Innihaldslýsingar mjólkursúkkulaði.pdf' },
+      { nr: '121202', n: 'Lindu suðusúkkulaði', pk: '200 g × 28 stk.', img: 'lindu-sudusukkuladi', lit: '#2B1C14', pdf: '/uploads/Innihaldslýsing suðusúkkulaði.pdf' },
+      { nr: '121315', n: 'Lindor hvítt súkkulaði', pk: '100 g × 24 stk.', img: 'lindor', lit: '#FDC851', pdf: '/uploads/Innihaldslýsing hvítt súkkulaði_(3).pdf' },
+      { nr: '121310', n: 'Lindu appelsínusúkkulaði', pk: '100 g × 24 stk.', img: 'lindu-appelsinu-100', lit: '#F08A2E', pdf: '/uploads/Innihaldslýsing appelsínusúkkulaði_(1).pdf' },
+    ],
+  },
+]
+
+/* The story carousel: one card per catalogue category. */
+export const LINUR = [
+  { s: 'gou', t: 'Góu vörur', img: 'floridabitar', g: '#F6A93A', d: 'Hraun, Æði, Prins, Flórída, Brak, kúlur, karamellur og hlaup.' },
+  { s: 'linda', t: 'Lindu vörur', img: 'lindu-appelsinu-40', g: '#D0161F', d: 'Súkkulaðið að norðan: buff, Lindor, suðusúkkulaði og stangir.' },
+  { s: 'appolo', t: 'Appolo lakkrís', img: 'appolo-pipar-hjup', g: '#BAE31C', d: 'Rúllur, reimar, kurl, molar og lakkríssúkkulaði.' },
+  { s: 'lausu', t: 'Sælgæti í lausu', img: 'appolo-kurl-lausu', g: '#F9D100', d: 'Eitt til þrjú og hálft kíló, fyrir nammibari og bland í poka.' },
+  { s: 'paskar', t: 'Páskar', img: 'paskaegg-7', g: '#6F238C', d: 'Páskaeggin frá nr. 3 upp í nr. 11, og Hraun, Appolo og Lindor egg.' },
+  { s: 'isbudir', t: 'Ísbúðir', img: 'brak', g: '#B80914', d: 'Brak, kurl, spænir og hlaup í stórum pakkningum.' },
+  { s: 'fjaroflun', t: 'Fjáröflun', img: 'appolo-kurl', g: '#4B475E', d: 'Lakkrísafklippur, 500 kr. fyrir 450 g, og bland í poka.' },
+]
+
+/* The history as noho's awards table: a group label, then rows with the
+   year on the right. */
+export const SOGUHOPAR = [
+  { h: 'Góa', r: [{ t: 'Sælgætisgerðin stofnuð, með eina karamelluvél', a: '1968' }, { t: 'Framleiðsla á Hraun-súkkulaðinu hefst', a: '1973' }] },
+  { h: 'Linda', r: [{ t: 'Góa í Hafnarfirði og Linda á Akureyri sameinast', a: '1993' }] },
+  { h: 'Lakkrís', r: [{ t: 'Góa kaupir rekstur lakkrísgerðarinnar Drift sf.', a: '2002' }] },
+  { h: 'Súkkulaði', r: [{ t: 'Góa kaupir framleiðslutæki Omnom og tekur við framleiðslunni', a: '2025' }] },
+]
+
+/* Spurt og svarað: each answer is a fact already on goa.is. */
+export const SPURT = [
+  { q: 'Hvernig panta verslanir hjá Góu?', a: 'Settu vörur í nammipokann og sendu pöntunina, eða skrifaðu á pantanir@goa.is. Núverandi viðskiptavinir gefa upp viðskiptanúmer eða kennitölu, nýir gefa upp upplýsingar um fyrirtækið.' },
+  { q: 'Hvað kostar lakkrís til fjáröflunar?', a: 'Lakkrísafklippur kosta 500 kr. fyrir 450 g og bland í poka 1.000 kr. fyrir 650 g. Ef pantaðir eru fleiri en 100 pokar þarf að hafa samband og leggja inn pöntun.' },
+  { q: 'Hvar finn ég innihaldslýsingar?', a: 'Við flestar vörur í vörulistanum er innihaldslýsing á PDF formi, ásamt vörunúmeri og pakkningu.' },
+  { q: 'Hvenær er Lakkríssalan opin?', a: 'Lakkríssalan í Garðahrauni 2 er opin virka daga frá 8.00 til 16.00. Skrifstofan er opin virka daga frá 8.30 til 16.30.' },
+  { q: 'Hvernig sæki ég um styrk?', a: 'Góa tekur við umsóknum um styrki. Sendu nafn, netfang og stutta skýringu á goa@goa.is.' },
+  { q: 'Get ég fengið merki og vörumyndir?', a: 'Merkjapakkar Góu, Lindu og Appolo (ai, jpg, png) og prentvænar vörumyndir eru til niðurhals á goa.is.' },
+]
+
+/* The gallery strip. */
+export const GALLERI = [
+  { img: 'karamellur', nr: '11555', n: 'Karamellur', pk: '150 g × 16 stk.', g: '#FFAB03', pdf: '/uploads/2016-09-14-karamellur-og-toffisleikjo_(8).pdf' },
+  { img: 'brak', nr: '11171', n: 'Brak', pk: '150 g × 20 stk.', g: '#B80914', pdf: '/uploads/Innihaldslýsing Brak_(1).pdf' },
+  { img: 'paskaegg-3', nr: '11830', n: 'Góu egg nr. 3', pk: '155 g', g: '#6F238C', pdf: '' },
+  { img: 'appolo-hjup', nr: '11625', n: 'Appolo lakkrís molar', pk: '150 g × 24 stk.', g: '#4B475E', pdf: '/uploads/Innihaldslýsing súkkulaðihúðaður svartur lakkrís .pdf' },
+  { img: 'toffi-sleikjo', nr: '11546', n: 'Toffí sleikjó', pk: '200 g × 20 stk.', g: '#D46F0D', pdf: '/uploads/2016-09-14-karamellur-og-toffisleikjo_(7).pdf' },
+  { img: 'bangsahlaup', nr: '11032', n: 'Bangsahlaup', pk: '150 g × 24 stk.', g: '#E3013D', pdf: '/uploads/Innihaldslýsingar  Góu Snuddu og bangsahlaup_(7).pdf' },
+  { img: 'lava-marshmallow', nr: '11288', n: 'Lava marshmallow', pk: '250 g × 12 stk.', g: '#3A3C31', pdf: '/uploads/Innihaldslýsingar lava marshmallow.pdf' },
+  { img: 'paskaegg-hraun-5', nr: '11846', n: 'Hraunegg nr. 5', pk: '450 g', g: '#DD9C2F', pdf: '' },
+  { img: 'bingokulur', nr: '11326', n: 'Bingókúlur', pk: '150 g × 24 stk.', g: '#544E46', pdf: '/uploads/Innihaldslýsing Bingo-lakkrískúlur_(2).pdf' },
+  { img: 'appolo-pipar-hjup', nr: '11640', n: 'Appolo piparfylltir molar', pk: '150 g × 24 stk.', g: '#BAE31C', pdf: '/uploads/Innihaldslýsing súkkulaði fyllt m piparlakkrís_(1).pdf' },
+  { img: 'filakulur', nr: '11729', n: 'Fílakúlur', pk: '550 g × 16 stk.', g: '#F9D100', pdf: '/uploads/Innihaldslýsingar Fílakúlur_(3).pdf' },
+  { img: 'floridabitar', nr: '11245', n: 'Floridabitar', pk: '200 g × 12 stk.', g: '#F6A93A', pdf: '/uploads/Innihaldslýsing Florida.pdf' },
+  { img: 'paskaegg-lindor-4', nr: '11848', n: 'Lindor hvítt súkkulaðiegg', pk: '325 g', g: '#FDC851', pdf: '' },
+  { img: 'appolo-kurl', nr: '10220', n: 'Appolo lakkrískurl', pk: '150 g × 28 stk.', g: '#282928', pdf: '/uploads/innihaldlýsing appolo-lakkris svartur_(7).pdf' },
+  { img: 'appolo-fylltar-reimar', nr: '10121', n: 'Appolo fylltar reimar', pk: '80 g × 28 stk.', g: '#F9D100', pdf: '/uploads/Innihaldslysing-Fylltur-lakkris_(3).pdf' },
+  { img: 'paskaegg-appolo-5', nr: '11840', n: 'Lakkrísegg nr. 5', pk: '450 g', g: '#2A2A2A', pdf: '' },
+]
+
+/* The quote's image chips cycle through these (noho §4.6). */
+export const SETNING_HRINGUR: Record<string, string[]> = {
+  Hraun: ['hraun', 'risahraun', 'lava'],
+  'Lindu mjólkursúkkulaði': ['lindu-mjolkursukkuladi', 'lindor', 'lindu-appelsinu-100', 'lindu-sudusukkuladi'],
+  'Appolo piparfylltur Hjúp': ['appolo-pipar-hjup', 'appolo-hjup', 'appolo-kurl'],
+}
