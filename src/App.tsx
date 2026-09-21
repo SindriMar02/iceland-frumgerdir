@@ -180,6 +180,7 @@ const HbhProject = lazy(() => import('./preview/hbh/Project'))
 const RobertsPage = lazy(() => import('./preview/roberts/Page'))
 const RobertsProject = lazy(() => import('./preview/roberts/Project'))
 const GoaPage = lazy(() => import('./preview/goa/Page'))
+const FagravikPage = lazy(() => import('./preview/fagravik/Page'))
 const ChrisLundPage = lazy(() => import('./preview/chrislund/Page'))
 const ChrisLundSafnPage = lazy(() => import('./preview/chrislund/Safn'))
 const ChrisLundServicePage = lazy(() => import('./preview/chrislund/Thjonusta'))
@@ -434,6 +435,7 @@ export default function App() {
             <Route path="/preview/roberts" element={<RobertsPage />} />
             <Route path="/preview/roberts/verk/:slug" element={<RobertsProject />} />
             <Route path="/preview/goa" element={<GoaPage />} />
+            <Route path="/preview/fagravik" element={<FagravikPage />} />
             <Route path="/preview/chrislund" element={<ChrisLundPage />} />
             <Route path="/preview/chrislund/safn" element={<ChrisLundSafnPage />} />
             <Route path="/preview/chrislund/prentun" element={<ChrisLundServicePage slug="prentun" />} />
