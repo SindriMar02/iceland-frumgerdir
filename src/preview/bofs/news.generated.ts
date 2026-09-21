@@ -6,14 +6,30 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-09-20T11:23:35.652Z
+ * Last synced: 2026-09-21T12:48:08.576Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 20. september 2026', en: 'Updated 20 September 2026' }
+export const SYNCED_AT = { is: 'Uppfært 21. september 2026', en: 'Updated 21 September 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
+  {
+    "date": "21.09.2026",
+    "source": "Stjórnarráðið",
+    "topic": "samstarf",
+    "title": {
+      "is": "Styrkir til sveitarfélaga í þágu farsældar barna",
+      "en": "Styrkir til sveitarfélaga í þágu farsældar barna"
+    },
+    "href": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/styrkir-til-sveitarfelaga-i-thagu-farsaeldar-barna",
+    "untranslated": true,
+    "summary": {
+      "is": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240; augl&#253;sir eftir ums&#243;knum sveitarf&#233;laga um styrki til verkefna sem mi&#240;a a&#240; &#254;v&#237; a&#240; efla fars&#230;ld barna. Styrkirnir eru hluti af a&#240;ger&#240;um stj&#243;rnvalda...",
+      "en": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240; augl&#253;sir eftir ums&#243;knum sveitarf&#233;laga um styrki til verkefna sem mi&#240;a a&#240; &#254;v&#237; a&#240; efla fars&#230;ld barna. Styrkirnir eru hluti af a&#240;ger&#240;um stj&#243;rnvalda..."
+    },
+    "summaryUntranslated": true
+  },
   {
     "date": "24.07.2026",
     "source": "BOFS",
@@ -44,22 +60,6 @@ export const SYNCED_NEWS: NewsItem[] = [
         }
       }
     ]
-  },
-  {
-    "date": "23.07.2026",
-    "source": "Stjórnarráðið",
-    "topic": "barnavernd",
-    "title": {
-      "is": "Frumvarpsdrög um breyttan útivistartíma barna kynnt til samráðs",
-      "en": "Frumvarpsdrög um breyttan útivistartíma barna kynnt til samráðs"
-    },
-    "href": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-07-23--Frumvarpsdrog-um-breyttan-utivistartima-barna-kynnt-til-samrads",
-    "untranslated": true,
-    "summary": {
-      "is": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240; hefur birt &#237; Samr&#225;&#240;sg&#225;tt stj&#243;rnvalda dr&#246;g a&#240; frumvarpi um breytingu &#225; barnaverndarl&#246;gum, nr. 80/2002, sem var&#240;ar &#250;tivistart&#237;ma barna.",
-      "en": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240; hefur birt &#237; Samr&#225;&#240;sg&#225;tt stj&#243;rnvalda dr&#246;g a&#240; frumvarpi um breytingu &#225; barnaverndarl&#246;gum, nr. 80/2002, sem var&#240;ar &#250;tivistart&#237;ma barna."
-    },
-    "summaryUntranslated": true
   },
   {
     "date": "14.07.2026",
