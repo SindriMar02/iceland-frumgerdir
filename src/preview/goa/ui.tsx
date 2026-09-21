@@ -92,8 +92,12 @@ ${TOK.map(([k, v]) => `@property ${k}{syntax:'<color>';inherits:true;initial-val
   --c-ink:#F3EADB; --c-ink-med:rgba(243,234,219,.6); --c-ink-max:rgba(243,234,219,.45);
   --c-btn:#F3EADB; --c-btn-t:#1C0D0D; --c-btn2:#2A1A10; --c-btn2-t:#FFFDF8;
   --c-form:#F3EADB; --c-rautt:#F9D100; --c-lina:rgba(243,234,219,.18);
+  --c-hdr:#1F130B; --c-hdr-t:#F3EADB;
 }
 .goa-root > main{display:contents}
+/* the shared prototype credit follows main inside the root; without this
+   it sat one section gap below the red footer, on a bare brown/cream band */
+.goa-root > main + *{margin-top:calc(-1 * var(--gap))}
 .goa-root *,.goa-root *::before,.goa-root *::after{box-sizing:border-box}
 .goa-root{touch-action:manipulation;-webkit-tap-highlight-color:rgba(194,21,20,.14)}
 .goa-root{color-scheme:light}
@@ -225,9 +229,9 @@ html:has(.goa-root[data-tema="dokkt"]),body:has(.goa-root[data-tema="dokkt"]){ba
 /* energy readout: High/Med/Low as coloured pills in a clipped column that
    rolls one pill per state (§4.7). noho's high/med/low are orange/yellow/lime;
    here Toffí orange, crown gold and pipar lime. */
-.goa-orkaG{display:inline-block;height:1.35em;overflow:hidden;border-radius:999px;vertical-align:middle}
-.goa-orkaR{display:block;transition:transform .4s var(--ease);transform:translateY(calc(var(--stig,0) * -1.35em))}
-.goa-orkaR span{display:block;height:1.35em;line-height:1.35em;padding:0 .6em;font-size:.72rem;font-weight:600;
+.goa-orkaG{display:inline-block;height:1.35em;overflow:hidden;border-radius:999px;vertical-align:middle;font-size:.72rem}
+.goa-orkaR{display:block;transition:transform .4s var(--ease);transform:translateY(calc(var(--stig,0) * -1.85em))}
+.goa-orkaR span{display:block;height:1.35em;line-height:1.35em;margin-bottom:.5em;padding:0 .6em;font-weight:600;
   color:#2D1105;border-radius:999px}
 .goa-orkaR span:nth-child(1){background:#F0913F}.goa-orkaR span:nth-child(2){background:#F9D100}
 .goa-orkaR span:nth-child(3){background:#BAE31C}
@@ -235,7 +239,10 @@ html:has(.goa-root[data-tema="dokkt"]),body:has(.goa-root[data-tema="dokkt"]){ba
 .goa-orka[aria-expanded="true"] svg{transform:rotate(180deg)}
 
 /* panels hang under the bar in a clip box and drop from -101% (§4b.3) */
-.goa-panK{position:absolute;top:100%;right:0;overflow:hidden;pointer-events:none}
+.goa-panK{position:absolute;top:100%;right:0;overflow:hidden;pointer-events:none;display:grid}
+/* both panels share one cell: a closed one must not take height and push the
+   open one down the screen (found on the iPhone, 2026-09-21) */
+.goa-panK > .goa-pan{grid-area:1/1;align-self:start}
 .goa-pan{pointer-events:auto;background:var(--c-hdr);color:var(--c-hdr-t);transform:translateY(-101%);
   visibility:hidden;transition:transform .4s var(--ease),visibility 0s .4s}
 .goa-pan.opid{transform:none;visibility:visible;transition:transform .4s var(--ease),visibility 0s}
@@ -249,7 +256,9 @@ html:has(.goa-root[data-tema="dokkt"]),body:has(.goa-root[data-tema="dokkt"]){ba
 .goa-rofi i{position:absolute;left:calc(50% - 12px);top:50%;margin-top:-5.5px;width:11px;height:11px;border-radius:3px;
   background:#FFFDF8;display:block;transition:transform .2s var(--ease)}
 .goa-rofi[aria-checked="true"] i{transform:translateX(13px)}
-.goa-pan .goa-smatt{color:rgba(45,17,5,.6)}
+.goa-pan .goa-smatt{color:color-mix(in srgb,var(--c-hdr-t) 62%,transparent)}
+.goa-root[data-tema="dokkt"] .goa-rofi::before{background:var(--c-el3)}
+.goa-root[data-tema="dokkt"] .goa-rofi[aria-checked="true"]::before{background:var(--c-rautt)}
 
 /* compact (§5.4): the mobile chrome standard, not noho's floating bar. A
    constant full-width bar in the page's own paper, never hides or moves;
@@ -273,10 +282,10 @@ html:has(.goa-root[data-tema="dokkt"]),body:has(.goa-root[data-tema="dokkt"]){ba
   overscroll-behavior:contain}
 .goa-valKort{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.6rem}
 .goa-valKort a{background:var(--c-el);display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.9rem .5rem .7rem;
-  font-size:.86rem;color:#2D1105}
+  font-size:.86rem;color:var(--c-hdr-t)}
 .goa-valKort img{height:96px;width:auto;object-fit:contain}
 .goa-valRod{display:grid}
-.goa-valRod a{display:flex;align-items:center;min-height:52px;padding:0 .9rem;background:#F4EBDB;margin-bottom:2px;overflow:hidden}
+.goa-valRod a{display:flex;align-items:center;min-height:52px;padding:0 .9rem;background:var(--c-el);margin-bottom:2px;overflow:hidden}
 .goa-valRod a span{display:block;transform:translateY(105%);transition:transform .2s cubic-bezier(.4,0,1,1)}
 .goa-pan.opid .goa-valRod a span{transform:none;transition:transform .55s var(--ease);transition-delay:calc(.08s + var(--i,0) * .04s)}
 .goa-valPan .goa-btn{margin-top:.4rem}
@@ -478,8 +487,13 @@ export function Bendill() {
   )
 }
 
-/* React 18's types do not know `inert`, so it is set through a ref. A closed
-   panel is inert: out of the tab order and the accessibility tree. */
+/* React 18's types do not know `inert`, so it is set through a ref. Used only
+   on the desktop nav row, which slides out of view rather than hiding. The
+   dropdown panels, the popup and the order drawer are visibility:hidden when
+   closed, which already takes them out of the tab order and the
+   accessibility tree; toggling inert on them as well cost the first tap after
+   opening on iOS Safari, which does not refresh its hit-testing when inert
+   is removed (found in the Simulator, 2026-09-21). */
 export const inertNar = (lokad: boolean) => (el: HTMLElement | null) => { el?.toggleAttribute('inert', lokad) }
 
 /* ---------------------------------------------------------------- *
@@ -634,7 +648,7 @@ export function Haus() {
           <span><i /><i /><i /></span>
         </button>
         <div className="goa-panK">
-          <div id="goa-orkuPan" className={`goa-pan goa-orkuPan${orka ? ' opid' : ''}`} ref={inertNar(!orka)}>
+          <div id="goa-orkuPan" className={`goa-pan goa-orkuPan${orka ? ' opid' : ''}`}>
             <div>
               <h3>Orkunotkun <OrkuMerki stig={o.stig} /></h3>
               <p className="goa-smatt" style={{ margin: 0 }}>
@@ -660,7 +674,7 @@ export function Haus() {
               </div>
             </div>
           </div>
-          <div id="goa-valPan" className={`goa-pan goa-valPan${valmynd ? ' opid' : ''}`} ref={inertNar(!valmynd)}
+          <div id="goa-valPan" className={`goa-pan goa-valPan${valmynd ? ' opid' : ''}`}
             style={{ display: undefined }}>
             <div className="goa-valKort">
               <a href="#vorur" onClick={(e) => fara(e, '#vorur')}>

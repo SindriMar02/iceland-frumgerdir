@@ -5,11 +5,12 @@ import { isCompact, lenisOf } from './ui'
    with the crest in the panel:
 
      t 0.0  the panel rises from below and covers the screen   1.5s  preloader
-     t 0.5  the hero rises from a full viewport low to 31.9%   0.5s  hero1
-     t 1.0  ...and completes, covering the panel               1.0s  hero2
+     t 1.9  the hero rises from a full viewport low to 31.9%   0.5s  hero1
+     t 2.4  ...and completes, covering the panel               1.0s  hero2
             (the header rides the identical curve on desktop)
-     t 1.0  title lines + image grid rise out of their masks   1.0s  custom-our, 0.12 stagger
-     t 1.5  hero slogan                                        0.75s
+     t 2.4  title lines + image grid rise out of their masks   1.0s  custom-our, 0.12 stagger
+     t 2.9  hero slogan                                        0.75s
+   (noho's own hero start is 0.5s; see HERO below for why Góa's is later)
 
    The hitch at 31.9% is the whole effect: one continuous lift that reads as
    weight rather than a slide. Scroll is released when the title lines land,
@@ -21,6 +22,13 @@ import { isCompact, lenisOf } from './ui'
    skips the whole thing. On compact widths the header does not ride (the
    mobile chrome standard: the bar never moves); it simply appears above the
    rising hero. */
+
+/* When the hero starts to rise. noho starts it at 0.5s, while its panel is
+   still coming up; Góa's panel carries the crest, and Sindri wanted the crest
+   on screen longer (2026-09-21). So the panel rises (1.5s), the crest rises
+   in with it and lands at ~1.2s, holds, and only then does the page come up
+   over it. The two-stage lift itself is unchanged. */
+const HERO = 1900
 
 const E = {
   preloader: 'cubic-bezier(.5,0,0,1)',
@@ -38,7 +46,7 @@ html:has(.goa-root.goa-laest){overflow:hidden}
 .goa-plota{position:fixed;inset:0;z-index:95;background:#C21514;transform:translateY(100%);
   display:grid;place-items:center;pointer-events:none}
 .goa-plotaM{overflow:hidden;width:min(34vh,15rem)}
-.goa-plotaM img{width:100%;height:auto;display:block;transform:translateY(105%);transition:transform 1s cubic-bezier(.17,.17,0,1) .35s}
+.goa-plotaM img{width:100%;height:auto;display:block;transform:translateY(105%);transition:transform 1s cubic-bezier(.17,.17,0,1) .2s}
 .goa-plota.inn .goa-plotaM img{transform:none}
 `
 
@@ -82,7 +90,7 @@ export function Hledsla() {
       anims.push(plota.animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
         { duration: 1500, easing: E.preloader, fill: 'forwards' }))
       setInn(true)
-      /* 0.5: the hero, and on desktop the header, rise in two stages */
+      /* HERO: the hero, and on desktop the header, rise in two stages */
       timers.push(window.setTimeout(() => {
         root.classList.remove('goa-hledB0'); root.classList.add('goa-hledU')
         const k: Keyframe[] = [
@@ -92,16 +100,16 @@ export function Hledsla() {
         ]
         anims.push(heroP.animate(k, { duration: 1500, fill: 'forwards' }))
         if (ride && haus) anims.push(haus.animate(k, { duration: 1500, fill: 'forwards' }))
-      }, 500))
-      /* 1.0: title lines and grid */
+      }, HERO))
+      /* HERO + 0.5: title lines and grid */
       timers.push(window.setTimeout(() => {
         root.classList.remove('goa-hled')
         root.querySelectorAll('.goa-hero .goa-heroT, .goa-hero .goa-rist').forEach((n) => n.classList.add('on'))
-      }, 1000))
-      /* ~2.36: the title lines have landed, scroll is released */
-      timers.push(window.setTimeout(() => { root.classList.remove('goa-laest'); lenisOf()?.start() }, 2360))
-      /* 2.0 + settle: tidy up */
-      timers.push(window.setTimeout(klara, 2600))
+      }, HERO + 500))
+      /* HERO + ~1.86: the title lines have landed, scroll is released */
+      timers.push(window.setTimeout(() => { root.classList.remove('goa-laest'); lenisOf()?.start() }, HERO + 1860))
+      /* settle: tidy up */
+      timers.push(window.setTimeout(klara, HERO + 2100))
     }
 
     lenisOf()?.stop()

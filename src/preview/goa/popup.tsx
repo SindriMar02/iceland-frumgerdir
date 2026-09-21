@@ -31,12 +31,16 @@ const usePop = () => useSyncExternalStore(sub, snap, snap)
 export const POP_CSS = `
 .goa-popB{position:fixed;inset:0;z-index:84;background:rgba(45,17,5,.35);opacity:0;pointer-events:none;
   transition:opacity .45s var(--ease-popup)}
-.goa-popB.opid{opacity:1;pointer-events:auto}
+.goa-popB{visibility:hidden}
+.goa-popB.opid{opacity:1;pointer-events:auto;visibility:visible}
+.goa-popB:not(.opid){transition:opacity .45s var(--ease-popup),visibility 0s .45s}
 .goa-pop{position:fixed;top:0;right:0;bottom:0;z-index:85;width:50vw;background:var(--c-bg);color:var(--c-ink);
   transform:translateX(100%);visibility:hidden;display:flex;flex-direction:column;
   transition:transform .6s var(--ease-popup),visibility 0s .6s}
 .goa-pop.opid{transform:none;visibility:visible;transition:transform .6s var(--ease-popup),visibility 0s}
-@media (max-width:991px){.goa-pop{width:100vw}}
+/* compact: the panel is the full screen, so the backdrop is dropped, and the
+   panel is what touches Safari's bottom toolbar and tints it paper */
+@media (max-width:991px){.goa-pop{width:100vw}.goa-popB{display:none}}
 .goa-popT{display:flex;justify-content:space-between;align-items:center;gap:1rem;
   padding:calc(var(--gut) + env(safe-area-inset-top)) var(--gut) var(--gut)}
 .goa-popX{width:max(2.5vw,44px);height:max(2.5vw,44px);border:0;background:var(--c-hdr);color:var(--c-hdr-t);cursor:pointer;
@@ -45,8 +49,8 @@ export const POP_CSS = `
   -webkit-overflow-scrolling:touch}
 .goa-popS .goa-mask > *{transform:translateY(105%);transition:transform .9s var(--ease);transition-delay:calc(.25s + var(--i,0) * .06s)}
 .goa-pop.opid .goa-popS .goa-mask > *{transform:none}
-.goa-vMynd{background:var(--grunnur,var(--c-el));aspect-ratio:4/3;display:grid;place-items:center;padding:10%;margin-bottom:1.6rem}
-.goa-vMynd img{max-height:100%;width:auto;object-fit:contain;filter:drop-shadow(0 18px 24px rgba(28,18,12,.3))}
+.goa-vMynd{background:var(--grunnur,var(--c-el));aspect-ratio:4/3;position:relative;margin-bottom:1.6rem}
+.goa-vMynd img{position:absolute;inset:10%;width:80%;height:80%;object-fit:contain;filter:drop-shadow(0 18px 24px rgba(28,18,12,.3))}
 .goa-vDl{display:grid;grid-template-columns:auto 1fr;gap:.35rem 1.4rem;margin:1.4rem 0;font-variant-numeric:tabular-nums}
 .goa-vDl dt{color:var(--c-ink-med)}
 .goa-vDl dd{margin:0}
@@ -56,6 +60,9 @@ export const POP_CSS = `
   padding:.7rem 0;box-shadow:inset 0 -1px 0 var(--c-lina)}
 .goa-fLisi .goa-fM{width:3.4rem;height:3.4rem;background:var(--c-el);display:grid;place-items:center;padding:.3rem}
 .goa-fLisi .goa-fM img{max-height:100%;width:auto;object-fit:contain}
+/* 186 of the 217 listings have no pack shot on file; the initial stands in
+   so the row reads as set, not as an image that failed to load */
+.goa-fLisi .goa-fM b{font-family:var(--f-disp);font-weight:400;font-size:1.6rem;line-height:1;color:var(--c-ink-max)}
 .goa-fLisi b{font-weight:500;display:block;line-height:1.3}
 .goa-fLisi small{display:block;color:var(--c-ink-med);font-size:.8rem;font-variant-numeric:tabular-nums}
 .goa-fLisi small a{text-decoration:underline;text-underline-offset:2px}
@@ -94,7 +101,6 @@ export function Popup() {
   useEffect(() => {
     const el = panel.current
     if (!el) return
-    el.toggleAttribute('inert', !on)
     if (!on) return
     aftur.current = document.activeElement as HTMLElement | null
     const lenis = (window as unknown as { __goaLenis?: { stop: () => void; start: () => void; scrollTo: (y: number, o?: object) => void } }).__goaLenis
@@ -162,7 +168,7 @@ export function Popup() {
         <ul className="goa-fLisi">
           {f.items.map((v, i) => (
             <li key={`${v.nr}-${i}`}>
-              <span className="goa-fM">{v.img ? <img src={S(v.img)} alt="" width={120} height={120} loading="lazy" /> : null}</span>
+              <span className="goa-fM">{v.img ? <img src={S(v.img)} alt="" width={120} height={120} loading="lazy" /> : <b aria-hidden="true">{v.n[0]}</b>}</span>
               <span>
                 <b>{v.n}</b>
                 <small>

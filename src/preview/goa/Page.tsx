@@ -62,6 +62,9 @@ function useFramvinda(fn: (el: HTMLElement) => void, deps: unknown[] = []) {
 }
 
 const PAGE_CSS = `
+@media (hover:none),(pointer:coarse){
+  .goa-reit img,.goa-spjaldM img,.goa-galI img,.goa-lina2 figure img,.goa-faqM img,.goa-vMynd img,.goa-regn img{filter:none !important}
+}
 /* HERO (§5.1-5.2): exactly one viewport on desktop, 50/50, the right half on
    the element ground holding the scattered 4x3 grid; taller than the viewport
    on tablet and phone so the grid can be a grid. */
@@ -75,6 +78,7 @@ const PAGE_CSS = `
   gap:1.04vw;padding:14.72svh var(--gut) 5svh 3.75vw;height:100%}
 .goa-reit{margin:0;overflow:hidden;position:relative;background:var(--grunnur)}
 .goa-reit img{position:absolute;inset:9%;width:82%;height:82%;object-fit:contain;filter:drop-shadow(0 14px 18px rgba(28,18,12,.28))}
+.goa-rist:not(.on) .goa-reit img{transform:translateY(125%)}
 .goa-reit:nth-child(1){grid-area:1/1/2/2}.goa-reit:nth-child(2){grid-area:1/2/2/3}
 .goa-reit:nth-child(3){grid-area:2/2/3/3}.goa-reit:nth-child(4){grid-area:2/3/3/4}
 .goa-reit:nth-child(5){grid-area:2/4/3/5}.goa-reit:nth-child(6){grid-area:3/1/4/2}
@@ -110,9 +114,9 @@ const PAGE_CSS = `
 .goa-bitiM{display:inline-block;vertical-align:middle;width:calc(.81em * var(--b,1));height:.72em;
   overflow:hidden;position:relative;margin:0 .12em .12em;background:var(--grunnur)}
 .goa-bitiM img{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain;
-  transform:translateY(105%);transition:transform .5s var(--ease)}
+  transform:translateY(115%);transition:transform .5s var(--ease)}
 .goa-bitiM img.nu{transform:none}
-.goa-bitiM img.farin{transform:translateY(-105%)}
+.goa-bitiM img.farin{transform:translateY(-115%)}
 
 /* PRODUCT (§5.2 product, §6 swatches): two half-width panels, one viewport
    tall, each a big pack on the element ground with a bottom bar: label and
@@ -123,10 +127,10 @@ const PAGE_CSS = `
 .goa-spjald:nth-child(2){background:var(--c-el2)}
 .goa-spjaldM{position:relative;flex:1;overflow:hidden;cursor:pointer}
 .goa-spjaldM img{position:absolute;inset:8% 10%;width:80%;height:84%;object-fit:contain;
-  filter:drop-shadow(0 28px 34px rgba(28,18,12,.28));transform:translateY(105%);transition:transform .8s var(--ease)}
+  filter:drop-shadow(0 28px 34px rgba(28,18,12,.28));transform:translateY(130%);transition:transform .8s var(--ease)}
 .goa-spjaldM img.nu{transform:none}
-.goa-spjaldM img.farin{transform:translateY(-105%)}
-.goa-spjald:not(.on) .goa-spjaldM img.nu{transform:translateY(105%)}
+.goa-spjaldM img.farin{transform:translateY(-130%)}
+.goa-spjald:not(.on) .goa-spjaldM img.nu{transform:translateY(130%)}
 .goa-root.goa-allt .goa-spjaldM img.nu{transform:none}
 .goa-stika{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:1.2rem;align-items:end;padding-top:1rem}
 .goa-stika small{display:block;color:var(--c-ink-med);font-size:.78rem}
@@ -194,7 +198,7 @@ const PAGE_CSS = `
 .goa-galI{display:block;width:100%;height:100%;border:0;padding:0;cursor:pointer;background:var(--g);position:relative;
   transform-origin:50% 100%;transition:transform .6s var(--ease)}
 .goa-galI img{position:absolute;inset:10%;width:80%;height:80%;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(28,18,12,.3));
-  transform:translateY(105%);transition:transform var(--dur,2.44s) var(--ease);transition-delay:var(--d,0s)}
+  transform:translateY(130%);transition:transform var(--dur,2.44s) var(--ease);transition-delay:var(--d,0s)}
 .on .goa-galI img{transform:none}
 @media (hover:hover) and (pointer:fine) and (min-width:992px){
   .goa-galL li{overflow:visible}
@@ -221,14 +225,35 @@ const PAGE_CSS = `
 .goa-flipar button[aria-selected="true"]{color:var(--c-ink)}
 .goa-flipar button::before{content:'';display:inline-block;width:.18em;height:.18em;border-radius:50%;background:currentColor;
   margin-right:.25em;vertical-align:.32em}
-.goa-formP{background:var(--c-el);padding:1.6vw;display:grid;gap:1rem;max-width:60vw}
+.goa-formP{background:var(--c-el);padding:1.6vw;display:grid;gap:1rem}
+.goa-quiz{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:.35rem;align-items:stretch}
+.goa-quizQ{margin:0 0 .8rem}
+.goa-svar{background:var(--c-form);color:#2D1105;display:flex}
+.goa-svarI{padding:1.6vw;display:flex;flex-direction:column;align-items:flex-start;gap:.9rem;width:100%;
+  animation:goa-svarinn .45s var(--ease) both}
+.goa-svarI.tomt{justify-content:center}
+@keyframes goa-svarinn{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.goa-svarT{margin:0;font-family:var(--f-disp);font-size:1.6vw;line-height:1.2;letter-spacing:-.015em;max-width:30ch}
+.goa-svarI .goa-btn{margin-top:auto}
+.goa-lbl{display:block;font-size:.78rem;color:rgba(45,17,5,.6);position:absolute;left:1.04vw;top:.55rem;pointer-events:none}
+.goa-reitir input,.goa-reitir textarea{padding-top:1.7rem !important}
+@media (prefers-reduced-motion:reduce){.goa-svarI{animation:none}}
 .goa-formP > p{margin:0}
 .goa-val{display:grid;grid-template-columns:1fr 1fr;gap:.35rem}
-.goa-val label{display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--c-form);min-height:4.063vw;
+.goa-val label{display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--c-form);min-height:4.8vw;
+  transition:background .25s var(--ease),color .25s var(--ease);
   padding:0 1.04vw;cursor:pointer;color:#2D1105}
 .goa-val input{appearance:none;width:18px;height:18px;border-radius:50%;border:1px solid #2D1105;margin:0;flex:none;
   transition:box-shadow .2s var(--ease)}
 .goa-val input:checked{box-shadow:inset 0 0 0 4px #FFFDF8,inset 0 0 0 9px #2D1105}
+.goa-val label span{display:grid;gap:.1rem;padding:.7rem 0}
+.goa-val label b{font-weight:500}
+.goa-val label small{font-size:.8rem;color:rgba(45,17,5,.6)}
+.goa-val label.valid{background:#2D1105;color:#FFFDF8}
+.goa-val label.valid small{color:rgba(255,253,248,.7)}
+.goa-val label.valid input{border-color:#FFFDF8;box-shadow:inset 0 0 0 4px #2D1105,inset 0 0 0 9px #FFFDF8}
+.goa-val label:has(input:focus-visible){outline:2px solid var(--c-rautt);outline-offset:2px}
+@media (hover:hover) and (pointer:fine){.goa-val label:not(.valid):hover{background:#F4EBDB}}
 .goa-nidur{background:var(--c-form);padding:1.2rem 1.04vw;color:#2D1105;display:grid;gap:.7rem}
 .goa-nidur p{margin:0}
 .goa-nidur .goa-btn{justify-self:start}
@@ -246,6 +271,21 @@ const PAGE_CSS = `
 .goa-teymiL a{text-decoration:underline;text-underline-offset:2px;display:inline-flex;min-height:32px;align-items:center}
 @media (max-width:991px){.goa-form{padding:0}.goa-flipar{padding:0 var(--gut)}.goa-formP{max-width:none;padding:2.6vw var(--gut)}
   .goa-val label,.goa-reitir input{min-height:6.51vw}.goa-teymiL{grid-template-columns:1fr 1fr}}
+@media (max-width:991px){.goa-svarT{font-size:2.9vw}.goa-svarI{padding:2.6vw}.goa-lbl{left:1.6vw}}
+/* on a phone the two tab titles would each fill the screen at the section
+   scale, so they become a two-part switch the thumb can hit */
+@media (max-width:479px){
+  .goa-flipar.goa-disp{font-size:1.02rem;letter-spacing:0;line-height:1.2;display:grid;grid-template-columns:1fr 1fr;gap:2px;
+    margin:0 var(--gut) .6rem;padding:0;font-family:inherit;font-weight:500}
+  .goa-flipar button{min-height:48px;background:var(--c-el);color:var(--c-ink-med);padding:0 .6rem}
+  .goa-flipar button[aria-selected="true"]{background:var(--c-btn);color:var(--c-btn-t)}
+  .goa-flipar button::before{display:none}
+  .goa-quiz{grid-template-columns:1fr}
+  .goa-svarT{font-size:5.4vw}
+  .goa-svarI{padding:5vw}
+  .goa-svarI .goa-btn{width:100%}
+  .goa-lbl{left:4vw}
+}
 @media (max-width:479px){.goa-val,.goa-reitir{grid-template-columns:1fr}.goa-val label,.goa-reitir input{min-height:13.889vw}
   .goa-teymiL{grid-template-columns:1fr}}
 
@@ -260,8 +300,8 @@ const PAGE_CSS = `
 .goa-umC:nth-child(2){background:var(--c-el3)}
 .goa-umM{width:9vw;aspect-ratio:1;position:relative;overflow:hidden;background:var(--grunnur)}
 .goa-umM img{position:absolute;inset:10%;width:80%;height:80%;object-fit:contain;transition:transform .7s var(--ease)}
-.goa-umM img + img{transform:translateY(105%)}
-@media (hover:hover) and (pointer:fine){.goa-umC:hover .goa-umM img:first-child{transform:translateY(-105%)}
+.goa-umM img + img{transform:translateY(135%)}
+@media (hover:hover) and (pointer:fine){.goa-umC:hover .goa-umM img:first-child{transform:translateY(-135%)}
   .goa-umC:hover .goa-umM img + img{transform:none}}
 .goa-umN b{display:block;font-weight:500}
 .goa-umN small{color:var(--c-ink-med)}
@@ -335,8 +375,9 @@ const PAGE_CSS = `
   justify-content:space-between;padding:1.25vw;overflow:hidden}
 .goa-faqM{position:relative;flex:1;overflow:hidden}
 .goa-faqM img{position:absolute;inset:10% 15%;width:70%;height:80%;object-fit:contain;filter:drop-shadow(0 24px 30px rgba(28,18,12,.28));
-  transform:translateY(105%);transition:transform .8s var(--ease)}
-.goa-faqM img.nu{transform:none}.goa-faqM img.farin{transform:translateY(-105%)}
+  transform:translateY(135%);transition:transform .8s var(--ease)}
+.goa-faqM img.nu{transform:none}.goa-faqM img.farin{transform:translateY(-135%)}
+.goa-faqT{display:flex;justify-content:space-between;gap:.5rem}
 .goa-faqL{display:grid;gap:.35rem}
 .goa-faqR{background:var(--c-form);color:#2D1105}
 .goa-faqR button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:1rem;border:0;background:none;
@@ -350,7 +391,7 @@ const PAGE_CSS = `
 .goa-faqB p{margin:0;padding:0 1.04vw 1.1rem;max-width:60ch;opacity:0;transition:opacity .16s var(--ease)}
 .goa-faqR.opid .goa-faqB p{opacity:1;transition-delay:.16s}
 @media (max-width:991px){.goa-faq{grid-template-columns:46.094vw 1fr}.goa-faqK{height:75vw;top:calc(var(--haus-h,60px) + 1rem)}}
-@media (max-width:479px){.goa-faq{grid-template-columns:1fr}.goa-faqK{position:static;height:calc(100svh - 22.223vw);margin-bottom:9.375vh}}
+@media (max-width:479px){.goa-faqT{display:grid;grid-template-columns:1fr 1fr}.goa-faq{grid-template-columns:1fr}.goa-faqK{position:static;height:calc(100svh - 22.223vw);margin-bottom:9.375vh}}
 
 /* FOOTER (§18, §19, §4.5): on desktop and tablet the footer sits in a mask
    and is pulled from yPercent -100 to 0 as the mask scrolls in, scrubbed, a
@@ -572,10 +613,11 @@ function GalleriDrift() {
 }
 
 type Leid = (typeof ERINDI)[number]
+/* one line under each errand, so the choice says where it leads */
+const STUTT = ['Panta vörur fyrir verslun', 'Lakkrís og bland í poka', 'Kurl, brak og spænir', 'Umsókn um styrk']
 function Form() {
   const [flipi, setFlipi] = useState<'quiz' | 'spyrja'>('quiz')
   const [val, setVal] = useState<number | null>(null)
-  const [skref, setSkref] = useState(1)
   const [gildi, setGildi] = useState({ nafn: '', netfang: '', skilabod: '' })
   const [sent, setSent] = useState(false)
   const [snert, setSnert] = useState<Record<string, boolean>>({})
@@ -598,35 +640,46 @@ function Form() {
   return (
     <section className="goa-form" id="erindi">
       <div className="goa-flipar goa-disp" role="tablist" aria-label="Hafa samband">
-        <button role="tab" aria-selected={flipi === 'quiz'} onClick={() => setFlipi('quiz')}>Hvert er erindið?</button>
-        <button role="tab" aria-selected={flipi === 'spyrja'} onClick={() => setFlipi('spyrja')}>Senda fyrirspurn</button>
+        <button role="tab" id="goa-t1" aria-controls="goa-tp" aria-selected={flipi === 'quiz'} onClick={() => setFlipi('quiz')}>Hvert er erindið?</button>
+        <button role="tab" id="goa-t2" aria-controls="goa-tp" aria-selected={flipi === 'spyrja'} onClick={() => setFlipi('spyrja')}>Senda fyrirspurn</button>
       </div>
       <Reveal className="goa-formP goa-mask" margin="0px 0px -20% 0px">
-        <div className="goa-up" style={{ display: 'grid', gap: '1rem' }}>
+        <div className="goa-up" id="goa-tp" role="tabpanel" aria-labelledby={flipi === 'quiz' ? 'goa-t1' : 'goa-t2'} style={{ display: 'grid', gap: '1rem' }}>
           {flipi === 'quiz' ? (
-            skref === 1 ? (
-              <>
-                <p>Hvað færir þig til Góu í dag?</p>
-                <div className="goa-val" role="radiogroup" aria-label="Erindi">
+            /* one step: choosing an errand shows its answer and its action at
+               once, beside the choices on desktop and right under them on a
+               phone. No disabled Next button and no second screen to go back
+               from. */
+            <div className="goa-quiz">
+              <div>
+                <p className="goa-quizQ" id="goa-quiz-q">Hvað færir þig til Góu í dag?</p>
+                <div className="goa-val" role="radiogroup" aria-labelledby="goa-quiz-q">
                   {ERINDI.map((e, i) => (
-                    <label key={e.nafn}>
-                      {e.nafn}
+                    <label key={e.nafn} className={val === i ? 'valid' : ''}>
+                      <span><b>{e.nafn}</b><small>{STUTT[i]}</small></span>
                       <input type="radio" name="goa-erindi" checked={val === i} onChange={() => setVal(i)} />
                     </label>
                   ))}
                 </div>
-                <button className="goa-btn stor goa-casH" disabled={val === null} onClick={() => setSkref(2)}><Cas t="Áfram 1/2" /></button>
-              </>
-            ) : leid ? (
-              <>
-                <div className="goa-nidur">
-                  <p className="goa-merki" style={{ margin: 0, color: 'rgba(45,17,5,.6)' }}>{leid.nafn}</p>
-                  <p>{leid.nota}</p>
-                  <button className="goa-btn goa-casH" onClick={() => gera(leid)}><Cas t={leid.hlekkur === '#hillan' ? 'Opna nammipokann' : leid.ord} /></button>
-                </div>
-                <button className="goa-btn sc stor goa-casH" onClick={() => { setSkref(1); setVal(null) }}><Cas t="Til baka 2/2" /></button>
-              </>
-            ) : null
+              </div>
+              <div className="goa-svar" aria-live="polite">
+                {leid ? (
+                  <div className="goa-svarI" key={leid.nafn}>
+                    <p className="goa-merki" style={{ margin: 0, color: 'rgba(45,17,5,.6)' }}>{leid.nafn}</p>
+                    <p className="goa-svarT">{leid.nota}</p>
+                    <button className="goa-btn goa-casH" onClick={() => gera(leid)}>
+                      <Cas t={leid.hlekkur === '#hillan' ? 'Opna nammipokann' : leid.ord} />
+                    </button>
+                    <button className="goa-nobg" style={{ color: '#2D1105' }} onClick={() => setFlipi('spyrja')}>Eða sendu okkur línu <i>→</i></button>
+                  </div>
+                ) : (
+                  <div className="goa-svarI tomt">
+                    <p className="goa-svarT">Veldu erindi og þú sérð strax hvernig best er að snúa sér.</p>
+                    <p className="goa-smatt" style={{ color: 'rgba(45,17,5,.6)', margin: 0 }}>Sími 515 0900 · goa@goa.is</p>
+                  </div>
+                )}
+              </div>
+            </div>
           ) : sent ? (
             <div className="goa-nidur">
               <p>Takk, {gildi.nafn.split(' ')[0]}. Svona berst fyrirspurnin á goa@goa.is.</p>
@@ -637,18 +690,18 @@ function Form() {
             <form onSubmit={senda} noValidate style={{ display: 'grid', gap: '.35rem' }}>
               <div className="goa-reitir">
                 <label className={lbl('nafn')}>
-                  <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Nafn</span>
-                  <input placeholder="Nafn" autoComplete="name" value={gildi.nafn} onBlur={() => setSnert((s) => ({ ...s, nafn: true }))}
+                  <span className="goa-lbl">Nafn</span>
+                  <input autoComplete="name" value={gildi.nafn} onBlur={() => setSnert((s) => ({ ...s, nafn: true }))}
                     onChange={(e) => setGildi((g) => ({ ...g, nafn: e.target.value }))} /><i />
                 </label>
                 <label className={lbl('netfang')}>
-                  <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Netfang</span>
-                  <input placeholder="Netfang" type="email" autoComplete="email" value={gildi.netfang} onBlur={() => setSnert((s) => ({ ...s, netfang: true }))}
+                  <span className="goa-lbl">Netfang</span>
+                  <input type="email" autoComplete="email" value={gildi.netfang} onBlur={() => setSnert((s) => ({ ...s, netfang: true }))}
                     onChange={(e) => setGildi((g) => ({ ...g, netfang: e.target.value }))} /><i />
                 </label>
                 <label className={`heild ${lbl('skilabod')}`}>
-                  <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Skilaboð</span>
-                  <textarea placeholder="Skilaboð" value={gildi.skilabod} onBlur={() => setSnert((s) => ({ ...s, skilabod: true }))}
+                  <span className="goa-lbl">Skilaboð</span>
+                  <textarea value={gildi.skilabod} onBlur={() => setSnert((s) => ({ ...s, skilabod: true }))}
                     onChange={(e) => setGildi((g) => ({ ...g, skilabod: e.target.value }))} /><i />
                 </label>
               </div>
@@ -805,7 +858,7 @@ function Faq() {
               style={j !== k && j !== fyrri ? { transition: 'none' } : undefined} />
           ))}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div className="goa-faqT">
           <button className="goa-btn goa-casH" onClick={() => { setFyrri(k); setK((k + 1 + Math.floor(Math.random() * (MYNDIR.length - 1))) % MYNDIR.length) }}><Cas t="Handahóf" /></button>
           <button className="goa-btn sc goa-casH" onClick={() => faraA('#linur')}><Cas t="Vörulínur" /></button>
         </div>

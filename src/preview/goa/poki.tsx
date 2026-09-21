@@ -50,12 +50,19 @@ export const POKA_CSS = `
 .goa-pokiBak{position:fixed;inset:0;z-index:80;background:rgba(28,18,12,.42);
   opacity:0;transition:opacity .2s ease-out;pointer-events:none}
 .goa-pokiBak.on{transition-duration:.35s}
-.goa-pokiBak.on{opacity:1;pointer-events:auto}
+.goa-pokiBak{visibility:hidden}
+.goa-pokiBak.on{opacity:1;pointer-events:auto;visibility:visible}
+/* an opacity:0 fixed layer still tints Safari's bottom toolbar; hidden only
+   after the fade so the close still reads */
+.goa-pokiBak:not(.on){transition:opacity .2s ease-out,visibility 0s .2s}
 .goa-pokiS{position:fixed;top:0;right:0;bottom:0;z-index:81;width:min(30rem,100%);
   background:var(--c-bg);color:var(--c-ink);display:flex;flex-direction:column;
   transform:translateX(100%);transition:transform .45s var(--ease);visibility:hidden;
   overscroll-behavior:contain}
 .goa-pokiS.on{transform:translateX(0);visibility:visible}
+/* with the keyboard up iOS pans the visual viewport past the fixed drawer's
+   bottom edge, and the page showed through there; carry the ground on down */
+.goa-pokiS::after{content:'';position:absolute;left:0;right:0;top:100%;height:100lvh;background:inherit}
 /* enter is deliberate (.45s, the page's own curve); exit is a system
    response and snaps back out in .25s */
 .goa-pokiS:not(.on){transition:transform .25s cubic-bezier(.4,0,1,1),visibility 0s .25s}
@@ -171,13 +178,9 @@ export function Poki() {
   const [kvittun, setKvittun] = useState<string | null>(null)
   const id = useId()
 
-  /* inert while closed, so the off-screen form is out of the tab order and
-     the accessibility tree. Set by hand: React 18's types do not know it. */
-  useEffect(() => {
-    const el = panel.current
-    if (!el) return
-    if (on) el.removeAttribute('inert'); else el.setAttribute('inert', '')
-  }, [on])
+  /* No inert here: the drawer is visibility:hidden when closed, which already
+     removes it from the tab order and the accessibility tree, and toggling
+     inert cost the first tap after opening on iOS Safari. */
 
   useEffect(() => {
     if (!on) return
