@@ -17,6 +17,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Chrome from './Chrome'
+import { SndrCredit } from './SndrCredit'
 import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { LOGO } from './data'
@@ -53,6 +54,7 @@ const CSS = `
   .rb-lg-note { margin-top:clamp(30px,4vh,40px); padding:16px 18px; border:1px solid ${HAIR};
     border-radius:4px; background:rgba(243,234,211,.03); }
   .rb-lg-note p { font-size:14px; margin:0; }
+  .rb-lg-foot { max-width:760px; margin:0 auto; padding:0 clamp(20px,4.5vw,72px) 56px; }
 `
 
 type Block = { h?: string; p?: string[]; ul?: string[] }
@@ -271,6 +273,12 @@ function LegalInner() {
           </p>
         </div>
       </main>
+
+      {/* This page had no footer of its own, so the studio signature had
+          nowhere to sit — and the credit is required on every route. */}
+      <footer className="rb-lg-foot">
+        <SndrCredit lang={lang} />
+      </footer>
 
       <Chrome />
     </div>

@@ -435,7 +435,7 @@ export const T = {
        you are leaving for a delivery platform. */
     ctaOrderOwn: 'Order a cake',
     ctaDelivery: 'Home delivery on aha.is',
-    ctaPathsNote: 'Cakes and party platters are ordered ahead, here. Bread and pastries go out the same day through the delivery apps.',
+    ctaPathsNote: 'Cakes and party platters are ordered ahead, here on the site. Bread and pastries go out the same day through aha.is and Wolt.',
     deliveryKicker: 'Same-day delivery',
     orderPrimary: 'aha.is',
     orderWolt: 'Wolt',
@@ -450,9 +450,16 @@ export const T = {
     statusHours: (o: string, c: string) => `Open every day ${o}–${c}`,
     /* Their own title's words: "handverksbakarí í Kópavogi síðan 1994". */
     statusHoursVaried: 'Opening hours',
+    /* The bar carries the dot and one word; the hours themselves are the
+       hover/focus detail, so the strip stops reading like a sentence. */
+    statusWordOpen: 'Open',
+    statusWordClosed: 'Closed',
+    statusToday: (o: string, c: string) => `Today ${o}–${c}`,
+    statusTomorrow: (o: string, c: string) => `Tomorrow ${o}–${c}`,
+    statusClosedAllDay: 'Closed all day',
     heroTitle: 'HANDMADE',
     heroSub: 'A family bakery in Kópavogur since 1994.',
-    heroLine: 'Sourdough, Danish pastries, cakes and coffee, all baked on-site from scratch.',
+    heroLine: 'Everything baked on site, from scratch.',
     heroPhotoCaption: 'Shaping the day, Reynir bakari',
     menuMasthead: 'The menu',
     ovenTitle: 'From the oven',
@@ -468,7 +475,7 @@ export const T = {
     galleryClose: 'Close',
     // the dedicated story/archive page
     storyPageKicker: 'Since 1994',
-    storyPageTitle: 'The bakery, and the people in it.',
+    storyPageTitle: 'The bakery, and the people behind it.',
     storyPageLead:
       'Reynir bakarí has been baking on Dalvegur since 1994. The ovens are the same ones the family learned on, the bread is still mixed and shaped by hand, and most mornings begin long before the doors open. This is the bakery as it works.',
     storyPageArchive: 'The archive',
@@ -511,7 +518,7 @@ export const T = {
     navVisit: 'Heimsókn',
     ctaOrderOwn: 'Panta tertu',
     ctaDelivery: 'Heimsending á aha.is',
-    ctaPathsNote: 'Tertur og veisluborð eru pöntuð fyrirfram, hér á síðunni. Brauð og bakkelsi fara heim sama dag gegnum sendingarappið.',
+    ctaPathsNote: 'Tertur og veisluborð eru pöntuð fyrirfram hér á síðunni. Brauð og bakkelsi fara heim sama dag gegnum aha.is og Wolt.',
     deliveryKicker: 'Heimsending sama dag',
     orderPrimary: 'aha.is',
     orderWolt: 'Wolt',
@@ -522,9 +529,14 @@ export const T = {
     statusOpensTomorrow: (t: string) => `Lokað, opnum á morgun kl. ${t}`,
     statusHours: (o: string, c: string) => `Opið alla daga ${o}–${c}`,
     statusHoursVaried: 'Opnunartímar',
+    statusWordOpen: 'Opið',
+    statusWordClosed: 'Lokað',
+    statusToday: (o: string, c: string) => `Í dag ${o}–${c}`,
+    statusTomorrow: (o: string, c: string) => `Á morgun ${o}–${c}`,
+    statusClosedAllDay: 'Lokað í dag',
     heroTitle: 'HANDGERT',
     heroSub: 'Fjölskyldubakarí í Kópavogi síðan 1994.',
-    heroLine: 'Súrdeigsbrauð, vínarbrauð, kökur og kaffi, allt bakað á staðnum frá grunni.',
+    heroLine: 'Allt bakað á staðnum og frá grunni.',
     heroPhotoCaption: 'Deigið mótað, Reynir bakari',
     menuMasthead: 'Matseðillinn',
     ovenTitle: 'Úr ofninum',
@@ -540,7 +552,7 @@ export const T = {
     galleryClose: 'Loka',
     // sérstaka sögu- og myndasíðan
     storyPageKicker: 'Síðan 1994',
-    storyPageTitle: 'Bakaríið, og fólkið í því.',
+    storyPageTitle: 'Bakaríið, og fólkið á bak við það.',
     storyPageLead:
       'Reynir bakarí hefur bakað á Dalvegi síðan 1994. Ofnarnir eru þeir sömu og fjölskyldan lærði við, brauðið er enn hnoðað og mótað í höndunum, og flestir morgnar hefjast löngu áður en opnað er. Svona vinnur bakaríið.',
     storyPageArchive: 'Myndasafnið',

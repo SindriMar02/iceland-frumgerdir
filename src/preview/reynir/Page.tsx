@@ -23,6 +23,7 @@ import { Link } from 'react-router-dom'
 import Chrome from './Chrome'
 import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
+import { SndrCredit } from './SndrCredit'
 import { useIsomorphicLayoutEffect } from './ssr'
 import { type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, type CakeArt, LOGO } from './data'
 import { ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY, LETTERPRESS } from './tokens'
@@ -218,6 +219,22 @@ const PAGE_CSS = `
   @keyframes rb-draw { to { clip-path:inset(0 0 0 0); } }
   @keyframes rb-tip { 0% { left:0%; opacity:0; } 9% { opacity:1; } 86% { opacity:1; } 100% { left:100%; opacity:0; } }
   @keyframes rb-intro-out { to { opacity:0; visibility:hidden; } }
+  /* The mark recedes a touch as it goes, so the curtain reads as opening onto
+     the page rather than a layer being switched off. Slightly ahead of the
+     ink, which is what makes it feel like depth. */
+  .rb-intro-logo { animation:rb-intro-mark-out .5s cubic-bezier(.4,0,.2,1) 1.5s forwards; }
+  @keyframes rb-intro-mark-out { to { opacity:0; transform:scale(1.05); } }
+
+  /* THE HELD ENTRANCE — see the curtain comment in ReynirPageInner. Paused at
+     frame 0 while the ink is up; released on the curtain's first fading frame,
+     from which point the stagger runs at its normal pace in full view. */
+  [data-curtain="playing"] .rb-enter,
+  [data-curtain="playing"] .rb-enter-2,
+  [data-curtain="playing"] .rb-enter-3,
+  [data-curtain="playing"] .rb-enter-4 { animation-play-state:paused; }
+  /* The cover's photograph is not part of the stagger, so it gets the same
+     hold by hand: a still frame under type that is about to rise. */
+  [data-curtain="playing"] .rb-break-img { animation-play-state:paused; }
 
   /* Italic on hover, not a colour-only shift: on a serif identity the type
      itself can carry the state, and Lusitana's italic is a real cut. */
@@ -269,6 +286,21 @@ const PAGE_CSS = `
     -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
     border-bottom:1px solid rgba(238,211,170,.14); }
   .rb-sticky-nav { display:flex; gap:22px; align-items:center; }
+  /* Right side: one utility cluster, then the action. The hairlines do the
+     grouping so the items need no boxes of their own. */
+  .rb-bar-right { display:flex; align-items:center; gap:clamp(12px,1.6vw,20px); }
+  .rb-bar-util { display:flex; align-items:center; gap:11px; }
+  .rb-bar-sep { width:1px; height:13px; background:rgba(238,211,170,.18); flex:0 0 auto; }
+  /* 16px glyph, 44px hit area, pulled back out of the layout with a negative
+     margin so the cluster still measures 16px tall on the bar. */
+  .rb-social { display:inline-flex; align-items:center; justify-content:center;
+    width:44px; height:44px; margin:-14px -14px; color:${FAINT};
+    transition:color .2s ${EASE}, transform .18s ${EASE}; }
+  .rb-social:hover { color:${GOLD_LIGHT}; }
+  .rb-social:active { transform:scale(.94); }
+  .rb-social:focus-visible { outline:1px solid rgba(238,211,170,.5); outline-offset:-12px; border-radius:2px; }
+  /* in the drawer the 44px box IS the layout, so the pull-back comes off */
+  .rb-social-menu { margin:0; }
   .rb-sticky-cta { display:inline-flex; align-items:center; gap:9px; text-decoration:none;
     background:${GOLD}; color:${INK_DEEP}; font-family:${BODY}; font-size:13.5px; font-weight:600;
     letter-spacing:.02em; padding:9px 17px; border-radius:2px; white-space:nowrap;
@@ -277,11 +309,52 @@ const PAGE_CSS = `
   .rb-sticky-cta:active { transform:scale(.98); }
   /* the open/closed dot, carried into the bar so the status stays visible */
   .rb-sticky-dot { width:6px; height:6px; border-radius:50%; flex:0 0 auto; }
-  @media (max-width:820px) { .rb-sticky-nav { display:none; } .rb-bar-lang { display:none !important; } }
+
+  /* Dot + one word, with the hours on hover/focus. The tip is rendered in
+     place (never removed from the DOM) so it can transition instead of
+     restarting a keyframe, and it scales from its own top edge — it belongs to
+     the status below the bar, not to the middle of the viewport. */
+  .rb-status { position:relative; display:inline-flex; align-items:center; gap:7px;
+    font-size:12px; letter-spacing:.08em; text-transform:uppercase; white-space:nowrap;
+    text-decoration:none; color:${FAINT}; transition:color .2s ${EASE}; }
+  .rb-status[data-open="true"] { color:${GOLD_LIGHT}; }
+  .rb-status-tip { position:absolute; top:calc(100% + 11px); left:50%;
+    transform:translate(-50%,-4px) scale(.96); transform-origin:50% 0;
+    opacity:0; pointer-events:none; visibility:hidden;
+    background:rgba(20,18,15,.97); color:${IVORY};
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border:1px solid rgba(238,211,170,.18); border-radius:3px;
+    padding:7px 11px; font-size:11.5px; letter-spacing:.06em;
+    box-shadow:0 10px 26px rgba(0,0,0,.42);
+    transition:opacity .16s ${EASE}, transform .16s ${EASE}, visibility .16s; }
+  /* the little notch, so the tip reads as spoken by the dot */
+  .rb-status-tip::before { content:''; position:absolute; top:-4px; left:50%;
+    width:7px; height:7px; transform:translateX(-50%) rotate(45deg);
+    background:rgba(20,18,15,.97);
+    border-left:1px solid rgba(238,211,170,.18); border-top:1px solid rgba(238,211,170,.18); }
+  /* Hover only where there is a real pointer; focus-visible everywhere, so a
+     keyboard reaches the hours without a mouse. */
+  @media (hover:hover) and (pointer:fine) {
+    .rb-status:hover .rb-status-tip { opacity:1; visibility:visible; transform:translate(-50%,0) scale(1); }
+  }
+  .rb-status:focus-visible .rb-status-tip { opacity:1; visibility:visible; transform:translate(-50%,0) scale(1); }
+  .rb-status:focus-visible { outline:1px solid rgba(238,211,170,.5); outline-offset:4px; border-radius:2px; }
+  @media (prefers-reduced-motion:reduce) {
+    .rb-status-tip { transition:opacity .16s linear, visibility .16s; transform:translate(-50%,0) scale(1); }
+    .rb-status:hover .rb-status-tip, .rb-status:focus-visible .rb-status-tip { transform:translate(-50%,0) scale(1); }
+  }
+  @media (max-width:820px) {
+    .rb-sticky-nav { display:none; }
+    .rb-bar-lang { display:none !important; }
+    /* social and language move into the drawer, where there is room for them;
+       the status dot stays, because it is the one thing worth reading here */
+    .rb-stickybar .rb-social, .rb-bar-sep { display:none; }
+  }
   
-  /* "Closed, we open at 7:00 today" will not fit beside a CTA on a phone —
-     the dot alone still carries open/closed, so only the words go. */
-  @media (max-width:560px) { .rb-sticky-status { display:none; } }
+  /* One word fits beside the CTA where the old sentence did not, so it now
+     survives down to the narrowest phones; under 380px the dot alone carries
+     open/closed again. */
+  @media (max-width:380px) { .rb-sticky-status { display:none; } }
 
 
   .rb-cta {
@@ -554,6 +627,10 @@ function staticStatus(hoursByDay: readonly DayHours[], t: ReturnType<typeof useP
   return {
     open: false,
     label: uniform ? t.statusHours(fmtHMPad(days[0].open), fmtHMPad(days[0].close)) : t.statusHoursVaried,
+    /* No clock yet, so there is no honest single word — the strip shows the
+       hours themselves and the dot stays neutral. */
+    word: uniform ? t.statusHours(fmtHMPad(days[0].open), fmtHMPad(days[0].close)) : t.statusHoursVaried,
+    detail: uniform ? t.statusHours(fmtHMPad(days[0].open), fmtHMPad(days[0].close)) : t.statusHoursVaried,
   }
 }
 
@@ -562,11 +639,28 @@ function openStatus(now: number, lang: Lang, hoursByDay: readonly DayHours[], ex
   const hours = (date: Date) => exceptions.find(e => e.date === date.toISOString().slice(0, 10)) ?? hoursByDay[date.getUTCDay()]
   const today = hours(d)
   const mins = d.getUTCHours() * 60 + d.getUTCMinutes()
-  if (today.closed || today.open < 0 || today.close <= today.open) return {open: false, label: lang === 'is' ? 'Lokað í dag' : 'Closed today'}
-  if (mins >= today.open && mins < today.close) return {open: true, label: t.statusOpen(fmtHM(today.close))}
-  if (mins < today.open) return {open: false, label: t.statusOpensToday(fmtHM(today.open))}
+  /* `word` is what the sticky bar shows — one word, Opið or Lokað. `detail`
+     is the hover/focus answer to the question that word provokes: the hours
+     for the day it refers to, as a timetable. `label` is the long sentence,
+     still used where there is room for it (the mobile menu footer). */
+  const closedWord = t.statusWordClosed
+  if (today.closed || today.open < 0 || today.close <= today.open) {
+    const long = lang === 'is' ? 'Lokað í dag' : 'Closed today'
+    return {open: false, label: long, word: closedWord, detail: t.statusClosedAllDay}
+  }
+  const todayHours = t.statusToday(fmtHMPad(today.open), fmtHMPad(today.close))
+  if (mins >= today.open && mins < today.close) {
+    return {open: true, label: t.statusOpen(fmtHM(today.close)), word: t.statusWordOpen, detail: todayHours}
+  }
+  if (mins < today.open) return {open: false, label: t.statusOpensToday(fmtHM(today.open)), word: closedWord, detail: todayHours}
   const tomorrow = hours(new Date(now + 86_400_000))
-  return {open: false, label: tomorrow.closed || tomorrow.open < 0 ? t.statusHoursVaried : t.statusOpensTomorrow(fmtHM(tomorrow.open))}
+  const shut = tomorrow.closed || tomorrow.open < 0 || tomorrow.close <= tomorrow.open
+  return {
+    open: false,
+    label: shut ? t.statusHoursVaried : t.statusOpensTomorrow(fmtHM(tomorrow.open)),
+    word: closedWord,
+    detail: shut ? t.statusHoursVaried : t.statusTomorrow(fmtHMPad(tomorrow.open), fmtHMPad(tomorrow.close)),
+  }
 }
 
 const revealInit = (reduced: boolean, delay = 0) =>
@@ -579,6 +673,122 @@ const revealInit = (reduced: boolean, delay = 0) =>
       }
 
 /** A menu row with a dotted price leader. */
+/* ────────────────────────────────────────────────────────────────────────
+ * The filmstrip drifts on its own until someone touches it, then it is theirs.
+ *
+ * Native scroll-snap does the scrolling in both modes — this only calls
+ * scrollTo, so the strip stays a real scroll container: no transform track to
+ * fight, no cloned slides, no state to keep in sync, and a drag or a
+ * trackpad swipe behaves exactly as it does today.
+ *
+ * WHAT COUNTS AS INTERACTION is genuine input — pointerdown, wheel,
+ * touchstart, a key, focus landing inside — never the `scroll` event, which
+ * our own scrollTo also fires and which would therefore stop the drift on its
+ * first step. Interaction is final, not a pause: a strip that starts creeping
+ * again while someone is reading it is worse than one that never moved.
+ *
+ * It also holds while off screen or on a hidden tab (an animation nobody can
+ * see is only battery), and never starts at all under reduced motion.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+const STRIP_DWELL = 3600
+
+function useStripDrift(reduced: boolean) {
+  const ref = useRef<HTMLDivElement>(null)
+  /* `taken` is a ref, not state: nothing renders differently once the visitor
+     takes over, and a re-render here would restart the timer it cancels. */
+  const taken = useRef(false)
+  const [live, setLive] = useState(false)
+
+  /* visible + not hidden + not taken = drifting */
+  useEffect(() => {
+    const el = ref.current
+    if (!el || reduced) return
+    const io = new IntersectionObserver(
+      ([e]) => setLive(e.isIntersecting && !taken.current),
+      { threshold: 0.35 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [reduced])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || reduced) return
+    const stop = () => {
+      taken.current = true
+      setLive(false)
+    }
+    const opts = { passive: true } as AddEventListenerOptions
+    el.addEventListener('pointerdown', stop, opts)
+    el.addEventListener('touchstart', stop, opts)
+    el.addEventListener('wheel', stop, opts)
+    el.addEventListener('keydown', stop)
+    el.addEventListener('focusin', stop)
+    return () => {
+      el.removeEventListener('pointerdown', stop)
+      el.removeEventListener('touchstart', stop)
+      el.removeEventListener('wheel', stop)
+      el.removeEventListener('keydown', stop)
+      el.removeEventListener('focusin', stop)
+    }
+  }, [reduced])
+
+  useEffect(() => {
+    if (!live || reduced) return
+    const el = ref.current
+    if (!el) return
+    const tick = () => {
+      if (taken.current || document.hidden) return
+      /* The next frame whose left edge is past the current scroll position —
+         asking the DOM rather than counting steps, so a resize, a lazy image
+         that changed a frame's width, or a mid-drift nudge cannot desync it. */
+      const pad = parseFloat(getComputedStyle(el).paddingLeft) || 0
+      const here = el.scrollLeft
+      const end = el.scrollWidth - el.clientWidth
+      if (here >= end - 2) {
+        el.scrollTo({ left: 0, behavior: 'smooth' })
+        return
+      }
+      const next = Array.from(el.children).find(
+        (c) => (c as HTMLElement).offsetLeft - pad > here + 2,
+      ) as HTMLElement | undefined
+      el.scrollTo({ left: next ? next.offsetLeft - pad : end, behavior: 'smooth' })
+    }
+    const id = window.setInterval(tick, STRIP_DWELL)
+    return () => window.clearInterval(id)
+  }, [live, reduced])
+
+  return ref
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * The two social glyphs. Inline, currentColor, drawn on the same 16px grid so
+ * they sit at one optical weight beside 12px type — an icon font or an image
+ * for two shapes would be two more requests and one more thing to cache.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+function IgIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+      <rect x="1.9" y="1.9" width="12.2" height="12.2" rx="3.6" stroke="currentColor" strokeWidth="1.2" />
+      <circle cx="8" cy="8" r="3.05" stroke="currentColor" strokeWidth="1.2" />
+      <circle cx="11.6" cy="4.4" r=".95" fill="currentColor" />
+    </svg>
+  )
+}
+
+function FbIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+      <path
+        d="M9.6 14.2V8.9h1.9l.3-2.2H9.6V5.3c0-.64.18-1.08 1.1-1.08h1.17V2.25A15.6 15.6 0 0 0 10.16 2.1c-1.7 0-2.86 1.04-2.86 2.94v1.66H5.4v2.2h1.9v5.3Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
 function MenuRow({ item, lang }: { item: MenuItem; lang: Lang }) {
   return (
     <div className="rb-row" style={{ padding: '20px 0', borderBottom: `1px solid ${HAIR_SOFT}` }}>
@@ -844,6 +1054,9 @@ function ReynirPageInner() {
     return () => mq.removeEventListener('change', on)
   }, [])
 
+  /* the filmstrip drifts until someone takes hold of it */
+  const stripRef = useStripDrift(reduced)
+
   /* null until mounted, so the server render and the browser's first render
      are identical and hydration is clean. Reading the clock during render
      would bake the build machine's minute into the shipped HTML. */
@@ -884,6 +1097,16 @@ function ReynirPageInner() {
      before the browser paints, so the curtain still covers the first frame
      the visitor actually sees. */
   const [intro, setIntro] = useState(false)
+  /* THE HANDOVER. The hero's entrance used to run on mount, which meant it
+     finished at ~1.3s — behind a curtain that only started lifting at 1.55s.
+     By the time anyone saw the page it had already arrived, so the loader felt
+     like a door onto a static picture.
+     'playing' pauses those entrance animations at frame 0 (exact, because they
+     fill `both`); 'gone' releases them, timed to the first frame of the ink
+     dissolving, so the cover rises THROUGH the curtain rather than after it.
+     'none' is the no-intro path — a returning visitor, reduced motion, or the
+     prerendered first frame — where nothing is ever held. */
+  const [curtain, setCurtain] = useState<'none' | 'playing' | 'gone'>('none')
   useIsomorphicLayoutEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     let show = true
@@ -892,13 +1115,29 @@ function ReynirPageInner() {
     } catch {
       /* private mode: the intro is decorative, so on failure it simply plays */
     }
-    if (show) setIntro(true)
+    if (show) {
+      setIntro(true)
+      setCurtain('playing')
+    }
   }, [])
   useEffect(() => {
     if (!intro) return
+    /* 1500ms: the ink's own fade-out starts at 1.55s, and starting the page a
+       breath earlier is what makes the two read as one movement instead of a
+       handoff. 2150 unmounts the curtain, which is when its fade has finished. */
+    const release = window.setTimeout(() => setCurtain('gone'), 1500)
     const id = window.setTimeout(() => setIntro(false), 2150)
-    return () => window.clearTimeout(id)
+    return () => {
+      window.clearTimeout(release)
+      window.clearTimeout(id)
+    }
   }, [intro])
+  /* Click-to-skip has to release the hero too, or a visitor who taps the
+     curtain away gets a page frozen at frame 0 of its own entrance. */
+  const dismissIntro = () => {
+    setIntro(false)
+    setCurtain('gone')
+  }
   // Marked as seen as soon as it has played or been dismissed, so a click-to-
   // skip counts too and the curtain does not return on the next route change.
   /* ── mobile menu ──────────────────────────────────────────────────────
@@ -1063,6 +1302,7 @@ function ReynirPageInner() {
     <div
       ref={rootRef}
       className="rb-page"
+      data-curtain={curtain}
       lang={lang}
       style={{ fontFamily: BODY, color: IVORY, background: INK, overflowX: 'clip', WebkitFontSmoothing: 'antialiased' }}
     >
@@ -1070,7 +1310,7 @@ function ReynirPageInner() {
 
       <a className="rb-skip" href="#reynir-content">{lang === 'is' ? 'Fara í efni' : 'Skip to content'}</a>
       {intro && (
-        <div className="rb-intro" onClick={() => setIntro(false)} aria-hidden="true">
+        <div className="rb-intro" onClick={dismissIntro} aria-hidden="true">
           <div className="rb-intro-logo">
             <img className="rb-intro-draw" src={LOGO} alt="" decoding="async" width={1200} height={519} />
             <span className="rb-intro-tip" />
@@ -1088,27 +1328,56 @@ function ReynirPageInner() {
         <a href="#top" className="rb-sticky-logo" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
           <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 96, height: 'auto', display: 'block' }} />
         </a>
-        {/* The bar is the only header now, so it carries the full desktop nav
-            the masthead used to — Myndir included. */}
+        {/* FOUR destinations, not five. "Úr ofninum" and "Brauð" read as two
+            menus when they are one chapter of the same counter, so Brauð comes
+            out of the bar and stays a heading inside it — and out of the drawer
+            too, because a drawer that lists more than the bar is its own kind
+            of confusion. What is left is the three questions a bakery gets
+            asked, plus the pictures. */}
         <nav className="rb-sticky-nav">
           <a href="#menu" className="rb-navlink">{t.navMenu}</a>
-          <a href="#bread" className="rb-navlink">{t.navBread}</a>
           <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
           <Link to={P.story} className="rb-navlink">{t.navStory}</Link>
           <a href="#visit" className="rb-navlink">{t.navVisit}</a>
         </nav>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(10px,1.6vw,20px)' }}>
-          <div className="rb-bar-lang" role="group" aria-label="Language" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
-            <span aria-hidden="true" style={{ color: FAINT }}>/</span>
-            <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')}>ÍS</button>
-          </div>
-          {/* the open/closed status follows you down the page — for a bakery
-              that shuts at 17:00 this is the single most asked question */}
-          <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: status.open ? GOLD_LIGHT : FAINT, whiteSpace: 'nowrap' }}>
+        {/* The right-hand side was four unrelated things sitting at four
+            different weights next to a gold button. They are now one small
+            utility cluster — state, social, language — hairline-separated from
+            the one thing that is an action. */}
+        <div className="rb-bar-right">
+          <div className="rb-bar-util">
+          {/* The open/closed status follows you down the page — for a bakery
+              that shuts at 17:00 this is the single most asked question. It is
+              a dot and one word, not a sentence: the full sentence ran 200px
+              wide next to the order button and read like a notice. The hours
+              are the hover/focus detail, and because a tooltip is no use on a
+              phone the whole thing is a link to the printed hours in Heimsækja
+              — which also gives it real keyboard focus rather than a tabindex
+              on a span. */}
+          <a
+            href="#visit"
+            className="rb-status"
+            data-open={status.open}
+            aria-label={`${status.word} — ${status.detail}`}
+          >
             <span className="rb-sticky-dot" style={{ background: status.open ? GOLD : 'rgba(243,234,211,.4)' }} />
-            <span className="rb-sticky-status">{status.label}</span>
-          </span>
+            <span className="rb-sticky-status" aria-hidden="true">{status.word}</span>
+            <span className="rb-status-tip" aria-hidden="true">{status.detail}</span>
+          </a>
+            <span className="rb-bar-sep" aria-hidden="true" />
+            <a className="rb-social" href={LINKS.instagram} target="_blank" rel="noreferrer" aria-label={`Instagram — Reynir bakari (${t.extNote})`}>
+              <IgIcon />
+            </a>
+            <a className="rb-social" href={LINKS.facebook} target="_blank" rel="noreferrer" aria-label={`Facebook — Reynir bakari (${t.extNote})`}>
+              <FbIcon />
+            </a>
+            <span className="rb-bar-sep rb-bar-sep-lang" aria-hidden="true" />
+            <div className="rb-bar-lang" role="group" aria-label="Language" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
+              <span aria-hidden="true" style={{ color: FAINT }}>/</span>
+              <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')}>ÍS</button>
+            </div>
+          </div>
           <Link to={P.order} className="rb-sticky-cta">{ot.navOrder}</Link>
           <button
             type="button"
@@ -1149,7 +1418,6 @@ function ReynirPageInner() {
         <nav className="rb-menu-nav" aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}>
           {[
             { href: '#menu', label: t.navMenu },
-            { href: '#bread', label: t.navBread },
             { href: '#gallery', label: t.navGallery },
             { to: P.story, label: t.navStory },
             { href: '#visit', label: t.navVisit },
@@ -1190,10 +1458,33 @@ function ReynirPageInner() {
               <span className="rb-sticky-dot" style={{ background: status.open ? GOLD : 'rgba(243,234,211,.4)' }} />
               {status.label}
             </span>
-            <div role="group" aria-label="Language" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')} tabIndex={menu ? 0 : -1}>EN</button>
-              <span aria-hidden="true" style={{ color: FAINT }}>/</span>
-              <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')} tabIndex={menu ? 0 : -1}>ÍS</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              {/* the pair the bar hides on a phone — full 44px targets here */}
+              <a
+                className="rb-social rb-social-menu"
+                href={LINKS.instagram}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Instagram — Reynir bakari (${t.extNote})`}
+                tabIndex={menu ? 0 : -1}
+              >
+                <IgIcon />
+              </a>
+              <a
+                className="rb-social rb-social-menu"
+                href={LINKS.facebook}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Facebook — Reynir bakari (${t.extNote})`}
+                tabIndex={menu ? 0 : -1}
+              >
+                <FbIcon />
+              </a>
+              <div role="group" aria-label="Language" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <button className="rb-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')} tabIndex={menu ? 0 : -1}>EN</button>
+                <span aria-hidden="true" style={{ color: FAINT }}>/</span>
+                <button className="rb-lang" aria-pressed={lang === 'is'} onClick={() => setLang('is')} tabIndex={menu ? 0 : -1}>ÍS</button>
+              </div>
             </div>
           </div>
           <Link to={P.order} className="rb-menu-cta" onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}>
@@ -1554,7 +1845,7 @@ function ReynirPageInner() {
 
         {/* Bleeds past the wrap on purpose: a strip that starts at the text's
             left edge but runs off the right tells you it scrolls. */}
-        <div className="rb-gallery-strip" style={{ marginTop: 'clamp(28px,4vh,44px)' }}>
+        <div ref={stripRef} className="rb-gallery-strip" style={{ marginTop: 'clamp(28px,4vh,44px)' }}>
           {GALLERY.map((photo, i) => (
             <GalleryTile key={photo.src} photo={photo} lang={lang} onOpen={() => setLightbox(i)} style={revealInit(reduced, Math.min(i, 5) * 0.05)} />
           ))}
@@ -1682,6 +1973,8 @@ function ReynirPageInner() {
           <div>
             <img src={LOGO} alt="" aria-hidden="true" width={120} height={52} loading="lazy" decoding="async" style={{ width: 120, height: 'auto', display: 'block' }} />
             <div style={{ fontSize: 13, color: FAINT, marginTop: 12 }}>{t.footerTag}</div>
+            {/* the studio signature, under the bakery's own mark */}
+            <div style={{ marginTop: 18 }}><SndrCredit lang={lang} /></div>
           </div>
           <div style={{ fontSize: 13.5, color: DIM, lineHeight: 1.8, textAlign: 'right' }}>
             <div>{mainName} · {LINKS.phoneLabel}</div>

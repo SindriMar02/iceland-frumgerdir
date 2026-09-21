@@ -25,6 +25,7 @@ import { useModalFocus } from './useModalFocus'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import Chrome from './Chrome'
+import { SndrCredit } from './SndrCredit'
 import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { type GalleryPhoto, LOGO } from './data'
@@ -256,7 +257,10 @@ function StoryPageInner() {
       <footer style={{ background: INK_DEEP, borderTop: `1px solid ${HAIR_SOFT}`, padding: '48px clamp(20px,4.5vw,72px)' }}>
         <div style={{ ...wrap, display: 'flex', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
           <Link to={P.home} className="rb-st-back">{t.storyBack}</Link>
-          <div style={{ fontSize: 13, color: FAINT }}>{mainName}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}>
+            <div style={{ fontSize: 13, color: FAINT }}>{mainName}</div>
+            <SndrCredit lang={lang} />
+          </div>
         </div>
       </footer>
 
