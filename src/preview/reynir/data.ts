@@ -136,7 +136,9 @@ export const LINKS = {
   phone: '+3545644700',
   phoneLabel: '564 4700',
   email: 'reynirbakari@reynirbakari.is',
-  orderEmail: 'pantanir@reynirbakari.is',
+  /* Þorleifur's decision via Sindri, 2026-09-21: orders go to the main inbox,
+     not pantanir@ (which their old Wix site advertised). */
+  orderEmail: 'reynirbakari@reynirbakari.is',
 } as const
 
 /** Weekly hours, minutes-from-midnight, UTC (Iceland has no DST). 07–17 every

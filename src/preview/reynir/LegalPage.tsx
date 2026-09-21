@@ -87,7 +87,7 @@ const IS_DOC: { title: string; updated: string; blocks: Block[] } = {
     {
       h: 'Hverjir sjá upplýsingarnar',
       p: [
-        'Pöntunarbeiðnin berst í netfangið pantanir@reynirbakari.is og er aðgengileg starfsfólki sem vinnur við pantanir. Vefurinn sjálfur geymir engar pantanir.',
+        'Pöntunarbeiðnin berst í netfangið reynirbakari@reynirbakari.is og er aðgengileg starfsfólki sem vinnur við pantanir. Vefurinn sjálfur geymir engar pantanir.',
         'Tveir vinnsluaðilar koma að því að koma beiðninni til okkar: Cloudflare, sem hýsir vefinn og tekur við beiðninni, og Resend, sem sendir hana sem tölvupóst. Cloudflare geymir ekki pöntunina, en Resend geymir afrit af sendum pósti í takmarkaðan tíma í afhendingarskrá sinni. Báðir vinna gögnin eingöngu fyrir okkar hönd samkvæmt vinnslusamningi. Resend er bandarískt fyrirtæki og flutningur gagna þangað byggir á viðurkenndum flutningsheimildum. Efni vefsins, svo sem vörur og myndir, er geymt hjá Sanity; þangað fara engar upplýsingar um þig.',
       ],
     },
@@ -165,7 +165,7 @@ const EN_DOC: { title: string; updated: string; blocks: Block[] } = {
     {
       h: 'Who sees it',
       p: [
-        'Order requests arrive at pantanir@reynirbakari.is and are seen by the staff who handle orders. The website itself stores no orders.',
+        'Order requests arrive at reynirbakari@reynirbakari.is and are seen by the staff who handle orders. The website itself stores no orders.',
         'Two processors carry the request to us: Cloudflare, which hosts the site and receives the request, and Resend, which sends it on as an email. Cloudflare does not keep the order; Resend keeps a copy of sent mail for a limited time in its delivery log. Both process it only on our behalf under a processing agreement. Resend is a US company, and the transfer relies on recognised transfer safeguards. The site\'s content, such as products and photographs, is kept in Sanity; nothing about you goes there.',
       ],
     },

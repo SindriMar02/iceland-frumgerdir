@@ -60,7 +60,7 @@ const B = {
   phoneDisplay: '564 4700',
   phone: '+354 564 4700',
   email: 'reynirbakari@reynirbakari.is',
-  orderEmail: 'pantanir@reynirbakari.is',
+  orderEmail: 'reynirbakari@reynirbakari.is',
   founded: '1994',
   opens: '07:00',
   closes: '17:00',

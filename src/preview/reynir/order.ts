@@ -71,7 +71,7 @@ export const PLACEHOLDER_DATA = false
  * Where a submitted order actually lands.
  *
  * ⚠️ TEMPORARY: pointed at Sindri's inbox while we test, NOT at the bakery.
- * On handover this becomes `pantanir@reynirbakari.is` — and the first send to
+ * On handover this becomes `reynirbakari@reynirbakari.is` (decided 2026-09-21) — and the first send to
  * any new address makes FormSubmit email that address an activation link which
  * must be clicked once before anything is delivered. Do that before go-live,
  * not on the morning of it.
