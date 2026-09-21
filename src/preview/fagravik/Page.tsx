@@ -3,7 +3,7 @@ import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import Lenis from 'lenis'
 import { setMetaDescription, setNoindex, setThemeColor } from '../../lib/preview'
-import { AROUND, CONTACT, COTTAGES, IMG, REVIEWS, SILASTADIR, type Cottage, type Photo } from './data'
+import { AROUND, CONTACT, COTTAGES, IMG, JSON_LD, REVIEWS, SILASTADIR, type Cottage, type Photo } from './data'
 import { StayPicker, STAY_CSS } from './StayPicker'
 
 const company = getPreviewCompany('fagravik')
@@ -576,6 +576,7 @@ export default function FagravikPage() {
   return (
     <div className="fv" lang="en" data-intro={intro}>
       <style>{CSS + STAY_CSS}</style>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <div className="fv-awning" id="top" aria-hidden="true" />
       <div className="fv-curtain" aria-hidden="true" />
       <Bar />

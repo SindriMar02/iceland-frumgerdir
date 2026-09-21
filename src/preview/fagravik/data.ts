@@ -194,6 +194,25 @@ export const SILASTADIR = {
   ],
 }
 
+/* Structured data: only the owners' own facts. No aggregateRating: Google does
+   not allow a business to mark up third-party review scores about itself. */
+export const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'LodgingBusiness',
+  name: 'Aurora Vacation Homes, Fagravík',
+  description: 'Twelve cottages on the shore of Eyjafjörður, 4 km north of Akureyri, each with its own hot tub.',
+  url: 'https://www.fagravik.is',
+  email: 'fagravik@fagravik.is',
+  telephone: ['+354 690 0007', '+354 690 0006'],
+  address: { '@type': 'PostalAddress', streetAddress: 'Fagravík', postalCode: '601', addressLocality: 'Akureyri', addressCountry: 'IS' },
+  numberOfRooms: 12,
+  amenityFeature: [
+    { '@type': 'LocationFeatureSpecification', name: 'Private hot tub', value: true },
+    { '@type': 'LocationFeatureSpecification', name: 'Kitchen', value: true },
+    { '@type': 'LocationFeatureSpecification', name: 'Free WiFi', value: true },
+  ],
+}
+
 export const PHOTO_CREDIT =
   'Photographs are Aurora Vacation Homes’ own, from fagravik.is and the property’s Booking.com listing, collected September 2026.'
 
@@ -237,6 +256,7 @@ export const companyEntry: PreviewCompany = {
     'Aurora Vacation Homes rents twelve cottages at Fagravík, 4 km north of Akureyri, and four more units at Sílastaðir II. The prototype is built around the question every guest arrives with, which house fits our group, and around the owners’ own photographs of the bay in summer and winter.',
   outreach: {
     subject: 'Hugmynd að nýrri vefsíðu fyrir Fögruvík',
-    body: '[Drög ekki skrifuð. Sjá _docs/FAGRAVIK-AUDIT-2026-09-21.md áður en haft er samband.]',
+    body:
+      "Sælar Auður og Soffía,\n\nÉg heiti Sindri og hanna vefsíður fyrir íslensk fyrirtæki.\n\nÉg rakst á Fögruvík og staldraði við. Gestir gefa ykkur 8,8 úr 229 umsögnum á Booking.com og 9,5 fyrir staðsetninguna, og myndirnar ykkar af miðnætursólinni yfir Eyjafirði og heitu pottunum á kvöldin segja meira en mörg orð. Á fagravik.is sést hins vegar lítið af þessu. Myndirnar þar eru frá 2019 og nýuppgerðu húsin sjást aðeins á Booking.com, það er hvorki dagatal né verð á síðunni og til að bóka þarf gestur að smella á umslag og senda tölvupóst. Í síma þarf líka að skruna til hliðar til að lesa textann.\n\nMér fannst það synd, svo ég settist niður og hannaði frumgerð að nýjum vef fyrir Fögruvík. Þetta kostar ykkur ekki neitt og því fylgir engin skuldbinding.\n\nHana má skoða hér hvenær sem er, og hún virkar vel í síma:\n[HLEKKUR Á FRUMGERÐ]\n\nHugmyndin er einföld. Gestur segir hversu mörg þau eru og sér strax hvaða hús henta, með ykkar eigin myndum af hverju húsi, pottunum og flóanum bæði sumar og vetur. Hann velur dagsetningar beint á síðunni og sér verð og laus hús eða sendir ykkur fyrirspurn án þess að leita, og Sílastaðir II fá líka sitt pláss. Allar staðreyndir og myndir á síðunni eru ykkar eigin.\n\nÉg sé líka um hýsingu, viðhald og uppfærslur á síðum sem ég geri, og get tengt bókanir beint við vefinn ef þið viljið taka við fleiri bókunum sjálfar.\n\nEf ykkur líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki er það að sjálfsögðu allt í lagi.\n\nEndilega látið mig vita hvað ykkur finnst.\n\nBestu kveðjur,\nSindri Már\n845-1758\nsndrstudio.is",
   },
 }

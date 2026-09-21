@@ -48,7 +48,8 @@ const subject = (src.match(/\*\*Subject:\*\*\s*(.+)/) || [])[1]?.trim()
    exception: Mystic Light went out in English, and Villa North's manager is
    Austrian and writes English. The gate refused those drafts purely for being
    in the language the recipient actually reads. */
-const greetingRe = /^(Sæl og blessuð|Sæl|Sæll|Góðan dag|Komdu sæl|Hi|Hello|Dear|Good morning)\b/m
+/* plural greetings: Sælar (two or more women), Sælir (men or mixed), as for Auður and Soffía at Fagravík */
+const greetingRe = /^(Sæl og blessuð|Sælar|Sælir|Sæl|Sæll|Góðan dag|Komdu sæl|Hi|Hello|Dear|Good morning)\b/m
 const gm = src.match(greetingRe)
 if (!subject || !gm) { console.error('FAIL  draft needs a **Subject:** line and a greeting'); process.exit(1) }
 
