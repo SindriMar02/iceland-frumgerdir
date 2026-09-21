@@ -7,18 +7,14 @@ name: Reynir live (reynirbakari.is)
 # first pass, the AI crawlers and Facebook's link preview read the baked HTML
 # and the JSON-LD hours. Without a rebuild, an edit never reaches them.
 #
-# WHY POLLING, not a webhook. The Pages project is a direct upload (the repo is
-# 1.7 GB, far too heavy for a Cloudflare Git build), and direct-upload projects
-# have no deploy hook. A webhook would need a GitHub token stored in Sanity.
-# Instead this checks the PUBLIC dataset every 15 minutes: the newest published
-# _updatedAt is compared with /cms-stamp.txt on the live site, and it builds
-# only when they differ. No secret lives in Sanity. Once a day it rebuilds
-# regardless, which also catches deletions (they do not move the newest stamp).
+# HOW IT IS TRIGGERED. A Sanity webhook fires on every publish and calls
+# GitHub's repository_dispatch (event sanity-publish-reynir), so a publish
+# rebuilds the site within a minute or two. The nightly run is only a safety
+# net (a missed webhook, a deletion). No polling.
 #
 # Secret needed: CLOUDFLARE_API_TOKEN (Account > Cloudflare Pages > Edit).
 on:
   schedule:
-    - cron: '*/15 * * * *'
     - cron: '17 4 * * *'
   workflow_dispatch:
   repository_dispatch:
@@ -43,7 +39,7 @@ jobs:
           LIVE=$(curl -sf https://reynirbakari.is/cms-stamp.txt || echo none)
           echo "cms=$CMS live=$LIVE"
           echo "stamp=$CMS" >> "$GITHUB_OUTPUT"
-          if [ "${{ github.event_name }}" != "schedule" ] || [ "${{ github.event.schedule }}" = "17 4 * * *" ] || [ "$CMS" != "$LIVE" ]; then
+          if [ "${{ github.event_name }}" != "schedule" ] || [ "$CMS" != "$LIVE" ]; then
             echo "go=1" >> "$GITHUB_OUTPUT"
           fi
       - if: steps.check.outputs.go == '1'
