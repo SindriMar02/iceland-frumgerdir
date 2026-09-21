@@ -92,6 +92,14 @@ const fmtDate = (iso: string, lang: Lang) => {
   const locale = lang === 'de' ? 'de-DE' : 'en-GB'
   return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
 }
+/** A rider on a booking request: what they say of their riding, and a child's age. */
+type Rider = { experience: '' | 'none' | 'some' | 'regular' | 'experienced'; age?: number | '' }
+const EXPERIENCE: { id: Exclude<Rider['experience'], ''>; label: Record<Lang, string> }[] = [
+  { id: 'none', label: { is: 'Aldrei farið á hestbak', en: 'Never ridden', de: 'Noch nie geritten' } },
+  { id: 'some', label: { is: 'Farið nokkrum sinnum', en: 'Ridden a few times', de: 'Ein paar Mal geritten' } },
+  { id: 'regular', label: { is: 'Ríð reglulega', en: 'Ride regularly', de: 'Reite regelmäßig' } },
+  { id: 'experienced', label: { is: 'Vanur knapi', en: 'Experienced rider', de: 'Erfahrener Reiter' } },
+]
 /** Trilingual inline pick for tiny UI strings that don't live in COPY. */
 const tri = (lang: Lang, is: string, en: string, de: string) => (lang === 'is' ? is : lang === 'de' ? de : en)
 const isoDay = (d: Date) =>
@@ -768,6 +776,20 @@ function Booking({
   const [phone, setPhone] = useState('')
   const [note, setNote] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'error'>('idle')
+  /* One line per rider, the question the farm asks every guest: how much has
+     each person ridden, and how old is each child. Adults first, then children,
+     resized as the steppers move without losing what was already chosen. */
+  const [adultRiders, setAdultRiders] = useState<Rider[]>([{ experience: '' }])
+  const [childRiders, setChildRiders] = useState<Rider[]>([])
+  const fit = (rs: Rider[], n: number, blank: Rider) =>
+    rs.length === n ? rs : rs.length > n ? rs.slice(0, n) : [...rs, ...Array.from({ length: n - rs.length }, () => ({ ...blank }))]
+  useEffect(() => setAdultRiders((rs) => fit(rs, adults, { experience: '' })), [adults])
+  useEffect(() => setChildRiders((rs) => fit(rs, children, { experience: '', age: '' })), [children])
+  const riders = [...adultRiders, ...childRiders]
+  const setRider = (i: number, patch: Partial<Rider>) =>
+    i < adults
+      ? setAdultRiders((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)))
+      : setChildRiders((rs) => rs.map((r, j) => (j === i - adults ? { ...r, ...patch } : r)))
 
   const childPrice = Math.max(tour.price - CHILD_DISCOUNT, 0)
   const total = tour.price * adults + childPrice * children
@@ -817,8 +839,13 @@ function Booking({
             phone,
             ...(email ? { email } : {}),
           },
-          // the guest's own words, plus the one thing the engine cannot infer
-          note: [note, `Tungumál gests: ${LANG_NAMES[lang]}`].filter(Boolean).join('\n'),
+          // the owner answers in the guest's language, and plans horses by these
+          lang,
+          participants: riders.map((r) => ({
+            ...(r.experience ? { experience: r.experience } : {}),
+            ...(r.age !== undefined && r.age !== '' ? { age: Number(r.age) } : {}),
+          })),
+          ...(note.trim() ? { note: note.trim() } : {}),
         }),
       })
       const json = (await res.json().catch(() => null)) as
@@ -1007,6 +1034,62 @@ function Booking({
               <Stepper label={t.adults} value={adults} set={setAdults} min={1} lang={lang} />
               <Stepper label={t.children} value={children} set={setChildren} min={0} lang={lang} />
             </div>
+            <fieldset className="mt-4">
+              <legend className="mb-2 font-hanken text-xs font-medium" style={{ color: SLATE }}>
+                {tri(lang, 'Reynsla hvers knapa', 'Each rider’s experience', 'Reiterfahrung pro Person')}
+              </legend>
+              <ul className="space-y-2">
+                {riders.map((r, i) => {
+                  const isChild = i >= adults
+                  const n = isChild ? i - adults + 1 : i + 1
+                  const who = isChild
+                    ? tri(lang, `Barn ${n}`, `Child ${n}`, `Kind ${n}`)
+                    : tri(lang, `Knapi ${n}`, `Rider ${n}`, `Reiter ${n}`)
+                  const ageFrom = Math.max(tour.minAge, 1)
+                  return (
+                    <li key={i} className={`grid items-center gap-2 ${isChild ? 'grid-cols-[4.2rem_5.6rem_1fr]' : 'grid-cols-[4.2rem_1fr]'}`}>
+                      <span className="font-hanken text-sm font-medium" style={{ color: INK }}>{who}</span>
+                      {isChild && (
+                        <select
+                          required
+                          aria-label={tri(lang, `Aldur, ${who}`, `Age, ${who}`, `Alter, ${who}`)}
+                          value={r.age ?? ''}
+                          onChange={(e) => setRider(i, { age: e.target.value === '' ? '' : Number(e.target.value) })}
+                          className="w-full rounded-xl border px-2.5 py-2.5 font-hanken text-base outline-none md:text-sm"
+                          style={{ borderColor: '#0000001f', background: MIST, color: INK }}
+                        >
+                          <option value="">{tri(lang, 'Aldur', 'Age', 'Alter')}</option>
+                          {Array.from({ length: 12 - ageFrom + 1 }, (_, k) => ageFrom + k).map((a) => (
+                            <option key={a} value={a}>{tri(lang, `${a} ára`, `${a} yrs`, `${a} J.`)}</option>
+                          ))}
+                        </select>
+                      )}
+                      <select
+                        required
+                        aria-label={tri(lang, `Reynsla, ${who}`, `Experience, ${who}`, `Erfahrung, ${who}`)}
+                        value={r.experience}
+                        onChange={(e) => setRider(i, { experience: e.target.value as Rider['experience'] })}
+                        className="w-full rounded-xl border px-2.5 py-2.5 font-hanken text-base outline-none md:text-sm"
+                        style={{ borderColor: '#0000001f', background: MIST, color: r.experience ? INK : SLATE }}
+                      >
+                        <option value="">{tri(lang, 'Veldu reynslu', 'Choose experience', 'Erfahrung wählen')}</option>
+                        {EXPERIENCE.map((x) => (
+                          <option key={x.id} value={x.id}>{x.label[lang]}</option>
+                        ))}
+                      </select>
+                    </li>
+                  )
+                })}
+              </ul>
+              <p className="mt-2 font-hanken text-xs leading-relaxed" style={{ color: SLATE }}>
+                {tri(
+                  lang,
+                  'Við veljum hest fyrir hvern knapa út frá þessu. Hámarksþyngd er 95 kg; nefndu hávaxna knapa í athugasemd.',
+                  'We choose a horse for each rider from this. The weight limit is 95 kg; mention tall riders in the note.',
+                  'Danach wählen wir für jeden Reiter ein Pferd. Höchstgewicht 95 kg; große Reiter bitte in der Nachricht nennen.',
+                )}
+              </p>
+            </fieldset>
             <div className="mt-5">
               <Step n={4} label={t.stepContact} />
               <div className="space-y-2.5">
@@ -1045,6 +1128,7 @@ function Booking({
                     </span>
                     <input
                       type="tel"
+                      required
                       autoComplete="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
