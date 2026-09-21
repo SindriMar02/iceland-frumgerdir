@@ -182,6 +182,9 @@ html:has(.rob-root), body:has(.rob-root){background-color:${C.paper}}
 .rob-head:before{content:'';position:absolute;inset:0;background:#fff;border-radius:var(--rad);opacity:0;transition:opacity .3s}
 .rob-head.scrolled:before,.rob-head.menuopen:before{opacity:1}
 .rob-head.light:not(.scrolled):not(.menuopen){color:#fff}
+/* the ghost phone button inherits ink from the system and vanished over the dark
+   hero until the plate faded in (caught in the landing shot, 2026-09-21) */
+.rob-head.light:not(.scrolled):not(.menuopen) .rob-btn.ghost{color:#fff;border-color:rgba(255,255,255,.6)}
 .rob-head .row{position:relative;display:flex;align-items:center;gap:var(--col);justify-content:space-between}
 .rob-head .mark{font-weight:600;letter-spacing:0.02em;font-size:clamp(17px,1.35vw,22px);display:flex;align-items:baseline;gap:.45em}
 .rob-head .mark small{font-size:0.52em;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;opacity:.65}
