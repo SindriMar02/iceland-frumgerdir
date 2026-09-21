@@ -53,7 +53,23 @@ const TEASER_CSS = `
   /* Below the desktop layout the chosen count stops mattering: two across
      while the cards still hold a photograph and a blurb, then one. */
   @media (max-width:860px) { .rb-tease-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-  @media (max-width:620px) { .rb-tease-grid { grid-template-columns:minmax(0,1fr); } }
+  /* PHONES: a list, not a stack of posters. One column of full-width 4:3
+     photographs made four cakes about 2,500px of scrolling before the order
+     button. Each card becomes a row instead — the photograph as a square on
+     the left, name, price and blurb beside it — the grammar every food and
+     cart list on a phone uses. The whole row stays the link. */
+  @media (max-width:620px) {
+    .rb-tease-grid { grid-template-columns:minmax(0,1fr); gap:8px; }
+    .rb-tease-card { display:grid; grid-template-columns:92px minmax(0,1fr); column-gap:14px;
+      row-gap:3px; align-content:start; padding:12px; }
+    .rb-tease-pic { grid-row:1 / span 3; margin:0; width:92px; aspect-ratio:1 / 1; border-radius:3px; }
+    .rb-tease-name { font-size:19px; }
+    .rb-tease-blurb { font-size:13px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2;
+      -webkit-box-orient:vertical; overflow:hidden; }
+    .rb-tease-card:hover { transform:none; }
+    /* a product saved without a photo still gets a full-width row */
+    .rb-tease-card:not(:has(.rb-tease-pic)) { grid-template-columns:minmax(0,1fr); }
+  }
   @media (prefers-reduced-motion: reduce) {
     .rb-tease-card { transition:none; }
     .rb-tease-card:hover { transform:none; }
