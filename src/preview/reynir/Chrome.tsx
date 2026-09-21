@@ -13,14 +13,23 @@
  */
 import { lazy, Suspense } from 'react'
 import { STANDALONE } from './paths'
+import { RouteTransition } from './RouteTransition'
 
 const PreviewShell = STANDALONE ? null : lazy(() => import('./PreviewShell'))
 
+/* Every Reynir page renders <Chrome /> once, in both builds, which makes it
+   the one place the page-to-page transition can be mounted without touching
+   either route tree. The transition ships in the client build; the preview
+   shell does not. */
 export default function Chrome() {
-  if (!PreviewShell) return null
   return (
-    <Suspense fallback={null}>
-      <PreviewShell />
-    </Suspense>
+    <>
+      <RouteTransition />
+      {PreviewShell && (
+        <Suspense fallback={null}>
+          <PreviewShell />
+        </Suspense>
+      )}
+    </>
   )
 }
