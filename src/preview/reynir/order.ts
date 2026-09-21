@@ -80,7 +80,7 @@ export const PLACEHOLDER_DATA = false
  * relays a form POST to an inbox, needs no server, and costs nothing. It does
  * require a browser Origin header, so it works from the site but not from curl.
  */
-export const ORDER_FORM_TO = 'sindri@klubbr.is'
+export const ORDER_FORM_TO = 'reynirbakari@reynirbakari.is'
 
 /**
  * Where an order is sent: OUR OWN Worker, at 04-platform/reynir-order.

@@ -1,0 +1,72 @@
+name: Reynir live (reynirbakari.is)
+
+# Rebuilds and deploys reynirbakari.is when Þorleifur publishes in the CMS.
+#
+# WHY. Every page is prerendered with the CMS content baked in. A visitor with
+# JavaScript sees an edit within seconds (the app refetches Sanity), but Google's
+# first pass, the AI crawlers and Facebook's link preview read the baked HTML
+# and the JSON-LD hours. Without a rebuild, an edit never reaches them.
+#
+# WHY POLLING, not a webhook. The Pages project is a direct upload (the repo is
+# 1.7 GB, far too heavy for a Cloudflare Git build), and direct-upload projects
+# have no deploy hook. A webhook would need a GitHub token stored in Sanity.
+# Instead this checks the PUBLIC dataset every 15 minutes: the newest published
+# _updatedAt is compared with /cms-stamp.txt on the live site, and it builds
+# only when they differ. No secret lives in Sanity. Once a day it rebuilds
+# regardless, which also catches deletions (they do not move the newest stamp).
+#
+# Secret needed: CLOUDFLARE_API_TOKEN (Account > Cloudflare Pages > Edit).
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [sanity-publish-reynir]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: reynir-live
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Anything new in the CMS?
+        id: check
+        run: |
+          Q='*[!(_id in path("drafts.**")) && !(_id in path("_.**"))]|order(_updatedAt desc)[0]._updatedAt'
+          CMS=$(curl -sf --get "https://v4v3s4wg.api.sanity.io/v2024-01-01/data/query/production" --data-urlencode "query=$Q" | jq -r .result)
+          LIVE=$(curl -sf https://reynirbakari.is/cms-stamp.txt || echo none)
+          echo "cms=$CMS live=$LIVE"
+          echo "stamp=$CMS" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" != "schedule" ] || [ "${{ github.event.schedule }}" = "17 4 * * *" ] || [ "$CMS" != "$LIVE" ]; then
+            echo "go=1" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.check.outputs.go == '1'
+        uses: actions/checkout@v4
+      - if: steps.check.outputs.go == '1'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - if: steps.check.outputs.go == '1'
+        run: npm ci
+      # The standalone build defaults to https://reynirbakari.is and the live
+      # analytics token, so nothing here can ship noindex or drop the beacon.
+      - if: steps.check.outputs.go == '1'
+        run: npm run build:reynir
+      - if: steps.check.outputs.go == '1'
+        name: Refuse to ship a non-indexable build
+        run: |
+          grep -q 'content="index, follow' dist-reynir/index.html || { echo "index.html is not indexable"; exit 1; }
+          grep -q '__reynir_cms' dist-reynir/index.html || { echo "no CMS payload baked in"; exit 1; }
+          echo "${{ steps.check.outputs.stamp }}" > dist-reynir/cms-stamp.txt
+      - if: steps.check.outputs.go == '1'
+        run: npx wrangler pages deploy dist-reynir --project-name reynir-bakari --branch main --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 381fb216c6a65237476b5583061b3648

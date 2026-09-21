@@ -40,8 +40,12 @@ import { join } from 'node:path'
 const dist = process.argv[2] || 'dist'
 const basePath = (process.argv.find((a) => a.startsWith('--base=')) || '--base=/').slice(7)
 
-/** Set on launch day. Unset = still on the preview host = stay out of the index. */
-const SITE = process.env.REYNIR_SITE_URL || ''
+/** The standalone dist IS reynirbakari.is (live since 2026-09-21), so it defaults
+ * to the live origin: a rebuild without the env var (a CMS webhook, a quick fix)
+ * must never ship noindex to the live domain. The catalogue build (no
+ * REYNIR_STANDALONE) still defaults to the preview host and stays noindex. */
+const SITE = process.env.REYNIR_SITE_URL ||
+  (process.env.REYNIR_STANDALONE === '1' ? 'https://reynirbakari.is' : '')
 const LIVE = Boolean(SITE)
 const origin = LIVE ? SITE.replace(/\/$/, '') : 'https://sindrimar02.github.io'
 const prefix = LIVE ? '' : basePath.replace(/\/$/, '')

@@ -57,7 +57,10 @@ console.log(`reynir-post: pruned ${pruned} catalogue entries from public/`)
  * the preview host and any local build ship no beacon at all rather than a
  * broken one pointing at a placeholder. Cookieless either way — the privacy
  * policy describes exactly this. */
-const cfToken = process.env.VITE_REYNIR_CF_ANALYTICS_TOKEN
+/* The reynirbakari.is Web Analytics site (created 2026-09-21). A beacon token is
+ * public by design, it ships in every page, so it is the default here: a CMS
+ * webhook rebuild without the env var must not silently stop counting visits. */
+const cfToken = process.env.VITE_REYNIR_CF_ANALYTICS_TOKEN ?? '71857fab3bfc449788de95b9f9809a1d'
 {
   const shell = join(dist, 'index.html')
   let html = readFileSync(shell, 'utf8')
@@ -110,6 +113,17 @@ execFileSync('node', ['tools/reynir-seo.mjs', dist, '--base=/'], {
   writeFileSync(join(dist, '404.html'), html)
   console.log('reynir-post: 404.html (noindex, no canonical, real 404 status — no SPA catch-all)')
 }
+
+/* 3c ── the old Wix addresses (its sitemap on 2026-09-21: /, /panta, /um-okkur,
+ * /hafa-samband, /starfsfolk). /panta still exists. The rest are pinned 301s to
+ * their nearest new page, deliberately NOT a catch-all (see 3b). */
+writeFileSync(join(dist, '_redirects'), [
+  '/um-okkur /sagan/ 301',
+  '/starfsfolk /sagan/ 301',
+  '/hafa-samband /#visit 301',
+  '',
+].join('\n'))
+console.log('reynir-post: _redirects for the old Wix URLs')
 
 /* 5 ── icon inheritance guard */
 execFileSync('node', ['tools/favicon-guard.mjs', dist], { stdio: 'inherit' })

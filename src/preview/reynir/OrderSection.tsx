@@ -1580,8 +1580,10 @@ function OrderForm({
     setStatus('sending')
     setSendError(false)
 
-    // Keep the same UUID across retries, without random values during SSR.
-    const ref = orderRef || `RB-${crypto.randomUUID()}`
+    // Keep the same reference across retries, without random values during SSR.
+    // Six characters, not a UUID: the customer reads it out over the phone.
+    // No 0/O/1/I/L, so it survives being said aloud and typed back.
+    const ref = orderRef || `RB-${Array.from(crypto.getRandomValues(new Uint32Array(6)), (n) => 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[n % 31]).join('')}`
     setOrderRef(ref)
 
     const L = ORDER_T.is // the bakery reads its own orders in Icelandic
@@ -2473,7 +2475,10 @@ function OrderForm({
               <div className="rb-ord-stub-cell">
                 <span className="rb-ord-stub-key">{t.slipTotal}</span>
                 <span className="rb-ord-stub-val" data-price="true">
-                  {quote ? t.quoteTotal : isk(total)}
+                  {/* The whole order, as the slip showed it. Not `total`: that is
+                      the empty draft's once its cake is in the basket, and read
+                      "0 kr." on a 22.550 kr. order (caught in the launch test). */}
+                  {totalText}
                 </span>
               </div>
             </div>
