@@ -25,7 +25,9 @@ import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { COPY, INSTAGRAM, TRIPADVISOR, type Lang } from './data'
 import { stegaClean } from '@sanity/client/stega'
-import { SiteContentProvider, useSiteContent, type Pic, type TourX } from './sanity'
+import { SiteContentProvider, useHashLanding, useSiteContent, type Pic, type TourX } from './sanity'
+import { departuresLine, metaLine, requirementsLine } from './schedule'
+import { Link } from 'react-router-dom'
 
 const company = companyEntry
 
@@ -57,6 +59,7 @@ const NIGHT2 = '#252D5E' // navy card / active tab on night ground
 const ICE = '#9BD8F3' // logo ice-blue (alias of CLAY_HI on night sections)
 
 const LOGO = `${import.meta.env.BASE_URL}polarhestar/logo.png`
+const SCHEDULE_HREF = `${import.meta.env.BASE_URL}preview/polarhestar/dagskra`
 
 const LANGS: Lang[] = ['is', 'en', 'de']
 const LANG_NAMES: Record<Lang, string> = { is: 'Íslenska', en: 'English', de: 'Deutsch' }
@@ -1263,12 +1266,21 @@ function PolarHestarPageInner() {
   const [activeSec, setActiveSec] = useState('')
   const [veil, setVeil] = useState(false)
   const pendingLang = useRef<Lang | null>(null)
-  const [bookTour, setBookTour] = useState(SHORT_TOURS[0].id)
+  // ?ferd=<id> arrives from the schedule page's "Book" links with that tour picked
+  const [bookTour, setBookTour] = useState(() => {
+    try {
+      const want = new URLSearchParams(window.location.search).get('ferd')
+      return SHORT_TOURS.find((x) => x.id === want)?.id ?? SHORT_TOURS[0].id
+    } catch {
+      return SHORT_TOURS[0].id
+    }
+  })
   const [shownPhotos, setShownPhotos] = useState(24)
   const [lightbox, setLightbox] = useState<number | null>(null)
   const t = COPY[lang]
   const minPrice = Math.min(...SHORT_TOURS.map((x) => x.price))
   const bookingRef = useRef<HTMLDivElement>(null)
+  useHashLanding()
 
   /** Þokan — the language changes behind a breath of glacier mist. */
   const switchLang = (code: Lang) => {
@@ -1595,6 +1607,7 @@ function PolarHestarPageInner() {
                 kids: [
                   ['#ferdir', tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Touren')],
                   ['#lengri', tri(lang, 'Lengri ferðir', 'Long rides', 'Lange Reittouren')],
+                  [SCHEDULE_HREF, tri(lang, 'Dagskrá og dagsetningar', 'Schedule and dates', 'Termine und Daten')],
                   ['#boka', tri(lang, 'Bóka reiðtúr', 'Book a ride', 'Ritt buchen')],
                 ] as [string, string][],
               },
@@ -1724,6 +1737,7 @@ function PolarHestarPageInner() {
             {[
               ['#ferdir', tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Touren')],
               ['#lengri', tri(lang, 'Lengri ferðir', 'Long rides', 'Lange Reittouren')],
+              [SCHEDULE_HREF, tri(lang, 'Dagskrá', 'Schedule', 'Termine')],
               ['#arstidir', t.nav.seasons],
               ['#gott', t.nav.info],
               ['#myndir', tri(lang, 'Myndasafn', 'Gallery', 'Galerie')],
@@ -2055,7 +2069,7 @@ function PolarHestarPageInner() {
                   </div>
                   <div className="flex flex-1 flex-col justify-center gap-3 p-6 md:p-8">
                     <div className="flex flex-wrap items-center gap-2">
-                      {tour.meta[lang].split(' · ').map((part, j) => (
+                      {metaLine(tour, lang).split(' · ').map((part, j) => (
                         <span
                           key={j}
                           className="rounded-full px-2.5 py-1 font-hanken text-[0.72rem] font-semibold"
@@ -2075,20 +2089,14 @@ function PolarHestarPageInner() {
                     <p className="max-w-2xl font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
                       {tour.blurb[lang]}
                     </p>
-                    {(tour.requirements || tour.departures) && (
-                      <div className="flex flex-col gap-1 border-t pt-3" style={{ borderColor: '#161B3C12' }}>
-                        {tour.requirements && (
-                          <p className="font-hanken text-xs leading-relaxed" style={{ color: SLATE }}>
-                            {tour.requirements[lang]}
-                          </p>
-                        )}
-                        {tour.departures && (
-                          <p className="font-hanken text-xs leading-relaxed font-medium" style={{ color: CLAY_TX }}>
-                            {tour.departures[lang]}
-                          </p>
-                        )}
-                      </div>
-                    )}
+                    <div className="flex flex-col gap-1 border-t pt-3" style={{ borderColor: '#161B3C12' }}>
+                      <p className="font-hanken text-xs leading-relaxed" style={{ color: SLATE }}>
+                        {requirementsLine(tour, lang)}
+                      </p>
+                      <p className="font-hanken text-xs leading-relaxed font-medium" style={{ color: CLAY_TX }}>
+                        {departuresLine(tour, lang)}
+                      </p>
+                    </div>
                     <a
                       href={`mailto:${EMAIL}?subject=${encodeURIComponent(stegaClean(tour.name[lang]))}&body=${encodeURIComponent(
                         tri(
@@ -2104,6 +2112,13 @@ function PolarHestarPageInner() {
                       {t.enquireBtn}
                       <ChevronRight className="h-4 w-4" />
                     </a>
+                    <Link
+                      to={`/preview/polarhestar/dagskra#${tour.id}`}
+                      className="-mt-1 inline-flex items-center gap-1 self-start font-hanken text-xs font-semibold underline decoration-1 underline-offset-4"
+                      style={{ color: SLATE }}
+                    >
+                      {tri(lang, 'Allar dagsetningar og kröfur', 'All dates and requirements', 'Alle Termine und Anforderungen')}
+                    </Link>
                   </div>
                 </article>
               </Reveal>

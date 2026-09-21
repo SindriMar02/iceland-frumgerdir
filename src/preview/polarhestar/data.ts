@@ -16,6 +16,7 @@
 
 export type Lang = 'is' | 'en' | 'de'
 export type L3 = { is: string; en: string; de: string }
+import type { LongTourFacts } from './schedule'
 
 /* ── Contact — single verified number; ghost landline from old site dropped ── */
 export const PHONE_DISPLAY = '+354 896 1879'
@@ -59,8 +60,11 @@ export const IMG = {
 export interface Tour {
   id: string
   name: L3 // the company's own brand name per language
-  meta: L3 // duration / format / season window
-  level: L3
+  meta: L3 // duration / format; the month window is appended from `months`
+  /** Youngest rider; the "All levels · age 6+" line is derived from it. */
+  minAge: number
+  /** Fewest riders the farm will take the tour out for. */
+  minRiders: number
   price: number // full 2026 price, ISK; children up to 12 pay 2.000 less
   image: string
   blurb: L3
@@ -75,7 +79,8 @@ export const SHORT_TOURS: Tour[] = [
     id: 'fyrstu-kynni',
     name: { is: 'Fyrstu kynni', en: 'Grýtubakki Charm', de: 'Zauberhaftes Grýtubakki' },
     meta: { is: '1 klukkustund', en: '1 hour', de: '1 Stunde' },
-    level: { is: 'Fyrir alla · 6 ára+', en: 'All levels · age 6+', de: 'Alle Niveaus · ab 6' },
+    minAge: 6,
+    minRiders: 1,
     price: 9500,
     times: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'],
     image: 'photo-1589157467587-913a38bb3d9d',
@@ -88,8 +93,9 @@ export const SHORT_TOURS: Tour[] = [
   {
     id: 'moa-og-mela',
     name: { is: 'Yfir móa og mela', en: 'River & Mountains', de: 'Fluss & Berge' },
-    meta: { is: '2 klukkustundir · maí–okt', en: '2 hours · May–Oct', de: '2 Stunden · Mai–Okt.' },
-    level: { is: 'Fyrir alla · 6 ára+', en: 'All levels · age 6+', de: 'Alle Niveaus · ab 6' },
+    meta: { is: '2 klukkustundir', en: '2 hours', de: '2 Stunden' },
+    minAge: 6,
+    minRiders: 1,
     price: 15000,
     months: [5, 6, 7, 8, 9, 10],
     times: ['10:00', '14:00'],
@@ -103,8 +109,9 @@ export const SHORT_TOURS: Tour[] = [
   {
     id: 'hofdahringur',
     name: { is: 'Höfðahringur', en: 'Fascinating Eyjafjörður', de: 'Faszination Eyjafjörður' },
-    meta: { is: '3 klukkustundir · maí–okt', en: '3 hours · May–Oct', de: '3 Stunden · Mai–Okt.' },
-    level: { is: 'Fyrir alla · 8 ára+', en: 'All levels · age 8+', de: 'Alle Niveaus · ab 8' },
+    meta: { is: '3 klukkustundir', en: '3 hours', de: '3 Stunden' },
+    minAge: 8,
+    minRiders: 2,
     price: 18000,
     months: [5, 6, 7, 8, 9, 10],
     times: ['09:30', '14:00'],
@@ -118,9 +125,11 @@ export const SHORT_TOURS: Tour[] = [
   {
     id: 'frostrosir',
     name: { is: 'Frostrósir', en: 'Snowflakes & Frostroses', de: 'Schneeflocken & Frostrosen' },
-    meta: { is: '1½ klukkustund · nóv–apr', en: '1½ hours · Nov–Apr', de: '1½ Stunden · Nov.–Apr.' },
-    level: { is: 'Fyrir alla · 6 ára+', en: 'All levels · age 6+', de: 'Alle Niveaus · ab 6' },
+    meta: { is: '1½ klukkustund', en: '1½ hours', de: '1½ Stunden' },
+    minAge: 6,
+    minRiders: 1,
     price: 12500,
+    times: ['10:30', '13:30'],
     months: [11, 12, 1, 2, 3, 4],
     image: 'photo-1774018538486-49f5a51cd63f',
     blurb: {
@@ -132,8 +141,9 @@ export const SHORT_TOURS: Tour[] = [
   {
     id: 'sumarsaela',
     name: { is: 'Sumarsæla', en: 'Riding & Minigolf', de: 'Reiten & Minigolf' },
-    meta: { is: 'Reiðtúr og mínígolf · jún–ágú', en: 'Ride & minigolf · Jun–Aug', de: 'Reiten & Minigolf · Juni–Aug.' },
-    level: { is: 'Fyrir alla · 6 ára+', en: 'All levels · age 6+', de: 'Alle Niveaus · ab 6' },
+    meta: { is: 'Reiðtúr og mínígolf', en: 'Ride & minigolf', de: 'Reiten & Minigolf' },
+    minAge: 6,
+    minRiders: 2,
     price: 13500,
     months: [6, 7, 8],
     image: 'photo-1452698325353-b90e60289e87',
@@ -146,33 +156,25 @@ export const SHORT_TOURS: Tour[] = [
 ]
 
 /* ── Long, multi-day tours — current published programme and EUR prices ── */
-export interface LongTour {
+export interface LongTour extends LongTourFacts {
   id: string
   name: L3 // EN brand name; the German market gets its own names
-  meta: L3 // days · riding days · season · price
   blurb: L3
   image: string
-  /** Rider requirements: min age, experience, group cap — published per tour. */
-  requirements?: L3
-  /** Published departures + availability for the coming season. */
-  departures?: L3
+  /** false hides the tour everywhere without deleting it (CMS switch). */
+  active?: boolean
 }
 
 export const LONG_TOURS: LongTour[] = [
   {
     id: 'midnightsun',
     name: { is: 'Ring around the Midnightsun', en: 'Ring around the Midnightsun', de: 'Sommersonnenwende' },
-    meta: { is: '7 dagar · 5 reiðdagar · júní · 2.150€', en: '7 days · 5 riding days · June · €2,150', de: '7 Tage · 5 Reittage · Juni · 2.150 €' },
-    requirements: {
-      is: 'Fyrir miðlungs vana og vana knapa · 12 ára+ · hámark 14 knapar · 15–30 km á dag',
-      en: 'Intermediate and experienced riders · age 12+ · max 14 riders · 15–30 km a day',
-      de: 'Für Reiter mit mittlerer bis guter Erfahrung · ab 12 Jahren · max. 14 Reiter · 15–30 km pro Tag',
-    },
-    departures: {
-      is: 'Brottfarir 2027: 6.–12. júní og 14.–20. júní',
-      en: 'Departures 2027: June 6–12 and June 14–20',
-      de: 'Termine 2027: 6.–12. Juni und 14.–20. Juni',
-    },
+    priceEur: 2150, days: 7, ridingDays: 5, level: 'mixed', minAge: 12, maxRiders: 14, kmMin: 15, kmMax: 30,
+    herdDays: 0, beds: 'made',
+    departures: [
+      { start: '2027-06-06', status: 'open' },
+      { start: '2027-06-14', status: 'open' },
+    ],
     image: 'photo-1626515406265-6d7395ece312',
     blurb: {
       is: 'Bjartar nætur og vaknandi náttúra setja svip sinn á þessa ferð um sumarsólstöður. Riðið er um Fnjóskadal, Látraströnd og Fjörður, með skoðunarferð við Mývatn og reiðtúr undir miðnætursól.',
@@ -183,17 +185,15 @@ export const LONG_TOURS: LongTour[] = [
   {
     id: 'fascinating-north',
     name: { is: 'Fascinating North Iceland', en: 'Fascinating North Iceland', de: 'Faszinierender Norden Islands' },
-    meta: { is: '8 dagar · 6 reiðdagar · júní–ágúst · 2.750€', en: '8 days · 6 riding days · June–August · €2,750', de: '8 Tage · 6 Reittage · Juni–August · 2.750 €' },
-    requirements: {
-      is: 'Fyrir vana knapa · 12 ára+ · hámark 16 knapar · 25–40 km á dag',
-      en: 'Experienced riders · age 12+ · max 16 riders · 25–40 km a day',
-      de: 'Für geübte Reiter · ab 12 Jahren · max. 16 Reiter · 25–40 km pro Tag',
-    },
-    departures: {
-      is: 'Brottfarir 2027: 26. júní–3. júlí, 7.–14. júlí, 18.–25. júlí (uppselt) og 29. júlí–5. ágúst (uppselt)',
-      en: 'Departures 2027: June 26–July 3, July 7–14, July 18–25 (fully booked) and July 29–August 5 (fully booked)',
-      de: 'Termine 2027: 26. Juni–3. Juli, 7.–14. Juli, 18.–25. Juli (ausgebucht) und 29. Juli–5. August (ausgebucht)',
-    },
+    // their DE page: 5½ of the 6 days with the herd, day 3 morning without it
+    priceEur: 2750, days: 8, ridingDays: 6, level: 'experienced', minAge: 12, maxRiders: 16, kmMin: 25, kmMax: 40,
+    herdDays: 5.5, beds: 'made',
+    departures: [
+      { start: '2027-06-26', status: 'open' },
+      { start: '2027-07-07', status: 'open' },
+      { start: '2027-07-18', status: 'full' },
+      { start: '2027-07-29', status: 'full' },
+    ],
     image: 'photo-1774281616625-9bfc1c9a2380',
     blurb: {
       is: 'Klassíska ferðin okkar, riðin með lausum hrossum. Gamlar þjóðleiðir norðursins liggja að Goðafossi, svörtum sandfjörum, hraunbreiðum og Mývatni.',
@@ -204,17 +204,12 @@ export const LONG_TOURS: LongTour[] = [
   {
     id: 'hidden-pearls',
     name: { is: 'Hidden Pearls of the North', en: 'Hidden Pearls of the North', de: 'Verborgene Schätze des Nordens' },
-    meta: { is: '9 dagar · 7 reiðdagar · júlí–ágúst · 2.800€', en: '9 days · 7 riding days · July–August · €2,800', de: '9 Tage · 7 Reittage · Juli–August · 2.800 €' },
-    requirements: {
-      is: 'Fyrir vana knapa · 14 ára+ · hámark 12 knapar · 20–35 km á dag',
-      en: 'Experienced riders · age 14+ · max 12 riders · 20–35 km a day',
-      de: 'Für geübte Reiter · ab 14 Jahren · max. 12 Reiter · 20–35 km pro Tag',
-    },
-    departures: {
-      is: 'Brottfarir 2027: 8.–16. ágúst og 20.–28. ágúst',
-      en: 'Departures 2027: August 8–16 and August 20–28',
-      de: 'Termine 2027: 8.–16. August und 20.–28. August',
-    },
+    priceEur: 2800, days: 9, ridingDays: 7, level: 'experienced', minAge: 14, maxRiders: 12, kmMin: 20, kmMax: 35,
+    herdDays: 4, beds: 'sleepingBag',
+    departures: [
+      { start: '2027-08-08', status: 'open' },
+      { start: '2027-08-20', status: 'open' },
+    ],
     image: 'photo-1569077016386-8a8a27da502f',
     blurb: {
       is: 'Um Flateyjardal og Fjörður, óbyggðir og eyðibýli sem fáir sjá. Tvær kyrrlátar nætur í notalegum fjallaskála við Þönglabakka í Þorgeirsfirði.',
@@ -225,17 +220,12 @@ export const LONG_TOURS: LongTour[] = [
   {
     id: 'autumn-northern-lights',
     name: { is: 'Autumn Colours and Northern Lights', en: 'Autumn Colours and Northern Lights', de: 'Herbstfarben & Nordlichter' },
-    meta: { is: '7 dagar · 5 reiðdagar · september · 1.950€', en: '7 days · 5 riding days · September · €1,950', de: '7 Tage · 5 Reittage · September · 1.950 €' },
-    requirements: {
-      is: 'Fyrir miðlungs vana og vana knapa · 12 ára+ · hámark 14 knapar · 12–35 km á dag',
-      en: 'Intermediate and experienced riders · age 12+ · max 14 riders · 12–35 km a day',
-      de: 'Für Reiter mit mittlerer bis guter Erfahrung · ab 12 Jahren · max. 14 Reiter · 12–35 km pro Tag',
-    },
-    departures: {
-      is: 'Brottfarir 2027: 6.–12. september og 14.–20. september',
-      en: 'Departures 2027: September 6–12 and September 14–20',
-      de: 'Termine 2027: 6.–12. September und 14.–20. September',
-    },
+    priceEur: 1950, days: 7, ridingDays: 5, level: 'mixed', minAge: 12, maxRiders: 14, kmMin: 12, kmMax: 35,
+    herdDays: 0, beds: 'sleepingBag',
+    departures: [
+      { start: '2027-09-06', status: 'open' },
+      { start: '2027-09-14', status: 'open' },
+    ],
     image: 'photo-1563224347-7232cc1a5e85',
     blurb: {
       is: 'Gyllt haustfjöll á daginn og norðurljós yfir fjallaskálanum Gili á kvöldin. Riðið um Trölladal og fylgst með þegar þúsundir fjár koma af fjalli.',
@@ -246,17 +236,11 @@ export const LONG_TOURS: LongTour[] = [
   {
     id: 'back-to-roots',
     name: { is: 'Back to the Roots', en: 'Back to the Roots', de: 'Fjörður' },
-    meta: { is: '7 dagar · 5 reiðdagar · ágúst · 2.200€', en: '7 days · 5 riding days · August · €2,200', de: '7 Tage · 5 Reittage · August · 2.200 €' },
-    requirements: {
-      is: 'Fyrir miðlungs vana og vana knapa · 12 ára+ · 20–35 km á dag',
-      en: 'Intermediate and experienced riders · age 12+ · 20–35 km a day',
-      de: 'Für Reiter mit mittlerer bis guter Erfahrung · ab 12 Jahren · 20–35 km pro Tag',
-    },
-    departures: {
-      is: 'Næsta brottför hefur ekki verið birt',
-      en: 'The next departure has not been published',
-      de: 'Der nächste Termin ist noch nicht veröffentlicht',
-    },
+    // Only a 2026 date is published (21–27 Aug); it has passed, so the card
+    // says the next date is not out. No 2027 date is invented.
+    priceEur: 2200, days: 7, ridingDays: 5, level: 'mixed', minAge: 12, kmMin: 20, kmMax: 35,
+    herdDays: 0, beds: 'sleepingBag',
+    departures: [{ start: '2026-08-21', status: 'open' }],
     image: 'photo-1710179337706-f5e304f7740a',
     blurb: {
       is: 'Um Fjörður eftir sögufrægu leiðunum sem við riðum fyrst árið 1985, með trússhest með í för. Tvær nætur í fjallaskála.',
@@ -265,6 +249,27 @@ export const LONG_TOURS: LongTour[] = [
     },
   },
 ]
+
+/* ── Schedule page copy — terms quoted from their own "Good to know" page ── */
+export const SCHEDULE_COPY = {
+  eyebrow: { is: 'Dagskrá', en: 'Schedule', de: 'Termine' } as L3,
+  title: { is: 'Ferðir og dagsetningar', en: 'Tours and dates', de: 'Touren und Termine' } as L3,
+  intro: {
+    is: 'Allar lengri ferðirnar með brottförum, og stuttu ferðirnar eftir árstíma. Dagsetningarnar koma beint frá okkur á bænum.',
+    en: 'Every long ride with its departures, and the short rides by season. The dates come straight from us at the farm.',
+    de: 'Alle langen Reittouren mit ihren Terminen und die kurzen Ritte nach Jahreszeit. Die Termine kommen direkt von uns vom Hof.',
+  } as L3,
+  longTerms: {
+    is: 'Við bókun greiðist 20% staðfestingargjald og eftirstöðvar tveimur vikum fyrir brottför. Við sækjum gesti á flugvöllinn eða umferðarmiðstöðina á Akureyri síðdegis fyrsta daginn, oftast milli kl. 16 og 18. Fullt fæði er innifalið. Því miður getum við ekki tekið á móti vegan gestum eða fólki með alvarlegt fæðuofnæmi.',
+    en: 'A 20% deposit is due on booking and the rest two weeks before departure. We pick guests up at the airport or bus station in Akureyri on the first afternoon, usually between 4 and 6 pm. Full board is included. We are sorry that we cannot accommodate vegan guests or people with severe food allergies.',
+    de: 'Bei der Buchung sind 20 % Anzahlung fällig, der Rest zwei Wochen vor Reisebeginn. Wir holen unsere Gäste am ersten Nachmittag am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16 und 18 Uhr. Vollpension ist inbegriffen. Leider können wir keine veganen Gäste oder Menschen mit schweren Lebensmittelallergien aufnehmen.',
+  } as L3,
+  shortTerms: {
+    is: 'Stuttar ferðir má bóka í tölvupósti eða síma, +354 896 1879 eða +354 893 1879. Greitt er eftir ferðina og við tökum við greiðslukortum. Hámarksþyngd knapa er 95 kg. Henti tímarnir ekki, hafðu samband og við finnum tíma.',
+    en: 'Short rides can be booked by email or phone, +354 896 1879 or +354 893 1879. You pay after the ride, and we take cards. The maximum rider weight is 95 kg. If the times do not suit you, get in touch and we will find one that does.',
+    de: 'Kurze Ritte können per E-Mail oder Telefon gebucht werden, +354 896 1879 oder +354 893 1879. Bezahlt wird nach dem Ritt, Kreditkarten werden akzeptiert. Das Höchstgewicht der Reiter beträgt 95 kg. Passen die Zeiten nicht, melden Sie sich und wir finden eine passende.',
+  } as L3,
+}
 
 /* ── Seasons — the signature "Ljós Norðursins" switcher ─────────────────── */
 export interface Season {
@@ -427,9 +432,9 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
     {
       title: { is: 'Mæting og skutl', en: 'Arrival & pickup', de: 'Ankunft & Abholung' },
       body: {
-        is: 'Mættu 15 til 20 mínútum fyrir brottför og gerðu ráð fyrir um klukkustund aukalega í undirbúning og kaffi eftir reiðtúrinn. Í lengri ferðum sækjum við gesti á flugvöllinn eða umferðarmiðstöðina á Akureyri, oftast milli kl. 16 og 18.',
-        en: 'Please arrive 15 to 20 minutes before departure, and allow about an extra hour for preparation and coffee after the ride. For long tours we pick guests up at the airport or bus station in Akureyri, usually between 4 and 6 pm.',
-        de: 'Bitte seien Sie 15 bis 20 Minuten vor Beginn auf dem Hof und planen Sie etwa eine Stunde extra für Vorbereitung und Kaffee nach dem Ritt ein. Bei langen Touren holen wir Sie am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16 und 18 Uhr.',
+        is: 'Mættu 30 mínútum fyrir brottför og gerðu ráð fyrir um klukkustund aukalega í undirbúning og kaffi eftir reiðtúrinn. Í lengri ferðum sækjum við gesti á flugvöllinn eða umferðarmiðstöðina á Akureyri, oftast milli kl. 16 og 18.',
+        en: 'Please arrive 30 minutes before departure, and allow about an extra hour for preparation and coffee after the ride. For long tours we pick guests up at the airport or bus station in Akureyri, usually between 4 and 6 pm.',
+        de: 'Bitte seien Sie 30 Minuten vor Beginn auf dem Hof und planen Sie etwa eine Stunde extra für Vorbereitung und Kaffee nach dem Ritt ein. Bei langen Touren holen wir Sie am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16 und 18 Uhr.',
       },
     },
     {

@@ -33,6 +33,7 @@ import {
   PHONE_DISPLAY,
   PHONE_HREF,
   REVIEWS,
+  SCHEDULE_COPY,
   type Season,
   SEASONS,
   SHOP,
@@ -40,6 +41,7 @@ import {
   STATS,
   type Tour,
 } from './data'
+import { isIsoDay, monthsLabel, shortLevel, type Beds, type Departure, type DepartureStatus, type Lang, type RiderLevel } from './schedule'
 
 /* ── Preview detection ──────────────────────────────────────────────────── */
 const viewerToken = import.meta.env.VITE_SANITY_VIEWER_TOKEN as string | undefined
@@ -55,6 +57,8 @@ const STUDIO_URL = (import.meta.env.VITE_SANITY_STUDIO_URL as string | undefined
 /** Field names whose values feed logic/attributes — keep stega out of them. */
 const STEGA_SKIP = new Set([
   'key', 'glow', 'phoneHref', 'email', 'bookingEmail', 'mapsUrl', 'facebook', 'order', '_id', '_type',
+  // schedule values are parsed, compared and looked up, never displayed raw
+  'level', 'beds', 'status', 'start', 'times',
 ])
 
 const client = createClient({
@@ -111,7 +115,8 @@ function mkPic(img: RawImg, fallbackId: string): Pic {
 }
 
 /* ── Merged content shapes (data.ts shapes + resolved pictures) ─────────── */
-export type TourX = Tour & { pic: Pic }
+/** `level` and the month window in `meta` are derived, so they can never disagree with minAge/months. */
+export type TourX = Tour & { pic: Pic; level: L3 }
 export type LongTourX = LongTour & { pic: Pic }
 export type SeasonX = Season & { pic: Pic }
 
@@ -120,6 +125,7 @@ export interface SiteContent {
   SHORT_TOURS: TourX[]
   LONG_TOURS: LongTourX[]
   SEASONS: SeasonX[]
+  SCHEDULE: typeof SCHEDULE_COPY
   REVIEWS: typeof REVIEWS
   SHOP: typeof SHOP
   STATS: typeof STATS
@@ -137,10 +143,22 @@ export interface SiteContent {
   PHONE_HREF: string
 }
 
+const LANGS3: Lang[] = ['is', 'en', 'de']
+function withDerived(t: Tour & { pic: Pic }): TourX {
+  const meta = {} as L3
+  const level = {} as L3
+  for (const lang of LANGS3) {
+    meta[lang] = t.months?.length ? `${t.meta[lang]} · ${monthsLabel(t.months, lang)}` : t.meta[lang]
+    level[lang] = shortLevel(t.minAge, lang)
+  }
+  return { ...t, meta, level }
+}
+
 const FALLBACK: SiteContent = {
   COPY,
-  SHORT_TOURS: SHORT_TOURS.map((t) => ({ ...t, pic: fallbackPic(t.image) })),
-  LONG_TOURS: LONG_TOURS.map((t) => ({ ...t, pic: fallbackPic(t.image) })),
+  SHORT_TOURS: SHORT_TOURS.map((t) => withDerived({ ...t, pic: fallbackPic(t.image) })),
+  LONG_TOURS: LONG_TOURS.filter((t) => t.active !== false).map((t) => ({ ...t, pic: fallbackPic(t.image) })),
+  SCHEDULE: SCHEDULE_COPY,
   SEASONS: SEASONS.map((s) => ({ ...s, pic: fallbackPic(s.image) })),
   REVIEWS,
   SHOP,
@@ -178,9 +196,10 @@ export const QUERY = `{
     ..., bookingImage ${IMG_PRJ}, trustFamilyImage ${IMG_PRJ}, visitImage ${IMG_PRJ}, ctaImage ${IMG_PRJ}
   },
   "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, bookingEmail, facebook, address, mapsUrl, childDiscount, stats},
-  "tours": *[_type=="tour"]|order(order asc){_id, active, name, duration, level, price, months, times, blurb, image ${IMG_PRJ}},
+  "tours": *[_type=="tour"]|order(order asc){_id, active, name, duration, minAge, minRiders, price, months, times, blurb, image ${IMG_PRJ}},
   "seasons": *[_type=="season"]|order(order asc){_id, key, name, kicker, line, tourLabel, glow, image ${IMG_PRJ}},
-  "longTours": *[_type=="longTour"]|order(order asc){_id, name, meta, requirements, departures, blurb, image ${IMG_PRJ}},
+  "longTours": *[_type=="longTour"]|order(order asc){_id, active, name, blurb, priceEur, days, ridingDays, level, minAge, maxRiders, kmMin, kmMax, herdDays, beds, departures[]{start, status, note}, datesNote, image ${IMG_PRJ}},
+  "schedule": *[_type=="schedulePage"][0]{eyebrow, title, intro, longTerms, shortTerms},
   "reviews": *[_type=="review"]|order(coalesce(order, 100) asc, name asc){_id, quote, name, origin},
   "shop": *[_type=="shopItem"]|order(order asc){_id, name, price, from},
   "gtk": *[_type=="goodToKnow"][0]{eyebrow, heading, body, items[]{title, body}},
@@ -229,6 +248,10 @@ const SECTION_MAP: Array<[string, keyof typeof COPY['is']]> = [
   ['ctaHeading', 'ctaH2'], ['ctaBody', 'ctaBody'],
 ]
 
+/** A number from the CMS, or the fallback when the field is blank. */
+const num = (v: unknown, fb: number) => (typeof v === 'number' && Number.isFinite(v) ? v : fb)
+const oneOf = <T extends string>(v: unknown, allowed: T[], fb: T): T => (allowed.includes(v as T) ? (v as T) : fb)
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export function merge(raw: any): SiteContent {
   const strip = (id: string) => String(id).replace(/^(tour|season|longtour|shopitem|review)-/, '')
@@ -238,34 +261,54 @@ export function merge(raw: any): SiteContent {
         .filter((d: any) => d.active !== false)
         .map((d: any): TourX => {
           const fb = SHORT_TOURS.find((t) => t.id === strip(d._id))
-          return {
+          return withDerived({
             id: fb?.id ?? strip(d._id),
             name: fb ? l3(d.name, fb.name) : l3self(d.name),
             meta: fb ? l3(d.duration, fb.meta) : l3self(d.duration),
-            level: fb ? l3(d.level, fb.level) : l3self(d.level),
+            minAge: num(d.minAge, fb?.minAge ?? 6),
+            minRiders: num(d.minRiders, fb?.minRiders ?? 1),
             price: typeof d.price === 'number' ? d.price : (fb?.price ?? 0),
             image: fb?.image ?? IMG.procession[0],
             blurb: fb ? l3(d.blurb, fb.blurb) : l3self(d.blurb),
             months: Array.isArray(d.months) ? (d.months.length ? d.months : undefined) : fb?.months,
             times: Array.isArray(d.times) ? (d.times.length ? d.times : undefined) : fb?.times,
             pic: mkPic(d.image, fb?.image ?? IMG.procession[0]),
-          }
+          })
         })
         .filter((t: TourX) => t.name.is || t.name.en || t.name.de)
     : FALLBACK.SHORT_TOURS
 
   const longTours: LongTourX[] = Array.isArray(raw?.longTours) && raw.longTours.length
     ? raw.longTours
+        .filter((d: any) => d.active !== false)
         .map((d: any): LongTourX => {
           const fb = LONG_TOURS.find((t) => t.id === strip(d._id))
           return {
             id: fb?.id ?? strip(d._id),
             name: fb ? l3(d.name, fb.name) : l3self(d.name),
-            meta: fb ? l3(d.meta, fb.meta) : l3self(d.meta),
-            requirements: optL3(d.requirements, fb?.requirements),
-            departures: optL3(d.departures, fb?.departures),
-            image: fb?.image ?? IMG.procession[0],
             blurb: fb ? l3(d.blurb, fb.blurb) : l3self(d.blurb),
+            priceEur: num(d.priceEur, fb?.priceEur ?? 0),
+            days: num(d.days, fb?.days ?? 1),
+            ridingDays: num(d.ridingDays, fb?.ridingDays ?? 1),
+            level: oneOf<RiderLevel>(d.level, ['mixed', 'experienced'], fb?.level ?? 'experienced'),
+            minAge: num(d.minAge, fb?.minAge ?? 12),
+            maxRiders: typeof d.maxRiders === 'number' ? d.maxRiders : fb?.maxRiders,
+            kmMin: num(d.kmMin, fb?.kmMin ?? 0),
+            kmMax: num(d.kmMax, fb?.kmMax ?? 0),
+            herdDays: num(d.herdDays, fb?.herdDays ?? 0),
+            beds: oneOf<Beds>(d.beds, ['made', 'sleepingBag'], fb?.beds ?? 'made'),
+            // a CMS list, even an empty one, is the truth; only a missing field falls back
+            departures: Array.isArray(d.departures)
+              ? d.departures
+                  .filter((x: any) => isIsoDay(x?.start))
+                  .map((x: any): Departure => ({
+                    start: x.start,
+                    status: oneOf<DepartureStatus>(x.status, ['open', 'few', 'full', 'cancelled'], 'open'),
+                    note: optL3(x.note),
+                  }))
+              : (fb?.departures ?? []),
+            datesNote: optL3(d.datesNote),
+            image: fb?.image ?? IMG.procession[0],
             pic: mkPic(d.image, fb?.image ?? IMG.procession[0]),
           }
         })
@@ -287,6 +330,15 @@ export function merge(raw: any): SiteContent {
         }
       })
     : FALLBACK.SEASONS
+
+  const sp = raw?.schedule
+  const schedule: typeof SCHEDULE_COPY = {
+    eyebrow: l3(sp?.eyebrow, SCHEDULE_COPY.eyebrow),
+    title: l3(sp?.title, SCHEDULE_COPY.title),
+    intro: l3(sp?.intro, SCHEDULE_COPY.intro),
+    longTerms: l3(sp?.longTerms, SCHEDULE_COPY.longTerms),
+    shortTerms: l3(sp?.shortTerms, SCHEDULE_COPY.shortTerms),
+  }
 
   const reviews = Array.isArray(raw?.reviews) && raw.reviews.length
     ? raw.reviews
@@ -379,6 +431,7 @@ export function merge(raw: any): SiteContent {
     SHORT_TOURS: tours,
     LONG_TOURS: longTours,
     SEASONS: seasons,
+    SCHEDULE: schedule,
     REVIEWS: reviews,
     SHOP: shop,
     STATS: stats,
@@ -406,7 +459,7 @@ export function merge(raw: any): SiteContent {
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 /* ── React glue ─────────────────────────────────────────────────────────── */
-const LISTEN = `*[_type in ["tour","season","heroSection","storySection","siteSettings","sectionsCopy","goodToKnow","farmSection","galleryImage","longTour","review","shopItem"]]`
+const LISTEN = `*[_type in ["tour","season","heroSection","storySection","siteSettings","sectionsCopy","goodToKnow","farmSection","galleryImage","longTour","review","shopItem","schedulePage"]]`
 
 const Ctx = createContext<SiteContent>(FALLBACK)
 
@@ -447,3 +500,23 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
 }
 
 export const useSiteContent = () => useContext(Ctx)
+
+/** Land on #anchor after this lazy route mounts. The app-wide handler fires
+    before the chunk exists, so links like …/dagskra#hidden-pearls or
+    …?ferd=frostrosir#boka would otherwise open at the top of the page. */
+export function useHashLanding() {
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1))
+    if (!id) return
+    let tries = 0
+    let timer = 0
+    const tick = () => {
+      const el = document.getElementById(id)
+      // instant: a deep link lands, it doesn't travel (and the page's smooth-scroll CSS would animate it)
+      if (el) el.scrollIntoView({ block: 'start', behavior: 'instant' })
+      else if (tries++ < 30) timer = window.setTimeout(tick, 100)
+    }
+    timer = window.setTimeout(tick, 60)
+    return () => window.clearTimeout(timer)
+  }, [])
+}

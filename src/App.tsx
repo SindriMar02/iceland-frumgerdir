@@ -37,6 +37,7 @@ const SaudarkroksbakariPage = lazy(() => import('./preview/saudarkroksbakari/Pag
 const ReykjavikDistilleryPage = lazy(() => import('./preview/reykjavikdistillery/Page'))
 const HaafellPage = lazy(() => import('./preview/haafell/Page'))
 const PolarHestarPage = lazy(() => import('./preview/polarhestar/Page'))
+const PolarHestarSchedule = lazy(() => import('./preview/polarhestar/SchedulePage'))
 const EyjatoursPage = lazy(() => import('./preview/eyjatours/Page'))
 // Batch 5 — five new redesigns (scout round 5)
 const EdinborgPage = lazy(() => import('./preview/edinborg/Page'))
@@ -328,6 +329,7 @@ export default function App() {
             <Route path="/preview/reykjavikdistillery" element={<ReykjavikDistilleryPage />} />
             <Route path="/preview/haafell" element={<HaafellPage />} />
             <Route path="/preview/polarhestar" element={<PolarHestarPage />} />
+            <Route path="/preview/polarhestar/dagskra" element={<PolarHestarSchedule />} />
             <Route path="/preview/eyjatours" element={<EyjatoursPage />} />
             <Route path="/preview/edinborg" element={<EdinborgPage />} />
             <Route path="/preview/brunastadir" element={<BrunastadirPage />} />

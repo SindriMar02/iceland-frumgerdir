@@ -69,7 +69,7 @@ export const TOURS: TourMeta[] = [
     level: 'Fyrir alla · 6 ára+',
     price: 12500,
     months: [11, 12, 1, 2, 3, 4],
-    times: ['11:00', '14:00'],
+    times: ['10:30', '13:30'],
     maxRiders: 8,
   },
   {
