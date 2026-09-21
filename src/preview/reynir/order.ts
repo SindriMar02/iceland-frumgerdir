@@ -1300,6 +1300,13 @@ export interface OrderCopy {
   errTime: string
   errDateTooSoon: (d: string) => string
   errSummary: string
+  issueCake: string
+  issuesHead: (n: number) => string
+  reviewKicker: string
+  reviewTitle: string
+  reviewLede: string
+  reviewSend: string
+  reviewEdit: string
   submit: string
   submitting: string
   doneTitle: string
@@ -1449,6 +1456,13 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     errTime: 'Choose a collection time.',
     errDateTooSoon: (d: string) => `The earliest we can manage is ${d}.`,
     errSummary: 'A few things still need filling in.',
+    issueCake: 'Choose a cake',
+    issuesHead: (n: number) => (n === 1 ? 'One thing is missing before this can be sent:' : `${n} things are missing before this can be sent:`),
+    reviewKicker: 'One last look',
+    reviewTitle: 'Check your order',
+    reviewLede: 'We confirm every order by phone. Nothing is paid online; you pay when you collect.',
+    reviewSend: 'Send order',
+    reviewEdit: 'Make changes',
     submit: 'Send the order request',
     submitting: 'Sending',
     doneTitle: 'Request sent.',
@@ -1593,6 +1607,13 @@ export const ORDER_T: Record<Lang, OrderCopy> = {
     errTime: 'Veldu afhendingartíma.',
     errDateTooSoon: (d: string) => `Fyrsti mögulegi dagur er ${d}.`,
     errSummary: 'Það vantar enn nokkur atriði.',
+    issueCake: 'Veldu tertu',
+    issuesHead: (n: number) => (n === 1 ? 'Eitt atriði vantar áður en hægt er að senda:' : `${n} atriði vantar áður en hægt er að senda:`),
+    reviewKicker: 'Síðasta yfirferð',
+    reviewTitle: 'Yfirfarðu pöntunina',
+    reviewLede: 'Við staðfestum allar pantanir símleiðis. Ekkert er greitt á netinu, greitt er þegar sótt er.',
+    reviewSend: 'Senda pöntun',
+    reviewEdit: 'Breyta pöntun',
     submit: 'Senda pöntunarbeiðni',
     submitting: 'Sendi',
     doneTitle: 'Beiðnin er komin til okkar.',

@@ -20,6 +20,8 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useModalFocus } from './useModalFocus'
 import type { Lang } from './data'
 import {
   COMPANY_ORDERS_ENABLED,
@@ -635,6 +637,72 @@ const ORDER_CSS = `
   .rb-ord-submit:disabled { opacity:.6; cursor:progress; }
   .rb-ord-submit:focus-visible { outline:2px solid ${GOLD_LIGHT}; outline-offset:3px; }
   .rb-ord-errsummary { margin-top:14px; font-size:13.5px; color:#E8A594; text-align:center; }
+
+  /* The missing-items card. Not an alarm: a warm hairline card in the page's
+     own ink, the list does the talking. Each row is a full-width button so the
+     whole line is the target, and it slides in rather than blinking on. */
+  .rb-ord-issues[data-empty] { display:none; }
+  .rb-ord-issues { margin-top:16px; padding:14px 16px 8px; border:1px solid rgba(232,165,148,.32);
+    border-left:0; border-right:0; background:linear-gradient(180deg, rgba(232,165,148,.06), rgba(232,165,148,0));
+    animation:rb-ord-issuesin .28s ${EASE} both; }
+  @keyframes rb-ord-issuesin { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+  .rb-ord-issues-head { margin:0 0 6px; font-size:13px; letter-spacing:.02em; color:#E8A594; }
+  .rb-ord-issues-list { list-style:none; margin:0; padding:0; }
+  .rb-ord-issue { width:100%; min-height:44px; display:grid; grid-template-columns:1fr; gap:1px; text-align:left;
+    padding:8px 0; background:none; border:0; border-top:1px solid rgba(238,211,170,.08); cursor:pointer;
+    font-family:${BODY}; color:${IVORY}; }
+  .rb-ord-issues-list li:first-child .rb-ord-issue { border-top:0; }
+  .rb-ord-issue-what { font-size:14.5px; text-decoration:underline; text-decoration-color:rgba(238,211,170,.28);
+    text-underline-offset:3px; transition:text-decoration-color .2s ${EASE}; }
+  .rb-ord-issue-why { font-size:12.5px; color:${DIM}; }
+  .rb-ord-issue:hover .rb-ord-issue-what, .rb-ord-issue:focus-visible .rb-ord-issue-what { text-decoration-color:${GOLD}; }
+  .rb-ord-issue:focus-visible { outline:2px solid ${GOLD_LIGHT}; outline-offset:2px; }
+
+  /* The review sheet. Centred card on desktop, a bottom sheet on phones —
+     the thumb is already down there from pressing send. */
+  .rb-ord-review-scrim { position:fixed; inset:0; z-index:400; background:rgba(8,7,6,.72);
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    animation:rb-ord-scrimin .22s ${EASE} both; }
+  @keyframes rb-ord-scrimin { from { opacity:0; } to { opacity:1; } }
+  .rb-ord-review { width:min(560px,100%); max-height:min(88vh,860px); overflow:auto; overscroll-behavior:contain;
+    background:${INK_DEEP}; border:1px solid ${HAIR}; border-radius:4px; padding:28px 26px 22px;
+    font-family:${BODY}; color:${IVORY}; outline:none;
+    animation:rb-ord-reviewin .3s ${EASE} both; }
+  @keyframes rb-ord-reviewin { from { opacity:0; transform:translateY(10px) scale(.985); } to { opacity:1; transform:none; } }
+  .rb-ord-review-kicker { margin:0; font-size:11.5px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:${GOLD}; }
+  .rb-ord-review-title { margin:10px 0 0; font-family:${DISPLAY}; font-weight:400; font-size:clamp(26px,4vw,34px); line-height:1.08; }
+  .rb-ord-review-lede { margin:10px 0 0; font-size:14px; color:${DIM}; line-height:1.55; }
+  .rb-ord-review-when { margin:20px 0 0; display:grid; grid-template-columns:1fr 1fr; gap:14px 18px;
+    padding:14px 0; border-top:1px solid ${HAIR_SOFT}; border-bottom:1px solid ${HAIR_SOFT}; }
+  .rb-ord-review-when dt { font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:${FAINT}; }
+  .rb-ord-review-when dd { margin:3px 0 0; font-size:14.5px; line-height:1.45; }
+  .rb-ord-review-wide { grid-column:1 / -1; }
+  .rb-ord-review-items { margin-top:6px; }
+  .rb-ord-review-item { padding:12px 0; border-bottom:1px solid ${HAIR_SOFT}; }
+  .rb-ord-review-top { display:flex; justify-content:space-between; gap:14px; align-items:baseline; }
+  .rb-ord-review-name { font-family:${DISPLAY}; font-size:18px; color:${GOLD_LIGHT}; }
+  .rb-ord-review-price { font-size:14.5px; font-weight:600; color:${GOLD}; white-space:nowrap; }
+  .rb-ord-review-total { display:flex; justify-content:space-between; padding:14px 0 4px; font-size:15px; }
+  .rb-ord-review-total span:last-child { font-family:${DISPLAY}; font-size:22px; color:${GOLD_LIGHT}; }
+  .rb-ord-review-acts { display:grid; gap:4px; margin-top:8px; }
+  .rb-ord-review-send { margin-top:14px; }
+  .rb-ord-review-edit { min-height:44px; background:none; border:0; cursor:pointer; font-family:${BODY};
+    font-size:14.5px; color:${DIM}; text-decoration:underline; text-underline-offset:3px;
+    text-decoration-color:rgba(238,211,170,.28); }
+  .rb-ord-review-edit:hover { color:${IVORY}; }
+  .rb-ord-review-edit:focus-visible { outline:2px solid ${GOLD_LIGHT}; outline-offset:2px; }
+  @media (max-width:560px) {
+    .rb-ord-review-scrim { align-items:flex-end; padding:0; }
+    .rb-ord-review { border-radius:10px 10px 0 0; border-bottom:0; max-height:92vh;
+      padding:24px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+      animation-name:rb-ord-sheetin; }
+    @keyframes rb-ord-sheetin { from { transform:translateY(24px); opacity:0; } to { transform:none; opacity:1; } }
+    .rb-ord-review-when { grid-template-columns:1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rb-ord-issues, .rb-ord-review, .rb-ord-review-scrim { animation-name:rb-ord-scrimin; }
+  }
   /* padded so the phone number clears the 44px tap target on a phone */
   .rb-ord-tel { display:inline-block; padding:13px 10px; color:${GOLD_LIGHT}; text-decoration:none;
     border-bottom:1px solid rgba(238,211,170,.32); }
@@ -1227,6 +1295,107 @@ function OrderForm({
 
   const showErr = (key: string) => (touched[key] || triedSubmit ? errors[key] : undefined)
 
+  /* ── WHAT IS MISSING, BY NAME ──
+   * The old failure was one sentence under the button ("Það vantar enn nokkur
+   * atriði") and a jump to the first field — which did nothing when that field
+   * sat inside a collapsed question. Now every missing thing is listed by the
+   * name the customer sees on the page, with the reason, and each one is a
+   * button that opens its question and puts the cursor in it.
+   * Ordered the way the page reads (cake, then when, then who), not the order
+   * the validator happens to check things in. */
+  const ISSUE_RANK = ['g_', 'x_', 'occasionOther', 'c_date', 'c_time', 'c_location', 'c_address',
+    'c_company', 'c_kennitala', 'c_contact', 'c_name', 'c_phone', 'c_email', 'c_invoiceEmail']
+  const FIELD_ID: Record<string, string> = {
+    occasionOther: 'rb-ord-occasion-other', c_date: 'rb-ord-date', c_time: 'rb-ord-time',
+    c_location: 'rb-ord-location', c_address: 'rb-ord-address', c_company: 'rb-ord-company',
+    c_kennitala: 'rb-ord-kennitala', c_contact: 'rb-ord-contact', c_name: 'rb-ord-name',
+    c_phone: 'rb-ord-phone', c_email: 'rb-ord-email', c_invoiceEmail: 'rb-ord-invoice-email',
+  }
+  const FIELD_LABEL: Record<string, string> = {
+    occasionOther: t.occasionOtherLabel, c_date: t.fieldDate, c_time: t.fieldTime,
+    c_location: t.fieldLocation, c_address: t.fieldAddress, c_company: t.fieldCompany,
+    c_kennitala: t.fieldKennitala, c_contact: t.fieldContact, c_name: t.fieldName,
+    c_phone: t.fieldPhone, c_email: t.fieldEmail, c_invoiceEmail: t.fieldInvoiceEmail,
+  }
+  const issues = useMemo(() => {
+    const rank = (k: string) => {
+      const i = ISSUE_RANK.findIndex((r) => (r.endsWith('_') ? k.startsWith(r) : k === r))
+      return i < 0 ? ISSUE_RANK.length : i
+    }
+    const label = (k: string): string => {
+      if (k === 'g_product') return t.issueCake
+      if (k.startsWith('g_')) {
+        const g = product.groups.find((x) => x.id === k.slice(2))
+        return g ? `${product.name[lang]}: ${g.label[lang]}` : product.name[lang]
+      }
+      if (k.startsWith('x_')) {
+        const hit = freeTextChoices(product, picked).find(({ group, choice }) => `x_${group.id}_${choice.id}` === k)
+        return hit ? `${product.name[lang]}: ${hit.choice.label[lang]}` : product.name[lang]
+      }
+      return FIELD_LABEL[k] ?? k
+    }
+    return Object.keys(errors)
+      .sort((a, b) => rank(a) - rank(b))
+      .map((k) => ({ key: k, label: label(k), why: errors[k] }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errors, product, picked, lang, t])
+
+  /** Open the thing that is missing and put the cursor in it. A closed
+   *  question has to be opened first, and its inputs only exist after that
+   *  render — hence the frame before focusing. */
+  const jumpTo = (key: string) => {
+    const behavior: ScrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+    const land = (el: HTMLElement | null | undefined) => {
+      if (!el) return
+      el.scrollIntoView({ block: 'center', behavior })
+      el.focus({ preventScroll: true })
+    }
+    if (key === 'g_product') {
+      backToRange()
+      land(rangeRef.current?.querySelector<HTMLElement>('input[type="radio"]'))
+      return
+    }
+    if (key.startsWith('g_')) {
+      const id = key.slice(2)
+      if (accGroups.some((g) => g.id === id)) setOpenGroup(id)
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const root = formRef.current
+        land(
+          root?.querySelector<HTMLElement>(`[aria-describedby~="err_g_${id}"]`)
+          ?? root?.querySelector<HTMLElement>(`#acc_${id} input, #acc_${id} select`)
+          ?? root?.querySelector<HTMLElement>('[data-invalid="true"]'),
+        )
+      }))
+      return
+    }
+    land(document.getElementById(key.startsWith('x_') ? `rb-ord-x-${key.slice(2)}` : FIELD_ID[key] ?? ''))
+  }
+
+  /* ── THE LAST LOOK ──
+   * A valid send opens a review sheet instead of sending: when, what, who,
+   * the total, and two buttons. Confirming re-submits the same form with the
+   * flag set, so the send path below stays the single path it always was. */
+  const [reviewing, setReviewing] = useState(false)
+  const confirmedRef = useRef(false)
+  const reviewRef = useModalFocus(reviewing)
+  /* Close back to the send button. The shared hook restores whatever had focus
+     when the sheet opened, but Safari does not focus a button on click, so
+     that is often <body>. The frame lets the hook's restore run first. */
+  const closeReview = () => {
+    setReviewing(false)
+    requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('.rb-ord-submit')?.focus())
+  }
+  useEffect(() => {
+    if (!reviewing) return
+    /* The shared modal hook focuses the first control, which here is the SEND
+       button — one stray Enter from the keyboard that just pressed send would
+       send. Land on the sheet itself; Tab reaches the buttons. */
+    reviewRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeReview() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [reviewing])
+
   /* ── The basket handlers. ──
    * Everything the email needs is snapshotted at commit time — lines, total,
    * quote — the same never-recompute rule the mail itself follows. */
@@ -1374,6 +1543,11 @@ function OrderForm({
       first?.focus({ preventScroll: true })
       return
     }
+    if (!confirmedRef.current) {
+      setReviewing(true)
+      return
+    }
+    confirmedRef.current = false
     submitting.current = true
     setStatus('sending')
     setSendError(false)
@@ -2950,8 +3124,27 @@ function OrderForm({
                 <button type="submit" className="rb-ord-submit" disabled={status === 'sending'}>
                   {status === 'sending' ? `${t.submitting}...` : quote ? t.submitQuote : t.submit}
                 </button>
-                {triedSubmit && Object.keys(errors).length > 0 && (
-                  <p className="rb-ord-errsummary" role="alert">{t.errSummary}</p>
+                {/* Stable live region: it exists from the first failed press on,
+                    so a screen reader hears the list change rather than a new
+                    alert every time one item is fixed. */}
+                {triedSubmit && (
+                  <div className="rb-ord-issues" aria-live="polite" data-empty={issues.length === 0 || undefined}>
+                    {issues.length > 0 && (
+                      <>
+                        <p className="rb-ord-issues-head">{t.issuesHead(issues.length)}</p>
+                        <ul className="rb-ord-issues-list">
+                          {issues.map((it) => (
+                            <li key={it.key}>
+                              <button type="button" className="rb-ord-issue" onClick={() => jumpTo(it.key)}>
+                                <span className="rb-ord-issue-what">{it.label}</span>
+                                <span className="rb-ord-issue-why">{it.why}</span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </div>
                 )}
                 {sendError && (
                   <p className="rb-ord-errsummary" role="alert">
@@ -2972,6 +3165,113 @@ function OrderForm({
             <div className="rb-ord-slipwrap">{slip}</div>
           </form>
         )}
+        {reviewing && typeof document !== 'undefined' && createPortal((() => {
+          const all: CakeInOrder[] = [...cakes, ...(draftActive ? [snapshotDraft()] : [])]
+          const loc = PICKUP_LOCATIONS.find((l) => l.id === customer.location)?.label[lang] ?? ''
+          const delivering = who === 'company' && customer.handover === 'delivery'
+          const extrasIn = ORDER_EXTRAS.filter((ex) => (extrasQty[ex.id] ?? 0) > 0)
+          const specsOf = (c: CakeInOrder) => [
+            ...c.lines
+              .filter((l) => l.key !== 'qty' && l.key !== 'base')
+              .map((l) => ({ key: l.key, label: (l.key === 'size' ? t.rowSize : l.sub) ?? '', value: l.name })),
+            ...(c.qty > 1 ? [{ key: 'qty', label: t.fieldQty, value: String(c.qty) }] : []),
+          ]
+          const send = () => {
+            confirmedRef.current = true
+            setReviewing(false)
+            formRef.current?.requestSubmit()
+          }
+          return (
+            <div className="rb-ord-review-scrim" onClick={() => closeReview()}>
+              <div
+                ref={reviewRef}
+                className="rb-ord-review"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="rb-ord-review-title"
+                tabIndex={-1}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <p className="rb-ord-review-kicker">{t.reviewKicker}</p>
+                <h2 id="rb-ord-review-title" className="rb-ord-review-title" style={GOLD_TEXT}>{t.reviewTitle}</h2>
+                <p className="rb-ord-review-lede">{t.reviewLede}</p>
+
+                <dl className="rb-ord-review-when">
+                  <div>
+                    <dt>{t.fieldDate}</dt>
+                    <dd>{prettyDateFull(customer.date, lang)}, {lang === 'is' ? 'kl.' : 'at'} {customer.time}</dd>
+                  </div>
+                  <div>
+                    <dt>{delivering ? t.fieldAddress : t.fieldLocation}</dt>
+                    <dd>{delivering ? customer.address : loc}</dd>
+                  </div>
+                </dl>
+
+                <div className="rb-ord-review-items">
+                  {all.map((c) => (
+                    <div className="rb-ord-review-item" key={c.key}>
+                      <div className="rb-ord-review-top">
+                        <span className="rb-ord-review-name">{c.product.name[lang]}</span>
+                        <span className="rb-ord-review-price">{c.quote ? t.quoteTotal : isk(c.total)}</span>
+                      </div>
+                      {specsOf(c).length > 0 && (
+                        <dl className="rb-ord-row-specs">
+                          {specsOf(c).map((sp) => (
+                            <div key={sp.key}>
+                              {sp.label && <dt>{sp.label}</dt>}
+                              <dd>{sp.value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      )}
+                    </div>
+                  ))}
+                  {extrasIn.map((ex) => {
+                    const q = extrasQty[ex.id] ?? 0
+                    return (
+                      <div className="rb-ord-review-item" key={ex.id}>
+                        <div className="rb-ord-review-top">
+                          <span className="rb-ord-review-name">{ex.label[lang]} × {q}</span>
+                          <span className="rb-ord-review-price">{isk(q * extraUnitPrice(ex, q, kjor))}</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  <div className="rb-ord-review-total">
+                    <span>{t.slipTotal}</span>
+                    <span>{totalText}</span>
+                  </div>
+                </div>
+
+                <dl className="rb-ord-review-when">
+                  <div>
+                    <dt>{who === 'company' ? t.fieldCompany : t.fieldName}</dt>
+                    <dd>{who === 'company' ? `${customer.company} · ${customer.contact}` : customer.name}</dd>
+                  </div>
+                  <div>
+                    <dt>{t.fieldPhone}</dt>
+                    <dd>{customer.phone}{customer.email.trim() ? ` · ${customer.email.trim()}` : ''}</dd>
+                  </div>
+                  {customer.notes.trim() && (
+                    <div className="rb-ord-review-wide">
+                      <dt>{t.fieldNotes}</dt>
+                      <dd>{customer.notes.trim()}</dd>
+                    </div>
+                  )}
+                </dl>
+
+                <div className="rb-ord-review-acts">
+                  <button type="button" className="rb-ord-submit rb-ord-review-send" onClick={send}>
+                    {anyQuote ? t.submitQuote : t.reviewSend}
+                  </button>
+                  <button type="button" className="rb-ord-review-edit" onClick={() => closeReview()}>
+                    {t.reviewEdit}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })(), document.body)}
       </div>
     </section>
   )
