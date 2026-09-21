@@ -35,8 +35,8 @@
  *     baked on-site from scratch) are from their About page (reynirbakari.is/
  *     um-okkur) + kopavogsbladid.is (2016).
  *   - REVIEWS are real and attributed; see the block above REVIEWS.
- *     Rating shown as 4,5 from 65 Google reviews, read off their live Google
- *     listing 2026-08-16.
+ *     Rating shown as 4,5 from 67 Google reviews, read off their live Google
+ *     listing 2026-09-21.
  *
  * HOURS: settled. Þorleifur reconfirmed 07–17 EVERY DAY (2026-08-16) after we
  * put the weekend discrepancy to him — their Wolt listing says 08:00 at
@@ -207,6 +207,33 @@ export const REVIEWS: Review[] = [
   {
     quote: { en: 'Great pistachio Danish.', is: 'Frábær pistasíusnúður.' },
     who: 'gj Anderson, Google',
+  },  {
+    quote: {
+      en: 'Cute, cosy local bakery. Plenty of parking space. Inside couple of tables to enjoy your coffee and food. Staff are friendly and helpful. Wide selection of products from bread to pastries. Everything fresh, presentable and tasty.',
+      is: 'Krúttlegt og notalegt hverfisbakarí. Nóg af bílastæðum. Nokkur borð inni til að njóta kaffisins og matarins. Starfsfólkið er vingjarnlegt og hjálpsamt. Mikið úrval, allt frá brauði til sætabrauðs. Allt ferskt, fallega fram borið og bragðgott.',
+    },
+    who: 'Andrzej Strzałka, Google',
+  },
+  {
+    quote: {
+      en: 'My favourite when in Iceland, go for the ástarpungar or döðlubrauð.',
+      is: 'Uppáhaldið mitt þegar ég er á Íslandi. Fáið ykkur ástarpunga eða döðlubrauð.',
+    },
+    who: 'Kristjan Mar Hauksson, Google',
+  },
+  {
+    quote: {
+      en: "This is a nice cozy place. The prices are very reasonable. The food is hearty and everything is fresh. Seems very popular in the morning, which is a good sign. It's a more traditional kind of bakery but that's a plus point.",
+      is: 'Notalegur staður. Verðið er mjög sanngjarnt. Maturinn er matarmikill og allt er ferskt. Virðist mjög vinsælt á morgnana, sem er góðs viti. Þetta er hefðbundnara bakarí, en það er bara kostur.',
+    },
+    who: 'Rohit Goswami, Google',
+  },
+  {
+    quote: {
+      en: 'Vinarbraud is the best. Good bakari',
+      is: 'Vínarbrauðið er best. Gott bakarí.',
+    },
+    who: 'Christine Natalia, Google',
   },
 ]
 
@@ -498,7 +525,7 @@ export const T = {
     cateringBody:
       'Celebration cakes in cream, marzipan and chocolate, plus full catering for parties and events. Tell us the occasion and we will quote it.',
     cateringCta: 'Send an enquiry',
-    trustLine: '4.5 on Google across 65 reviews, and 92% recommend us on Facebook.',
+    trustLine: '4.5 on Google across 67 reviews, and 92% recommend us on Facebook.',
     visitKicker: 'Open every day',
     visitTitle: 'Find us',
     mainLabel: 'Bakery and café',
@@ -576,7 +603,7 @@ export const T = {
     cateringBody:
       'Rjóma, marsípan og súkkulaðitertur fyrir stóru stundirnar, ásamt veisluþjónustu fyrir hvers kyns viðburði. Segið okkur frá tilefninu og við gerum tilboð.',
     cateringCta: 'Senda fyrirspurn',
-    trustLine: '4,5 á Google úr 65 umsögnum, og 92% mæla með okkur á Facebook.',
+    trustLine: '4,5 á Google úr 67 umsögnum, og 92% mæla með okkur á Facebook.',
     visitKicker: 'Opið alla daga',
     visitTitle: 'Finndu okkur',
     mainLabel: 'Bakarí og kaffihús',

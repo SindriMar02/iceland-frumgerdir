@@ -546,6 +546,12 @@ const PAGE_CSS = `
   /* ── rotating testimonial: soft crossfade on each key-remount ─────────── */
   @keyframes rb-testi-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
   .rb-testi-fade { animation:rb-testi-in .7s ${EASE} both; }
+  .rb-testi-stack { list-style:none; margin:0; padding:0; display:grid; }
+  .rb-testi-item { grid-area:1 / 1; align-self:center; opacity:0; visibility:hidden;
+    transform:translateY(8px);
+    transition:opacity .6s ${EASE}, transform .6s ${EASE}, visibility 0s linear .6s; }
+  .rb-testi-item[data-active] { opacity:1; visibility:visible; transform:none;
+    transition:opacity .7s ${EASE} .12s, transform .7s ${EASE} .12s, visibility 0s; }
   /* 44px tap target with a small 7px visible dot centered inside (WCAG target size) */
   .rb-testi-dot { width:44px; height:44px; padding:0; border:0; background:transparent; cursor:pointer;
     display:flex; align-items:center; justify-content:center; }
@@ -600,6 +606,7 @@ const PAGE_CSS = `
     .rb-gallery-item:hover img { transform:none; }
     .rb-lightbox, .rb-lightbox-fig img { animation:none; }
     .rb-testi-fade { animation:none; }
+    .rb-testi-item, .rb-testi-item[data-active] { transform:none; transition:opacity .3s linear, visibility 0s; }
     .rb-story-img { animation:none; }
     .rb-gallery-strip { scroll-snap-type:none; }
   }
@@ -971,6 +978,18 @@ function GalleryTile({ photo, lang, onOpen, style }: { photo: GalleryPhoto; lang
 /** The real reviews, auto-rotating with a soft crossfade. Pauses on
  *  hover/focus and under prefers-reduced-motion; dots give manual control. */
 function TestimonialRotator({ lang, reduced, reviews }: { lang: Lang; reduced: boolean; reviews: Review[] }) {
+  /* EVERY REVIEW IS IN THE PAGE, all the time.
+   *
+   * The rotator used to render one quote and swap it, so the prerendered HTML
+   * — the only version a search crawler or an AI assistant ever reads — held a
+   * single review out of ten. Now all of them are rendered as a list of real
+   * <figure>s, stacked in one grid cell, and the sequence only decides which
+   * one is visible. A crawler reads ten attributed quotes; a visitor sees one
+   * at a time, in turn, as before.
+   *
+   * Stacking in one cell also sizes the stage to the LONGEST review, so a
+   * one-line quote following a paragraph no longer yanks the page up by 150px
+   * every six seconds. Shorter ones sit centred in that space. */
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const [manualPause, setManualPause] = useState(false)
@@ -985,36 +1004,39 @@ function TestimonialRotator({ lang, reduced, reviews }: { lang: Lang; reduced: b
     if (index >= reviews.length) setIndex(0)
   }, [reviews, index])
 
-  const r = reviews[index] ?? reviews[0]
-  if (!r) return null
+  if (!reviews.length) return null
+  const active = Math.min(index, reviews.length - 1)
 
   return (
     <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
-      <blockquote
-        key={index}
-        className={reduced ? undefined : 'rb-testi-fade'}
-        style={{ margin: '0 auto', maxWidth: '38ch', fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(26px,3.6vw,46px)', lineHeight: 1.25, color: IVORY }}
-      >
-        “{r.quote[lang]}”
-      </blockquote>
-      <figcaption
-        key={`w-${index}`}
-        className={reduced ? undefined : 'rb-testi-fade'}
-        style={{ fontSize: 14, color: FAINT, marginTop: 16 }}
-      >
-        {r.who}
-      </figcaption>
+      <ul className="rb-testi-stack" aria-label={lang === 'en' ? 'Reviews' : 'Umsagnir'}>
+        {reviews.map((r, i) => (
+          /* Inactive quotes are hidden with visibility, not removed: still in
+             the HTML for crawlers, out of the accessibility tree and the tab
+             order for people, who step through with the dots instead. */
+          <li key={`${r.who}-${i}`} className="rb-testi-item" data-active={i === active || undefined} aria-hidden={i === active ? undefined : true}>
+            <figure style={{ margin: 0 }}>
+              <blockquote
+                style={{ margin: '0 auto', maxWidth: '38ch', fontFamily: DISPLAY, fontWeight: 400, fontSize: r.quote[lang].length > 140 ? 'clamp(21px,2.6vw,32px)' : 'clamp(26px,3.6vw,46px)', lineHeight: 1.28, color: IVORY }}
+              >
+                “{r.quote[lang]}”
+              </blockquote>
+              <figcaption style={{ fontSize: 14, color: FAINT, marginTop: 16 }}>{r.who}</figcaption>
+            </figure>
+          </li>
+        ))}
+      </ul>
 
       {reviews.length > 1 && <button type="button" aria-pressed={manualPause} onClick={() => setManualPause(value => !value)} style={{background: 'transparent', color: IVORY, border: `1px solid ${HAIR}`, padding: '10px 16px', marginTop: 16, minHeight: 44}}>{manualPause ? (lang === 'is' ? 'Halda áfram' : 'Resume reviews') : (lang === 'is' ? 'Stöðva umsagnir' : 'Pause reviews')}</button>}
       {reviews.length > 1 && (
-        <div role="group" aria-label={lang === 'en' ? 'Reviews' : 'Umsagnir'} style={{ display: 'flex', gap: 0, justifyContent: 'center', marginTop: 4 }}>
+        <div role="group" aria-label={lang === 'en' ? 'Choose a review' : 'Veldu umsögn'} style={{ display: 'flex', flexWrap: 'wrap', gap: 0, justifyContent: 'center', marginTop: 4 }}>
           {reviews.map((_, i) => (
             <button
               key={i}
               type="button"
-              aria-pressed={i === index}
-              aria-label={`${lang === 'en' ? 'Review' : 'Umsögn'} ${i + 1}`}
-              data-active={i === index}
+              aria-pressed={i === active}
+              aria-label={`${lang === 'en' ? 'Review' : 'Umsögn'} ${i + 1} ${lang === 'en' ? 'of' : 'af'} ${reviews.length}`}
+              data-active={i === active}
               className="rb-testi-dot"
               onClick={() => setIndex(i)}
             />
@@ -1809,10 +1831,10 @@ function ReynirPageInner() {
           </div>
 
           {/* the real reviews, auto-rotating + trust line */}
-          <figure data-reveal style={{ ...revealInit(reduced, 0.14), margin: '0', marginTop: 'clamp(48px,7vh,84px)', borderTop: `1px solid ${HAIR_SOFT}`, paddingTop: 'clamp(36px,5vh,52px)', textAlign: 'center' }}>
+          <div data-reveal style={{ ...revealInit(reduced, 0.14), margin: '0', marginTop: 'clamp(48px,7vh,84px)', borderTop: `1px solid ${HAIR_SOFT}`, paddingTop: 'clamp(36px,5vh,52px)', textAlign: 'center' }}>
             <TestimonialRotator lang={lang} reduced={reduced} reviews={REVIEWS} />
             <div style={{ fontSize: 13.5, color: DIM, marginTop: 18 }}>{trustLine[lang]}</div>
-          </figure>
+          </div>
         </div>
       </section>
 
