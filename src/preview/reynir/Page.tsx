@@ -107,6 +107,25 @@ const PAGE_CSS = `
     aspect-ratio:21 / 9; }
   .rb-mapband iframe { position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
     filter:invert(1) hue-rotate(180deg) saturate(.14) brightness(.86) contrast(1.08); }
+  /* the plate the band shows before the map is asked for: a faint street
+     grid round a pin, lit from the middle, in the page's own gold */
+  .rb-mapband-cover { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:12px; padding:20px 20px 16%;
+    background:
+      radial-gradient(60% 70% at 50% 42%, rgba(200,168,119,.12), transparent 70%),
+      repeating-linear-gradient(0deg, transparent 0 55px, rgba(238,211,170,.05) 55px 56px),
+      repeating-linear-gradient(90deg, transparent 0 55px, rgba(238,211,170,.05) 55px 56px),
+      linear-gradient(115deg, transparent 47%, rgba(238,211,170,.07) 47.2% 48.4%, transparent 48.6%),
+      ${INK_DEEP}; }
+  .rb-mapband-pin { color:${GOLD}; }
+  .rb-mapband-load { position:relative; z-index:2; min-height:44px; padding:11px 22px; cursor:pointer;
+    font-family:${BODY}; font-size:14.5px; color:${GOLD_LIGHT}; background:rgba(11,10,9,.6);
+    border:1px solid rgba(238,211,170,.34); border-radius:4px;
+    transition:border-color .2s ${EASE}, background .2s ${EASE}, transform .15s ${EASE}; }
+  .rb-mapband-load:hover { border-color:${GOLD}; background:rgba(200,168,119,.1); }
+  .rb-mapband-load:active { transform:scale(.98); }
+  .rb-mapband-load:focus-visible { outline:2px solid ${GOLD}; outline-offset:3px; }
+  .rb-mapband-note { position:relative; z-index:2; font-size:12px; color:${DIM}; }
   .rb-mapband-veil { position:absolute; inset:0; pointer-events:none;
     background:linear-gradient(180deg, rgba(11,10,9,.55) 0%, rgba(11,10,9,0) 20%,
       rgba(11,10,9,0) 55%, rgba(11,10,9,.92) 100%); }
@@ -1078,6 +1097,8 @@ function ReynirPageInner() {
 
   /* the filmstrip drifts until someone takes hold of it */
   const stripRef = useStripDrift(reduced)
+  /* the map band loads Google only when asked — see the band's comment */
+  const [mapLive, setMapLive] = useState(false)
 
   /* null until mounted, so the server render and the browser's first render
      are identical and hydration is clean. Reading the clock during render
@@ -1975,13 +1996,31 @@ function ReynirPageInner() {
           be taken out of it by inverting and rotating the hue back. Both scrims
           are pointer-events:none, so the map stays draggable underneath. */}
       <section className="rb-mapband" aria-label={t.mainLabel}>
-        <iframe
-          title={`${t.mainLabel}: ${mainName}`}
-          src="https://maps.google.com/maps?q=Reynir%20bakari%2C%20Dalvegur%204%2C%20201%20K%C3%B3pavogur&z=15&output=embed&hl=is"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          allowFullScreen
-        />
+        {/* TAP TO LOAD. An embedded Google map can set Google cookies as soon
+            as it loads, and the site's case for having no cookie banner is
+            that nothing does. So the band starts as its own plate and the
+            iframe is only requested when someone asks for it. The link at the
+            bottom left needs no consent: it leaves the site. */}
+        {mapLive ? (
+          <iframe
+            title={`${t.mainLabel}: ${mainName}`}
+            src="https://maps.google.com/maps?q=Reynir%20bakari%2C%20Dalvegur%204%2C%20201%20K%C3%B3pavogur&z=15&output=embed&hl=is"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
+        ) : (
+          <div className="rb-mapband-cover">
+            <svg className="rb-mapband-pin" width="24" height="32" viewBox="0 0 22 30" fill="none" aria-hidden="true">
+              <path d="M11 29s9-9.3 9-17A9 9 0 0 0 2 12c0 7.7 9 17 9 17Z" stroke="currentColor" strokeWidth="1.2" />
+              <circle cx="11" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.2" />
+            </svg>
+            <button type="button" className="rb-mapband-load" onClick={() => setMapLive(true)}>
+              {lang === 'is' ? 'Sýna kort' : 'Show map'}
+            </button>
+            <span className="rb-mapband-note">{lang === 'is' ? 'Kortið kemur frá Google' : 'The map is served by Google'}</span>
+          </div>
+        )}
         <span className="rb-mapband-veil" aria-hidden="true" />
         <a
           className="rb-mapband-cta"

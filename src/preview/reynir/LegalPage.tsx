@@ -61,7 +61,7 @@ type Block = { h?: string; p?: string[]; ul?: string[] }
 
 const IS_DOC: { title: string; updated: string; blocks: Block[] } = {
   title: 'Persónuvernd og skilmálar',
-  updated: 'Uppfært 16. ágúst 2026',
+  updated: 'Uppfært 21. september 2026',
   blocks: [
     { h: 'Ábyrgðaraðili', p: ['Reynir bakari ehf., kt. 701195-3029, Dalvegi 4, 201 Kópavogi. Sími 564 4700, netfang reynirbakari@reynirbakari.is.'] },
     {
@@ -88,7 +88,7 @@ const IS_DOC: { title: string; updated: string; blocks: Block[] } = {
       h: 'Hverjir sjá upplýsingarnar',
       p: [
         'Pöntunarbeiðnin berst í netfangið pantanir@reynirbakari.is og er aðgengileg starfsfólki sem vinnur við pantanir. Vefurinn sjálfur geymir engar pantanir.',
-        'Vinnsluaðilar sem koma að rekstri vefsins (hýsingaraðili og efnisveita) kunna að vinna gögnin fyrir okkar hönd samkvæmt vinnslusamningi.',
+        'Tveir vinnsluaðilar koma að því að koma beiðninni til okkar: Cloudflare, sem hýsir vefinn og tekur við beiðninni, og Resend, sem sendir hana sem tölvupóst. Cloudflare geymir ekki pöntunina, en Resend geymir afrit af sendum pósti í takmarkaðan tíma í afhendingarskrá sinni. Báðir vinna gögnin eingöngu fyrir okkar hönd samkvæmt vinnslusamningi. Resend er bandarískt fyrirtæki og flutningur gagna þangað byggir á viðurkenndum flutningsheimildum. Efni vefsins, svo sem vörur og myndir, er geymt hjá Sanity; þangað fara engar upplýsingar um þig.',
       ],
     },
     {
@@ -105,9 +105,9 @@ const IS_DOC: { title: string; updated: string; blocks: Block[] } = {
     {
       h: 'Vefkökur',
       p: [
-        'Vefurinn notar engar vefkökur til að rekja þig. Valið þitt á tungumáli er geymt í vafranum þínum svo síðan muni það milli heimsókna; þær upplýsingar fara hvergi.',
+        'Vefurinn setur engar vefkökur. Tungumálið sem þú velur er hluti af vefslóðinni (/en fyrir ensku), svo ekkert þarf að geyma. Það eina sem vafrinn þinn geymir er merki um að opnunarmyndin hafi þegar spilast í þessari heimsókn; það hverfur þegar flipanum er lokað og fer hvergi.',
         'Við teljum heimsóknir með Cloudflare Web Analytics. Sú talning notar engar vefkökur, geymir enga persónugreinanlega vitneskju um þig og fylgir þér ekki milli vefsvæða. Við sjáum aðeins samtölur: hversu margir komu, hvaða síður voru skoðaðar og í hvaða landi. Þess vegna biðjum við þig ekki um samþykki fyrir vefkökum.',
-        'Tvennt annað hleðst inn frá öðrum: kortið á forsíðunni er frá Google, og letrið á vefnum kemur af leturþjónustu Google. Í báðum tilvikum sér Google IP-tölu þína, eins og hver annar vefþjónn sem vafrinn þinn sækir skrá til. Hvorugt setur vefköku.',
+        'Letrið á vefnum kemur af leturþjónustu Google, sem sér IP-tölu þína eins og hver annar vefþjónn sem vafrinn sækir skrá til; hún setur enga vefköku. Kortið neðst á forsíðunni hleðst hins vegar ekki fyrr en þú smellir á „Sýna kort“. Þá kemur það frá Google, sem getur sett sínar eigin vefkökur samkvæmt persónuverndarstefnu Google. Viljir þú það ekki geturðu smellt á heimilisfangið við kortið, sem opnar Google kort í nýjum glugga, eða einfaldlega notað heimilisfangið.',
       ],
     },
     { h: 'Skilmálar sérpantana' },
@@ -139,7 +139,7 @@ const IS_DOC: { title: string; updated: string; blocks: Block[] } = {
 
 const EN_DOC: { title: string; updated: string; blocks: Block[] } = {
   title: 'Privacy and terms',
-  updated: 'Updated 16 August 2026',
+  updated: 'Updated 21 September 2026',
   blocks: [
     { h: 'Who is responsible', p: ['Reynir bakari ehf., reg. no. 701195-3029, Dalvegur 4, 201 Kópavogur, Iceland. Phone +354 564 4700, email reynirbakari@reynirbakari.is.'] },
     {
@@ -166,7 +166,7 @@ const EN_DOC: { title: string; updated: string; blocks: Block[] } = {
       h: 'Who sees it',
       p: [
         'Order requests arrive at pantanir@reynirbakari.is and are seen by the staff who handle orders. The website itself stores no orders.',
-        'Processors involved in running the site (our host and content service) may process the data on our behalf under a processing agreement.',
+        'Two processors carry the request to us: Cloudflare, which hosts the site and receives the request, and Resend, which sends it on as an email. Cloudflare does not keep the order; Resend keeps a copy of sent mail for a limited time in its delivery log. Both process it only on our behalf under a processing agreement. Resend is a US company, and the transfer relies on recognised transfer safeguards. The site\'s content, such as products and photographs, is kept in Sanity; nothing about you goes there.',
       ],
     },
     {
@@ -183,9 +183,9 @@ const EN_DOC: { title: string; updated: string; blocks: Block[] } = {
     {
       h: 'Cookies',
       p: [
-        'This site sets no tracking cookies. Your language choice is stored in your own browser so the page remembers it between visits; that never leaves your device.',
+        'This site sets no cookies. The language you choose is part of the address (/en for English), so nothing needs storing. The only thing your browser keeps is a note that the opening animation has already played this visit; it disappears when you close the tab and goes nowhere.',
         'We count visits with Cloudflare Web Analytics. It uses no cookies, stores nothing that identifies you, and does not follow you between sites. We see totals only: how many people came, which pages they read, and which country they were in. That is why we do not ask you to accept cookies.',
-        'Two things load from someone else: the map on the front page is served by Google, and the typefaces are served by Google Fonts. In both cases Google sees your IP address, as any server your browser fetches a file from does. Neither sets a cookie.',
+        'The typefaces are served by Google Fonts, which sees your IP address as any server your browser fetches a file from does; it sets no cookie. The map at the bottom of the front page does not load until you press “Show map”. It is then served by Google, which may set its own cookies under Google\'s privacy policy. If you would rather it did not, the address beside it opens Google Maps in a new window instead, or simply use the address.',
       ],
     },
     { h: 'Custom order terms' },
