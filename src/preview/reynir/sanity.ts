@@ -52,6 +52,7 @@ const client = createClient({
 })
 
 const builder = imageUrlBuilder({ projectId: 'v4v3s4wg', dataset: 'production' })
+const GALLERY_NEUTRAL_CAPTION: Bilingual = { is: 'Úr bakaríinu á Dalvegi', en: 'At the bakery on Dalvegur' }
 
 type RawImg = { asset?: { _ref?: string }; hotspot?: { x?: number; y?: number } } | null | undefined
 /** A CMS gallery upload, rendered at both sizes the tile/lightbox pair needs.
@@ -61,6 +62,24 @@ function mkGalleryPic(img: RawImg, fallback: GalleryPhoto): { src: string; srcSm
   const at = (w: number) => builder.image(img).width(w).quality(80).auto('format').url()
   const dimensions = /-(\d+)x(\d+)-/.exec(img.asset._ref)
   return { src: at(2000), srcSm: at(800), w: dimensions ? Number(dimensions[1]) : fallback.w, h: dimensions ? Number(dimensions[2]) : fallback.h }
+}
+
+/** The owner's hotspot as a CSS object-position, for photos the layout crops
+ *  with object-fit. The hotspot is stored against the ORIGINAL image, so when
+ *  he has also trimmed the edges (crop) it is re-based onto the trimmed frame
+ *  the URL builder actually serves. Without this the hotspot the Studio asks
+ *  for would be ignored and every crop would sit on the centre. */
+type RawCrop = { top?: number; bottom?: number; left?: number; right?: number }
+export function hotspotPosition(img: { hotspot?: { x?: number; y?: number }; crop?: RawCrop } | null | undefined): string | undefined {
+  const h = img?.hotspot
+  if (typeof h?.x !== 'number' || typeof h?.y !== 'number') return undefined
+  const c = img?.crop ?? {}
+  const axis = (v: number, a = 0, b = 0) => {
+    const span = 1 - a - b
+    const r = span > 0 ? (v - a) / span : 0.5
+    return Math.round(Math.min(1, Math.max(0, r)) * 1000) / 10
+  }
+  return `${axis(h.x, c.left, c.right)}% ${axis(h.y, c.top, c.bottom)}%`
 }
 
 /** A CMS product photo, square to match the bundled crops. */
@@ -135,6 +154,15 @@ function buildHoursRows(days: readonly DayHours[], lang: Lang): HoursRow[] {
   return rows
 }
 
+/** "564 4700" -> "+3545644700". The owner edits the number as it is printed;
+ *  the dialable link follows it, so the two can never disagree. */
+function telFrom(display: unknown): string | undefined {
+  const digits = String(display ?? '').replace(/\D/g, '')
+  if (/^\d{7}$/.test(digits)) return `+354${digits}`
+  if (/^354\d{7}$/.test(digits)) return `+${digits}`
+  return undefined
+}
+
 /* ── Merged content shape ────────────────────────────────────────────────── */
 export interface SiteContent {
   LINKS: typeof LINKS
@@ -143,8 +171,10 @@ export interface SiteContent {
   ORDER_EXTRAS: OrderExtra[]
   VEISLUKJOR: {threshold: number; discountPct: number; nudgeFrom: number}
   textOverrides: Record<string, Bilingual>
-  images: Record<string, {src: string; caption: Bilingual}>
+  images: Record<string, {src: string; caption: Bilingual; pos?: string}>
   ordersPaused: boolean
+  /** A short dated notice ("Lokað á jóladag"). Shown only between from..to. */
+  notice: { text: Bilingual; from?: string; to?: string } | null
   ordersPauseMessage: Bilingual
   dateExceptions: DateException[]
   mainName: string
@@ -179,6 +209,7 @@ const FALLBACK: SiteContent = {
   textOverrides: {},
   images: {},
   ordersPaused: false,
+  notice: null,
   ordersPauseMessage: {is: 'Lokað er fyrir sérpantanir á vefnum í bili. Hafðu samband við okkur í síma.', en: 'Online custom orders are paused. Please call the bakery.'},
   dateExceptions: [],
   mainName: T.en.mainName,
@@ -303,7 +334,7 @@ export function merge(raw: any): SiteContent {
   const s = raw?.settings
   const linksMerged = {
     ...LINKS,
-    phone: s?.phoneHref || LINKS.phone,
+    phone: telFrom(s?.phoneDisplay) || s?.phoneHref || LINKS.phone,
     phoneLabel: s?.phoneDisplay || LINKS.phoneLabel,
     email: s?.email || LINKS.email,
     orderEmail: s?.orderEmail || LINKS.orderEmail,
@@ -350,7 +381,13 @@ export function merge(raw: any): SiteContent {
     ? raw.gallery.map((g: any, i: number) => {
         const fb = GALLERY[i % GALLERY.length]
         const pic = mkGalleryPic(g?.image, fb)
-        return { src: pic.src, srcSm: pic.srcSm, w: pic.w, h: pic.h, caption: g?.caption ? biSelf(g.caption) : fb.caption }
+        /* A new photo must never inherit the bundled caption at the same
+         position: that text would describe a different photograph, as its
+         caption AND its alt text. Its own caption, else a neutral one; the
+         bundled caption only travels with the bundled frame. */
+        const own = g?.caption && (g.caption.is || g.caption.en) ? biSelf(g.caption) : undefined
+        const caption = own ?? (g?.image?.asset?._ref ? GALLERY_NEUTRAL_CAPTION : fb.caption)
+        return { src: pic.src, srcSm: pic.srcSm, w: pic.w, h: pic.h, caption }
       })
     : GALLERY
 
@@ -414,10 +451,16 @@ export function merge(raw: any): SiteContent {
     LINKS: linksMerged,
     HOURS_BY_DAY: hoursByDay,
     hoursRows: { en: buildHoursRows(hoursByDay, 'en'), is: buildHoursRows(hoursByDay, 'is') },
-    images: Object.fromEntries((Array.isArray(s?.images) ? s.images : []).filter((i: any) => i?.slot && i?.image?.asset?._ref).map((i: any) => [i.slot, {src: builder.image(i.image).width(1800).quality(84).auto('format').url(), caption: biSelf(i.caption)}])),
+    images: Object.fromEntries((Array.isArray(s?.images) ? s.images : []).filter((i: any) => i?.slot && i?.image?.asset?._ref).map((i: any) => [i.slot, {src: builder.image(i.image).width(1800).quality(84).auto('format').url(), caption: biSelf(i.caption), pos: hotspotPosition(i.image)}])),
     ordersPaused: s?.ordersPaused === true,
+    notice: s?.notice?.text && (s.notice.text.is || s.notice.text.en)
+      ? { text: biSelf(s.notice.text), from: typeof s.notice.from === 'string' ? s.notice.from : undefined, to: typeof s.notice.to === 'string' ? s.notice.to : undefined }
+      : null,
     ordersPauseMessage: s?.ordersPauseMessage ? biPick(s.ordersPauseMessage, FALLBACK.ordersPauseMessage) : FALLBACK.ordersPauseMessage,
-    dateExceptions: Array.isArray(raw?.hours?.exceptions) ? raw.hours.exceptions.map((d: any) => ({date: String(d.date || ''), open: hm(d.open, -1), close: hm(d.close, -1), closed: d.closed === true})) : [],
+    dateExceptions: Array.isArray(raw?.hours?.exceptions) ? raw.hours.exceptions.filter((d: any) => /^\d{4}-\d{2}-\d{2}$/.test(String(d?.date || ''))).map((d: any) => {
+      const open = hm(d.open, -1), close = hm(d.close, -1)
+      return {date: String(d.date), open, close, closed: d.closed === true || open < 0 || close <= open}
+    }) : [],
     mainName: pick(s?.mainAddress, FALLBACK.mainName),
     trustLine: s?.trustLine ? biSelf(s.trustLine) : FALLBACK.trustLine,
     heroTitle: raw?.hero?.heroTitle ? biPick(raw.hero.heroTitle, FALLBACK.heroTitle) : FALLBACK.heroTitle,
@@ -533,14 +576,18 @@ export const useSiteContent = () => useContext(Ctx)
 /** Layout stays fixed; owners replace the photographs and their descriptions. */
 export function useSiteArt() {
   const {images, CAKES, MENU} = useSiteContent()
-  const frame = <T extends {src: string}>(base: T, slot: string): T => images[slot] ? {...base, src: images[slot].src} : base
+  // A replaced photo carries its hotspot, so the object-fit crop centres on it.
+  const frame = <T extends {src: string}>(base: T, slot: string): T & {pos?: string} => images[slot] ? {...base, src: images[slot].src, pos: images[slot].pos} : base
   const menu = Object.fromEntries(Object.entries(MENU_ART).map(([slot, art]) => [slot, {...frame(art, slot), cap: images[slot]?.caption ?? art.cap}])) as typeof MENU_ART
   // A shared caption must not claim a price that any pictured item no longer has.
   const lengjur = MENU.filter(item => item.name.toLowerCase().includes('lengja'))
   menu.lengjur.price = lengjur.length && new Set(lengjur.map(item => item.price)).size === 1 ? lengjur[0].price : undefined
   return {
-    FEATURE_IMG: images.hero?.src ?? FEATURE_IMG,
+    // The hero art is a transparent cut-out; it is not owner-replaceable,
+    // because an ordinary photo would sit over the hero as an opaque block.
+    FEATURE_IMG,
     PRODUCT_IMG: images.featured?.src ?? PRODUCT_IMG,
+    PRODUCT_POS: images.featured?.pos,
     SHOP_IMG: images.shop?.src ?? SHOP_IMG,
     MENU_ART: menu,
     CAKE_ART: {...CAKE_ART, price: CAKES.find(c => c.name === 'Eplakaka')?.price, frames: CAKE_ART.frames.map((f, i) => ({...frame(f, `cake${i}`), alt: images[`cake${i}`]?.caption ?? f.alt}))},

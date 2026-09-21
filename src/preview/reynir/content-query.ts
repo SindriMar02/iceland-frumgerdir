@@ -1,6 +1,6 @@
 /** Shared published/preview content projection; no browser or credential dependency. */
 export const QUERY = `{
-  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, orderEmail, facebook, instagram, ahaUrl, woltUrl, mainAddress, trustLine, ordersPaused, hidePersonalOccasions, hideCompanyOccasions, ordersPauseMessage, textOverrides[]{key,text}, partyOffer, orderExtras[]{"id": id.current, label, menuItem->{name,price}, image{asset,hotspot,crop}, step, max, kjorPrice, bulkAt}, images[]{slot, caption, image{asset,hotspot,crop}}},
+  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, orderEmail, facebook, instagram, ahaUrl, woltUrl, mainAddress, trustLine, ordersPaused, notice{text, from, to}, hidePersonalOccasions, hideCompanyOccasions, ordersPauseMessage, textOverrides[]{key,text}, partyOffer, orderExtras[]{"id": coalesce(id.current, _key), label, menuItem->{name,price}, image{asset,hotspot,crop}, step, max, kjorPrice, bulkAt}, images[]{slot, caption, image{asset,hotspot,crop}}},
   "hours": *[_type=="openingHours"][0]{mon, tue, wed, thu, fri, sat, sun, exceptions[]{date, open, close, closed}},
   "hero": *[_type=="heroSection"][0]{heroTitle, heroSub, heroLine, heroPhotoCaption},
   "story": *[_type=="storySection"][0]{statementQuote, statementWho, storyP1, storyP2},

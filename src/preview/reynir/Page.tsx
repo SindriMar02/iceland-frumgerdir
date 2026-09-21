@@ -16,7 +16,7 @@
  * a medallion). Section reveals are IntersectionObserver + CSS transitions.
  */
 
-import type { DateException } from './availability'
+import { noticeIsActive, shortDate, upcomingExceptions, type DateException } from './availability'
 import { useModalFocus } from './useModalFocus'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
@@ -857,7 +857,7 @@ function MenuArtFrame({ art, lang, fill, style }: { art: MenuArt; lang: Lang; fi
           decoding="async"
           width={art.w}
           height={art.h}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: art.pos, display: 'block' }}
         />
       </div>
       <figcaption style={{ display: 'flex', alignItems: 'baseline', gap: 4, padding: '16px 0 14px', borderBottom: `1px solid ${HAIR_SOFT}` }}>
@@ -899,7 +899,7 @@ function CakeArtPair({ art, lang, style }: { art: CakeArt; lang: Lang; style?: C
               decoding="async"
               width={f.w}
               height={f.h}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: f.pos, display: 'block' }}
             />
           </div>
         ))}
@@ -1071,7 +1071,7 @@ function TestimonialRotator({ lang, reduced, reviews }: { lang: Lang; reduced: b
 }
 
 function ReynirPageInner() {
-  const {FEATURE_IMG, PRODUCT_IMG, SHOP_IMG, MENU_ART, CAKE_ART, STORY_ART} = useSiteArt()
+  const {FEATURE_IMG, PRODUCT_IMG, PRODUCT_POS, SHOP_IMG, MENU_ART, CAKE_ART, STORY_ART} = useSiteArt()
   // English on a first visit, but shared with the order route so a visitor
   // reading in Icelandic does not land back in English after ordering.
   const [lang, setLang] = useLang()
@@ -1082,7 +1082,7 @@ function ReynirPageInner() {
   const ot = useOrderText(lang)
   const {
     images, dateExceptions, LINKS, HOURS_BY_DAY, FEATURE, MENU, BREAD, CAKES, GALLERY, REVIEWS,
-    hoursRows, mainName, trustLine,
+    hoursRows, mainName, trustLine, notice,
     heroTitle, heroSub, heroLine, statementQuote, statementWho, storyP1, storyP2,
   } = useSiteContent()
   // The left menu column opens with a landscape frame, the right one closes
@@ -1113,6 +1113,10 @@ function ReynirPageInner() {
     const id = window.setInterval(() => setNow(Date.now()), 30000)
     return () => window.clearInterval(id)
   }, [])
+  /* Client-only, like the open/closed badge: both depend on today's date,
+     which the prerendered HTML cannot know. */
+  const noticeLive = now !== null && noticeIsActive(notice, now)
+  const soonExceptions = now === null ? [] : upcomingExceptions(dateExceptions, now)
   const status = useMemo(
     () => (now === null ? staticStatus(HOURS_BY_DAY, t) : openStatus(now, lang, HOURS_BY_DAY, dateExceptions, t)),
     [now, lang, HOURS_BY_DAY, dateExceptions, t],
@@ -1383,7 +1387,7 @@ function ReynirPageInner() {
             asked, plus the pictures. */}
         <nav className="rb-sticky-nav">
           <a href="#menu" className="rb-navlink">{t.navMenu}</a>
-          <a href="#gallery" className="rb-navlink">{t.navGallery}</a>
+          {GALLERY.length > 0 && <a href="#gallery" className="rb-navlink">{t.navGallery}</a>}
           <Link to={P.story} className="rb-navlink">{t.navStory}</Link>
           <a href="#visit" className="rb-navlink">{t.navVisit}</a>
         </nav>
@@ -1465,7 +1469,7 @@ function ReynirPageInner() {
         <nav className="rb-menu-nav" aria-label={lang === 'is' ? 'Valmynd' : 'Menu'}>
           {[
             { href: '#menu', label: t.navMenu },
-            { href: '#gallery', label: t.navGallery },
+            ...(GALLERY.length > 0 ? [{ href: '#gallery', label: t.navGallery }] : []),
             { to: P.story, label: t.navStory },
             { href: '#visit', label: t.navVisit },
           ].map((item, i) => {
@@ -1565,6 +1569,7 @@ function ReynirPageInner() {
                 <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: '50%', background: status.open ? '#8FA876' : GOLD }} />
                 {status.label}
               </span>
+              {noticeLive && notice && <span style={{ color: IVORY }}>{notice.text[lang]}</span>}
             </div>
 
             <h1 className="rb-enter-2" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(46px, 9.5vw, 134px)', lineHeight: 0.98, letterSpacing: '.02em', margin: 'clamp(16px,3vh,30px) 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>
@@ -1680,7 +1685,7 @@ function ReynirPageInner() {
                     alt={images.featured?.caption[lang] ?? (lang === 'en' ? 'A Reynir pistachio snúður torn open, gooey pistachio glaze stretching between the halves' : 'Pistasíusnúður frá Reyni rifinn í sundur, pistasíugljái teygist á milli helminganna')}
                     loading="lazy"
                     decoding="async"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: PRODUCT_POS, display: 'block' }}
                   />
                   {/* the same small tag-pill already used on Kanillengja in the
                       menu (not a new device) marks this as the signature item —
@@ -1749,7 +1754,7 @@ function ReynirPageInner() {
             width={STORY_ART.open.w}
             height={STORY_ART.open.h}
             className="rb-story-img"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: STORY_ART.open.pos }}
           />
           <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(0deg, ${INK_DEEP} 0%, rgba(11,10,9,.78) 22%, rgba(92,28,31,.28) 62%, rgba(11,10,9,.45) 100%)` }} />
           <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 'clamp(28px,5vw,72px)' }}>
@@ -1781,7 +1786,9 @@ function ReynirPageInner() {
       </section>
 
       {/* ===================== BREAD BOARD ===================== */}
-      <section id="bread" style={{ background: INK_DEEP, padding: sectionPad }}>
+      {/* A shelf the owner has emptied is left out whole, heading and all,
+          rather than printed as a title over nothing. */}
+      {BREAD.length > 0 && <section id="bread" style={{ background: INK_DEEP, padding: sectionPad }}>
         <div style={wrap}>
           <div className="rb-wipe" data-reveal style={{ ...revealInit(reduced), display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap' }}>
             <div style={{ maxWidth: 620 }}>
@@ -1812,7 +1819,7 @@ function ReynirPageInner() {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ===================== CAKES & CATERING + REVIEW ===================== */}
       <section style={{ background: INK_WARM, padding: sectionPad }}>
@@ -1856,10 +1863,10 @@ function ReynirPageInner() {
           </div>
 
           {/* the real reviews, auto-rotating + trust line */}
-          <div data-reveal style={{ ...revealInit(reduced, 0.14), margin: '0', marginTop: 'clamp(48px,7vh,84px)', borderTop: `1px solid ${HAIR_SOFT}`, paddingTop: 'clamp(36px,5vh,52px)', textAlign: 'center' }}>
+          {REVIEWS.length > 0 && <div data-reveal style={{ ...revealInit(reduced, 0.14), margin: '0', marginTop: 'clamp(48px,7vh,84px)', borderTop: `1px solid ${HAIR_SOFT}`, paddingTop: 'clamp(36px,5vh,52px)', textAlign: 'center' }}>
             <TestimonialRotator lang={lang} reduced={reduced} reviews={REVIEWS} />
-            <div style={{ fontSize: 13.5, color: DIM, marginTop: 18 }}>{trustLine[lang]}</div>
-          </div>
+            {trustLine[lang] && <div style={{ fontSize: 13.5, color: DIM, marginTop: 18 }}>{trustLine[lang]}</div>}
+          </div>}
         </div>
       </section>
 
@@ -1876,7 +1883,7 @@ function ReynirPageInner() {
           strip below the order CTA, taking a single screen instead of five.
           Every frame still opens the same lightbox, so the indices below
           continue to line up with GALLERY. */}
-      <section id="gallery" style={{ background: INK, padding: 'clamp(56px,9vh,110px) 0 clamp(64px,10vh,120px)' }}>
+      {GALLERY.length > 0 && <section id="gallery" style={{ background: INK, padding: 'clamp(56px,9vh,110px) 0 clamp(64px,10vh,120px)' }}>
         {/* The section itself has no horizontal padding, because the photo
             strip below bleeds. That left this header with none either, so on
             anything narrower than the 1180px wrap the kicker, the heading and
@@ -1911,7 +1918,7 @@ function ReynirPageInner() {
         <div style={{ ...wrap, padding: '0 clamp(20px,4.5vw,72px)', marginTop: 'clamp(24px,3.5vh,36px)' }}>
           <Link to={P.story} className="rb-cta rb-cta-ghost">{t.galleryMore}</Link>
         </div>
-      </section>
+      </section>}
 
       {/* ===================== VISIT STRIP ===================== */}
       <section id="visit" style={{ background: INK, padding: sectionPad }}>
@@ -1934,6 +1941,13 @@ function ReynirPageInner() {
                     <span style={{ color: IVORY }}>{l.value}</span>
                   </div>
                 ))}
+                {soonExceptions.map((d) => (
+                  <div key={d.date} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10, fontSize: 14.5, color: DIM }}>
+                    <span>{shortDate(d.date, lang)}</span>
+                    <span style={{ color: GOLD }}>{d.closed ? (lang === 'en' ? 'Closed' : 'Lokað') : `${Math.floor(d.open / 60)}:${String(d.open % 60).padStart(2, '0')} ${lang === 'en' ? 'to' : 'til'} ${Math.floor(d.close / 60)}:${String(d.close % 60).padStart(2, '0')}`}</span>
+                  </div>
+                ))}
+                {noticeLive && notice && <p style={{ margin: 0, fontSize: 14.5, color: IVORY, lineHeight: 1.55 }}>{notice.text[lang]}</p>}
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${HAIR_SOFT}`, paddingBottom: 10 }}>
                   <span style={{ fontSize: 14.5, color: DIM }}>{t.rowPhone}</span>
                   <a href={`tel:${LINKS.phone}`} className="rb-foot-link" style={{ fontSize: 14.5, fontWeight: 600 }}>{LINKS.phoneLabel}</a>

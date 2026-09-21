@@ -1710,15 +1710,15 @@ function OrderForm({
       mailRows.push({ label: 'Kökur samtals', value: isk(cakesSubtotal), money: true })
     }
     if (kjor) {
-      /* The mail says out loud what the code knows: the percentage is a
-       * placeholder. Þorleifur must see that on every order until he sets the
-       * real number, because this line is a price HE is being committed to. */
+      /* Only reachable once the owner has switched on "Samþykkt veislukjör"
+       * with his own figures (the bundled offer is off: threshold Infinity),
+       * so the mail states the percentage he set, not a placeholder warning. */
       payload[`${n++}. Veislukjör`] =
-        `−${isk(kjorDiscount)} (${VEISLUKJOR.discountPct}% af kökum — TIL VIÐMIÐUNAR, prósenta óstaðfest)`
+        `−${isk(kjorDiscount)} (${VEISLUKJOR.discountPct}% af kökum)`
       mailRows.push({
         label: 'Veislukjör',
         value: `−${isk(kjorDiscount)} (${VEISLUKJOR.discountPct}%)`,
-        note: 'til viðmiðunar — prósentan er ekki staðfest',
+        note: `${VEISLUKJOR.discountPct}% af kökum, samkvæmt veislukjörum bakarísins`,
         money: true,
       })
     }

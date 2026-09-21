@@ -90,7 +90,7 @@ const CMS_PROJECT = 'v4v3s4wg'
 const CMS_DATASET = 'production'
 const CMS_QUERY =
   '{"settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, orderEmail, facebook, instagram},' +
-  ' "hours": *[_type=="openingHours"][0]{mon,tue,wed,thu,fri,sat,sun}}'
+  ' "hours": *[_type=="openingHours"][0]{mon,tue,wed,thu,fri,sat,sun,exceptions[]{date,open,close,closed}}}'
 
 function bakedCms() {
   const home = process.env.REYNIR_STANDALONE === '1' ? '' : 'preview/reynir'
@@ -135,6 +135,11 @@ if (!cms) {
 {
   const c = cms?.settings
   if (c?.phoneHref) B.phone = c.phoneHref
+  /* The site dials what is printed (sanity.ts telFrom), so the business
+     panel does too: an owner who edits only the printed number must not be
+     left with the old one in the structured data. */
+  const digits = String(c?.phoneDisplay || '').replace(/\D/g, '')
+  if (/^\d{7}$/.test(digits)) B.phone = `+354${digits}`
   if (c?.phoneDisplay) B.phoneDisplay = c.phoneDisplay
   if (c?.email) B.email = c.email
   if (c?.orderEmail) B.orderEmail = c.orderEmail
@@ -163,6 +168,21 @@ const HOURS = DAYS.map((d) => {
 
 /** Consecutive days sharing the same hours, collapsed — "Mán–Fös 07:00–17:00"
  *  rather than five identical lines. */
+/** Holiday closures and special hours from today on, for
+ *  specialOpeningHoursSpecification. Rebuilt on every publish, so an exception
+ *  the owner adds reaches the business panel with the next build. A closed day
+ *  is 00:00 to 00:00, which is how schema.org spells closed. */
+function specialHours() {
+  const today = new Date().toISOString().slice(0, 10)
+  return (Array.isArray(cms?.hours?.exceptions) ? cms.hours.exceptions : [])
+    .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(String(d?.date || '')) && d.date >= today)
+    .map((d) => {
+      const opens = hhmm(d.open, null), closes = hhmm(d.close, null)
+      const closed = d.closed === true || !opens || !closes || closes <= opens
+      return { '@type': 'OpeningHoursSpecification', validFrom: d.date, validThrough: d.date, opens: closed ? '00:00' : opens, closes: closed ? '00:00' : closes }
+    })
+}
+
 function hourGroups() {
   const out = []
   for (const d of HOURS) {
@@ -428,6 +448,7 @@ const bakeryFor = (lang) => ({
       opens: g.opens,
       closes: g.closes,
     })),
+  ...(specialHours().length ? { specialOpeningHoursSpecification: specialHours() } : {}),
   sameAs: [B.facebook, B.instagram],
   areaServed: { '@type': 'City', name: 'Kópavogur' },
 })

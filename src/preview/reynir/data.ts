@@ -98,7 +98,7 @@ export const STORY_ART = {
  *  1.395 kr. because all three listed lengjur cost precisely that. The
  *  chocolate-glazed case shots (frames 068–070) were considered and rejected
  *  here: they are doughnuts, not snúðar, and may not carry a snúður price. */
-export type MenuArt = { src: string; w: number; h: number; cap: { en: string; is: string }; price?: string }
+export type MenuArt = { src: string; w: number; h: number; cap: { en: string; is: string }; price?: string; pos?: string }
 export const MENU_ART: Record<'lengjur' | 'bordid' | 'braud' | 'kaka', MenuArt> = {
   /** Frame 188: the vínarbrauðslengjur trays — pink glaze, custard, almonds.
    *  Literally three of the listed items in one photograph. */
@@ -414,7 +414,7 @@ export const BREAD: MenuItem[] = [
  *  Photographs from the owner (2026-08-31), shot on his own neutral backdrop.
  *  This is the format to ask for when more cakes are photographed. */
 export type CakeArt = {
-  frames: { src: string; w: number; h: number; alt: { en: string; is: string } }[]
+  frames: { src: string; w: number; h: number; alt: { en: string; is: string }; pos?: string }[]
   cap: { en: string; is: string }
   price?: string
 }

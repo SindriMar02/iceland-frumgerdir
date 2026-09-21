@@ -35,8 +35,10 @@ const tmp = join(process.cwd(), 'node_modules', '.cache', 'reynir-cms-check')
 mkdirSync(tmp, { recursive: true })
 const entry = join(tmp, 'entry.ts')
 const bundle = join(tmp, 'bundle.mjs')
-writeFileSync(entry, `import { merge, QUERY } from ${JSON.stringify(join(process.cwd(), 'src/preview/reynir/sanity.ts'))}
+writeFileSync(entry, `import { merge, QUERY, hotspotPosition } from ${JSON.stringify(join(process.cwd(), 'src/preview/reynir/sanity.ts'))}
+import { noticeIsActive, upcomingExceptions, pickupSlots } from ${JSON.stringify(join(process.cwd(), 'src/preview/reynir/availability.ts'))}
 ;(globalThis).__merge = merge; (globalThis).__QUERY = QUERY
+;(globalThis).__avail = { noticeIsActive, upcomingExceptions, pickupSlots, hotspotPosition }
 `)
 execFileSync('npx', ['esbuild', entry, '--bundle', '--platform=node', '--format=esm',
   `--outfile=${bundle}`,
@@ -302,9 +304,10 @@ raw = clone(LIVE)
    all predate the person/company split and carry no audience, so a wholesale
    replace would leave the private list empty — and an empty list HIDES the
    step. Both halves must survive the live payload. */
-raw = clone(LIVE)
+const companyOnly = () => { const r = clone(LIVE); r.occasions = (r.occasions || []).filter((o) => o.audience !== 'person').map((o) => ({ ...o, audience: null })); return r }
+raw = companyOnly()
 {
-  c = run('occasions, live payload', () => merge(raw))
+  c = run('occasions, company-only studio', () => merge(raw))
   const occ = c?.OCCASIONS || []
   const persons = occ.filter((o) => o.audience === 'person')
   const companies = occ.filter((o) => o.audience === 'company')
@@ -317,7 +320,7 @@ raw = clone(LIVE)
 }
 
 /* And the owner writing his own private list replaces ONLY that half. */
-raw = clone(LIVE)
+raw = companyOnly()
 {
   raw.occasions = [...(raw.occasions || []), { id: 'brudkaup', label: { is: 'Brúðkaup', en: 'Wedding' }, audience: 'person' }]
   c = run('occasions, owner adds one', () => merge(raw))
@@ -359,6 +362,54 @@ for (const p of (LIVE.orderProducts || [])) {
         bad(`orderProduct "${p.name?.is}" / "${c.label?.is}": swaps out layer "${c.swap.layerId}", which is not in the recipe`)
 }
 check('no choice swaps out a layer that does not exist', problems === 0, `${problems} problem(s)`)
+
+/* ── guards added in the 2026-09-21 hardening (audit A/B findings) ─────── */
+{
+  const { noticeIsActive, upcomingExceptions, pickupSlots, hotspotPosition } = globalThis.__avail
+  const day = (iso) => Date.parse(`${iso}T12:00:00Z`)
+  const GALLERY_CAPTIONS = new Set(merge({}).GALLERY.map((g) => g.caption.is))
+
+  let r = clone(LIVE); r.gallery = [...r.gallery, { image: { asset: { _ref: 'image-abc-800x600-jpg' } } }]
+  const borrowed = GALLERY_CAPTIONS.has(merge(r).GALLERY.at(-1).caption.is)
+  check('a new gallery photo with no caption never borrows another photo\'s caption', !borrowed)
+
+  check('the hotspot becomes the crop position', hotspotPosition({ hotspot: { x: 0.2, y: 0.8 } }) === '20% 80%')
+  check('the hotspot is re-based onto a trimmed image', hotspotPosition({ hotspot: { x: 0.5, y: 0.5 }, crop: { left: 0.5, right: 0, top: 0, bottom: 0 } }) === '0% 50%')
+  r = clone(LIVE); r.settings.images = [{ slot: 'storyOpen', caption: { is: 'x', en: 'x' }, image: { asset: { _ref: 'image-abc-800x600-jpg' }, hotspot: { x: 0.3, y: 0.6 } } }]
+  check('a replaced page photo carries its hotspot to the page', merge(r).images.storyOpen?.pos === '30% 60%')
+
+  r = clone(LIVE); r.hours.exceptions = [{ date: '2026-12-25' }]
+  const ex = merge(r).dateExceptions[0]
+  check('a holiday saved with only a date counts as closed', ex?.closed === true)
+  check('...and offers no pickup times', pickupSlots('2026-12-25', merge(r).HOURS_BY_DAY, merge(r).dateExceptions, 0).length === 0)
+  const soon = upcomingExceptions([{ date: '2026-12-20' }, { date: '2026-12-26' }, { date: '2027-03-01' }], day('2026-12-21'))
+  check('the hours list shows upcoming holidays only, not past or far-off ones', soon.length === 1 && soon[0].date === '2026-12-26')
+
+  const notice = { text: { is: 'Lokað á jóladag', en: 'Closed on Christmas Day' }, from: '2026-12-20', to: '2026-12-25' }
+  check('a notice shows inside its dates', noticeIsActive(notice, day('2026-12-22')))
+  check('a notice takes itself down after its last day', !noticeIsActive(notice, day('2026-12-26')))
+  check('a notice does not show before its first day', !noticeIsActive(notice, day('2026-12-19')))
+  r = clone(LIVE); r.settings.notice = notice
+  check('the notice survives the merge', merge(r).notice?.text.is === 'Lokað á jóladag')
+  r = clone(LIVE); r.settings.notice = { text: { is: '', en: '' }, to: '2026-12-25' }
+  check('an empty notice is no notice', merge(r).notice === null)
+
+  r = clone(LIVE); r.settings.phoneDisplay = '555 1234'
+  check('the dial link follows the printed number', merge(r).LINKS.phone === '+3545551234')
+
+  r = clone(LIVE)
+  const kleina = r.menuItems.find((m) => m.name === 'Kleina')
+  const extraRef = (r.settings.orderExtras || []).find((e) => e.id === 'kleinur')
+  if (extraRef && kleina) { extraRef.menuItem = { name: 'Kleinur', price: '290 kr.' }; kleina.name = 'Kleinur'; kleina.price = '290 kr.' }
+  check('renaming a menu item keeps its extra on the menu price', !!extraRef && merge(r).ORDER_EXTRAS.find((e) => e.id === 'kleinur')?.unitPrice === 290,
+    extraRef ? '' : 'orderExtras not seeded in the CMS')
+  // The owner never sees the extra's id field, so the query must supply one.
+  check('an extra the owner adds without an id still gets one', /"id": coalesce\(id\.current, _key\)/.test(QUERY))
+
+  const liveOcc = merge(clone(LIVE)).OCCASIONS.filter((o) => o.audience === 'person')
+  check('the private occasions on the site are the ones in the Studio', (LIVE.occasions || []).filter((o) => o.audience === 'person').length === liveOcc.length && liveOcc.length > 0)
+  check('the party offer is off in the live data', merge(clone(LIVE)).VEISLUKJOR.discountPct === 0)
+}
 
 rmSync(tmp, { recursive: true, force: true })
 console.log(`\n${pass} scenario check(s) passed, ${fail} failed, ${problems} content problem(s)\n`)

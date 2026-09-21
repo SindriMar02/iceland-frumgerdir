@@ -167,7 +167,7 @@ function StoryPageInner() {
           aria-hidden="true"
           width={STORY_ART.open.w}
           height={STORY_ART.open.h}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: ARCHIVAL }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: STORY_ART.open.pos, filter: ARCHIVAL }}
         />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg, rgba(11,10,9,.92) 0%, rgba(11,10,9,.2) 55%, rgba(11,10,9,.5) 100%)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 'clamp(24px,4vw,56px) clamp(20px,4.5vw,72px)' }}>
@@ -215,8 +215,8 @@ function StoryPageInner() {
         </div>
       </section>
 
-      {/* the full archive */}
-      <section style={{ background: INK, padding: pad }}>
+      {/* the full archive, left out whole if the owner has emptied it */}
+      {GALLERY.length > 0 && <section style={{ background: INK, padding: pad }}>
         <div style={wrap}>
           <div style={{ borderTop: `1px solid ${HAIR}`, paddingTop: 16 }}>
             <div style={{ maxWidth: 640 }}>
@@ -252,7 +252,7 @@ function StoryPageInner() {
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       </main>
       <footer style={{ background: INK_DEEP, borderTop: `1px solid ${HAIR_SOFT}`, padding: '48px clamp(20px,4.5vw,72px)' }}>

@@ -20,3 +20,30 @@ export function pickupSlots(date: string, weekly: readonly OpeningDay[], excepti
   }
   return slots
 }
+
+/** Date exceptions from today up to `days` ahead, soonest first: what the
+ *  printed hours must mention so "every day 7 to 17" is not the whole truth
+ *  on Christmas Day. */
+export function upcomingExceptions<T extends DateException>(exceptions: T[], now: number, days = 21): T[] {
+  const today = bakeryDate(now)
+  const last = bakeryDate(now + days * 86_400_000)
+  return exceptions.filter(d => d.date >= today && d.date <= last).sort((a, b) => a.date.localeCompare(b.date))
+}
+
+/** A dated notice is live from `from` through `to` inclusive (bakery dates).
+ *  A missing end means it never expires on its own, which the Studio blocks. */
+export function noticeIsActive(notice: { from?: string; to?: string } | null, now: number): boolean {
+  if (!notice) return false
+  const today = bakeryDate(now)
+  return (!notice.from || notice.from <= today) && (!notice.to || today <= notice.to)
+}
+
+const MONTHS = {
+  is: ['jan.', 'feb.', 'mars', 'apr.', 'maí', 'júní', 'júlí', 'ág.', 'sept.', 'okt.', 'nóv.', 'des.'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+}
+/** "2026-12-24" -> "24. des." / "24 Dec". Hand-rolled: Intl has no Icelandic. */
+export function shortDate(date: string, lang: 'is' | 'en'): string {
+  const [, m, d] = date.split('-').map(Number)
+  return lang === 'is' ? `${d}. ${MONTHS.is[m - 1]}` : `${d} ${MONTHS.en[m - 1]}`
+}
