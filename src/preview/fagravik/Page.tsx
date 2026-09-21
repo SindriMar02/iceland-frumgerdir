@@ -44,6 +44,7 @@ html,body{background-color:${INK}}
   font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
 .fv *{box-sizing:border-box}
 .fv img{display:block;width:100%;height:100%;object-fit:cover}
+.fv picture{display:block;width:100%;height:100%}
 .fv a{color:inherit}
 .fv p{margin:0;max-width:56ch}
 .fv .disp{font-family:'FvD',Georgia,serif;font-weight:400;letter-spacing:-.012em;line-height:1.06;margin:0;text-wrap:balance}
@@ -466,6 +467,9 @@ function useFarWindows() {
   }, [])
 }
 
+/** The photo a cottage panel shows on a phone: its exterior, which reads in a tall crop. */
+const mobilePhoto = (c: Cottage) => c.photos.find((p) => p.src.includes('-out-')) ?? c.photos[0]
+
 /** A pair of rotated labels, placed inside a photo window. */
 const Edges = () => (
   <>
@@ -615,7 +619,14 @@ export default function FagravikPage() {
 
         {COTTAGES.map((c) => (
           <section key={c.id} id={`c-${c.id}`} className="sheet fv-panel win" aria-labelledby={`h-${c.id}`} style={zi()}>
-            <div className="bg still"><Img p={c.photos[0]} sizes="100vw" /></div>
+            <div className="bg still">
+              {/* phones: a tall portrait crop shows a landscape photo about 3x enlarged, so an
+                  interior becomes close-ups of chair legs. The exterior survives the crop. */}
+              <picture>
+                <source media="(max-width: 900px)" srcSet={mobilePhoto(c).srcSet} sizes="100vw" />
+                <Img p={c.photos[0]} sizes="100vw" />
+              </picture>
+            </div>
             <div className="veil" />
             <Edges />
             <div className="inner">
