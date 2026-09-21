@@ -26,6 +26,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import Chrome from './Chrome'
 import { SndrCredit } from './SndrCredit'
+import { PipedTitle } from './PipedTitle'
 import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { type GalleryPhoto, LOGO } from './data'
@@ -222,9 +223,9 @@ function StoryPageInner() {
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>
                 {t.storyPageArchive}
               </div>
-              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,4vw,52px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>
+              <PipedTitle align="start" style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,4vw,52px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>
                 {t.galleryTitle}
-              </h2>
+              </PipedTitle>
               <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', lineHeight: 1.65 }}>{t.storyPageArchiveIntro}</p>
             </div>
           </div>

@@ -24,6 +24,7 @@ import Chrome from './Chrome'
 import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { SndrCredit } from './SndrCredit'
+import { PipedTitle } from './PipedTitle'
 import { useIsomorphicLayoutEffect } from './ssr'
 import { type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, type CakeArt, LOGO } from './data'
 import { ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY, LETTERPRESS } from './tokens'
@@ -568,9 +569,12 @@ const PAGE_CSS = `
   .rb-testi-stack { list-style:none; margin:0; padding:0; display:grid; }
   .rb-testi-item { grid-area:1 / 1; align-self:center; opacity:0; visibility:hidden;
     transform:translateY(8px);
-    transition:opacity .6s ${EASE}, transform .6s ${EASE}, visibility 0s linear .6s; }
+    transition:opacity .32s ${EASE}, transform .32s ${EASE}, visibility 0s linear .32s; }
+  /* the outgoing quote clears fast, the incoming one arrives a beat later and
+     slower: a dot press gets an answer inside ~100ms, and the two never sit on
+     top of each other at half opacity */
   .rb-testi-item[data-active] { opacity:1; visibility:visible; transform:none;
-    transition:opacity .7s ${EASE} .12s, transform .7s ${EASE} .12s, visibility 0s; }
+    transition:opacity .5s ${EASE} .08s, transform .5s ${EASE} .08s, visibility 0s; }
   /* 44px tap target with a small 7px visible dot centered inside (WCAG target size) */
   .rb-testi-dot { width:44px; height:44px; padding:0; border:0; background:transparent; cursor:pointer;
     display:flex; align-items:center; justify-content:center; }
@@ -1626,7 +1630,7 @@ function ReynirPageInner() {
               page reads as a system rather than as two moods. */}
           <div className="rb-sec-intro rb-wipe rb-stagger" data-reveal style={revealInit(reduced)}>
             <div className="rb-sec-kicker">{t.menuMasthead}</div>
-            <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,62px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.ovenTitle}</h2>
+            <PipedTitle align="center" style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,62px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.ovenTitle}</PipedTitle>
             <p className="rb-sec-lede" style={{ fontSize: 16, color: DIM, margin: '16px auto 0', maxWidth: '52ch', lineHeight: 1.65 }}>{t.ovenIntro}</p>
           </div>
 
@@ -1782,7 +1786,7 @@ function ReynirPageInner() {
           <div className="rb-wipe" data-reveal style={{ ...revealInit(reduced), display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap' }}>
             <div style={{ maxWidth: 620 }}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.breadKicker}</div>
-              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.8vw,64px)', lineHeight: 1.03, margin: '16px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.breadTitle}</h2>
+              <PipedTitle align="start" style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.8vw,64px)', lineHeight: 1.03, margin: '16px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.breadTitle}</PipedTitle>
               <p style={{ fontSize: 16, lineHeight: 1.7, color: DIM, margin: '16px 0 0' }}>{t.breadIntro}</p>
             </div>
             {t.breadNote && <div style={{ fontSize: 13.5, color: FAINT, fontStyle: 'italic' }}>{t.breadNote}</div>}
@@ -1816,7 +1820,7 @@ function ReynirPageInner() {
           <div className="rb-catering-grid" data-reveal style={{ ...revealInit(reduced), display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(28px,5vw,80px)', alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.cateringKicker}</div>
-              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,3.6vw,50px)', margin: '16px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.cateringTitle}</h2>
+              <PipedTitle align="start" style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,3.6vw,50px)', margin: '16px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.cateringTitle}</PipedTitle>
               <p style={{ fontSize: 16, lineHeight: 1.7, color: DIM, margin: '16px 0 0', maxWidth: '46ch' }}>{t.cateringBody}</p>
               <a href={`mailto:${LINKS.orderEmail}`} className="rb-cta rb-cta-ghost" style={{ marginTop: 'clamp(20px,3vh,28px)' }}>{t.cateringCta}</a>
               {/* the baker's hand placing the cherries — craft, not catalogue */}
@@ -1888,7 +1892,7 @@ function ReynirPageInner() {
           <div className="rb-sec-intro rb-wipe" data-reveal style={revealInit(reduced)}>
             <div style={{ maxWidth: 640, marginInline: 'auto' }}>
               <div className="rb-sec-kicker">{t.galleryKicker}</div>
-              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,4vw,52px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.galleryTitle}</h2>
+              <PipedTitle align="center" style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,4vw,52px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.galleryTitle}</PipedTitle>
               <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', lineHeight: 1.65 }}>{t.galleryIntro}</p>
             </div>
           </div>
@@ -1919,7 +1923,7 @@ function ReynirPageInner() {
                 photograph and map carry the other side. */}
             <div data-reveal style={revealInit(reduced)}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>{t.visitKicker}</div>
-              <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px,5vw,72px)', lineHeight: 1.02, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.visitTitle}</h2>
+              <PipedTitle align="start" style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px,5vw,72px)', lineHeight: 1.02, margin: '18px 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>{t.visitTitle}</PipedTitle>
 
               <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px,2.4vw,28px)', color: IVORY, marginTop: 'clamp(20px,3vh,28px)' }}>{mainName}</div>
 

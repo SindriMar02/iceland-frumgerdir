@@ -13,6 +13,7 @@
 import { Link } from 'react-router-dom'
 import type { Lang } from './data'
 import { isk, fromPriceOf, columnsFor } from './order'
+import { PipedTitle } from './PipedTitle'
 import { DIM, DISPLAY, EASE, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, INK_DEEP, IVORY } from './tokens'
 import { useOrderText, useSiteContent } from './sanity'
 
@@ -97,9 +98,9 @@ export default function OrderTeaser({ lang, orderPath }: { lang: Lang; orderPath
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.24em', textTransform: 'uppercase', color: GOLD }}>
             {t.kicker}
           </div>
-          <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,62px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT }}>
+          <PipedTitle align="start" style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(34px,4.6vw,62px)', lineHeight: 1.03, margin: '18px 0 0', ...GOLD_TEXT }}>
             {t.title}
-          </h2>
+          </PipedTitle>
             <p style={{ fontSize: 16, color: DIM, margin: '16px 0 0', lineHeight: 1.65 }}>{t.intro}</p>
           </div>
         </div>
