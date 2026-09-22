@@ -230,15 +230,6 @@ html,body{background-color:${INK}}
 .fv-people{margin-top:2rem;display:grid;max-width:420px}
 .fv-people a{display:flex;justify-content:space-between;padding:.95rem 0;border-bottom:1px solid rgba(255,255,255,.2);text-decoration:none;font-size:15px}
 .fv-people a span{opacity:.72;font-variant-numeric:tabular-nums}
-.fv-form{background:var(--paper);color:var(--ink);border-radius:12px;padding:clamp(1.4rem,3vw,2.2rem);display:grid;gap:1rem}
-.fv-form h3{font-size:1.7rem}
-.fv-form .two{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
-.fv-form label{display:grid;gap:.35rem;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
-/* 16px minimum: iOS zooms any smaller input on focus */
-.fv-form input,.fv-form select{font:inherit;font-size:16px;letter-spacing:0;text-transform:none;font-weight:450;height:48px;padding:0 .85rem;border-radius:8px;border:1px solid #cfd4d1;background:#fff;color:var(--ink);width:100%}
-.fv-form .err{color:#A8322A;font-size:14px;min-height:1.2em}
-.fv-form .fv-pill{justify-content:center;height:48px}
-.fv-form small{font-size:13px;color:var(--mute)}
 @media (max-width:900px){.fv-close .top{grid-template-columns:1fr}}
 
 /* lightbox for "see inside" */
@@ -250,7 +241,7 @@ html,body{background-color:${INK}}
 .fv-lb .bar .b{display:flex;gap:.5rem}
 
 .fv :focus-visible{outline:2px solid #fff;outline-offset:3px}
-.fv .fv-about :focus-visible,.fv .fv-bay :focus-visible,.fv .fv-form :focus-visible{outline-color:${INK}}
+.fv .fv-about :focus-visible,.fv .fv-bay :focus-visible{outline-color:${INK}}
 
 /* ── MOTION ────────────────────────────────────────────────────────────
    Scroll reveals are CSS scroll-driven animations: every one is scrubbed by
