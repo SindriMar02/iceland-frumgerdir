@@ -49,7 +49,9 @@ html,body{background-color:${INK}}
 .fv p{margin:0;max-width:56ch}
 .fv .disp{font-family:'FvD',Georgia,serif;font-weight:400;letter-spacing:-.012em;line-height:1.06;margin:0;text-wrap:balance}
 .fv .micro{font-size:11px;font-weight:560;letter-spacing:.18em;text-transform:uppercase}
-.fv section{scroll-margin-top:72px}
+/* land a jumped-to sheet with its rounded corners tucked under the 64px bar,
+   or the photo above shows as a strip beneath it */
+.fv section{scroll-margin-top:calc(64px - var(--r))}
 
 /* the sheet: rounded top, pulled up over whatever came before */
 /* overflow:CLIP, never hidden: hidden makes the sheet a scroll container, and
@@ -102,8 +104,14 @@ html,body{background-color:${INK}}
 .fv-pill .ar{font-size:14px;letter-spacing:0;line-height:1}
 .fv-burger{display:none;background:none;border:0;color:#fff;font:inherit;font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;padding:.6rem 0}
 .fv-menu{position:fixed;inset:64px 0 0 0;z-index:149;background:${INK};color:#fff;padding:2rem var(--gut) calc(2rem + env(safe-area-inset-bottom));
-  display:flex;flex-direction:column;gap:1.3rem;visibility:hidden;opacity:0;transition:opacity .25s var(--ease),visibility 0s .25s}
-.fv-menu.open{visibility:visible;opacity:1;transition:opacity .25s var(--ease)}
+  display:flex;flex-direction:column;gap:1.3rem;visibility:hidden;clip-path:inset(0 0 100% 0);
+  transition:clip-path .45s cubic-bezier(.7,0,.84,0),visibility 0s .45s}
+.fv-menu.open{visibility:visible;clip-path:inset(0 0 0 0);transition:clip-path .7s var(--ease)}
+.fv-menu a{opacity:0;transform:translateY(24px);transition:opacity .2s ease,transform .3s ease}
+.fv-menu.open a{opacity:1;transform:none;transition:opacity .6s var(--ease) calc(.12s + var(--i,0) * 60ms),transform .8s var(--ease) calc(.12s + var(--i,0) * 60ms)}
+.fv-burger span{display:inline-block;transition:opacity .25s ease,transform .35s var(--ease)}
+.fv-burger[aria-expanded="true"] span{animation:fvSwap .35s var(--ease)}
+@keyframes fvSwap{from{opacity:0;transform:translateY(6px)}}
 .fv-menu a:not(.fv-pill){font-family:'FvD',Georgia,serif;font-size:2.2rem;text-decoration:none}
 .fv-menu .fv-pill{align-self:flex-start;margin-top:auto}
 @media (max-width:900px){.fv-pillnav,.fv-bar .end .fv-pill{display:none}.fv-burger{display:block}}
@@ -163,7 +171,7 @@ html,body{background-color:${INK}}
 .fv-tile .go{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase}
 .fv-fitnote{padding:0 var(--gut);margin-top:1.2rem;font-size:14px;color:var(--mute);min-height:1.4em}
 @media (max-width:900px){.fv-about .cols{grid-template-columns:1fr}
-  .fv-row{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:64vw;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:.4rem}
+  .fv-row{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:64vw;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:var(--gut);scrollbar-width:none;padding-bottom:.4rem}
   .fv-row::-webkit-scrollbar{display:none}.fv-tile{scroll-snap-align:start}}
 
 /* FAQ, on the bay sheet */
@@ -233,8 +241,13 @@ html,body{background-color:${INK}}
 @media (max-width:900px){.fv-close .top{grid-template-columns:1fr}}
 
 /* lightbox for "see inside" */
-.fv-lb{border:0;padding:0;background:transparent;max-width:min(1100px,94vw);width:100%}
-.fv-lb::backdrop{background:rgba(10,14,14,.86)}
+.fv-lb{position:fixed;inset:0;margin:auto;border:0;padding:0;background:transparent;color:#fff;
+  width:min(1100px,calc(100vw - 32px));max-width:none;height:fit-content;max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain}
+.fv-lb::backdrop{background:rgba(10,14,14,.96);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.fv-lb[open]{animation:fvLb .5s var(--ease)}
+@keyframes fvLb{from{opacity:0;transform:scale(.97)}}
+.fv .fv-lb .fv-pill.ghost{background:transparent;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+@media (max-width:560px){.fv-lb .bar{flex-direction:column;align-items:stretch}.fv-lb .bar .b{display:grid;grid-template-columns:1fr 1fr 1fr}.fv-lb .bar .fv-pill{justify-content:center}}
 .fv-lb .fr{border-radius:12px;overflow:clip;aspect-ratio:4/3;background:#222}
 .fv-lb .bar{display:flex;justify-content:space-between;align-items:center;gap:1rem;color:#fff;padding:.9rem .2rem;flex-wrap:wrap}
 .fv-lb .bar .n{font-size:13px;opacity:.75;font-variant-numeric:tabular-nums}
@@ -341,8 +354,20 @@ html.lenis,html.lenis body{height:auto}
 .fv-foot .sndr__mark{font-family:'FvS',sans-serif;font-weight:640;font-size:15px;letter-spacing:.06em}
 .fv-foot .sndr__mark i{font-style:normal;margin:0 .1em;font-size:.8em}
 .fv-foot .sndr__studio{font-size:10.5px;font-weight:560;letter-spacing:.22em;opacity:.7}
-@media (max-width:900px){.fv-foot .grid{grid-template-columns:1fr 1fr}}
-@media (max-width:560px){.fv-foot .grid{grid-template-columns:1fr}}
+@media (max-width:900px){.fv-foot .grid{grid-template-columns:1fr 1fr;gap:2.4rem 1.4rem}.fv-foot .grid>:first-child,.fv-foot .grid>:last-child{grid-column:1/-1}}
+@media (max-width:560px){
+  .fv-foot{padding-top:3.5rem}
+  .fv-foot .big{font-size:23vw;margin-bottom:2rem}
+  .fv-foot .grid>:last-child{grid-column:auto}
+  .fv-foot a{overflow-wrap:anywhere}
+  .fv-foot .grid>.stays{grid-column:1/-1}
+  .fv-foot ul{gap:0;font-size:15px}
+  .fv-foot li a{display:inline-block;padding:.5rem 0}
+  .fv-foot .stays li{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;border-top:1px solid rgba(255,255,255,.1)}
+  .fv-foot .stays li:last-child{border-bottom:1px solid rgba(255,255,255,.1)}
+  .fv-foot .stays li span{font-size:13px}
+  .fv-foot .legal{flex-direction:column;align-items:flex-start;gap:1rem;margin-top:2.5rem}
+  .fv-foot .proto{font-size:11.5px}}
 `
 
 function Img({ p, sizes, eager, style }: { p: Photo; sizes: string; eager?: boolean; style?: CSSProperties }) {
@@ -488,12 +513,12 @@ function Bar() {
         </nav>
         <div className="end" style={iv(2)}>
           <a className="fv-pill" href="#book">Check dates <Ar /></a>
-          <button className="fv-burger" aria-expanded={open} aria-controls="fv-menu" onClick={() => setOpen((o) => !o)}>{open ? 'Close' : 'Menu'}</button>
+          <button className="fv-burger" aria-expanded={open} aria-controls="fv-menu" onClick={() => setOpen((o) => !o)}><span key={String(open)}>{open ? 'Close' : 'Menu'}</span></button>
         </div>
       </header>
       <div id="fv-menu" className={`fv-menu${open ? ' open' : ''}`} aria-hidden={!open} data-lenis-prevent>
-        {NAV.map(([h, l]) => <a key={h} href={h} tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>{l}</a>)}
-        <a className="fv-pill" href="#book" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>Check dates <Ar /></a>
+        {NAV.map(([h, l], i) => <a key={h} href={h} style={{ '--i': i } as CSSProperties} tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>{l}</a>)}
+        <a className="fv-pill" href="#book" style={{ '--i': NAV.length } as CSSProperties} tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>Check dates <Ar /></a>
       </div>
     </>
   )
@@ -513,13 +538,13 @@ function Lightbox({ c, onClose }: { c: Cottage | null; onClose: () => void }) {
       onClick={(e) => { if (e.target === ref.current) onClose() }}>
       {c && p && (
         <>
-          <div className="fr"><img src={p.src} srcSet={p.srcSet} sizes="94vw" alt={p.alt} /></div>
+          <div className="fr"><img src={p.src} srcSet={p.srcSet} sizes="(max-width:1132px) calc(100vw - 32px), 1100px" alt={p.alt} /></div>
           <div className="bar">
             <span className="n">{c.name}, photo {i + 1} of {c.photos.length}</span>
             <span className="b">
               <button className="fv-pill" onClick={() => setI((i + c.photos.length - 1) % c.photos.length)}>Prev</button>
-              <button className="fv-pill" onClick={() => setI((i + 1) % c.photos.length)}>Next</button>
-              <button className="fv-pill dark" onClick={onClose}>Close</button>
+              <button className="fv-pill" autoFocus onClick={() => setI((i + 1) % c.photos.length)}>Next</button>
+              <button className="fv-pill ghost" onClick={onClose}>Close</button>
             </span>
           </div>
         </>
@@ -703,9 +728,9 @@ export default function FagravikPage() {
             <p className="tag">Twelve cottages on the shore of Eyjafjörður, each with its own hot tub.</p>
             <p className="tag">Fagravík, 4 km north of Akureyri, North Iceland.</p>
           </div>
-          <div>
+          <div className="stays">
             <h4>The cottages</h4>
-            <ul>{COTTAGES.map((c) => <li key={c.id}><a href={`#c-${c.id}`}>{c.name}</a> <span>sleeps {c.guests}</span></li>)}</ul>
+            <ul>{COTTAGES.map((c) => <li key={c.id}><a href={`#c-${c.id}`}>{c.name.replace(/ cottage$/, '')}</a> <span>sleeps {c.guests}</span></li>)}</ul>
           </div>
           <div>
             <h4>Good to know</h4>
@@ -714,7 +739,7 @@ export default function FagravikPage() {
               <li><a href="#bay">Life on the bay</a></li>
               <li><a href="#faq">Before you come</a></li>
               <li><a href="#book">Check dates</a></li>
-              <li><a href={REVIEWS.url} target="_blank" rel="noopener">Reviews on {REVIEWS.source}</a></li>
+              <li><a href={REVIEWS.url} target="_blank" rel="noopener">Guest reviews</a></li>
             </ul>
           </div>
           <div>

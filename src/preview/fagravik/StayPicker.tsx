@@ -177,7 +177,9 @@ export const STAY_CSS = `
 .fv-stay-grid .dows,.fv-stay-grid .days{display:grid;grid-template-columns:repeat(7,1fr)}
 .fv-stay-grid .dows span{font-size:11px;color:var(--mute);text-align:center;padding:.3rem 0;font-weight:560}
 .fv-stay .d{aspect-ratio:1;border:0;background:none;font:inherit;font-size:13.5px;color:var(--ink);cursor:pointer;border-radius:50%;font-variant-numeric:tabular-nums;position:relative}
-.fv-stay .d:hover:not(:disabled){background:#EEF0EE}
+/* hover only where a pointer really hovers: iOS keeps :hover on the last tapped
+   day, and this rule outranks .s/.e, so the chosen checkout turned pale */
+@media (hover:hover){.fv-stay .d:hover:not(:disabled):not(.s):not(.e){background:#EEF0EE}}
 .fv-stay .d.out{visibility:hidden}
 .fv-stay .d.past{color:#b3bab7;cursor:default;text-decoration:line-through}
 .fv-stay .d.today{box-shadow:inset 0 0 0 1px var(--line)}
