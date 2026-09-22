@@ -68,7 +68,7 @@ export function ProjectPage({ slug }: { slug: string }) {
           rest of the page. */}
       <div className="ki-proj-arrival">
         <section className="ki-proj-hero" data-ki-band="dark">
-          <Photo id={hero.id} alt={hero.alt} sizes={HERO_SIZES} priority />
+          <Photo id={hero.id} alt={hero.alt} sizes={HERO_SIZES} pos={hero.pos} priority />
         </section>
 
         <div className="ki-wrap ki-proj-cover" data-ki-band="light">
@@ -136,7 +136,7 @@ export function ProjectPage({ slug }: { slug: string }) {
             ].map((a) => a && (
               <Link key={a.p.slug} to={projPath(a.p.slug)} className={`ki-proj-adj-link ki-proj-adj-link--${a.dir} ki-rv`}>
                 <span className="ki-proj-adj-fig">
-                  <Photo id={a.p.photos[0].id} alt="" sizes="(max-width: 860px) 40vw, 300px" />
+                  <Photo id={a.p.photos[0].id} alt="" sizes="(max-width: 860px) 40vw, 300px" pos={a.p.photos[0].pos} />
                 </span>
                 <span className="ki-proj-adj-meta">
                   <span className="ki-kicker">{a.k}</span>

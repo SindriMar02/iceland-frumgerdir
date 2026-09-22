@@ -70,3 +70,17 @@ MEAN colour is exactly a hex sampled from her own photographs:
 The footer says so in as many words, because the previous wording ("allar
 ljósmyndir eru af eigin verkefnum Katrínar") stopped being true the moment
 these landed. It now separates verkefnaljósmyndir from the efnisstúdíur.
+
+## Sent by Katrín herself, 2026-09-22
+
+Three phone photographs of one bathroom, uploaded by Katrín to Sindri's
+Dropbox file request (folder `/Katrín`) during the 2026-09-22 site
+walkthrough, for the top of the Baðherbergi project. The window film was
+designed by Ómar. The owners allowed this room to be photographed and nothing
+else in the house, so the site names neither the house nor its location.
+
+| id | Dropbox file | master |
+|---|---|---|
+| p-badherbergi-8 | Katrín Ísfeld - 18-2025-07-22 14.07.37-1.jpg | 2252×3752, native, not upscaled |
+| p-badherbergi-9 | Katrín Ísfeld - 17-2025-07-22 14.07.52-2.jpg | 2252×3698, native, not upscaled |
+| p-badherbergi-10 | Katrín Ísfeld - 16-2025-07-22 14.08.29.jpg | 2252×4000, EXIF-rotated upright, native |

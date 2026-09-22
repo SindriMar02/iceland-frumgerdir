@@ -21,6 +21,9 @@ export interface Photo {
   /** key into photo-dims.json */
   id: string
   alt: string
+  /** object-position where a crop would lose the subject (a portrait photo
+      in the landscape project hero), e.g. '50% 66%'. Omit for centre. */
+  pos?: string
 }
 
 export interface Project {
@@ -86,9 +89,9 @@ export const PROJECTS: Project[] = [
     title: 'Nýbyggt hús í Súluhöfða',
     category: 'innanhusshonnun',
     oldPath: '/verkefni/innanhusshonnun/nybyggt-hus-i-suluhofda/',
-    lead: 'Öll innanhússhönnun í nýbyggingu, þar sem útsýnið fékk að njóta sín.',
+    lead: 'Innanhússhönnun í nýbyggingu, þar sem útsýnið fékk að njóta sín í gegnum hönnunarferlið.',
     body: [
-      'Húsið var í byggingu þegar ég fékk það verkefni að sjá um alla innanhússhönnunina. Það er alltaf gleðilegt að fá verkefni á þeim tíma sem enn er hægt að breyta innra skipulaginu, og það var aðeins gert hér.',
+      'Húsið var í byggingu þegar ég fékk það verkefni að sjá um innanhússhönnunina. Það er alltaf gleðilegt að fá verkefni á þeim tíma sem enn er hægt að breyta innra skipulaginu, og það var aðeins gert hér.',
       'Lagt var upp með að láta fallega útsýnið frá gólfsíðu gluggunum njóta sín sem best. Eldhúsrýmið er hannað með innréttingum frá Arrital, og á eyjuna varð djúpur vínrauður litur fyrir valinu, á móti mjúkum og dekkri tón í háu innréttingunum. Í baðherbergjunum er sleginn svipaður litatónn, sem tónar vel við hreinlætistækin í mjúkum sandlit.',
       'Allar flísar koma frá Agli Árnasyni. Það kom einstaklega vel út að nota sömu flísar á gólfið í gegnum allt húsið og poppa þær upp með mynstraðri útgáfu í mjúkum lit á arninum og á veggþykkingu inni á baði. Hljóðdúkur er á móti viðarplönkum í breytilegum stærðum meðfram gluggunum í aðalrýminu, og lýsingin er hönnuð með rýminu, þar sem litlir kastarar vinna á móti stærri ljósum sem gefa mýkt og fyllingu.',
     ],
@@ -102,7 +105,7 @@ export const PROJECTS: Project[] = [
       P('s-bad', 'Baðherbergi með bogadregnum lýstum spegli og steinvaski'),
       P('s-sturta', 'Sturturými með dökkum steinvegg og grænni plöntu'),
     ],
-    facts: [['Hlutverk', 'Öll innanhússhönnun'], ['Gerð', 'Nýbygging'], ['Innréttingar', 'Arrital'], ['Flísar', 'Egill Árnason']],
+    facts: [['Hlutverk', 'Innanhússhönnun'], ['Gerð', 'Nýbygging'], ['Innréttingar', 'Arrital'], ['Flísar', 'Egill Árnason']],
   },
   {
     slug: 'sumarhus-i-fljotshlidinni',
@@ -236,10 +239,19 @@ export const PROJECTS: Project[] = [
     oldPath: '/verkefni/innanhusshonnun/badherbergi/',
     lead: 'Sýnishorn úr nokkrum af þeim fjölmörgu baðherbergjum sem ég hef tekið í gegn.',
     body: [
+      /* her own words at the 2026-09-22 walkthrough, where she sent these three
+         photographs. The house is deliberately unnamed and unlocated: the
+         owners allowed this one room and nothing else. */
+      'Efstu myndirnar eru úr baðherbergi sem er haldið í einum litatóni. Óskin var samlitt rými, svo ég lét rúðurnar um að brjóta það upp og setti á þær filmu.',
+      'Upplifunin í gegnum glerið helst í sama tóninum, en filman poppar hana upp.',
       'Ég hef tekið í gegn fjölmörg baðherbergi, og hér eru sýnishorn úr nokkrum verkefnum.',
       'Meðal þeirra eru baðherbergi á Hávallagötu í 101 Reykjavík, við Lækjarás í 110 Reykjavík, í Baldursgarði í Keflavík og í Álfheimum í 105 Reykjavík.',
     ],
     photos: [
+      /* the film first, framed low so the grasses carry the landscape hero */
+      { ...P('p-badherbergi-8', 'Baðherbergisgluggi með filmu sem sýnir strá í mjúkum gráum tón'), pos: '50% 66%' },
+      P('p-badherbergi-9', 'Filman á glugganum frá öðru sjónarhorni, með ljósum flísum og veggskáp'),
+      P('p-badherbergi-10', 'Tvöföld innrétting með tveimur vöskum og baklýstum sporöskjulaga speglum við gluggann með filmunni'),
       P('p-badherbergi-0', 'Baðherbergi á Hávallagötu með kringlóttum spegli, dökkri innréttingu og skálavaski'),
       P('p-badherbergi-1', 'Baðherbergi með opnu sturtusvæði, svörtum blöndunartækjum og innfelldri lýsingu'),
       P('p-badherbergi-4', 'Sturtuklefi með svörtum regnhaus og innfelldri hillu'),
@@ -312,7 +324,7 @@ export const PROJECTS: Project[] = [
       P('p-fjallalind-5', 'Setuhorn með okkurlituðum vegg, hillu og leðurstól'),
       P('p-fjallalind-7', 'Baðherbergi með dökkum steini, bogadregnum lýstum spegli og gulu baðkari'),
     ],
-    facts: [['Hlutverk', 'Öll innanhússhönnun aðalhæðar'], ['Gerð', 'Endurhönnun'], ['Áhersla', 'Hljóðvist og opið flæði'], ['Innréttingar', 'Arrital']],
+    facts: [['Hlutverk', 'Innanhússhönnun aðalhæðar'], ['Gerð', 'Endurhönnun'], ['Áhersla', 'Hljóðvist og opið flæði'], ['Innréttingar', 'Arrital']],
     credit: 'Rakel Ósk Sigurðardóttir',
   },
   {
@@ -334,7 +346,7 @@ export const PROJECTS: Project[] = [
       P('p-kopavogur-6', 'Gangur með opnum dyrum inn í baðherbergi og stofu'),
       P('p-kopavogur-3', 'Gangur með ljósu viðargólfi og innfelldri lýsingu'),
     ],
-    facts: [['Hlutverk', 'Öll innanhússhönnun'], ['Gerð', 'Endurhönnun'], ['Staðsetning', 'Kópavogur']],
+    facts: [['Hlutverk', 'Innanhússhönnun'], ['Gerð', 'Endurhönnun'], ['Staðsetning', 'Kópavogur']],
     credit: 'Rakel Ósk Sigurðardóttir',
   },
   {

@@ -25,6 +25,11 @@ const GROUND = '#291D15'
 export const COLOURS = { CREAM, INK, CHARCOAL, WINE, STONE, GROUND }
 
 const DISPLAY = "'Sentient', Georgia, serif"
+/* EVERY HEADLINE, 2026-09-22: Katrín asked for the Aurora Hills headline face
+   (Alpino Light, same weight and tracking as aurorahills.is). Sentient stays
+   on exactly two things: the footer's giant KATRÍN ÍSFELD, which she named as
+   the letters she loves, and the italic "i" glyph on the slideshow. */
+const HEAD = "'Alpino', system-ui, sans-serif"
 /* the wordmark only — high-contrast display, deliberately not the face that
    sets the rest of the site */
 const DISPLAY_ALT = "'Melodrama', 'Sentient', Georgia, serif"
@@ -194,7 +199,7 @@ export const CSS = `
 }
 .ki-panel nav { display: flex; flex-direction: column; }
 .ki-panel nav a {
-  font-family: ${DISPLAY}; font-weight: 300; font-size: clamp(28px, 8vw, 44px);
+  font-family: ${HEAD}; font-weight: 300; font-size: clamp(28px, 8vw, 44px);
   color: inherit; text-decoration: none; padding: 9px 0;
   border-bottom: 1px solid rgb(237 231 222 / .12);
 }
@@ -212,7 +217,10 @@ export const CSS = `
    .ki-panel[hidden] hides it, so the width rule was redundant AND the bug. */
 
 /* ── type ─────────────────────────────────────────────────────────────── */
-.ki-headline { font-family: ${DISPLAY}; font-weight: 300; line-height: 1.13; letter-spacing: .002em; margin: 0 0 calc(var(--u) * 24); }
+.ki-headline { font-family: ${HEAD}; font-weight: 300; line-height: 1.1; letter-spacing: -.005em; text-wrap: balance; margin: 0 0 calc(var(--u) * 24); }
+.ki-nowrap { white-space: nowrap; }
+/* no heading of any size leaves one word alone on its last line */
+.ki-root h1, .ki-root h2, .ki-root h3 { text-wrap: balance; }
 .ki-line { display: inline-block; overflow: hidden; padding-bottom: .22em; margin-bottom: -.22em; vertical-align: bottom; }
 .ki-word { display: inline-block; }
 .ki-body { font-size: ${fluid(17, 15.5)}; line-height: 1.68; color: var(--ki-mute, #6E675D); max-width: 62ch; margin: 0 0 calc(var(--u) * 20); }
@@ -407,7 +415,7 @@ export const CSS = `
 .ki-newest-text { display: grid; gap: 5px; min-width: 0; }
 /* the label is a label: it never breaks */
 .ki-newest-kicker { font-family: ${MONO}; font-size: ${fluid(10.5, 10)}; letter-spacing: .2em; text-transform: uppercase; color: #F0E7D9; white-space: nowrap; }
-.ki-newest-title { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(19, 16)}; line-height: 1.24; text-wrap: balance; }
+.ki-newest-title { font-family: ${HEAD}; font-weight: 300; font-size: ${fluid(19, 16)}; line-height: 1.24; text-wrap: balance; }
 .ki-newest-arrow {
   flex: 0 0 auto; width: 18px; height: 18px; background: #D9A87E;
   -webkit-mask: var(--ki-arrow) center / contain no-repeat;
@@ -475,7 +483,7 @@ export const CSS = `
 .ki-answers { margin: calc(var(--u) * 60) 0 0; }
 .ki-answer { padding: calc(var(--u) * 30) 0; border-top: 1px solid var(--ki-hair); max-width: calc(var(--u) * 820); }
 .ki-answer-q {
-  margin: 0 0 calc(var(--u) * 12); font-family: ${DISPLAY}; font-weight: 300;
+  margin: 0 0 calc(var(--u) * 12); font-family: ${HEAD}; font-weight: 300;
   font-size: ${fluid(30, 22)}; line-height: 1.2; color: var(--ki-ink); text-wrap: balance;
 }
 .ki-answer-a { margin: 0; font-size: ${fluid(16.5, 15.5)}; line-height: 1.65; color: var(--ki-mute); }
@@ -484,7 +492,7 @@ export const CSS = `
 .ki-press-fig { margin: 0; }
 .ki-press-cap { padding-top: calc(var(--u) * 16); }
 .ki-press-head {
-  margin: 0; font-family: ${DISPLAY}; font-weight: 300;
+  margin: 0; font-family: ${HEAD}; font-weight: 300;
   font-size: ${fluid(27, 20)}; line-height: 1.24; color: var(--ki-ink);
   text-wrap: balance;
 }
@@ -513,7 +521,7 @@ export const CSS = `
 
 /* ── register ─────────────────────────────────────────────────────────── */
 .ki-skra-count { font-family: ${MONO}; font-size: ${fluid(14, 12.5)}; color: var(--ki-mute); margin: 0; }
-.ki-skra-n { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(40, 26)}; color: currentColor; padding: 0 .1em; }
+.ki-skra-n { font-family: ${HEAD}; font-weight: 300; font-size: ${fluid(40, 26)}; color: currentColor; padding: 0 .1em; }
 .ki-skra-flokkur { border-top: 1px solid var(--ki-hair); padding-top: calc(var(--u) * 26); }
 .ki-skra-flokkur + .ki-skra-flokkur { margin-top: calc(var(--u) * 46); }
 .ki-skra-cat-row { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; margin-bottom: calc(var(--u) * 16); }
@@ -578,7 +586,7 @@ export const CSS = `
   display: flex; flex-wrap: wrap; align-items: baseline;
   gap: calc(var(--u) * 44); margin-top: calc(var(--u) * 40);
 }
-.ki-samband-tel { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(64, 32)}; line-height: 1; color: inherit; text-decoration: none; transition: color .3s ${OUT}; }
+.ki-samband-tel { font-family: ${HEAD}; font-weight: 300; font-size: ${fluid(64, 32)}; line-height: 1; color: inherit; text-decoration: none; transition: color .3s ${OUT}; }
 @media (hover: hover) and (pointer: fine) { .ki-samband-tel:hover { color: var(--ki-copper); } }
 .ki-samband-addr { font-family: ${MONO}; font-size: ${fluid(13, 12.5)}; letter-spacing: .05em; color: #B9B1A5; margin-top: calc(var(--u) * 30); max-width: 64ch; line-height: 1.7; }
 /* ── hafa samband ─────────────────────────────────────────────────────────
@@ -597,7 +605,7 @@ export const CSS = `
   margin: calc(var(--u) * 40) 0 0;
 }
 .ki-samb-tel-lg {
-  font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(44, 30)};
+  font-family: ${HEAD}; font-weight: 300; font-size: ${fluid(44, 30)};
   line-height: 1; color: inherit; text-decoration: none;
   border-bottom: 1px solid var(--ki-hair); padding-bottom: 6px;
   transition: border-color .4s ${OUT};
@@ -820,7 +828,7 @@ export const CSS = `
 .ki-show-cap { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .ki-show-n { font-family: ${MONO}; font-size: ${fluid(12, 11.5)}; letter-spacing: .12em; color: #D9CFC0; white-space: nowrap; }
 .ki-show-n i { font-style: normal; opacity: .5; padding: 0 .35em; }
-.ki-show-title { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(21, 17)}; line-height: 1.3; color: #F7F2E9; text-decoration: none;
+.ki-show-title { font-family: ${HEAD}; font-weight: 300; font-size: ${fluid(21, 17)}; line-height: 1.3; color: #F7F2E9; text-decoration: none;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
   border-bottom: 1px solid rgb(247 242 233 / .38); padding: 2px 0 1px; transition: border-color .4s ${OUT};
   text-shadow: 0 1px 12px rgb(10 8 7 / .6); }
@@ -897,7 +905,7 @@ export const CSS = `
   .ki-show-info { clip-path: none; transform: none; }
 }
 .ki-show-info-kicker { font-family: ${MONO}; font-size: ${fluid(11.5, 11)}; letter-spacing: .14em; text-transform: uppercase; color: #D9A87E; margin: 0 0 8px; }
-.ki-show-info-title { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(26, 21)}; line-height: 1.2; margin: 0 28px 10px 0; }
+.ki-show-info-title { font-family: ${HEAD}; font-weight: 300; font-size: ${fluid(26, 21)}; line-height: 1.2; margin: 0 28px 10px 0; }
 .ki-show-info-body { font-size: ${fluid(15.5, 14.5)}; line-height: 1.6; color: #D9CFC0; margin: 0 0 12px; }
 .ki-show-info-meta { font-family: ${MONO}; font-size: 12px; line-height: 1.65; color: #B9B1A5; margin: 0 0 6px; }
 .ki-show-info-cta { margin: 16px 0 0; }
@@ -1055,7 +1063,7 @@ html[data-ki-seen] .ki-show-bar, html[data-ki-seen] .ki-show-corner { animation-
 .ki-root .ki-door-fig picture, .ki-root .ki-door-fig img { width: 100%; height: 100%; object-fit: cover; transition: transform .9s ${OUT}; }
 .ki-door-meta { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 4px 12px; padding-top: 14px; border-top: 1px solid var(--ki-hair); margin-top: 16px; }
 .ki-door-no { font-family: ${MONO}; font-size: ${fluid(11.5, 11)}; letter-spacing: .12em; color: #8A5A33; }
-.ki-door-label { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(24, 19)}; line-height: 1.15; }
+.ki-door-label { font-family: ${HEAD}; font-weight: 300; font-size: ${fluid(24, 19)}; line-height: 1.15; }
 .ki-door-count { grid-column: 2; font-family: ${MONO}; font-size: ${fluid(11.5, 11.5)}; letter-spacing: .08em; color: var(--ki-mute); }
 .ki-door-arrow { grid-row: 1; grid-column: 3; align-self: center; width: 18px; height: 18px; background: currentColor;
   -webkit-mask: var(--ki-arrow) center / contain no-repeat; mask: var(--ki-arrow) center / contain no-repeat; transition: transform .5s ${OUT}; }
@@ -1143,7 +1151,7 @@ html[data-ki-seen] .ki-show-bar, html[data-ki-seen] .ki-show-corner { animation-
 .ki-root .ki-proj-adj-fig picture, .ki-root .ki-proj-adj-fig img { width: 100%; height: 100%; object-fit: cover; transition: transform 1s ${OUT}; }
 .ki-proj-adj-meta { display: grid; gap: 4px; min-width: 0; }
 .ki-proj-adj-meta .ki-kicker { margin: 0 0 4px; }
-.ki-proj-adj-title { font-family: ${DISPLAY}; font-weight: 300; font-size: ${fluid(30, 22)}; line-height: 1.15; }
+.ki-proj-adj-title { font-family: ${HEAD}; font-weight: 300; font-size: ${fluid(30, 22)}; line-height: 1.15; }
 .ki-proj-adj-lead { font-size: ${fluid(15, 14)}; line-height: 1.55; color: var(--ki-mute); }
 .ki-proj-adj-arrow { width: 22px; height: 22px; background: currentColor; -webkit-mask: var(--ki-arrow) center / contain no-repeat; mask: var(--ki-arrow) center / contain no-repeat; transition: transform .5s ${OUT}; }
 .ki-proj-adj-link--back .ki-proj-adj-arrow { transform: scaleX(-1); grid-column: 1; grid-row: 2; }

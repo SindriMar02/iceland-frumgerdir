@@ -52,6 +52,8 @@ export interface PhotoProps {
   priority?: boolean
   /** crop instead of using the photo's own ratio */
   ratio?: string
+  /** object-position for a cover crop; see Photo.pos in projects.ts */
+  pos?: string
 }
 
 const srcset = (id: string, ext: 'avif' | 'webp') =>
@@ -67,7 +69,7 @@ const srcset = (id: string, ext: 'avif' | 'webp') =>
  * reaches was 54% of the deployable for nothing. The originals stay in the
  * repository; the standalone build prunes them.
  */
-export function Photo({ id, alt, sizes, className = '', priority = false, ratio }: PhotoProps) {
+export function Photo({ id, alt, sizes, className = '', priority = false, ratio, pos }: PhotoProps) {
   const d = PHOTO_DIMS[id]
   if (!d) throw new Error(`Photo: unknown id "${id}"`)
   // the largest variant at or below 900px: a real file, never an upscale
@@ -81,7 +83,7 @@ export function Photo({ id, alt, sizes, className = '', priority = false, ratio 
         width={d.w}
         height={d.h}
         alt={alt}
-        style={ratio ? { aspectRatio: ratio } : undefined}
+        style={ratio || pos ? { aspectRatio: ratio, objectPosition: pos } : undefined}
         loading={priority ? 'eager' : 'lazy'}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {...({ fetchpriority: priority ? 'high' : undefined } as any)}
@@ -121,22 +123,44 @@ export function Headline({ text, size, floor, as: Tag = 'h2', className = '', me
   text: string; size: number; floor: number
   as?: 'h1' | 'h2' | 'h3'; className?: string; measure?: number; id?: string
 }) {
+  /* HER RULE, 2026-09-22: no full stop on a headline, anywhere. Large type
+     already ends the thought; the dot read to her as noise on the form.
+     Stripped here so every headline, including the ones built from data
+     (SHOWROOM.lead, category titles, brand names), obeys it. Questions keep
+     their mark. */
+  const clean = text.replace(/\.\s*$/, '')
+  const words = clean.split(' ')
+  /* and no word left alone on the last line ("…tekur að / sér"): the last two
+     words travel together when they are short enough to fit a phone line */
+  const n = words.length
+  const glue = n > 2 && (words[n - 2].length + words[n - 1].length) <= 14
+  const word = (w: string, i: number) => (
+    <span className="ki-line">
+      <span className="ki-word" style={{ ['--i' as string]: i }}>{w}</span>
+    </span>
+  )
   return (
     <Tag
       id={id}
       data-ki-headline
-      aria-label={text}
+      aria-label={clean}
       className={`ki-headline ki-rv-h ${className}`}
-      style={{ fontSize: fluid(size, floor), maxWidth: measure ? `calc(var(--u) * ${measure})` : undefined }}
+      /* 8% under the sizes the pages ask for: she found the big letters a
+         touch large (2026-09-22), and one factor here keeps every page's
+         hierarchy intact. The phone floors are untouched. */
+      style={{ fontSize: fluid(Math.round(size * 0.92), floor), maxWidth: measure ? `calc(var(--u) * ${measure})` : undefined }}
     >
-      {text.split(' ').map((w, i, arr) => (
+      {(glue ? words.slice(0, n - 2) : words).map((w, i, arr) => (
         <span key={i} aria-hidden="true">
-          <span className="ki-line">
-            <span className="ki-word" style={{ ['--i' as string]: i }}>{w}</span>
-          </span>
-          {i < arr.length - 1 ? ' ' : ''}
+          {word(w, i)}
+          {i < arr.length - 1 || glue ? ' ' : ''}
         </span>
       ))}
+      {glue ? (
+        <span aria-hidden="true" className="ki-nowrap">
+          {word(words[n - 2], n - 2)}{' '}{word(words[n - 1], n - 1)}
+        </span>
+      ) : null}
     </Tag>
   )
 }
@@ -172,7 +196,7 @@ export function Answers({ items, title }: {
 }
 
 export function CardFigure({ photos, sizes }: {
-  photos: ReadonlyArray<{ id: string; alt: string }>; sizes: string
+  photos: ReadonlyArray<{ id: string; alt: string; pos?: string }>; sizes: string
 }) {
   const [armed, setArmed] = useState(false)
   const second = photos[1]
@@ -184,7 +208,7 @@ export function CardFigure({ photos, sizes }: {
       onPointerEnter={arm}
       onFocusCapture={arm}
     >
-      <Photo id={photos[0].id} alt={photos[0].alt} sizes={sizes} />
+      <Photo id={photos[0].id} alt={photos[0].alt} sizes={sizes} pos={photos[0].pos} />
       {second && armed && (
         <span className="ki-card-fig-alt" aria-hidden="true">
           <Photo id={second.id} alt="" sizes={sizes} />

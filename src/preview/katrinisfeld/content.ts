@@ -64,7 +64,7 @@ export const FAQ: Array<{ q: string; a: string }> = [
     q: 'Hvað gerir innanhússarkitekt?',
     a:
       'Innanhússarkitekt hannar rýmið sjálft, ekki bara það sem sett er inn í það: skipulag, innréttingar, efni, liti, lýsingu og húsgögn sem ein heild. ' +
-      `Katrín er með ${CV.degree} frá ${CV.school} í Flórída og er félagi í Félagi húsgagna- og innanhússarkitekta (FHI).`,
+      `Katrín er með ${CV.degree} frá ${CV.school} í Flórída og er félagi í FHI, Félagi húsgagna- og innanhússarkitekta.`,
   },
   {
     q: 'Hvernig byrjar verkefni?',
@@ -148,11 +148,6 @@ export const FAQ_CONTACT: Array<{ q: string; a: string }> = [
     q: 'Hvað kostar að fá innanhússarkitekt?',
     a:
       'Það fer eftir umfangi verksins og því er ekki eitt fast verð. Katrín kemur á staðinn, tekur rýmið út með eigendum og gerir í framhaldi tilboð í verkið miðað við það sem raunverulega stendur til. Það kostar ekkert að senda fyrirspurn og spyrja.',
-  },
-  {
-    q: 'Þarf ég að vita hvað ég vil áður en ég hef samband?',
-    a:
-      'Nei. Flest verkefni byrja á því að fólk veit að eitthvað virkar ekki í rýminu án þess að vita hvað. Það er einmitt vinnan: að greina hvað er að og leggja til lausn. Nokkrar línur um rýmið og hvað stendur til duga sem fyrsta erindi.',
   },
   {
     q: 'Tekur hún að sér lítil verkefni?',

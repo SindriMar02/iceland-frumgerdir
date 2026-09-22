@@ -38,14 +38,14 @@ export function StudioPage() {
           alt="Merki Katrín Ísfeld Hönnunar Studio" width={300} height={120} />
         <Headline as="h1" text="Hönnun er upplifun." size={86} floor={34} />
         <p className="ki-lead ki-rv">
-          Katrín Ísfeld, innanhússarkitekt og eigandi Katrín Ísfeld Hönnunar Studio.
+          Katrín Ísfeld, innanhússarkitekt FHI og eigandi Katrín Ísfeld Hönnunar Studio.
         </p>
         {/* THE DEFINITION, SAID PLAINLY. The whole site described what she
             does and never once defined the word itself, so nothing here could
             be quoted back as an answer to "hvað er innanhússarkitekt". One
             sentence of the form "X er…", in the open, near the top. */}
         <p className="ki-body ki-rv" style={{ maxWidth: 'calc(var(--u) * 760)' }}>
-          Innanhússarkitekt er hönnuður sem teiknar rýmið sjálft sem eina heild: skipulag,
+          Innanhússarkitekt teiknar rýmið sjálft sem eina heild: skipulag,
           innréttingar, efnisval, liti og lýsingu, en ekki aðeins það sem sett er inn í
           það. Á Íslandi er starfsheitið bundið við nám og félagsaðild að FHI, Félagi
           húsgagna- og innanhússarkitekta.
@@ -64,10 +64,10 @@ export function StudioPage() {
             <p className="ki-body ki-rv">
               Að námi loknu starfaði hún sem innanhússarkitekt við arkitektastofu í Fort
               Lauderdale, þar sem hún hannaði glæsivillur, og síðar hjá arkitektastofu
-              Margreed Van der Hooven í Hollandi. Hún er innanhússhönnuðurinn sem lætur innréttingar, húsgögn og litasamsetningar spila rétt saman, með útkomu sem tekið er eftir.
+              Margreed Van der Hooven í Hollandi. Hún er innanhússarkitektinn sem lætur innréttingar, húsgögn og litasamsetningar spila rétt saman, með útkomu sem tekið er eftir.
             </p>
             <p className="ki-body ki-rv">
-              Hún er félagi í Félagi húsgagna- og innanhússarkitekta (FHI) og hefur rekið
+              Hún er félagi í FHI, Félagi húsgagna- og innanhússarkitekta, og hefur rekið
               eigið stúdíó frá {STUDIO.founded}. Í verkefnaskránni eru {PROJECTS.length} verk:
               heimili og sumarhús, gistiheimili og hótel, skrifstofur og heilbrigðisrými.
             </p>

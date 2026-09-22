@@ -143,9 +143,9 @@ export function HeroShow({ slides, newSlug }: {
             is what the page is about, and the H1 is what says so */}
         <h1 className="ki-show-heading">
           <span className="ki-show-name">Katrín Ísfeld</span>{' '}
-          <span className="ki-show-role">innanhússarkitekt</span>
+          <span className="ki-show-role">innanhússarkitekt FHI</span>
         </h1>
-        <p className="ki-show-tag">Skipulag, innréttingar, efnisval og lýsing, teiknað í einu lagi.</p>
+        <p className="ki-show-tag">Skipulag, innréttingar, efnisval og lýsing.<br />Heildræn hönnun.</p>
         <p className="ki-show-cta">
           <FillButton to={WORK}>Verkefnin</FillButton>
           <FillButton to={CONTACT_PATH}>Hafa samband</FillButton>

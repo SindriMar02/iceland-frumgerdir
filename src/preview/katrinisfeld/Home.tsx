@@ -84,7 +84,7 @@ export function Home() {
         <Headline text="Hvert verkefni fær sinn eigin litheim." size={72} floor={32} measure={780} />
         <p className="ki-body ki-rv">
           Vínrautt og kopar í einu húsi, hör og dagsbirta í öðru. Katrín teiknar skipulag,
-          innréttingar, efnisval og lýsingu í einu lagi, svo hvert rými verður heild sem er
+          innréttingar, efnisval og lýsingu, svo hvert rými verður heild sem er
           sniðin að húsinu og fólkinu sem býr þar.
         </p>
         <ul className="ki-doors">

@@ -138,7 +138,7 @@ export const CV = {
     'Sjálfstætt starfandi innanhússarkitekt með eigið stúdíó',
   ],
   /** Listed among the aðalfélagar (accredited principal members) of FHI. */
-  membership: 'Félagi í Félagi húsgagna- og innanhússarkitekta (FHI)',
+  membership: 'Félagi í FHI, Félagi húsgagna- og innanhússarkitekta',
 } as const
 
 /**
