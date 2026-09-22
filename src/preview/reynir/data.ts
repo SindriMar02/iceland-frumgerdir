@@ -46,7 +46,7 @@
 
 export type Lang = 'en' | 'is'
 
-export const LOGO = `${import.meta.env.BASE_URL}reynir/brand/logo.webp`
+export const LOGO = `${import.meta.env.BASE_URL}reynir/brand/logo-900.webp`
 /** Full-size gallery frame (lightbox). */
 const gal = (n: string) => `${import.meta.env.BASE_URL}reynir/gallery/gal-${n}.webp`
 /** 800px variant of the same frame, for the masonry tiles — the grid renders
@@ -66,13 +66,13 @@ export const HERO_IMG = `${import.meta.env.BASE_URL}reynir/hero-dough.jpg`
  *  its spiral, its pistachio-green marzipan and its caramel drizzle, so the
  *  shape on the page is their product. Everything else on the site is their
  *  own photography. */
-export const FEATURE_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur.webp`
+export const FEATURE_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur-v2.webp`
 /** The same bun wider, keeping the caramel running off the edge — the framed
  *  product shot in the featured slot. */
-export const PRODUCT_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur-bakki.jpg`
+export const PRODUCT_IMG = `${import.meta.env.BASE_URL}reynir/pistasiusnudur-bakki.webp`
 /** The shop itself: their wall of framed black-and-white bakery photographs,
  *  the "HANDVERKSBAKARÍ" sign, and the tables you can sit at. */
-export const SHOP_IMG = `${import.meta.env.BASE_URL}reynir/bud.webp`
+export const SHOP_IMG = `${import.meta.env.BASE_URL}reynir/bud-v2.webp`
 /** The three frames that carry the story section, where the bakery's own
  *  history is told. Fixed paths rather than indices into GALLERY: the owner
  *  can reorder gallery photos in the CMS without silently swapping which

@@ -82,10 +82,17 @@ export function hotspotPosition(img: { hotspot?: { x?: number; y?: number }; cro
   return `${axis(h.x, c.left, c.right)}% ${axis(h.y, c.top, c.bottom)}%`
 }
 
-/** A CMS product photo, square to match the bundled crops. */
-function mkProductPic(img: RawImg): string | undefined {
+/** A CMS product photo, square to match the bundled crops.
+ *
+ *  SIZE. These were asked for at 1400x1400 and then drawn in a card a few
+ *  hundred pixels wide, or in a 72px row thumbnail. The download is the small
+ *  half of that waste: a phone also has to decode two megapixels per photo,
+ *  and a list of them does it while the visitor is scrolling. 900 still covers
+ *  the largest card on a 2x screen, and the extras, which are never bigger
+ *  than a thumbnail, ask for 480. */
+function mkProductPic(img: RawImg, w = 900): string | undefined {
   if (!img?.asset?._ref) return undefined
-  return builder.image(img).width(1400).height(1400).fit('crop').quality(84).auto('format').url()
+  return builder.image(img).width(w).height(w).fit('crop').quality(82).auto('format').url()
 }
 
 /* ── Hours: 7-entry array (0=Sun..6=Sat), minutes-from-midnight, matches
@@ -433,7 +440,7 @@ export function merge(raw: any): SiteContent {
   const extras: OrderExtra[] = Array.isArray(s?.orderExtras) ? s.orderExtras.map((e: any) => ({
     id: String(e.id || ''), label: e.label ? biSelf(e.label) : {is: e.menuItem?.name || '', en: e.menuItem?.name || ''},
     unitPrice: priceNumber(e.menuItem?.price), kjorPrice: e.kjorPrice ?? priceNumber(e.menuItem?.price),
-    bulkAt: e.bulkAt ?? Infinity, step: e.step, max: e.max, image: mkProductPic(e.image) || '',
+    bulkAt: e.bulkAt ?? Infinity, step: e.step, max: e.max, image: mkProductPic(e.image, 480) || '',
   })).filter((e: OrderExtra) => e.id && Number.isSafeInteger(e.unitPrice) && e.unitPrice > 0 && Number.isSafeInteger(e.kjorPrice) && e.kjorPrice > 0 && e.kjorPrice <= e.unitPrice && Number.isSafeInteger(e.step) && e.step > 0 && Number.isSafeInteger(e.max) && e.max >= e.step && (e.bulkAt === Infinity || (Number.isSafeInteger(e.bulkAt) && e.bulkAt > 0)))
     : FALLBACK.ORDER_EXTRAS.map(e => {
       const name = ({kleinur: 'Kleina', lengjur: 'Vínarbrauðslengja með súkkulaðiglassúr', pistasiusnudar: 'Pistasíusnúður'} as Record<string, string>)[e.id]

@@ -731,7 +731,10 @@ const ORDER_CSS = `
     order:1; }
     .rb-ord-mobiletotal { display:flex; position:sticky; top:0; z-index:6; align-items:baseline; gap:10px;
       margin:0 calc(clamp(20px,4.5vw,72px) * -1); padding:11px clamp(20px,4.5vw,72px);
-      background:rgba(11,10,9,.94); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+      /* No backdrop blur: this bar is sticky on a phone, so a blur here is
+         recomputed on every scrolled frame of the longest page on the site,
+         and at 94% ink there is nothing left behind it to see anyway. */
+      background:rgb(11,10,9);
       border-bottom:1px solid ${HAIR}; }
     .rb-ord-mobiletotal-label { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:${FAINT}; }
     .rb-ord-mobiletotal-value { margin-left:auto; font-family:${DISPLAY}; font-size:19px; color:${GOLD};

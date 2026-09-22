@@ -54,6 +54,13 @@ const PAGE_CSS = `
     opacity:.055; mix-blend-mode:overlay; will-change:auto;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
     background-size:200px 200px; }
+  /* NOT ON A TOUCH DEVICE. mix-blend-mode over the whole viewport makes every
+     frame read back what is underneath and composite it again, and this layer
+     covers everything, so the cost is paid on every scrolled frame — the one
+     thing on the page that was capable of dropping a phone below 60fps. At
+     5.5% opacity nobody has ever seen it on a phone; the tooth it gives a
+     large desktop screen is the only place it earns its keep. */
+  @media (hover:none) { .rb-page::after { display:none; } }
 
   .rb-page ::selection { background:${BURGUNDY}; color:${IVORY}; }
   .rb-page a:focus-visible, .rb-page button:focus-visible {
@@ -217,6 +224,11 @@ const PAGE_CSS = `
   @keyframes rb-hero-spin { to { transform:rotate(360deg); } }
   .rb-hero-spin { animation:rb-hero-spin 44s linear infinite; will-change:transform; transform-origin:50% 50%;
     filter:drop-shadow(0 30px 45px rgba(0,0,0,.6)); }
+  /* A rotation under a drop-shadow is the one genuinely expensive thing on
+     this page: the shadow is recomputed from the turned pixels every frame,
+     for as long as the tab is open. It stops the moment the cover leaves the
+     screen, which is most of the visit, and picks up again on the way back. */
+  [data-cover="gone"] .rb-hero-spin { animation-play-state:paused; }
 
   /* the one full-bleed break: a slow, held breath rather than a static plate */
   @keyframes rb-break-zoom { from { transform:scale(1.08); } to { transform:scale(1); } }
@@ -245,16 +257,29 @@ const PAGE_CSS = `
   .rb-intro-logo { animation:rb-intro-mark-out .5s cubic-bezier(.4,0,.2,1) 1.5s forwards; }
   @keyframes rb-intro-mark-out { to { opacity:0; transform:scale(1.05); } }
 
-  /* THE HELD ENTRANCE — see the curtain comment in ReynirPageInner. Paused at
-     frame 0 while the ink is up; released on the curtain's first fading frame,
-     from which point the stagger runs at its normal pace in full view. */
-  [data-curtain="playing"] .rb-enter,
-  [data-curtain="playing"] .rb-enter-2,
-  [data-curtain="playing"] .rb-enter-3,
-  [data-curtain="playing"] .rb-enter-4 { animation-play-state:paused; }
+  /* THE HELD ENTRANCE — see the curtain comment in ReynirPageInner.
+     Held by DELAY, not by a paused state a script has to release: every clock
+     here starts at the same first paint as the ink above, so the stagger
+     begins on the curtain's first fading frame whether the bundle arrived in
+     80ms or in four seconds. The attribute never changes while the document
+     lives, because changing it mid-flight restarts the animations. */
+  [data-curtain="playing"] .rb-enter   { animation-delay:1.5s; }
+  [data-curtain="playing"] .rb-enter-2 { animation-delay:1.64s; }
+  [data-curtain="playing"] .rb-enter-3 { animation-delay:1.76s; }
+  [data-curtain="playing"] .rb-enter-4 { animation-delay:1.88s; }
   /* The cover's photograph is not part of the stagger, so it gets the same
      hold by hand: a still frame under type that is about to rise. */
-  [data-curtain="playing"] .rb-break-img { animation-play-state:paused; }
+  [data-curtain="playing"] .rb-break-img { animation-delay:1.5s; }
+
+  /* SEEN ALREADY, or reduced motion. The flag is written by the inline script
+     next to the curtain, during HTML parse, so this rules before the first
+     paint: no ink, nothing held, the page simply is. */
+  html[data-rb-seen] .rb-intro { display:none; }
+  html[data-rb-seen] [data-curtain="playing"] .rb-enter   { animation-delay:0s; }
+  html[data-rb-seen] [data-curtain="playing"] .rb-enter-2 { animation-delay:.14s; }
+  html[data-rb-seen] [data-curtain="playing"] .rb-enter-3 { animation-delay:.26s; }
+  html[data-rb-seen] [data-curtain="playing"] .rb-enter-4 { animation-delay:.38s; }
+  html[data-rb-seen] [data-curtain="playing"] .rb-break-img { animation-delay:0s; }
 
   /* Italic on hover, not a colour-only shift: on a serif identity the type
      itself can carry the state, and Lusitana's italic is a real cut. */
@@ -305,6 +330,14 @@ const PAGE_CSS = `
     background-color:rgba(11,10,9,.88);
     -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
     border-bottom:1px solid rgba(238,211,170,.14); }
+  /* A permanent bar that blurs what passes under it blurs it again on every
+     scrolled frame. On a phone that is a tax charged for the whole visit, and
+     the glass is nearly invisible at this opacity anyway, so touch devices get
+     ink instead — same bar, same hairline, no per-frame blur. */
+  @media (hover:none) {
+    .rb-stickybar { background-color:rgb(11,10,9);
+      -webkit-backdrop-filter:none; backdrop-filter:none; }
+  }
   .rb-sticky-nav { display:flex; gap:22px; align-items:center; }
   /* Right side: one utility cluster, then the action. The hairlines do the
      grouping so the items need no boxes of their own. */
@@ -1071,7 +1104,26 @@ function TestimonialRotator({ lang, reduced, reviews }: { lang: Lang; reduced: b
   )
 }
 
+/* ── who gets the opening ─────────────────────────────────────────────────
+ * The server always renders it, because the server only ever renders a page
+ * someone is arriving at. In the browser it belongs to the document that was
+ * loaded, and only while that document is still on its first landing mount:
+ * a later visit to the landing page inside the same session is navigation,
+ * not an arrival. Comparing against the path the document was opened at keeps
+ * a visitor who lands on /panta and clicks home from being shown an opening
+ * for a page they are already inside of.
+ * Both values are read during render, which is safe because both are the same
+ * on the server and on the browser's first render of that same document. */
+let openingDone = false
+const ENTRY_PATH = typeof window === 'undefined' ? '' : window.location.pathname
+
 function ReynirPageInner() {
+  /* Decided once per mount. Read on every render it would flip to false the
+     moment the effect below marks the opening done, and a data-curtain that
+     changes mid-flight restarts every animation it governs. */
+  const [opening] = useState(
+    () => typeof window === 'undefined' || (!openingDone && window.location.pathname === ENTRY_PATH),
+  )
   const {FEATURE_IMG, PRODUCT_IMG, PRODUCT_POS, SHOP_IMG, MENU_ART, CAKE_ART, STORY_ART} = useSiteArt()
   // English on a first visit, but shared with the order route so a visitor
   // reading in Icelandic does not land back in English after ordering.
@@ -1127,6 +1179,21 @@ function ReynirPageInner() {
     setThemeColor(INK)
   }, [])
 
+  /* Stop the turning snúður when it is not on screen — see the rule it drives
+     in the stylesheet. An observer, so nothing is asked per frame. */
+  const coverRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = coverRef.current
+    const root = rootRef.current
+    if (!el || !root || !('IntersectionObserver' in window)) return
+    const io = new IntersectionObserver(
+      ([e]) => root.setAttribute('data-cover', e.isIntersecting ? 'here' : 'gone'),
+      { rootMargin: '120px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+
   /* Intro loader: the gold script writes itself on, as if piped.
    *
    * ONCE PER SESSION, not once per mount. The order page, the legal page and
@@ -1141,14 +1208,17 @@ function ReynirPageInner() {
    *
    * Wrapped in try/catch because sessionStorage throws outright in some
    * privacy modes; the intro is decorative, so on failure it simply plays. */
-  /* Starts false so the server-rendered HTML and the browser's first render
-     agree — deciding this during render read sessionStorage, which the server
-     has no version of, and that single mismatch made React throw away the
-     whole prerendered tree and rebuild it client-side (error #418/#422).
-     The decision moves into a LAYOUT effect, which runs after mount but
-     before the browser paints, so the curtain still covers the first frame
-     the visitor actually sees. */
-  const [intro, setIntro] = useState(false)
+  /* THE CURTAIN IS IN THE HTML, not mounted by script.
+     It used to start false and be turned on in a layout effect, on the theory
+     that a layout effect runs before paint. It does — before the paint AFTER
+     hydration. The prerendered page had already been on screen since the HTML
+     arrived, so a visitor saw the finished cover, then the ink dropped over
+     it, then the cover again: the site loading twice. Now the opening is part
+     of the prerendered markup, so it is the first thing on screen and the only
+     thing, and everything under it is timed from that same paint.
+     The value is deterministic on both sides of hydration — no sessionStorage
+     read during render, which is what caused #418/#422 the first time. */
+  const [intro, setIntro] = useState(opening)
   /* THE HANDOVER. The hero's entrance used to run on mount, which meant it
      finished at ~1.3s — behind a curtain that only started lifting at 1.55s.
      By the time anyone saw the page it had already arrived, so the loader felt
@@ -1158,40 +1228,29 @@ function ReynirPageInner() {
      dissolving, so the cover rises THROUGH the curtain rather than after it.
      'none' is the no-intro path — a returning visitor, reduced motion, or the
      prerendered first frame — where nothing is ever held. */
-  const [curtain, setCurtain] = useState<'none' | 'playing' | 'gone'>('none')
+  const curtain = opening ? 'playing' : 'none'
   useIsomorphicLayoutEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    let show = true
-    try {
-      show = window.sessionStorage.getItem('rb-intro-seen') !== '1'
-    } catch {
-      /* private mode: the intro is decorative, so on failure it simply plays */
-    }
-    if (show) {
-      setIntro(true)
-      setCurtain('playing')
-    }
-  }, [])
-  useEffect(() => {
-    if (!intro) return
-    /* 1500ms: the ink's own fade-out starts at 1.55s, and starting the page a
-       breath earlier is what makes the two read as one movement instead of a
-       handoff. 2150 unmounts the curtain, which is when its fade has finished. */
-    const release = window.setTimeout(() => setCurtain('gone'), 1500)
-    const id = window.setTimeout(() => setIntro(false), 2150)
-    return () => {
-      window.clearTimeout(release)
-      window.clearTimeout(id)
-    }
-  }, [intro])
-  /* Click-to-skip has to release the hero too, or a visitor who taps the
-     curtain away gets a page frozen at frame 0 of its own entrance. */
+    /* One opening per document. Coming back to the landing page from /panta
+       remounts this component, and a brand moment that replays on ordinary
+       navigation is a toll gate. sessionStorage, written here rather than when
+       the ink lifts, also spares a reload within the same visit; a genuinely
+       new visit tomorrow gets it again, which localStorage would not. */
+    openingDone = true
+    if (!opening) return
+    try { window.sessionStorage.setItem('rb-intro-seen', '1') } catch { /* private mode */ }
+    /* Belt and braces for the element itself: it is visibility:hidden the
+       moment its fade ends, but a fixed layer at z-index 9999 has no business
+       outliving its purpose, and a bundle that arrived after the fade would
+       otherwise never take it down. */
+    const id = window.setTimeout(() => setIntro(false), 3000)
+    return () => window.clearTimeout(id)
+  }, [opening])
+  /* Click-to-skip. The flag on <html> is what the stylesheet reads, so one
+     attribute both hides the ink and drops the hold on the page under it. */
   const dismissIntro = () => {
+    document.documentElement.setAttribute('data-rb-seen', '1')
     setIntro(false)
-    setCurtain('gone')
   }
-  // Marked as seen as soon as it has played or been dismissed, so a click-to-
-  // skip counts too and the curtain does not return on the next route change.
   /* ── mobile menu ──────────────────────────────────────────────────────
      Deterministic false on first render, so the prerendered HTML and the
      browser agree. */
@@ -1251,15 +1310,6 @@ function ReynirPageInner() {
       mq.removeEventListener('change', onWide)
     }
   }, [menu])
-
-  const introDecided = useRef(false)
-  useEffect(() => {
-    if (intro) { introDecided.current = true; return }
-    /* Skip the first pass: intro is false before the layout effect has ruled,
-       and writing the flag then would mark the curtain seen before it plays. */
-    if (!introDecided.current) { introDecided.current = true; return }
-    try { window.sessionStorage.setItem('rb-intro-seen', '1') } catch { /* private mode */ }
-  }, [intro])
 
   useEffect(() => {
     if (reduced) return
@@ -1361,10 +1411,27 @@ function ReynirPageInner() {
       <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 
       <a className="rb-skip" href="#reynir-content">{lang === 'is' ? 'Fara í efni' : 'Skip to content'}</a>
+      {/* Runs while the parser is still reading this page, so its verdict is in
+          before the first pixel: a visitor who has already seen the opening in
+          this tab, or who asked for reduced motion, never gets a frame of ink.
+          On a client-side render React only creates the element, which never
+          executes — correct, because there is no opening on that path. */}
+      {intro && (
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(sessionStorage.getItem('rb-intro-seen')==='1'||matchMedia('(prefers-reduced-motion: reduce)').matches)" +
+              "document.documentElement.setAttribute('data-rb-seen','1')}catch(e){}",
+          }}
+        />
+      )}
       {intro && (
         <div className="rb-intro" onClick={dismissIntro} aria-hidden="true">
           <div className="rb-intro-logo">
-            <img className="rb-intro-draw" src={LOGO} alt="" decoding="async" width={1200} height={519} />
+            {/* The one image the first second of the visit depends on, so it
+                is asked for ahead of everything else and decoded on the spot:
+                a script that draws itself on has to be there to draw. */}
+            <img className="rb-intro-draw" src={LOGO} alt="" fetchPriority="high" width={900} height={390} />
             <span className="rb-intro-tip" />
           </div>
         </div>
@@ -1552,13 +1619,16 @@ function ReynirPageInner() {
         <div className="rb-cover-grid" style={{ ...wrap, flex: 1, width: '100%', display: 'grid', gridTemplateColumns: '1fr', alignItems: 'center', position: 'relative', padding: 'clamp(24px,5vh,56px) 0' }}>
           {/* the pistachio snúður, a transparent cutout floating on the dark hero,
               turning slowly and smoothly in place */}
-          <div className="rb-cover-art rb-enter-3">
+          <div className="rb-cover-art rb-enter-3" ref={coverRef}>
             <img
               className="rb-hero-spin"
               src={FEATURE_IMG}
               alt={images.hero?.caption[lang] ?? (lang === 'en' ? 'A Reynir pistachio snúður, glazed and topped with pistachios' : 'Pistasíusnúður frá Reyni, gljáður og toppaður með pistasíum')}
               width={1004}
               height={1100}
+              /* Behind the ink, but it is what the cover opens onto: late and
+                 the page arrives without its subject. */
+              fetchPriority="high"
               decoding="async"
               style={{ width: '100%', height: 'auto', display: 'block' }}
             />
