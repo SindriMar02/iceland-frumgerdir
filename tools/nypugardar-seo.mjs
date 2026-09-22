@@ -367,6 +367,18 @@ function headFor(page) {
    * document it sits in; putting it on the home page would have described
    * content that is one click away. */
   if (page.key === 'rooms') ld.push(faq(page.lang))
+  /* Google builds the site name above each result from a WebSite node on the
+     home page. With none, it picked per page between "Nýpugarðar" and
+     "Guesthouse Nypugardar", so one site read as two businesses in a search. */
+  if (page.key === 'home') ld.push({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: B.name,
+    alternateName: B.altNames,
+    url: urlFor(homeOf('en')),
+    inLanguage: page.lang === 'is' ? 'is' : 'en',
+    publisher: { '@id': `${urlFor(homeOf('en'))}#guesthouse` },
+  })
   const alternates = other
     ? [
         `    <link rel="alternate" hreflang="${page.lang}" href="${url}" />`,

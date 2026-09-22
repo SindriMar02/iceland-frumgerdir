@@ -30,19 +30,23 @@ export function homePath(lang: Lang): string {
   return lang === 'is' ? '/is/' : '/'
 }
 
+/* Links carry the trailing slash because the canonical, the sitemap and the
+   server all do: /rooms answers 308 to /rooms/. Linking the slashless form
+   sent every internal click through a redirect and kept feeding Google the
+   slashless URL, which it indexed as a second copy of each page. */
 export function roomsPath(lang: Lang): string {
   if (!STANDALONE) return CATALOGUE_ROOMS
-  return lang === 'is' ? '/is/herbergi' : '/rooms'
+  return lang === 'is' ? '/is/herbergi/' : '/rooms/'
 }
 
 export function winterPath(lang: Lang): string {
   if (!STANDALONE) return '/preview/nypugardar/vetur'
-  return lang === 'is' ? '/is/vetur' : '/winter'
+  return lang === 'is' ? '/is/vetur/' : '/winter/'
 }
 
 export function privacyPath(lang: Lang): string {
   if (!STANDALONE) return '/preview/nypugardar/personuvernd'
-  return lang === 'is' ? '/is/personuvernd' : '/privacy'
+  return lang === 'is' ? '/is/personuvernd/' : '/privacy/'
 }
 
 /** The language a standalone URL is in. Null in the catalogue, where the
