@@ -118,10 +118,25 @@ export function Foot() {
           <a className="ki-foot-link" href={STUDIO.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
         </div>
       </div>
-      <p className="ki-foot-fine">
-        © {STUDIO.founded}–2026 {STUDIO.name}. Allar ljósmyndir á vefnum eru úr verkefnum
-        Katrínar.
-      </p>
+      <div className="ki-foot-fine">
+        <p>
+          © {STUDIO.founded}–2026 {STUDIO.name}. Allar ljósmyndir á vefnum eru úr verkefnum
+          Katrínar.
+        </p>
+        {/* the studio credit, in her own faces: mono caps like the rest of the
+            footer's fine print, with the diamond in her copper */}
+        <a
+          className="sndr"
+          href="https://sndrstudio.is"
+          target="_blank"
+          rel="noopener"
+          aria-label="Hannað af SNDR Studio"
+          data-logotype
+        >
+          <span className="sndr__mark">SN<i>✦</i>DR</span>
+          <span className="sndr__studio">STUDIO</span>
+        </a>
+      </div>
 
       {/* The name is the last thing on the page and the largest thing on it.
           Two words in their own masks, each rising on the reveal sweep with

@@ -454,6 +454,9 @@ export const CSS = `
 .ki-proj-arrival { position: relative; }
 .ki-proj-cover { position: relative; z-index: 1; }
 .ki-proj-hero { position: sticky; top: 0; z-index: 0; height: min(78svh, 760px); min-height: 420px; overflow: hidden; }
+/* a portrait photograph needs the height back: at 760px it was a letterbox of
+   one wall (29% of the picture). Still inside the viewport, so the pin holds. */
+.ki-proj-hero[data-tall] { height: min(92svh, 940px); }
 @media (prefers-reduced-motion: reduce) { .ki-proj-hero { position: relative; } }
 .ki-root .ki-proj-hero picture, .ki-root .ki-proj-hero picture > img { width: 100%; height: 100%; object-fit: cover; }
 /* Seventeen project photographs, every one a different exposure, and the
@@ -715,7 +718,22 @@ export const CSS = `
 .ki-foot-line a { display: inline-block; padding: 4px 0; }
 .ki-foot-link { font-size: ${fluid(13.5, 13)}; padding: 7px 0; line-height: 1.4; border-bottom: 1px solid transparent; }
 @media (hover: hover) and (pointer: fine) { .ki-foot-link:hover, .ki-foot-line a:hover { color: #EDE7DE; border-bottom-color: currentColor; } }
-.ki-foot-fine { font-family: ${MONO}; font-size: 12px; color: #9C948A; margin: calc(var(--u) * 40) 0 0; }
+.ki-foot-fine {
+  font-family: ${MONO}; font-size: 12px; color: #9C948A; margin: calc(var(--u) * 40) 0 0;
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 14px 30px;
+}
+.ki-foot-fine p { margin: 0; max-width: 64ch; }
+/* Hannað af SNDR Studio */
+.ki-foot-fine .sndr {
+  display: inline-flex; align-items: baseline; gap: .5em; text-decoration: none;
+  color: #9C948A; transition: color .4s ${OUT}; white-space: nowrap; padding: 6px 0;
+}
+.ki-foot-fine .sndr:hover, .ki-foot-fine .sndr:focus-visible { color: var(--ki-ground, #EFEAE2); }
+.sndr__mark { font-family: ${MONO}; font-size: 13px; letter-spacing: .18em; }
+.sndr__mark i { font-style: normal; color: var(--ki-copper); padding: 0 .06em; }
+.sndr__studio { font-family: ${MONO}; font-size: 10px; letter-spacing: .3em; opacity: .75; }
+@media (max-width: 620px) { .ki-foot-fine { flex-direction: column; align-items: flex-start; } }
 
 /* ── the name, as the last statement on the page ──────────────────────── */
 /* Transplanted from the Sky Retreat footer, device for device, on this
@@ -1059,7 +1077,7 @@ html[data-ki-seen] .ki-show-bar, html[data-ki-seen] .ki-show-corner { animation-
 .ki-door { margin: 0; }
 .ki-js .ki-door.is-in { transition-delay: calc(var(--i, 0) * 90ms); }
 .ki-door a { display: block; color: inherit; text-decoration: none; }
-.ki-door-fig { display: block; overflow: hidden; aspect-ratio: 4 / 5; background: rgb(0 0 0 / .06); }
+.ki-door-fig { display: block; overflow: hidden; aspect-ratio: 1; background: rgb(0 0 0 / .06); }
 .ki-root .ki-door-fig picture, .ki-root .ki-door-fig img { width: 100%; height: 100%; object-fit: cover; transition: transform .9s ${OUT}; }
 .ki-door-meta { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 4px 12px; padding-top: 14px; border-top: 1px solid var(--ki-hair); margin-top: 16px; }
 .ki-door-no { font-family: ${MONO}; font-size: ${fluid(11.5, 11)}; letter-spacing: .12em; color: #8A5A33; }
@@ -1138,9 +1156,10 @@ html[data-ki-seen] .ki-show-bar, html[data-ki-seen] .ki-show-corner { animation-
   border-radius: 3px; box-shadow: 0 24px 60px -18px rgb(8 6 5 / .6); opacity: 0; scale: .86; rotate: -2deg;
   transition: opacity .3s ${OUT}, scale .4s ${OUT}, rotate .5s ${OUT}; will-change: transform; }
 .ki-peek[data-on] { opacity: 1; scale: 1; rotate: 0deg; }
+/* every register photograph is mounted; the hovered one is the visible one */
+.ki-peek-slot { position: absolute; inset: 0; opacity: 0; transition: opacity .22s linear; }
+.ki-peek-slot[data-on] { opacity: 1; }
 .ki-root .ki-peek picture, .ki-root .ki-peek img { width: 100%; height: 100%; object-fit: cover; }
-.ki-peek img { animation: ki-peek-in .45s ${OUT} both; }
-@keyframes ki-peek-in { from { opacity: 0; transform: scale(1.12); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
 @media not all and (hover: hover) { .ki-peek { display: none; } }
 
 /* ── the neighbours at the foot of a project ─────────────────────────── */

@@ -12,7 +12,7 @@
  */
 import { Link } from './link'
 import { Shell, type Head } from './Shell'
-import { Headline, Photo, Slide, CardFigure } from './kit'
+import { Headline, Photo, Slide, CardFigure, landscapeFirst, portraitFirst } from './kit'
 import { HeroShow, type ShowSlide } from './hero-show'
 import { PreviewZone, RollText } from './flair'
 import { ContactForm } from './contact-form'
@@ -28,12 +28,12 @@ const SHOWN = 6
    The newest project opens the run, and its caption carries the "Nýtt" badge. */
 const SHOW: ReadonlyArray<ShowSlide> = [
   { id: 's-eldhus-vitt', slug: 'nybyggt-hus-i-suluhofda', tone: 0.6 },
-  { id: 'f-stofa', slug: 'sumarhus-i-fljotshlidinni', tone: 0.58 },
+  { id: 'f-eldhus', slug: 'sumarhus-i-fljotshlidinni', tone: 0.58 },
   { id: 'p-fjallalind-4', slug: 'fjallalind', tone: 0.65 },
   { id: 'p-freyja-0', slug: 'freyja-gistiheimili', tone: 0.62 },
   { id: 'p-skuggahverfi-0', slug: 'eldhusrymi-i-skuggahverfi', tone: 0.63 },
   { id: 'p-olfus-0', slug: 'sumarhus-i-olfusi', tone: 0.46 },
-  { id: 'p-kopavogur-4', slug: 'fallegt-hus-i-kopavogi', tone: 0.64 },
+  { id: 'p-gardabaer-0', slug: 'hus-i-gardabae', tone: 0.64 },
 ]
 
 /* PROJECTS is in her published order, newest first. */
@@ -50,16 +50,18 @@ const DOORS: ReadonlyArray<{ to: string; label: string; count: string; photo: st
       to: catPath(c),
       label: CATEGORIES[c].nav,
       count: `${items.length} verk`,
-      photo: p.photos[0].id,
-      alt: p.photos[0].alt,
+      /* the doors are the one tall frame on the page, so they take the
+         project's portrait photograph rather than its lead one */
+      photo: portraitFirst(p.photos).id,
+      alt: portraitFirst(p.photos).alt,
     }
   }),
   {
     to: BRANDS_PATH,
     label: 'Ítalskar innréttingar',
     count: 'Arrital · Altamarea',
-    photo: 'f-eldhus',
-    alt: 'Eldhús sumarhússins í Fljótshlíðinni með Arrital innréttingum og mjúku dagsljósi',
+    photo: 's-eyja',
+    alt: 'Djúprauð eldhúseyja með koparljósum úr sýningarrými stúdíósins',
   },
 ]
 
@@ -134,7 +136,7 @@ export function Home() {
                   {items.map((p) => (
                     <li key={p.slug} className="ki-card ki-rv">
                       <Link className="ki-card-link" to={projPath(p.slug)}>
-                        <CardFigure photos={p.photos} sizes={CARD_SIZES} />
+                        <CardFigure photos={landscapeFirst(p.photos)} sizes={CARD_SIZES} />
                         <span className="ki-card-meta">
                           <span className="ki-card-name">{p.title}</span>
                         </span>
@@ -251,7 +253,7 @@ export function Home() {
                 {items.map((p) => (
                   <li key={p.slug} className="ki-skra-row">
                     {hasPage(p)
-                      ? <Link to={projPath(p.slug)} data-preview={p.photos[0].id}>{p.title}</Link>
+                      ? <Link to={projPath(p.slug)} data-preview={landscapeFirst(p.photos)[0].id}>{p.title}</Link>
                       : <span>{p.title}</span>}
                   </li>
                 ))}

@@ -56,6 +56,32 @@ export interface PhotoProps {
   pos?: string
 }
 
+/**
+ * HOW A PHOTOGRAPH MEETS A FRAME (2026-09-22).
+ *
+ * Her portfolio is roughly half portrait, and a portrait photograph in a
+ * landscape frame is a cover crop that throws away more than half the room:
+ * the cards were showing 42% of some photographs, which reads as "zoomed in"
+ * rather than as a crop. Nothing here re-encodes anything; it only decides
+ * WHICH photograph goes into a frame of a given shape.
+ */
+export const aspectOf = (id: string) => {
+  const d = PHOTO_DIMS[id]
+  return d ? d.w / d.h : 1
+}
+export const isLandscape = (id: string) => aspectOf(id) >= 1.15
+export const isPortrait = (id: string) => aspectOf(id) <= 0.95
+
+/** her order, with the landscape photographs first — for landscape frames */
+export function landscapeFirst<T extends { id: string }>(photos: ReadonlyArray<T>): T[] {
+  const land = photos.filter((p) => isLandscape(p.id))
+  return land.length ? [...land, ...photos.filter((p) => !isLandscape(p.id))] : [...photos]
+}
+/** the first portrait photograph, for the tall door frames */
+export function portraitFirst<T extends { id: string }>(photos: ReadonlyArray<T>): T {
+  return photos.find((p) => isPortrait(p.id)) ?? photos[0]
+}
+
 const srcset = (id: string, ext: 'avif' | 'webp') =>
   PHOTO_DIMS[id].v.map(([w]) => `${DIR}/rs/${id}-${w}.${ext} ${w}w`).join(', ')
 
@@ -166,13 +192,13 @@ export function Headline({ text, size, floor, as: Tag = 'h2', className = '', me
 }
 
 /** A figure whose photograph slides in from a skewed polygon. */
-export function Slide({ id, alt, sizes, className = '', ratio, variant = 'slide', priority }: PhotoProps & {
+export function Slide({ id, alt, sizes, className = '', ratio, pos, variant = 'slide', priority }: PhotoProps & {
   variant?: 'slide' | 'shutter' | 'plain'
 }) {
   const cls = variant === 'shutter' ? 'ki-shutter' : variant === 'plain' ? 'ki-plain' : 'ki-slide'
   return (
     <figure className={`${cls} ${className}`} style={ratio ? { aspectRatio: ratio } : undefined}>
-      <Photo id={id} alt={alt} sizes={sizes} priority={priority} />
+      <Photo id={id} alt={alt} sizes={sizes} priority={priority} pos={pos} />
     </figure>
   )
 }

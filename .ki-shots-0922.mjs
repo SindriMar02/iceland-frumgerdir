@@ -16,21 +16,15 @@ const srv = http.createServer((q, r) => {
 }).listen(0)
 const base = `http://127.0.0.1:${srv.address().port}`
 const shots = [
-  ['home-hero', '/', null, 1440],
-  ['home-litheim', '/', 'section[data-ki-band="light"] .ki-headline', 1440],
-  ['home-italskar', '/', 'h2[aria-label="Ítalskar innréttingar"]', 1440],
-  ['studio-top', '/studioid', null, 1440],
-  ['studio-services', '/studioid', 'h2[aria-label="Hvað stúdíóið tekur að sér"]', 1440],
-  ['studio-fhi', '/studioid', '.ki-split .ki-body', 1440],
-  ['bad-hero', '/verkefni/badherbergi', null, 1440],
-  ['bad-body', '/verkefni/badherbergi', '.ki-proj-cover', 1440],
-  ['bad-gallery', '/verkefni/badherbergi', '.ki-proj-gallery', 1440],
-  ['sulu-body', '/verkefni/nybyggt-hus-i-suluhofda', '.ki-proj-cover', 1440],
-  ['contact-faq', '/hafa-samband', '.ki-answers', 1440],
-  ['footer', '/', '.ki-footwm-word', 1440],
-  ['m-home-hero', '/', null, 390],
-  ['m-studio-services', '/studioid', 'h2[aria-label="Hvað stúdíóið tekur að sér"]', 390],
-  ['m-bad-hero', '/verkefni/badherbergi', null, 390],
+  ['home-cards', '/', '.ki-grid', 1440],
+  ['home-doors', '/', '.ki-doors', 1440],
+  ['work-cards', '/verkefni/heimili', '.ki-grid', 1440],
+  ['gal-bad', '/verkefni/badherbergi', '.ki-proj-gallery', 1440],
+  ['gal-sulu', '/verkefni/nybyggt-hus-i-suluhofda', '.ki-proj-gallery', 1440],
+  ['gal-solva', '/verkefni/solvallagata', '.ki-proj-gallery', 1440],
+  ['hero-solva', '/verkefni/solvallagata', null, 1440],
+  ['footer-credit', '/', '.ki-foot-fine', 1440],
+  ['m-cards', '/verkefni/heimili', '.ki-grid', 390],
 ]
 const br = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new' })
 const pg = await br.newPage()

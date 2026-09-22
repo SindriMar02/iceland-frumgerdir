@@ -11,7 +11,7 @@
 import { Link } from './link'
 import { PreviewZone, RollText } from './flair'
 import { Shell, type Head } from './Shell'
-import { Headline, CardFigure, Answers } from './kit'
+import { Headline, CardFigure, Answers, landscapeFirst } from './kit'
 import { FAQ_CATEGORY } from './content'
 import { CATEGORIES, PROJECTS, byCategory, hasPage, type CategorySlug } from './projects'
 import { category as catPath, project as projPath, WORK, CONTACT_PATH } from './paths'
@@ -26,7 +26,7 @@ function Card({ slug, title, cat }: { slug: string; title: string; cat?: string 
       {/* the whole card is the link, so there is nowhere on it that does not
           open the project */}
       <Link className="ki-card-link" to={projPath(p.slug)}>
-        <CardFigure photos={p.photos} sizes={CARD_SIZES} />
+        <CardFigure photos={landscapeFirst(p.photos)} sizes={CARD_SIZES} />
         <span className="ki-card-meta">
           <span className="ki-card-name">{title}</span>
           {cat && <span className="ki-card-cat">{cat}</span>}
@@ -57,7 +57,7 @@ function Register() {
               <ul className="ki-skra-list">
                 {items.map((p) => (
                   <li key={p.slug} className="ki-skra-row">
-                    {hasPage(p) ? <Link to={projPath(p.slug)} data-preview={p.photos[0].id}>{p.title}</Link> : <span>{p.title}</span>}
+                    {hasPage(p) ? <Link to={projPath(p.slug)} data-preview={landscapeFirst(p.photos)[0].id}>{p.title}</Link> : <span>{p.title}</span>}
                   </li>
                 ))}
               </ul>

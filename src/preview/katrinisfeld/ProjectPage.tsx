@@ -11,7 +11,7 @@
 import { Link } from './link'
 import { RollText } from './flair'
 import { Shell, type Head } from './Shell'
-import { Headline, Photo, Slide } from './kit'
+import { Headline, Photo, Slide, isLandscape, landscapeFirst } from './kit'
 import { PHOTO_DIMS } from './photo-dims'
 import { CATEGORIES, PROJECTS, hasPage, type Project } from './projects'
 import { category as catPath, project as projPath, WORK, CONTACT_PATH } from './paths'
@@ -20,24 +20,54 @@ const HERO_SIZES = '100vw'
 const GAL_SIZES = '(max-width: 640px) 92vw, (max-width: 991px) 90vw, 46vw'
 
 /**
- * The gallery's rhythm: the first shot full width, then pairs, with every
- * fourth returning to full width — and never a half-width photograph left
- * alone at the end of the page. A lone half is promoted to full width, so the
- * last thing on the page is a room, not a gap.
+ * THE GALLERY, ROW BY ROW (rebuilt 2026-09-22).
+ *
+ * The old rhythm gave every fifth photograph the full width of the page
+ * regardless of its shape, so a portrait shot ran 1328 x 2200 and a visitor
+ * met a slab of ceiling; and a row could pair a portrait with a landscape,
+ * which left the two tiles different heights and the row looking unfinished.
+ *
+ * Now a row only ever holds photographs of the same shape, and each shape has
+ * one frame: 16/9 across the page, 3/2 for a landscape pair, 4/5 for a
+ * portrait pair. Her order is kept inside each shape. A photograph never goes
+ * full width unless it is landscape AND at least 1200px wide, which is the
+ * old rule that kept Hótel Hekla's 662px source from being stretched.
  */
-function widths(ids: ReadonlyArray<string>): boolean[] {
-  const n = ids.length
-  /* a photograph under 1200px wide is never stretched across the page — at
-     1440 that was Hótel Hekla's 662px source upscaled twice over */
-  const big = (i: number) => (PHOTO_DIMS[ids[i]]?.w ?? 0) >= 1200
-  const w = Array.from({ length: n }, (_, i) => (i === 0 || (i > 1 && (i - 1) % 4 === 0)) && big(i))
-  let slot = 0
-  for (let i = 0; i < n; i++) {
-    if (w[i]) { slot = 0; continue }
-    if (i === n - 1 && slot === 0 && big(i)) w[i] = true
-    slot = slot ? 0 : 1
+type Tile = { photo: PhotoRef; kind: 'wide' | 'half'; ratio: string }
+type PhotoRef = Project['photos'][number]
+
+function tiles(rest: ReadonlyArray<PhotoRef>): Tile[] {
+  const wideOk = (p: PhotoRef) => isLandscape(p.id) && (PHOTO_DIMS[p.id]?.w ?? 0) >= 1200
+  const land = rest.filter((p) => isLandscape(p.id))
+  const port = rest.filter((p) => !isLandscape(p.id))
+  const out: Tile[] = []
+  let rows = 0
+  const pairFrom = (q: PhotoRef[], ratio: string) => {
+    out.push({ photo: q.shift()!, kind: 'half', ratio }, { photo: q.shift()!, kind: 'half', ratio })
+    rows++
   }
-  return w
+  // the page opens on a room, full width, whenever a landscape can carry it
+  if (land.length && wideOk(land[0])) out.push({ photo: land.shift()!, kind: 'wide', ratio: '16 / 9' })
+  while (land.length || port.length) {
+    // every third row a landscape returns to full width, so the page breathes
+    if (rows > 0 && rows % 3 === 0 && land.length && wideOk(land[0])) {
+      out.push({ photo: land.shift()!, kind: 'wide', ratio: '16 / 9' })
+      rows++
+      continue
+    }
+    if (port.length >= 2 && (port.length >= land.length || land.length < 2)) pairFrom(port, '4 / 5')
+    else if (land.length >= 2) pairFrom(land, '3 / 2')
+    else {
+      // one photograph left over: full width if it can carry it, otherwise a
+      // single tile that keeps the column it would have shared
+      const last = (port.length ? port : land).shift()!
+      out.push(wideOk(last)
+        ? { photo: last, kind: 'wide', ratio: '16 / 9' }
+        : { photo: last, kind: 'half', ratio: isLandscape(last.id) ? '3 / 2' : '4 / 5' })
+      rows++
+    }
+  }
+  return out
 }
 
 /** Neighbours within the same category, so "next" stays relevant. */
@@ -67,7 +97,9 @@ export function ProjectPage({ slug }: { slug: string }) {
           photograph the hero releases, so nothing stays composited down the
           rest of the page. */}
       <div className="ki-proj-arrival">
-        <section className="ki-proj-hero" data-ki-band="dark">
+        {/* a portrait hero in a 2:1 band showed 29% of the photograph, so the
+            band grows for portrait photographs instead of cropping harder */}
+        <section className="ki-proj-hero" data-ki-band="dark" data-tall={isLandscape(hero.id) ? undefined : ''}>
           <Photo id={hero.id} alt={hero.alt} sizes={HERO_SIZES} pos={hero.pos} priority />
         </section>
 
@@ -105,19 +137,18 @@ export function ProjectPage({ slug }: { slug: string }) {
       {rest.length > 0 && (
         <div className="ki-wrap" data-ki-band="light" style={{ paddingTop: 0 }}>
           <div className="ki-proj-gallery">
-            {widths(rest.map((r) => r.id)).map((wide, i) => {
-              const ph = rest[i]
-              return (
-                <div key={ph.id} className={wide ? 'ki-gal-wide' : 'ki-gal-half'}>
-                  <Slide
-                    id={ph.id}
-                    alt={ph.alt}
-                    sizes={wide ? GAL_SIZES : '(max-width: 860px) 92vw, 44vw'}
-                    variant={i === 0 ? 'shutter' : 'slide'}
-                  />
-                </div>
-              )
-            })}
+            {tiles(rest).map((t, i) => (
+              <div key={t.photo.id} className={t.kind === 'wide' ? 'ki-gal-wide' : 'ki-gal-half'}>
+                <Slide
+                  id={t.photo.id}
+                  alt={t.photo.alt}
+                  ratio={t.ratio}
+                  pos={t.photo.pos}
+                  sizes={t.kind === 'wide' ? GAL_SIZES : '(max-width: 860px) 92vw, 44vw'}
+                  variant={i === 0 ? 'shutter' : 'slide'}
+                />
+              </div>
+            ))}
           </div>
           {p.credit && (
             <p className="ki-proj-credit ki-rv">Ljósmyndari: {p.credit}</p>
@@ -136,7 +167,7 @@ export function ProjectPage({ slug }: { slug: string }) {
             ].map((a) => a && (
               <Link key={a.p.slug} to={projPath(a.p.slug)} className={`ki-proj-adj-link ki-proj-adj-link--${a.dir} ki-rv`}>
                 <span className="ki-proj-adj-fig">
-                  <Photo id={a.p.photos[0].id} alt="" sizes="(max-width: 860px) 40vw, 300px" pos={a.p.photos[0].pos} />
+                  <Photo id={landscapeFirst(a.p.photos)[0].id} alt="" sizes="(max-width: 860px) 40vw, 300px" pos={landscapeFirst(a.p.photos)[0].pos} />
                 </span>
                 <span className="ki-proj-adj-meta">
                   <span className="ki-kicker">{a.k}</span>

@@ -64,7 +64,32 @@ export function FillSubmit({ children, disabled }: { children: string; disabled?
 export function PreviewZone({ children }: { children: ReactNode }) {
   const zone = useRef<HTMLDivElement>(null)
   const fig = useRef<HTMLDivElement>(null)
+  const [ids, setIds] = useState<string[]>([])
   const [id, setId] = useState<string | null>(null)
+
+  /* EVERY PHOTOGRAPH IS ALREADY THERE WHEN THE POINTER ARRIVES (2026-09-22).
+     Mounting one <Photo> per hover meant each new name started a fresh
+     request, so the frame was empty until it landed and a quick run down the
+     register showed gaps. The whole set now mounts once, as soon as the
+     register comes near the viewport, and hovering only changes which one is
+     opaque. Nothing downloads on a phone: the observer never runs without a
+     fine pointer. */
+  useEffect(() => {
+    const el = zone.current
+    if (!el) return
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches || reduced()) return
+    const collect = () => {
+      const found = [...el.querySelectorAll<HTMLElement>('[data-preview]')]
+        .map((a) => a.dataset.preview!)
+        .filter((v, i, arr) => arr.indexOf(v) === i)
+      setIds((prev) => (prev.length ? prev : found))
+    }
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { collect(); io.disconnect() }
+    }, { rootMargin: '1200px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   useEffect(() => {
     const el = zone.current
@@ -86,14 +111,32 @@ export function PreviewZone({ children }: { children: ReactNode }) {
       ty = e.clientY + OY
       if (!raf) raf = requestAnimationFrame(tick)
     }
+    /* THE FRAME NEVER OPENS EMPTY. On a slow connection the set is still
+       arriving while the pointer is already running down the names, and an
+       open frame with nothing in it reads as a broken site. The frame waits
+       for its own photograph to be decoded, then appears — and if the pointer
+       has moved on by then, it does not appear at all. */
+    let want = ''
+    const reveal = (pid: string) => {
+      const img = f.querySelector<HTMLImageElement>(`[data-pid="${pid}"] img`)
+      if (img && img.complete && img.naturalWidth > 0) { f.dataset.on = ''; return }
+      delete f.dataset.on
+      img?.addEventListener('load', () => { if (live && want === pid) f.dataset.on = '' }, { once: true })
+    }
     const over = (e: PointerEvent) => {
       const a = (e.target as Element).closest<HTMLElement>('[data-preview]')
       if (a && el.contains(a)) {
         if (!live) { x = e.clientX + OX; y = e.clientY + OY }
         live = true
+        /* the pointer can beat the observer on a fast scroll; mount then */
+        setIds((prev) => (prev.length ? prev : [...el.querySelectorAll<HTMLElement>('[data-preview]')]
+          .map((n) => n.dataset.preview!)
+          .filter((v, i, arr) => arr.indexOf(v) === i)))
         setId(a.dataset.preview!)
-        f.dataset.on = ''
+        want = a.dataset.preview!
+        reveal(want)
       } else {
+        want = ''
         live = false
         delete f.dataset.on
       }
@@ -114,7 +157,11 @@ export function PreviewZone({ children }: { children: ReactNode }) {
     <div ref={zone}>
       {children}
       <div ref={fig} className="ki-peek" aria-hidden="true">
-        {id && <Photo key={id} id={id} alt="" sizes="320px" />}
+        {ids.map((x) => (
+          <span key={x} className="ki-peek-slot" data-pid={x} data-on={x === id ? '' : undefined}>
+            <Photo id={x} alt="" sizes="320px" />
+          </span>
+        ))}
       </div>
     </div>
   )

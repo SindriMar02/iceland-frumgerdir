@@ -11,7 +11,7 @@
 import { Link } from './link'
 import { RollText } from './flair'
 import { Shell, type Head } from './Shell'
-import { Headline, Photo, CardFigure } from './kit'
+import { Headline, Photo, CardFigure, landscapeFirst } from './kit'
 import { STUDIO, ADDRESS_LINE, APPOINTMENT_NOTE_EN } from './facts'
 import { EN } from './content'
 import { PROJECTS, byCategory, hasPage } from './projects'
@@ -55,7 +55,7 @@ export function EnglishPage() {
             {hospitality.map((p) => (
               <li key={p.slug} className="ki-card ki-rv">
                 <Link className="ki-card-link" to={projPath(p.slug)}>
-                  <CardFigure photos={p.photos} sizes={CARD_SIZES} />
+                  <CardFigure photos={landscapeFirst(p.photos)} sizes={CARD_SIZES} />
                   <span className="ki-card-meta">
                     <span className="ki-card-name">{p.title}</span>
                   </span>

@@ -37,9 +37,9 @@ export function StudioPage() {
         <img className="ki-lockup" src={`${BASE}katrinisfeld/brand/logo.png`}
           alt="Merki Katrín Ísfeld Hönnunar Studio" width={300} height={120} />
         <Headline as="h1" text="Hönnun er upplifun." size={86} floor={34} />
-        <p className="ki-lead ki-rv">
-          Katrín Ísfeld, innanhússarkitekt FHI og eigandi Katrín Ísfeld Hönnunar Studio.
-        </p>
+        {/* the studio's name is already in the mark above it, so the line
+            that repeated it came out on her word (2026-09-22) */}
+        <p className="ki-lead ki-rv">Katrín Ísfeld, innanhússarkitekt FHI.</p>
         {/* THE DEFINITION, SAID PLAINLY. The whole site described what she
             does and never once defined the word itself, so nothing here could
             be quoted back as an answer to "hvað er innanhússarkitekt". One

@@ -242,8 +242,8 @@ export const PROJECTS: Project[] = [
       /* her own words at the 2026-09-22 walkthrough, where she sent these three
          photographs. The house is deliberately unnamed and unlocated: the
          owners allowed this one room and nothing else. */
-      'Efstu myndirnar eru úr baðherbergi sem er haldið í einum litatóni. Óskin var samlitt rými, svo ég lét rúðurnar um að brjóta það upp og setti á þær filmu.',
-      'Upplifunin í gegnum glerið helst í sama tóninum, en filman poppar hana upp.',
+      'Efstu myndirnar eru úr baðherbergi sem er allt í sama litatóninum. Rýmið átti að vera samlitt, svo ég setti filmu á rúðurnar til að lífga það upp.',
+      'Glerið heldur sama tóni og rýmið sjálft, en filman brýtur hann upp og gerir baðherbergið að upplifun.',
       'Ég hef tekið í gegn fjölmörg baðherbergi, og hér eru sýnishorn úr nokkrum verkefnum.',
       'Meðal þeirra eru baðherbergi á Hávallagötu í 101 Reykjavík, við Lækjarás í 110 Reykjavík, í Baldursgarði í Keflavík og í Álfheimum í 105 Reykjavík.',
     ],
