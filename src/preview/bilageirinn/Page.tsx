@@ -23,7 +23,9 @@ import { setThemeColor } from '../../lib/preview'
 import {
   ADDRESS,
   EMAIL,
+  FACEBOOK,
   IMG,
+  KT,
   LUBE_PHONE_DISPLAY,
   LUBE_PHONE_HREF,
   MAPS,
@@ -32,6 +34,12 @@ import {
   SEO,
   SERVICES,
 } from './data'
+
+/** Touch = no JS scroll surface (Lenis keeps iOS Safari's tall toolbar up for
+    the whole visit and fights momentum scrolling). Guard on capability, never
+    on width — a narrow desktop window keeps the damped feel. [[lenis-mobile-damage]] */
+const isTouch = () =>
+  typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches
 
 const company = companyEntry
 
@@ -85,10 +93,27 @@ const CSS = `
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Projekt Blackbird'; src: url('${B}fonts/blackbird/ProjektBlackbirdIS-ext.otf') format('opentype'); font-weight: 400 700; font-style: normal; font-display: swap; }
 
-.bg-page { background: ${BG}; color: ${INK}; }
+/* Mobile chrome standard [[mobile-chrome-standard]]: Safari tints its
+   status/home strips from html/body background-color, so the page ink must
+   live there, not only on an inner wrapper. overflow-x: clip (never hidden)
+   keeps the sticky awning alive. Unmounts with the route. */
+html { color-scheme: dark; }
+html, body { background-color: ${BG}; }
+.bg-page { background: ${BG}; color: ${INK}; overflow-x: clip; }
 .bg-page ::selection { background: ${AMBER}; color: ${DARKINK}; }
-.bg-page a, .bg-page button { -webkit-tap-highlight-color: transparent; }
+.bg-page a, .bg-page button, .bg-page input, .bg-page select, .bg-page textarea { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .bg-page :focus-visible { outline: 2px solid ${AMBER}; outline-offset: 3px; border-radius: 9999px; }
+.bg-field:focus-visible { border-radius: 0; outline-offset: 0; }
+
+/* THE AWNING (phones only). position:sticky lives in the scrolling layer,
+   the one layer iOS paints into the Dynamic Island strip; stuck at -100px
+   it keeps that strip solid ink at every scroll position. The negative
+   margin cancels its height so layout is untouched. */
+.bg-awning { position: sticky; top: -100px; height: 106px; margin-bottom: -106px; flex: none; z-index: 45; background: ${BG}; pointer-events: none; }
+@media (min-width: 768px) { .bg-awning { display: none; } }
+/* phone bar: the number is one tap from first paint; at 320px only the icon fits */
+.bg-navphone-num { display: none; }
+@media (min-width: 360px) { .bg-navphone-num { display: inline; } }
 
 /* hero background crossfade: each frame drifts slowly the whole time it's
    visible — a placeholder for real workshop video, not a static photo.
@@ -169,8 +194,14 @@ const CSS = `
   transform: translateY(-1px); border-color: rgba(243,240,234,0.7);
   box-shadow: 0 10px 26px -14px rgba(0,0,0,0.9);
 }
-.bg-btn:active { transform: translateY(0); transition-duration: 0.08s; }
+.bg-btn:active { transform: scale(0.97); transition-duration: 0.1s; }
 .bg-btn:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; background-position: 118% 0; }
+/* touch fires :hover on tap and leaves it stuck — hover motion is pointer-only */
+@media (hover: none) {
+  .bg-btn:hover { background-position: 118% 0; transform: none; box-shadow: none; }
+  .bg-navlink:hover::after { transform: scaleX(0); }
+  .bg-brand-mark:hover img { transform: none; opacity: 0.92; }
+}
 
 .bg-cta-display { display: inline-block; transition: filter 0.25s cubic-bezier(0.4,0,0.2,1); }
 .bg-cta-display:hover { filter: brightness(1.12); }
@@ -191,30 +222,25 @@ const CSS = `
    rotate hue back so roads/water read close to their normal colours */
 .bg-map-dark { filter: invert(92%) hue-rotate(180deg) contrast(0.86) brightness(0.94) saturate(0.65); }
 
-/* reviews marquee: two identical rows drift left; the whole strip pauses
-   on hover so quotes stay readable the moment the cursor arrives */
-@keyframes bgRevScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.bg-rev-track { animation: bgRevScroll 32s linear infinite; will-change: transform; }
-.bg-rev-marquee:hover .bg-rev-track { animation-play-state: paused; }
-.bg-rev-marquee {
-  -webkit-mask-image: linear-gradient(to right, transparent, black 7%, black 93%, transparent);
-  mask-image: linear-gradient(to right, transparent, black 7%, black 93%, transparent);
-}
-@media (prefers-reduced-motion: reduce) {
-  .bg-rev-track { animation: none; }
-}
-
-/* contact form: sleek inputs on the dark card, amber focus, no browser chrome */
+/* contact form: type on a line. One hairline under each field, amber when
+   focused — the same drawn-line vocabulary as the rest of the page, and no
+   boxed inputs inside a boxed card. */
 .bg-field {
-  background: rgba(243,240,234,0.05);
-  border: 1px solid rgba(243,240,234,0.16);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(243,240,234,0.3);
+  border-radius: 0;
+  padding-left: 0;
+  padding-right: 0;
   color: ${INK};
-  transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1), background-color 0.2s cubic-bezier(0.4,0,0.2,1);
+  transition: border-color 0.2s cubic-bezier(0.4,0,0.2,1);
 }
 .bg-field::placeholder { color: ${MUT}; }
-.bg-field:hover { border-color: rgba(243,240,234,0.28); }
-.bg-field:focus { outline: none; border-color: ${AMBER}; background: rgba(243,240,234,0.08); }
-.bg-field:invalid[data-touched="true"] { border-color: rgba(224,110,110,0.7); }
+.bg-field:hover { border-bottom-color: rgba(243,240,234,0.55); }
+.bg-field:focus { outline: none; border-bottom-color: ${AMBER}; }
+.bg-field:invalid[data-touched="true"] { border-bottom-color: rgba(224,110,110,0.8); }
+select.bg-field { background-color: transparent; }
+select.bg-field option { background-color: ${BG}; color: ${INK}; }
 
 @media (prefers-reduced-motion: reduce) {
   .bg-navlink::after { transition: none; display: none; }
@@ -226,17 +252,10 @@ const CSS = `
 
 /* ───────────────────────── shared motion helpers ───────────────────────── */
 
-/** Section kicker: mono label with a short amber line segment carrying the
-    accent — full-amber text is rationed to the hero eyebrow, the numbers,
-    and actual actions so the accent reads as signal, not wallpaper. */
-function Kicker({ children }: { children: ReactNode }) {
-  return (
-    <p className="flex items-center gap-3 text-[13px] tracking-[0.22em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-      <span aria-hidden className="inline-block h-px w-5 shrink-0" style={{ background: AMBER }} />
-      {children}
-    </p>
-  )
-}
+/* Section kickers (mono eyebrow above every h2) were removed 2026-09-22: an
+   eyebrow on every section is the generated-page scaffold, and each one only
+   repeated its own heading. The hero keeps the single kicker that carries the
+   address. [[feedback-my-fallback-vocabulary-is-the-slop]] */
 
 function Rise({
   children,
@@ -258,13 +277,17 @@ function Rise({
     )
   }
   return (
+    /* Starts as the block crosses 88% of the viewport and is over in 0.65s,
+       so it has always finished before the eye reaches it — a fixed-duration
+       reveal that starts late is what reads as "scroll lag". Previously
+       0.9s from -70px. [[scroll-reveals-must-be-position-tied]] */
     <motion.div
       className={className}
       style={style}
-      initial={{ opacity: 0, y: 28 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-70px' }}
-      transition={{ duration: 0.9, ease: EASE, delay }}
+      viewport={{ once: true, margin: '0px 0px -12% 0px' }}
+      transition={{ duration: 0.65, ease: EASE, delay }}
     >
       {children}
     </motion.div>
@@ -443,10 +466,7 @@ function SpecPlate() {
   const { t } = useT()
   return (
     <Rise delay={0.22}>
-      <div
-        className="mt-8 inline-flex flex-wrap items-center gap-x-4 gap-y-2 rounded-full border px-6 py-3.5"
-        style={{ borderColor: HAIR, background: 'rgba(232,162,61,0.06)' }}
-      >
+      <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2">
         {t.ui.specPlate.map((w, i, arr) => (
           <span key={w} className="flex items-center gap-x-4">
             <span className="text-[12px] tracking-[0.18em]" style={{ fontFamily: MONO, color: AMBER }}>
@@ -537,20 +557,47 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
   const link = 'bg-navlink hidden items-center min-h-11 px-3 text-[13px] tracking-[0.14em] uppercase md:inline-flex'
   const [open, setOpen] = useState(false)
   const reduced = useReducedMotion()
-  /* menu open: freeze the page behind it (Lenis + native scroll) */
+  /* Phones: the bar is constant ink from first paint and never changes
+     state — a header that never moves can never detach, split or arrive
+     over content. Desktop keeps the transparent-over-hero opening. */
+  const narrow = useNarrow()
+  /* menu open: freeze the page behind it. overflow:hidden alone does not
+     lock iOS Safari — fix the body at its current offset and restore the
+     exact position on close. */
   useEffect(() => {
     if (!open) return
-    lenisRef.current?.stop()
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const lenis = lenisRef.current
+    lenis?.stop()
+    const y = window.scrollY
+    const b = document.body.style
+    const prev = { position: b.position, top: b.top, left: b.left, right: b.right, width: b.width, overflow: b.overflow }
+    b.position = 'fixed'
+    b.top = `-${y}px`
+    b.left = '0'
+    b.right = '0'
+    b.width = '100%'
+    b.overflow = 'hidden'
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
     }
     window.addEventListener('keydown', onKey)
+    /* rotating past the breakpoint hides the burger — never strand the panel open */
+    const mq = window.matchMedia('(min-width: 768px)')
+    const onWide = (e: MediaQueryListEvent) => {
+      if (e.matches) setOpen(false)
+    }
+    mq.addEventListener('change', onWide)
     return () => {
-      document.body.style.overflow = prev
-      lenisRef.current?.start()
+      b.position = prev.position
+      b.top = prev.top
+      b.left = prev.left
+      b.right = prev.right
+      b.width = prev.width
+      b.overflow = prev.overflow
+      window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior })
+      lenis?.start()
       window.removeEventListener('keydown', onKey)
+      mq.removeEventListener('change', onWide)
     }
   }, [open, lenisRef])
   const goMobile = (hash: string) => (e: React.MouseEvent) => {
@@ -595,13 +642,18 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
   return (
     <>
     <header
-      className="fixed inset-x-0 top-0 z-50 transition-colors duration-500"
-      style={{
-        background: solid || open ? 'rgba(15,13,11,0.86)' : 'transparent',
-        backdropFilter: solid || open ? 'blur(14px)' : 'none',
-        WebkitBackdropFilter: solid || open ? 'blur(14px)' : 'none',
-        borderBottom: solid || open ? `1px solid ${HAIR}` : '1px solid transparent',
-      }}
+      className="fixed inset-x-0 top-0 z-50 transition-colors duration-300"
+      style={
+        narrow
+          ? /* constant, opaque, no per-frame blur tax on a phone */
+            { background: BG, borderBottom: `1px solid ${HAIR}` }
+          : {
+              background: solid || open ? 'rgba(15,13,11,0.86)' : 'transparent',
+              backdropFilter: solid || open ? 'blur(14px)' : 'none',
+              WebkitBackdropFilter: solid || open ? 'blur(14px)' : 'none',
+              borderBottom: solid || open ? `1px solid ${HAIR}` : '1px solid transparent',
+            }
+      }
     >
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between gap-3 px-4 md:px-8">
         <a href="#" onClick={go('#efst')} className="inline-flex min-h-11 shrink-0 items-center gap-2 md:gap-2.5" aria-label={t.ui.navTopAria}>
@@ -630,9 +682,6 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           {/* language toggle lives in the header on desktop; on mobile it
               moves inside the menu so the row stays three items */}
           <div className="hidden md:block">{langToggle(false)}</div>
-          {/* phone CTA is desktop-only in the header — on mobile it lives in
-              the hamburger menu's bottom bar, so the header row stays to
-              logo + burger and doesn't compete with the menu's own CTA */}
           <a
             href={PHONE_HREF}
             className="bg-btn bg-btn-solid ml-2 hidden min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[14px] font-semibold md:inline-flex"
@@ -640,6 +689,17 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
           >
             <Phone size={15} strokeWidth={2.2} aria-hidden />
             {PHONE_DISPLAY}
+          </a>
+          {/* phones: a crash customer must reach the number without opening
+              anything — compact pill in the bar, number hidden below 360px */}
+          <a
+            href={PHONE_HREF}
+            aria-label={`${t.ui.orCall} ${PHONE_DISPLAY}`}
+            className="bg-btn bg-btn-solid inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-[13px] font-semibold md:hidden"
+            style={{ backgroundColor: AMBER, color: DARKINK, fontFamily: BODY }}
+          >
+            <Phone size={14} strokeWidth={2.2} aria-hidden />
+            <span className="bg-navphone-num">{PHONE_DISPLAY}</span>
           </a>
           {/* hamburger: two lines that align into an X — the true-line
               vocabulary applied to the one mechanical control on the page */}
@@ -687,7 +747,8 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
             exit={{ opacity: 0, transition: { duration: 0.25, ease: 'easeOut' } }}
             transition={{ duration: 0.3, ease: EASE }}
             className="fixed inset-0 z-40 flex flex-col overflow-y-auto pt-[68px] md:hidden"
-            style={{ background: BG }}
+            style={{ background: BG, overscrollBehavior: 'contain' }}
+            data-lenis-prevent
           >
             <nav className="flex flex-1 flex-col justify-center gap-1 px-6 py-10">
               {menuItems.map((item, i) => (
@@ -724,7 +785,7 @@ function Nav({ lenisRef }: { lenisRef: RefObject<Lenis | null> }) {
             </nav>
             <motion.div
               className="flex items-center justify-between gap-4 border-t px-6 py-5"
-              style={{ borderColor: HAIR }}
+              style={{ borderColor: HAIR, paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
               initial={reduced ? undefined : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
@@ -877,9 +938,20 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
           }}
         >
           {words.map((w, i) => (
-            /* pt/-mt pair keeps the mask box tall enough that Í's acute
-               never clips against the overflow-hidden edge */
-            <span key={i} className="-mt-2 inline-block overflow-hidden pb-1 pt-2 align-top">
+            /* The pt/-mt pair keeps the mask box tall enough that Í's acute
+               never clips against the overflow-hidden edge. It MUST be in em,
+               not a fixed 8px: measured 2026-09-22, Í's ink ascent is 0.917em
+               against 0.70em for every unaccented cap, so the acute sits
+               0.1875em above the line box at any size. At 8px the accent was
+               cut off completely from 48px up — the hero read "HEFÐI I
+               SKORIST". 0.24em carries it with margin to spare. The negative
+               margin cancels the padding exactly, so line spacing is
+               unchanged. [[icelandic-titles-break-a-display-scale]] */
+            <span
+              key={i}
+              className="inline-block overflow-hidden pb-1 align-top"
+              style={{ paddingTop: '0.24em', marginTop: '-0.24em' }}
+            >
               <motion.span
                 className="inline-block"
                 initial={{ y: '118%' }}
@@ -1064,7 +1136,7 @@ function Story() {
             <p className="mt-7 max-w-[62ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
               {t.story.lead}
             </p>
-            <p className="mt-5 max-w-[62ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+            <p className="mt-5 max-w-[62ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
               {splitBody(t.story.body).rest}
             </p>
           </Rise>
@@ -1088,7 +1160,7 @@ function Story() {
               <p style={{ fontFamily: MONO, color: AMBER }} className="text-[15px] tracking-[0.14em]">
                 {item.year}
               </p>
-              <p className="mt-3 max-w-[46ch] text-[15.5px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+              <p className="mt-3 max-w-[46ch] text-[15.5px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
                 {item.text}
               </p>
             </Rise>
@@ -1131,7 +1203,7 @@ function Facts() {
               >
                 {lead.num !== null ? <CountUp to={lead.num} pad={lead.pad} suffix={lead.suffix} /> : lead.text}
               </p>
-              <p className="max-w-[26ch] text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+              <p className="max-w-[26ch] text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
                 {lead.label}
               </p>
             </div>
@@ -1150,8 +1222,14 @@ function Facts() {
                 style={{ borderColor: HAIR }}
               >
                 <p
-                  className="shrink-0 tabular-nums"
-                  style={{ fontFamily: MONO, color: INK, fontSize: 'clamp(1.75rem, 4vw, 2.8rem)', lineHeight: 1 }}
+                  className="shrink-0 whitespace-nowrap tabular-nums"
+                  style={{
+                    fontFamily: MONO,
+                    color: INK,
+                    /* word values (Toyota · Kia) sit a step below the numerals so they hold one line in a third of the row */
+                    fontSize: f.num === null && (f.text ?? '').length > 4 ? 'clamp(1.35rem, 2.4vw, 1.9rem)' : 'clamp(1.75rem, 4vw, 2.8rem)',
+                    lineHeight: 1,
+                  }}
                 >
                   {f.num !== null ? <CountUp to={f.num} pad={f.pad} suffix={f.suffix} /> : f.text}
                 </p>
@@ -1177,6 +1255,14 @@ const SERVICE_IMGS = [IMG.retting, IMG.malun, IMG.garage, IMG.lift, IMG.wheel, I
 function ServiceIndex() {
   const { t } = useT()
   const [active, setActive] = useState(0)
+  /* Phones: every description is rendered, nothing expands or collapses.
+     The scroll-driven accordion changed layout WHILE the page was moving,
+     which (a) shifted content under the reader's thumb and (b) aborted every
+     smooth anchor scroll that passed through this section (measured: a
+     scrollTo of 2,600px stopped after 134px). The photo above still tracks
+     the nearest row — that is an absolutely positioned crossfade, so it
+     never moves layout. Desktop keeps the hover/scroll accordion. */
+  const narrow = useNarrow()
   /* 90ms hover-intent gate: skimming the cursor down the list no longer
      churns through every row's photo crossfade + accordion — only a real
      pause commits. Touch (click) and keyboard (focus) stay instant. */
@@ -1232,11 +1318,8 @@ function ServiceIndex() {
   return (
     <section ref={sectionRef} id="thjonusta" className="mx-auto max-w-[1320px] scroll-mt-20 px-5 py-24 md:px-8 md:py-36">
       <Rise>
-        <Kicker>
-          {t.ui.servicesKicker}
-        </Kicker>
         <h2
-          className="mt-4 max-w-3xl text-balance"
+          className="max-w-3xl text-balance"
           style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
         >
           {t.ui.servicesTitle}
@@ -1244,32 +1327,31 @@ function ServiceIndex() {
       </Rise>
 
       <div className="mt-12 grid gap-10 md:mt-16 md:grid-cols-[1.15fr_1fr] md:gap-16">
-        {/* photo panel — first on mobile so the tap result is visible */}
+        {/* photo panel — first on mobile so the tap result is visible. The
+            tag sits UNDER the photo as a caption, not on a gradient over it. */}
         <div className="order-first md:order-last">
-          <div className="relative aspect-video overflow-hidden rounded-[26px] md:sticky md:top-24 md:aspect-[4/5]">
-            <AnimatePresence initial={false}>
-              <motion.img
-                key={active}
-                src={SERVICE_IMGS[active]}
-                alt={t.ui.serviceAlts[active]}
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover"
-                initial={{ opacity: 0, scale: 1.06 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.45, ease: EASE }}
-              />
-            </AnimatePresence>
-            <div
-              aria-hidden
-              className="absolute inset-x-0 bottom-0 h-24"
-              style={{ background: 'linear-gradient(to top, rgba(15,13,11,0.7), transparent)' }}
-            />
+          <div className="md:sticky md:top-24">
+            <div className="relative aspect-video overflow-hidden rounded-[26px] md:aspect-[4/5]">
+              <AnimatePresence initial={false}>
+                <motion.img
+                  key={active}
+                  src={SERVICE_IMGS[active]}
+                  alt={t.ui.serviceAlts[active]}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  initial={{ opacity: 0, scale: 1.06 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.45, ease: EASE }}
+                />
+              </AnimatePresence>
+            </div>
             <p
-              className="absolute bottom-4 left-5 text-[13px] tracking-[0.16em] uppercase"
-              style={{ fontFamily: MONO, color: INK }}
+              className="mt-3 flex items-center gap-3 text-[12.5px] tracking-[0.16em] uppercase"
+              style={{ fontFamily: MONO, color: MUT }}
             >
+              <span aria-hidden className="inline-block h-px w-5 shrink-0" style={{ background: AMBER }} />
               {t.services[active].tag}
             </p>
           </div>
@@ -1318,26 +1400,35 @@ function ServiceIndex() {
                     >
                       {s.name}
                     </span>
-                    <AnimatePresence initial={false}>
-                      {on && (
-                        <motion.span
-                          className="block overflow-hidden"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          /* close faster than open so at most one row is
-                             ever visibly mid-layout while browsing */
-                          exit={{ height: 0, opacity: 0, transition: { duration: 0.22, ease: 'easeOut' } }}
-                          transition={{ duration: 0.4, ease: EASE }}
-                        >
-                          <span
-                            className="block max-w-[52ch] pt-2.5 text-[15px] leading-relaxed"
-                            style={{ fontFamily: BODY, color: MUT }}
+                    {narrow ? (
+                      <span
+                        className="block max-w-[52ch] pt-2 text-[15px] leading-relaxed"
+                        style={{ fontFamily: BODY, color: on ? INK : MUT, transition: 'color 0.2s' }}
+                      >
+                        {s.desc}
+                      </span>
+                    ) : (
+                      <AnimatePresence initial={false}>
+                        {on && (
+                          <motion.span
+                            className="block overflow-hidden"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            /* close faster than open so at most one row is
+                               ever visibly mid-layout while browsing */
+                            exit={{ height: 0, opacity: 0, transition: { duration: 0.22, ease: 'easeOut' } }}
+                            transition={{ duration: 0.4, ease: EASE }}
                           >
-                            {s.desc}
-                          </span>
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
+                            <span
+                              className="block max-w-[52ch] pt-2.5 text-[15.5px] leading-relaxed"
+                              style={{ fontFamily: BODY, color: INK }}
+                            >
+                              {s.desc}
+                            </span>
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    )}
                   </span>
                 </button>
               </li>
@@ -1349,14 +1440,12 @@ function ServiceIndex() {
       <Rise delay={0.1}>
         {/* self-pay reassurance where services are browsed — the fixed-quote
             fact otherwise only appears deep in the claims rail */}
-        <p className="mt-10 text-[14px]" style={{ fontFamily: BODY, color: MUT }}>
+        <p className="mt-10 text-[15px]" style={{ fontFamily: BODY, color: INK }}>
           {t.ui.selfPayPre}
-          <span className="font-semibold" style={{ color: INK }}>
-            {t.ui.selfPayBold}
-          </span>
+          <span className="font-semibold">{t.ui.selfPayBold}</span>
           {t.ui.selfPayPost}
         </p>
-        <p className="mt-2 text-[14px]" style={{ fontFamily: BODY, color: MUT }}>
+        <p className="mt-2 text-[15px]" style={{ fontFamily: BODY, color: INK }}>
           {t.ui.lubeAnswers}{' '}
           <a
             href={LUBE_PHONE_HREF}
@@ -1471,16 +1560,13 @@ function Claims() {
         <div className="grid gap-14 md:grid-cols-[1fr_1.1fr] md:gap-20">
           <div>
             <Rise>
-              <Kicker>
-                {t.ui.claimsKicker}
-              </Kicker>
               <h2
-                className="mt-4 text-balance"
+                className="text-balance"
                 style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
               >
                 {t.insurance.title}
               </h2>
-              <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+              <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
                 {t.insurance.body}
               </p>
               <p className="mt-7 text-[13px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
@@ -1504,18 +1590,17 @@ function Claims() {
             <div aria-hidden className="absolute bottom-2 left-[5px] top-2 w-px md:left-[7px]" style={{ background: HAIR }} />
             <ClaimLine scrollYProgress={scrollYProgress} />
             <ol className="space-y-12 md:space-y-16">
-              {t.claimSteps.map((s, i) => (
-                <li key={s.title} className="relative">
-                  <span
-                    aria-hidden
-                    className="absolute -left-8 top-2 block h-2.5 w-2.5 rounded-full md:-left-10 md:h-3 md:w-3"
-                    style={{ background: s.highlight ? AMBER : BG, border: `2px solid ${s.highlight ? AMBER : MUT}` }}
-                  />
-                  <Rise delay={i * 0.06}>
-                    <div
-                      className={s.highlight ? 'bg-soft rounded-[20px] border p-5 md:p-6' : undefined}
-                      style={s.highlight ? { borderColor: 'rgba(232,162,61,0.4)', background: 'rgba(232,162,61,0.07)' } : undefined}
-                    >
+              {t.claimSteps.map((s, i) => {
+                /* the last dot is where the line lands true — filled amber */
+                const last = i === t.claimSteps.length - 1
+                return (
+                  <li key={s.title} className="relative">
+                    <span
+                      aria-hidden
+                      className="absolute -left-8 top-2 block h-2.5 w-2.5 rounded-full md:-left-10 md:h-3 md:w-3"
+                      style={{ background: last ? AMBER : BG, border: `2px solid ${last ? AMBER : MUT}` }}
+                    />
+                    <Rise delay={i * 0.06}>
                       <p className="text-[13px] tracking-[0.16em]" style={{ fontFamily: MONO, color: AMBER }}>
                         {String(i + 1).padStart(2, '0')}
                       </p>
@@ -1523,27 +1608,19 @@ function Claims() {
                         className="mt-2"
                         style={{
                           fontFamily: EBOLD, textTransform: 'uppercase',
-                          fontSize: s.highlight ? 'clamp(1.6rem, 2.8vw, 2.2rem)' : 'clamp(1.4rem, 2.4vw, 1.9rem)',
+                          fontSize: 'clamp(1.4rem, 2.4vw, 1.9rem)',
                           letterSpacing: '-0.01em',
                         }}
                       >
                         {s.title}
                       </h3>
-                      <p className="mt-3 max-w-[52ch] text-[16px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+                      <p className="mt-3 max-w-[52ch] text-[16px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
                         {s.desc}
                       </p>
-                      {s.highlight && (
-                        <p
-                          className="mt-4 inline-flex items-center rounded-full px-4 py-2 text-[13.5px] font-semibold"
-                          style={{ backgroundColor: AMBER, color: DARKINK, fontFamily: BODY }}
-                        >
-                          {t.ui.includedBadge}
-                        </p>
-                      )}
-                    </div>
-                  </Rise>
-                </li>
-              ))}
+                    </Rise>
+                  </li>
+                )
+              })}
             </ol>
 
             {/* mobile: the CABAS measurement demo — the page's best craft
@@ -1564,7 +1641,7 @@ function Claims() {
                 action — one quiet tel link in the rail's own typography,
                 not a second CTA vocabulary */}
             <Rise delay={0.1}>
-              <p className="mt-12 text-[16px]" style={{ fontFamily: BODY, color: MUT }}>
+              <p className="mt-12 text-[16px]" style={{ fontFamily: BODY, color: INK }}>
                 {t.ui.claimsClose}{' '}
                 <a
                   href={PHONE_HREF}
@@ -1628,16 +1705,13 @@ function Brands() {
       <div className="grid items-center gap-12 md:grid-cols-[1.1fr_1fr] md:gap-20">
         <div>
           <Rise>
-            <Kicker>
-              {t.ui.brandsKicker}
-            </Kicker>
             <h2
-              className="mt-4 text-balance"
+              className="text-balance"
               style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
             >
               {t.brands.title}
             </h2>
-            <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+            <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
               {t.brands.body}
             </p>
             <p className="mt-4 max-w-[58ch] text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
@@ -1677,92 +1751,31 @@ function Brands() {
   )
 }
 
-/** One compact review card. Long quotes clamp to four lines with a
-    read-more toggle (the marquee already pauses on hover, so expanding in
-    place is stable to read); short ones stay small so several cards share
-    the viewport instead of two billboards. */
-function ReviewCard({ r, hidden }: { r: Review; hidden?: boolean }) {
-  const { t } = useT()
-  const [open, setOpen] = useState(false)
-  const long = r.quote.length > 130
-  return (
-    <li
-      className="bg-soft flex w-[260px] shrink-0 flex-col rounded-[20px] border p-5 md:w-[292px]"
-      style={{ borderColor: HAIR, background: SURFACE }}
-    >
-      <p className="flex items-baseline justify-between gap-3">
-        <span className="text-[11px] tracking-[0.2em]" style={{ fontFamily: MONO, color: AMBER }} aria-label="5 stjörnur">
-          ★★★★★
-        </span>
-        <span className="text-[10px] tracking-[0.16em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-          {r.source}
-        </span>
-      </p>
-      <p
-        className="mt-3 text-[13.5px] leading-relaxed"
-        style={{
-          fontFamily: BODY,
-          color: INK,
-          ...(long && !open
-            ? { display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' }
-            : {}),
-        }}
-      >
-        &ldquo;{r.quote}&rdquo;
-      </p>
-      {long && (
-        <button
-          type="button"
-          tabIndex={hidden ? -1 : 0}
-          onClick={() => setOpen(o => !o)}
-          aria-expanded={open}
-          className="bg-link-hover mt-1.5 min-h-8 self-start text-[12px] underline decoration-1 underline-offset-4"
-          style={{ fontFamily: BODY, color: MUT }}
-        >
-          {open ? t.ui.readLess : t.ui.readMore}
-        </button>
-      )}
-      <p className="mt-auto pt-4 text-[10.5px] tracking-[0.12em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-        {r.name}
-        {r.translated ? ` · ${t.ui.reviewsTranslatedNote}` : ''}
-      </p>
-    </li>
-  )
-}
-
-/** Real, verbatim customer reviews (see translations.ts provenance note) as a
-    drifting marquee — the row duplicates once for the seamless loop, the
-    second copy aria-hidden. Reduced motion renders a static scrollable row. */
+/** Real, verbatim customer reviews (see translations.ts provenance note),
+    set as type on the page instead of a card marquee (2026-09-22). The one
+    real story — a car that broke down on the way to the airport, fixed the
+    same day at a fair price — is the strongest proof the shop has, so it is
+    set large; the short ones read as a hairline list beside it. The rating
+    line cites platform and count, and links to the listing. Nothing here
+    is padded or split; seven reviews, seven entries. */
 function Reviews() {
   const { t } = useT()
-  const reduced = useReducedMotion()
-  const narrow = useNarrow()
-  const row = (hidden: boolean) => (
-    <ul aria-hidden={hidden || undefined} className="flex shrink-0 items-stretch gap-4 pr-4">
-      {t.ui.reviews.map(r => (
-        <ReviewCard key={r.name} r={r} hidden={hidden} />
-      ))}
-    </ul>
-  )
+  const all = t.ui.reviews as Review[]
+  const feature = all.reduce((a, b) => (b.quote.length > a.quote.length ? b : a), all[0])
+  const rest = all.filter(r => r !== feature)
+  const byline = (r: Review) => `${r.name} · ${r.source}${r.translated ? ` · ${t.ui.reviewsTranslatedNote}` : ''}`
   return (
-    <section className="overflow-hidden border-t py-24 md:py-32" style={{ borderColor: HAIR, background: BG }}>
+    <section className="border-t py-24 md:py-36" style={{ borderColor: HAIR, background: BG }}>
       <div className="mx-auto max-w-[1320px] px-5 md:px-8">
         <Rise>
-          <Kicker>{t.ui.reviewsKicker}</Kicker>
           <h2
-            className="mt-4 text-balance"
+            className="text-balance"
             style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
           >
             {t.ui.reviewsTitle}
           </h2>
-        </Rise>
-        <Rise delay={0.08}>
-          <div
-            className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-2 text-[13px] tracking-[0.1em] uppercase"
-            style={{ fontFamily: MONO, color: MUT }}
-          >
-            <span style={{ color: INK }}>{t.ui.reviewsGoogle}</span>
-            <span>{t.ui.reviewsFacebook}</span>
+          <p className="mt-5 flex flex-wrap items-baseline gap-x-6 gap-y-1 text-[15px]" style={{ fontFamily: BODY, color: INK }}>
+            <span className="tabular-nums">{t.ui.reviewsGoogle}</span>
             <a
               href="https://www.google.com/maps/search/B%C3%ADlageirinn+ehf+Gr%C3%B3fin+14a+Reykjanesb%C3%A6"
               target="_blank"
@@ -1772,23 +1785,43 @@ function Reviews() {
             >
               {t.ui.reviewsOpenGoogle}
             </a>
-          </div>
+          </p>
         </Rise>
+
+        <div className="mt-12 grid gap-12 md:mt-16 md:grid-cols-[1.15fr_1fr] md:gap-20">
+          <Rise>
+            <figure>
+              <blockquote
+                className="text-balance"
+                style={{ fontFamily: BODY, color: INK, fontSize: 'clamp(1.35rem, 2.1vw, 1.8rem)', lineHeight: 1.4 }}
+              >
+                &ldquo;{feature.quote}&rdquo;
+              </blockquote>
+              <figcaption className="mt-6 flex items-center gap-3 text-[12px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                <span aria-hidden className="inline-block h-px w-5 shrink-0" style={{ background: AMBER }} />
+                {byline(feature)}
+              </figcaption>
+            </figure>
+          </Rise>
+          <ul className="border-t" style={{ borderColor: HAIR }}>
+            {rest.map((r, i) => (
+              <Rise key={r.name} delay={0.05 + i * 0.05}>
+                <li className="border-b py-5" style={{ borderColor: HAIR }}>
+                  <p className="text-[16px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
+                    &ldquo;{r.quote}&rdquo;
+                  </p>
+                  <p className="mt-2 text-[11px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
+                    {byline(r)}
+                  </p>
+                </li>
+              </Rise>
+            ))}
+          </ul>
+        </div>
+        <p className="mt-8 text-[13px]" style={{ fontFamily: MONO, color: MUT }}>
+          {t.ui.reviewsSource}
+        </p>
       </div>
-      <Rise delay={0.15}>
-        {reduced || narrow ? (
-          /* touch can't hover to pause a marquee, so it just moves at you —
-             swipe the row by hand instead */
-          <div className="mt-10 overflow-x-auto px-5 md:px-8">{row(false)}</div>
-        ) : (
-          <div className="bg-rev-marquee mt-10 overflow-hidden">
-            <div className="bg-rev-track flex w-max">
-              {row(false)}
-              {row(true)}
-            </div>
-          </div>
-        )}
-      </Rise>
     </section>
   )
 }
@@ -1812,7 +1845,7 @@ function Workshop() {
               >
                 {t.facility.title}
               </h2>
-              <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+              <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
                 {t.facility.body}
               </p>
             </Rise>
@@ -1858,9 +1891,6 @@ function Workshop() {
                     <br />
                     {ADDRESS.town}
                   </p>
-                  <p className="mt-3 text-[13px]" style={{ fontFamily: MONO, color: MUT }}>
-                    {t.ui.mapNote}
-                  </p>
                 </div>
               </div>
             </Rise>
@@ -1884,11 +1914,8 @@ function MapSection() {
     <section className="border-t" style={{ borderColor: HAIR }}>
       <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-8 md:py-20">
         <Rise>
-          <Kicker>
-            {t.ui.mapKicker}
-          </Kicker>
           <h2
-            className="mt-4 text-balance"
+            className="text-balance"
             style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(1.8rem, 3.6vw, 2.6rem)', letterSpacing: '0.005em', lineHeight: 1.08 }}
           >
             {t.ui.mapTitle}
@@ -1927,8 +1954,8 @@ function MapSection() {
         </Rise>
         <Rise delay={0.18}>
           <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-            <p className="text-[15px]" style={{ fontFamily: BODY, color: MUT }}>
-              <span style={{ color: INK }}>{ADDRESS.street}</span>, {ADDRESS.town}
+            <p className="text-[15px]" style={{ fontFamily: BODY, color: INK }}>
+              {ADDRESS.street}, {ADDRESS.town}
             </p>
             <a
               href={MAPS}
@@ -2004,18 +2031,15 @@ function ContactForm() {
     }
   }
 
-  const field = 'bg-field min-h-11 w-full px-4 py-2.5 text-[15px]'
-  const label = 'mb-1.5 block text-[12px] tracking-[0.1em] uppercase'
+  const field = 'bg-field min-h-11 w-full py-2.5 text-[16px]'
+  const label = 'mb-1 block text-[12px] tracking-[0.1em] uppercase'
 
   return (
-    <div className="bg-soft rounded-[26px] border p-6 text-left md:p-7" style={{ borderColor: HAIR, background: 'rgba(26,22,19,0.72)' }}>
-      <p className="text-[12px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
-        {t.ui.formKicker}
-      </p>
-      <h3 className="mt-2 text-[19px] font-bold" style={{ fontFamily: BODY, color: INK }}>
+    <div className="text-left">
+      <h3 className="text-[20px] font-bold" style={{ fontFamily: BODY, color: INK }}>
         {t.ui.formTitle}
       </h3>
-      <p className="mt-1.5 text-[14px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
+      <p className="mt-2 text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
         {t.ui.formIntro}
       </p>
 
@@ -2028,12 +2052,9 @@ function ContactForm() {
             transition={{ duration: 0.4, ease: EASE }}
             className="mt-6"
           >
-            <div
-              className="flex items-start gap-3 rounded-[16px] border py-4 px-4"
-              style={{ borderColor: 'rgba(232,162,61,0.35)', background: 'rgba(232,162,61,0.08)' }}
-            >
+            <div className="flex items-start gap-3 border-t pt-5" style={{ borderColor: AMBER }} role="status" aria-live="polite">
               <Check size={18} strokeWidth={2.4} aria-hidden style={{ color: AMBER, flexShrink: 0, marginTop: 2 }} />
-              <p className="text-[14px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
+              <p className="text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
                 {t.ui.sentNotice}
               </p>
             </div>
@@ -2094,13 +2115,15 @@ function ContactForm() {
                 </label>
                 <input
                   id="bg-name"
+                  name="name"
                   type="text"
+                  autoComplete="name"
                   required
                   value={name}
                   onChange={e => setName(e.target.value)}
                   data-touched={touched}
                   placeholder={t.ui.namePlaceholder}
-                  className={`${field} rounded-full`}
+                  className={field}
                   style={{ fontFamily: BODY }}
                 />
               </div>
@@ -2110,13 +2133,16 @@ function ContactForm() {
                 </label>
                 <input
                   id="bg-phone"
+                  name="tel"
                   type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
                   required
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
                   data-touched={touched}
                   placeholder={t.ui.phonePlaceholder}
-                  className={`${field} rounded-full`}
+                  className={field}
                   style={{ fontFamily: BODY }}
                 />
               </div>
@@ -2127,14 +2153,17 @@ function ContactForm() {
                   {t.ui.fieldPlate} <span style={{ color: MUT, textTransform: 'none', letterSpacing: 0 }}>{t.ui.optional}</span>
                 </label>
                 <div className="relative">
-                  <Car size={15} strokeWidth={2.2} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: MUT }} />
+                  <Car size={15} strokeWidth={2.2} aria-hidden className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2" style={{ color: MUT }} />
                   <input
                     id="bg-plate"
+                    name="plate"
                     type="text"
+                    autoComplete="off"
+                    spellCheck={false}
                     value={plate}
                     onChange={e => setPlate(e.target.value.toUpperCase())}
                     placeholder="AB 123"
-                    className={`${field} rounded-full pl-10`}
+                    className={`${field} pl-7`}
                     style={{ fontFamily: MONO, letterSpacing: '0.06em' }}
                   />
                 </div>
@@ -2145,11 +2174,12 @@ function ContactForm() {
                 </label>
                 <select
                   id="bg-service"
+                  name="service"
                   required
                   value={service}
                   onChange={e => setService(e.target.value)}
                   data-touched={touched}
-                  className={`${field} rounded-full`}
+                  className={field}
                   style={{ fontFamily: BODY, color: service ? INK : MUT }}
                 >
                   <option value="" disabled>
@@ -2169,23 +2199,24 @@ function ContactForm() {
               </label>
               <textarea
                 id="bg-message"
+                name="message"
                 rows={3}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 placeholder={t.ui.messagePlaceholder}
-                className={`${field} resize-none rounded-[20px]`}
+                className={`${field} resize-none`}
                 style={{ fontFamily: BODY }}
               />
             </div>
             {touched && !valid && (
-              <p className="text-[13px]" style={{ fontFamily: BODY, color: '#E06E6E' }}>
+              <p className="text-[14px]" style={{ fontFamily: BODY, color: '#E8938F' }} role="alert">
                 {t.ui.formError}
               </p>
             )}
             <button
               type="submit"
               disabled={status === 'sending'}
-              className="bg-btn bg-btn-solid mt-1 inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-full text-[15px] font-bold"
+              className="bg-btn bg-btn-solid mt-3 inline-flex min-h-[52px] items-center justify-center gap-2.5 self-start rounded-full px-8 text-[15px] font-bold"
               style={{ backgroundColor: AMBER, color: DARKINK, fontFamily: BODY }}
             >
               {status === 'sending' ? (
@@ -2217,7 +2248,7 @@ function Contact() {
               <h2 className="text-balance" style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.2rem)', letterSpacing: '0.005em' }}>
                 {t.cta.title}
               </h2>
-              <p className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed md:mx-0" style={{ fontFamily: BODY, color: MUT }}>
+              <p className="mx-auto mt-5 max-w-xl text-[17px] leading-relaxed md:mx-0" style={{ fontFamily: BODY, color: INK }}>
                 {t.cta.body}
               </p>
             </Rise>
@@ -2260,6 +2291,108 @@ function Contact() {
         </div>
       </div>
     </section>
+  )
+}
+
+/** The shop's own footer — the page used to end at the studio disclaimer with
+    no address, hours or company number anywhere below the contact form.
+    Built to the phone structure first [[mobile-footer-structure]]: wordmark
+    and company block full width, the hours as a spec list (day left, time
+    right, hairlines between), the two short lists side by side, then the
+    legal line on its own row. Desktop spreads the same blocks over four
+    columns. */
+function SiteFooter() {
+  const { t } = useT()
+  const links = [
+    { hash: '#thjonusta', label: t.ui.navServices },
+    { hash: '#tjon', label: t.ui.navClaims },
+    { hash: '#verkstaedid', label: t.ui.navWorkshop },
+    { hash: '#hafa-samband', label: t.ui.contactCta },
+  ]
+  const head = 'text-[11.5px] tracking-[0.18em] uppercase'
+  const row = 'bg-link-hover inline-flex min-h-11 items-center text-[15px]'
+  return (
+    <footer className="border-t" style={{ borderColor: HAIR, background: SURFACE }}>
+      <div className="mx-auto max-w-[1320px] px-5 pb-10 pt-14 md:px-8 md:pt-20">
+        <div className="grid gap-10 md:grid-cols-[1.2fr_1fr_0.7fr_1.1fr] md:gap-12">
+          <div>
+            <p style={{ fontFamily: LOGO, fontWeight: 900, fontSize: 'clamp(1.6rem, 6vw, 2.2rem)', color: INK, letterSpacing: '-0.015em', lineHeight: 1 }}>
+              Bílageirinn
+            </p>
+            <p className="mt-3 text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
+              {ADDRESS.street}, {ADDRESS.town}
+            </p>
+            <p className="mt-1 text-[13px]" style={{ fontFamily: MONO, color: MUT }}>
+              {t.ui.footerCompany}
+            </p>
+          </div>
+
+          <div>
+            <p className={head} style={{ fontFamily: MONO, color: AMBER }}>
+              {t.ui.hoursLabel}
+            </p>
+            <ul className="mt-3 border-t" style={{ borderColor: HAIR }}>
+              {t.hours.map((h, i) => (
+                <li key={h.days} className="flex items-baseline justify-between gap-4 border-b py-2.5 text-[15px]" style={{ borderColor: HAIR, fontFamily: BODY }}>
+                  <span style={{ color: INK }}>{t.ui.hoursShort[i] ?? h.days}</span>
+                  <span className="shrink-0 tabular-nums" style={{ color: h.close ? INK : MUT }}>
+                    {h.close ? `${h.open}–${h.close}` : h.open}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="grid grid-cols-2 gap-8 md:contents">
+            <div>
+              <p className={head} style={{ fontFamily: MONO, color: AMBER }}>
+                {t.ui.footerOnPage}
+              </p>
+              <ul className="mt-2 flex flex-col" style={{ fontFamily: BODY }}>
+                {links.map(l => (
+                  <li key={l.hash}>
+                    <a href={l.hash} className={row} style={{ color: INK }}>
+                      {l.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="min-w-0">
+              <p className={head} style={{ fontFamily: MONO, color: AMBER }}>
+                {t.ui.footerContact}
+              </p>
+              <ul className="mt-2 flex flex-col" style={{ fontFamily: BODY }}>
+                <li>
+                  <a href={PHONE_HREF} className={`${row} tabular-nums`} style={{ color: INK }}>
+                    {PHONE_DISPLAY}
+                  </a>
+                </li>
+                <li>
+                  <a href={LUBE_PHONE_HREF} className={`${row} tabular-nums`} style={{ color: INK }}>
+                    {t.ui.footerLube} {LUBE_PHONE_DISPLAY}
+                  </a>
+                </li>
+                <li>
+                  <a href={`mailto:${EMAIL}`} className={`${row} [overflow-wrap:anywhere]`} style={{ color: INK }}>
+                    {EMAIL}
+                  </a>
+                </li>
+                <li>
+                  <a href={FACEBOOK} target="_blank" rel="noreferrer" className={row} style={{ color: INK }}>
+                    Facebook
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-12 border-t pt-5 text-[12.5px] tracking-[0.06em]" style={{ borderColor: HAIR, fontFamily: MONO, color: MUT }}>
+          © {new Date().getFullYear()} Bílageirinn ehf · {ADDRESS.street}, {ADDRESS.town} · {KT}
+        </p>
+      </div>
+    </footer>
   )
 }
 
@@ -2311,7 +2444,10 @@ export default function Page() {
       '@context': 'https://schema.org',
       '@type': 'AutoBodyShop',
       name: 'Bílageirinn',
+      legalName: 'Bílageirinn ehf',
+      taxID: KT,
       url: 'https://bilageirinn.is',
+      sameAs: [FACEBOOK],
       slogan: 'Eins og ekkert hefði í skorist.',
       telephone: '+354 421 6901',
       email: EMAIL,
@@ -2343,7 +2479,9 @@ export default function Page() {
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const lenis = new Lenis({ duration: 1.1 })
+    /* never a JS scroll surface on a phone — see isTouch() above */
+    const lenis = isTouch() ? null : new Lenis({ duration: 1.1 })
+    if (!lenis) return
     lenisRef.current = lenis
     let raf = 0
     const loop = (t: number) => {
@@ -2375,7 +2513,7 @@ export default function Page() {
       return false
     }
   }, [])
-  const MIN_VISIBLE_MS = introSeen ? 0 : 1900
+  const MIN_VISIBLE_MS = introSeen ? 0 : 1500
   const GATE_KEYS = useMemo(() => ['fonts', 'hero', 'icon'] as const, [])
   const [ready, setReady] = useState<Record<string, boolean>>({})
   const [forced, setForced] = useState(false)
@@ -2429,6 +2567,8 @@ export default function Page() {
     <div className="bg-page min-h-screen antialiased" style={{ fontFamily: BODY }}>
       <style>{CSS}</style>
       {overlayMounted && <BilageirinnLoading visible={!assetsReady} progress={loadProgress} />}
+      {/* first in flow, phones only: the sticky awning that owns the island strip */}
+      <div aria-hidden className="bg-awning" />
       <Nav lenisRef={lenisRef} />
       <main>
         <Hero lenisRef={lenisRef} start={assetsReady} />
@@ -2443,11 +2583,15 @@ export default function Page() {
         <MapSection />
         <Contact />
       </main>
+      <SiteFooter />
 
       <div className="px-5 py-5 text-center text-[11px] tracking-[0.16em]" style={{ fontFamily: MONO, color: MUT, borderTop: `1px solid ${HAIR}` }}>
         FRUMGERÐ · SNDR STUDIO
       </div>
-      <PreviewFooter company={company} />
+      {/* verifiedContent: every fact, price-free, and every review on this page
+          is traceable to bilageirinn.is, DV/Víkurfréttir or the live Google
+          listing — the shared footer must not call them samples */}
+      <PreviewFooter company={company} verifiedContent />
       <PreviewChrome company={company} />
     </div>
     </LangCtx.Provider>

@@ -6,9 +6,13 @@
  * for paint/bodywork, 2007 built and moved into a purpose-built 810 m²
  * facility. MD Björn Steinar Unnarsson is a certified Master Aircraft
  * Mechanic. CABAS damage assessment, works with every Icelandic insurer,
- * fixed-price self-pay quotes, loaner car during damage repairs, annual
- * staff training abroad on paint/repair materials. Member of
- * Bílgreinasambandið. No numbers or claims beyond these are used.
+ * fixed-price self-pay quotes, a rental car arranged during insured damage
+ * repairs (insurer-paid, for those entitled — their CABAS page), annual
+ * staff training abroad on paint/repair materials plus domestic courses.
+ * Member of Bílgreinasambandið (bgs.is félagatal, checked 2026-09-22).
+ * Kia authorization: Askja service agreement, Víkurfréttir 2018-04-20.
+ * Opening hours: ja.is / 1819.is, checked 2026-09-22.
+ * No numbers or claims beyond these are used.
  */
 
 export const NAME = 'Bílageirinn'
@@ -17,6 +21,10 @@ export const PHONE_HREF = 'tel:+3544216901'
 export const LUBE_PHONE_DISPLAY = '436 6901'
 export const LUBE_PHONE_HREF = 'tel:+3544366901'
 export const EMAIL = 'bilageirinn@bilageirinn.is'
+/** Kennitala as printed on bilageirinn.is (?page_id=3), 2026-09-22. */
+export const KT = '460803-2410'
+/** Their own page, confirmed 2026-09-22 (facebook.com/bilageirinn, "Bílageirinn ehf | Keflavík"). */
+export const FACEBOOK = 'https://www.facebook.com/bilageirinn/'
 export const ADDRESS = { street: 'Grófin 14a', town: '230 Reykjanesbær' }
 export const MAPS = 'https://maps.google.com/?q=B%C3%ADlageirinn,+Gr%C3%B3fin+14a,+230+Reykjanesb%C3%A6r'
 
@@ -37,11 +45,12 @@ export const HERO = {
   ctaSecondary: 'Skoða þjónustuna',
 }
 
-/** Verified facts row — numbers count up on scroll into view. */
+/** Verified facts row. Only the measurement (810 m²) counts up: a year
+    counting from zero reads as a meter, not a fact (2026-09-22). */
 export const FACTS = [
-  { num: 2003, pad: 4, suffix: '', label: 'Stofnár í Reykjanesbæ' },
+  { num: null, pad: 0, text: '2003', suffix: '', label: 'Stofnár í Reykjanesbæ' },
   { num: 810, pad: 3, suffix: ' m²', label: 'Sérbyggt húsnæði í Grófinni' },
-  { num: 2, pad: 1, suffix: '', label: 'Viðurkennd vörumerki' },
+  { num: null, pad: 0, text: 'Toyota · Kia', suffix: '', label: 'Viðurkennd þjónusta' },
   { num: null, pad: 0, text: 'Öll', suffix: '', label: 'Tryggingafélög landsins' },
 ]
 
@@ -86,8 +95,8 @@ export const STORY = {
   body:
     'Bíllinn þinn á eina rétta línu, þá sem hann kom með úr verksmiðjunni. Tjón færir hana úr stað. Okkar verk er að finna hana aftur og skila henni, mældri og staðfestri.',
   timeline: [
-    { year: '2003', text: 'Bílageirinn stofnaður. Fyrstu árin snerust um innflutning á bílum og varahlutum.' },
-    { year: '2004', text: 'Húsnæði keypt undir bílamálun og réttingar. Verkstæðið tekur á sig mynd.' },
+    { year: '2003', text: 'Bílageirinn stofnaður. Fyrstu árin snerust um innflutning á bílum, mótorhjólum og varahlutum.' },
+    { year: '2004', text: 'Húsnæði keypt undir bílamálun, sem hófst sama ár. Verkstæðið tekur á sig mynd.' },
     { year: '2007', text: 'Flutt í 810 fermetra húsnæði að Grófinni 14a, byggt frá grunni utan um starfsemina.' },
   ],
 }
@@ -116,7 +125,7 @@ export const SERVICES: Service[] = [
   },
   {
     name: 'Smurstöð',
-    desc: 'Olíuskipti og smurþjónusta. Smurstöðin hefur sína eigin símalínu.',
+    desc: 'Olíuskipti og smurþjónusta. Mobil-smurstöðin hefur sína eigin símalínu.',
     tag: 'S. 436 6901',
   },
   {
@@ -130,8 +139,8 @@ export const SERVICES: Service[] = [
     tag: 'STILLING',
   },
   {
-    name: 'Bremsu- og fjöðrunarprófun',
-    desc: 'Ástand bremsa og fjöðrunar kannað og metið.',
+    name: 'Bremsu- og demparaprófun',
+    desc: 'Ástand bremsa og dempara kannað og metið.',
     tag: 'PRÓFUN',
   },
 ]
@@ -146,8 +155,8 @@ export const BRANDS = {
 export const CRAFT = {
   title: 'Handverk sem fylgist með efninu',
   body:
-    'Efni í bílamálun og réttingum taka stöðugum breytingum. Þess vegna sækir starfsfólk Bílageirans árlega þjálfun erlendis hjá framleiðendum efnanna sem notuð eru á verkstæðinu. Nýjasta þekkingin skilar sér beint í sprautuklefann og á réttingabekkinn.',
-  points: ['Árleg þjálfun erlendis', 'Efni frá viðurkenndum framleiðendum', 'Verkstjóri yfir málningardeild'],
+    'Efni í bílamálun og réttingum taka stöðugum breytingum. Þess vegna sækir starfsfólk Bílageirans námskeið erlendis einu sinni á ári til að fylgja þróun efnanna sem verkstæðið kaupir af sínum birgjum, og öll námskeið sem bjóðast hér á landi. Nýjasta þekkingin skilar sér beint í sprautuklefann og á réttingabekkinn.',
+  points: ['Námskeið erlendis einu sinni á ári', 'Öll námskeið sem bjóðast hér á landi', 'Verkstjóri yfir málningardeild'],
 }
 
 export interface Step {
@@ -169,10 +178,12 @@ export const CLAIM_STEPS: Step[] = [
     title: 'Viðgerðin',
     desc: 'Rétting, málun og frágangur, unnið eftir matinu þar til línan er rétt.',
   },
+  /* Their own CABAS page (2026-09-22): the car is a bílaleigubíll that the
+     insurer pays for in a covered claim, for those entitled to one, and the
+     shop arranges it. Never "lánsbíll innifalinn" — that overclaims. */
   {
-    title: 'Lánsbíll á meðan',
-    desc: 'Þú færð lánsbíl hjá okkur á meðan tjónaviðgerðin stendur yfir. Hversdagurinn stoppar ekki.',
-    highlight: true,
+    title: 'Bíll á meðan viðgerð stendur',
+    desc: 'Í bótaskyldu tjóni útvegar Bílageirinn þér bílaleigubíl á meðan viðgerðin stendur yfir, fyrir þá sem eiga rétt á honum hjá sínu tryggingafélagi. Við förum yfir það með þér í fyrsta símtali.',
   },
 ]
 
@@ -213,5 +224,5 @@ export const CTA = {
 export const SEO = {
   title: 'Réttingar, bílamálun og tjónaviðgerðir í Reykjanesbæ | Bílageirinn',
   description:
-    'Bílageirinn í Reykjanesbæ: réttingar, bílamálun, smurstöð og almenn bílaþjónusta. Viðurkennt þjónustuverkstæði fyrir Toyota og Kia. CABAS-tjónamat, öll tryggingafélög og lánsbíll meðan á viðgerð stendur. Sími 421 6901.',
+    'Bílageirinn í Reykjanesbæ: réttingar, bílamálun, smurstöð og almenn bílaþjónusta. Viðurkennt þjónustuverkstæði fyrir Toyota og Kia. CABAS-tjónamat, öll tryggingafélög og bíll á meðan viðgerð stendur. Sími 421 6901.',
 }

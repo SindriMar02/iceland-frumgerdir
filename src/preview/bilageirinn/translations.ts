@@ -24,10 +24,11 @@ import {
 export type Lang = 'is' | 'en'
 
 /** Real customer reviews, captured verbatim 2026-07-21 from the shop's public
- *  Google Maps listing (4.1/21 reviews; signed-in session, originals read with
+ *  Google Maps listing (4.1/21 reviews then; 4.0/23 on 2026-09-22, Sandra and
+ *  Lorena re-read verbatim on the listing that day; originals read with
  *  hl=is so Icelandic quotes are the reviewers' own words) and Facebook page
- *  (86% recommend, 6 reviews). Only 5-star/recommend entries with prose are
- *  used. EN versions of Icelandic quotes are translations (marked in UI);
+ *  (86% recommend, 6 reviews in July; login-walled since, so no percentage
+ *  is shown any more). Only 5-star/recommend entries with prose are used. EN versions of Icelandic quotes are translations (marked in UI);
  *  Lorena wrote in English originally. NEVER add a quote that can't be found
  *  on the live listing. */
 export interface Review {
@@ -59,7 +60,7 @@ const IS = {
     proofRow: [
       'Viðurkennt þjónustuverkstæði fyrir Toyota og Kia',
       'Öll tryggingafélög og CABAS-tjónamat',
-      'Lánsbíll meðan á viðgerð stendur',
+      'Bíll á meðan viðgerð stendur',
     ],
     contactCta: 'Hafðu samband',
     navServices: 'Þjónusta',
@@ -68,26 +69,28 @@ const IS = {
     navTopAria: 'Bílageirinn, efst á síðu',
     menuOpen: 'Opna valmynd',
     menuClose: 'Loka valmynd',
-    servicesKicker: 'Þjónustan í Grófinni',
-    servicesTitle: 'Allt undir sama þaki, frá tjóni að lokafrágangi',
+    /* their own line: "Allt á einum stað." on bilageirinn.is/?page_id=4 and
+       the DV 2019 headline "Allt á einum stað fyrir bílinn þinn" */
+    servicesTitle: 'Allt á einum stað fyrir bílinn þinn',
     selfPayPre: 'Greiðir þú sjálfur? Tjónið er metið í CABAS og þú færð ',
     selfPayBold: 'fast verðtilboð',
     selfPayPost: '.',
     lubeAnswers: 'Smurstöðin svarar beint í síma',
-    claimsKicker: 'Tjónaviðgerðir',
-    includedBadge: 'Innifalið hjá Bílageiranum',
     claimsClose: 'Allt byrjar á einu símtali:',
-    brandsKicker: 'Viðurkennt þjónustuverkstæði',
-    certLabel: 'Vottun',
+    certLabel: 'Viðurkennt',
     hoursLabel: 'Opnunartími',
     locationLabel: 'Staðsetning',
-    mapNote: 'Kortið er hér fyrir neðan ↓',
-    mapKicker: 'Staðsetning',
     mapTitle: 'Finndu okkur í Grófinni',
+    footerOnPage: 'Á síðunni',
+    footerContact: 'Hafa samband',
+    footerCompany: 'Bílageirinn ehf · Kt. 460803-2410',
+    footerLube: 'Smurstöð',
     mapIframeTitle: 'Staðsetning Bílageirans á korti',
     openMaps: 'Opna í Google Maps',
     lubeLabel: 'Smurstöðin:',
     hoursStrip: 'Mán–fim 08:00–17:00 · Fös 08:00–15:00 · Lokað um helgar',
+    /* footer spec list: one line per row, same order as HOURS */
+    hoursShort: ['Mán–fim', 'Fös', 'Lau–sun'],
     formKicker: 'Viltu frekar skrifa?',
     formTitle: 'Sendu okkur línu',
     formIntro: 'Fyrir almennar fyrirspurnir. Ef tjónið er nýtt eða brýnt er fljótlegast að hringja.',
@@ -100,10 +103,10 @@ const IS = {
     namePlaceholder: 'Jón Jónsson',
     phonePlaceholder: 't.d. 555 5555',
     platePlaceholder: 'AB 123',
-    messagePlaceholder: 'Segðu okkur hvað gerðist eða hvað þú þarft...',
+    messagePlaceholder: 'Segðu okkur hvað gerðist eða hvað þú þarft…',
     selectPlaceholder: 'Veldu þjónustu',
     submit: 'Senda skilaboð',
-    sending: 'Sendi...',
+    sending: 'Sendi…',
     sentNotice: 'Póstforritið þitt er að opnast með skilaboðin tilbúin. Þú klárar með því að ýta á senda.',
     recoveryQ: 'Opnaðist ekkert póstforrit?',
     copyMsg: 'Afrita skilaboðin',
@@ -126,10 +129,12 @@ const IS = {
     headlightAlt: 'Aðalljós á dökkum bíl í myrkri',
     garageAlt: 'Bílar á lyftum á dimmu verkstæðisgólfi',
     boothAlt: 'Bíll afmarkaður með pappír og grunnaður í sprautuklefa',
-    reviewsKicker: 'Umsagnir',
     reviewsTitle: 'Það sem viðskiptavinir segja',
-    reviewsGoogle: '4,1 af 5 · 21 umsögn á Google',
-    reviewsFacebook: '86% mæla með á Facebook',
+    /* re-read on Google Maps 2026-09-22: 4,0 · 23 umsagnir (was 4,1 · 21 on
+       2026-07-21). The Facebook "86% mæla með" line is gone: the page is
+       login-walled now and a 6-review percentage cannot be re-verified. */
+    reviewsGoogle: '4,0 af 5 · 23 umsagnir á Google',
+    reviewsSource: 'Orðréttar umsagnir af Google og Facebook.',
     reviewsOpenGoogle: 'Sjá allar umsagnir á Google',
     reviewsTranslatedNote: 'þýdd umsögn',
     readMore: 'Lesa meira',
@@ -205,8 +210,8 @@ const EN: typeof IS = {
     body:
       'Your car has one true line, the one it came with from the factory. Damage pushes it out of place. Our job is to find it again and hand the car back, measured and verified.',
     timeline: [
-      { year: '2003', text: 'Bílageirinn is founded. The early years revolve around importing cars and parts.' },
-      { year: '2004', text: 'A building is purchased for paintwork and body repair. The workshop takes shape.' },
+      { year: '2003', text: 'Bílageirinn is founded. The early years revolve around importing cars, motorcycles and parts.' },
+      { year: '2004', text: 'A building is purchased for paintwork, which begins the same year. The workshop takes shape.' },
       { year: '2007', text: 'The company moves into a purpose-built 810 square meter facility at Grófin 14a.' },
     ],
   },
@@ -228,7 +233,7 @@ const EN: typeof IS = {
     },
     {
       name: 'Oil and lube service',
-      desc: 'Oil changes and lubrication. The lube station has its own phone line.',
+      desc: 'Oil changes and lubrication. The Mobil lube station has its own phone line.',
       tag: 'TEL. 436 6901',
     },
     {
@@ -242,8 +247,8 @@ const EN: typeof IS = {
       tag: 'ALIGNMENT',
     },
     {
-      name: 'Brake and suspension testing',
-      desc: 'The condition of brakes and suspension checked and assessed.',
+      name: 'Brake and shock absorber testing',
+      desc: 'The condition of brakes and shock absorbers checked and assessed.',
       tag: 'TESTING',
     },
   ],
@@ -256,8 +261,8 @@ const EN: typeof IS = {
   craft: {
     title: 'Craftsmanship that keeps up with the materials',
     body:
-      'Materials in car painting and body repair change constantly. That is why the staff of Bílageirinn train abroad every year with the manufacturers of the materials used in the workshop. The latest knowledge goes straight into the paint booth and onto the straightening bench.',
-    points: ['Annual training abroad', 'Materials from approved manufacturers', 'Dedicated paint-department foreman'],
+      'Materials in car painting and body repair change constantly. That is why the staff of Bílageirinn attend courses abroad once a year to keep up with the materials the workshop buys from its suppliers, and every course offered here in Iceland. The latest knowledge goes straight into the paint booth and onto the straightening bench.',
+    points: ['Courses abroad once a year', 'Every course offered in Iceland', 'Dedicated paint-department foreman'],
   },
   claimSteps: [
     {
@@ -273,9 +278,8 @@ const EN: typeof IS = {
       desc: 'Straightening, painting and finishing, done to the assessment until the line is true.',
     },
     {
-      title: 'A loaner car meanwhile',
-      desc: "You get a loaner car from us while the repair is under way. Everyday life doesn't stop.",
-      highlight: true,
+      title: 'A car while yours is in repair',
+      desc: 'For an insured claim, Bílageirinn arranges a rental car for the duration of the repair, for those entitled to one under their insurer. We go over it with you in the first call.',
     },
   ],
   insurance: {
@@ -303,9 +307,9 @@ const EN: typeof IS = {
     body: 'You describe the damage or the errand, and we tell you exactly what happens next.',
   },
   facts: [
-    { num: 2003, pad: 4, suffix: '', label: 'Founded in Reykjanesbær' },
+    { num: null, pad: 0, text: '2003', suffix: '', label: 'Founded in Reykjanesbær' },
     { num: 810, pad: 3, suffix: ' m²', label: 'Purpose-built facility in Grófin' },
-    { num: 2, pad: 1, suffix: '', label: 'Authorized brands' },
+    { num: null, pad: 0, text: 'Toyota · Kia', suffix: '', label: 'Authorized service' },
     { num: null, pad: 0, text: 'All', suffix: '', label: 'Icelandic insurance companies' },
   ],
   hours: [
@@ -327,7 +331,7 @@ const EN: typeof IS = {
     proofRow: [
       'Authorized service center for Toyota and Kia',
       'All insurance companies and CABAS assessment',
-      'Loaner car while yours is in repair',
+      'A car while yours is in repair',
     ],
     contactCta: 'Contact us',
     navServices: 'Services',
@@ -336,26 +340,25 @@ const EN: typeof IS = {
     navTopAria: 'Bílageirinn, top of page',
     menuOpen: 'Open menu',
     menuClose: 'Close menu',
-    servicesKicker: 'Services in Grófin',
-    servicesTitle: 'Everything under one roof, from damage to final finish',
+    servicesTitle: 'Everything for your car in one place',
     selfPayPre: 'Paying yourself? The damage is assessed in CABAS and you get a ',
     selfPayBold: 'fixed quote',
     selfPayPost: '.',
     lubeAnswers: 'The lube station answers directly at',
-    claimsKicker: 'Collision repair',
-    includedBadge: 'Included at Bílageirinn',
     claimsClose: 'It all starts with one phone call:',
-    brandsKicker: 'Authorized service center',
-    certLabel: 'Certified',
+    certLabel: 'Authorized',
     hoursLabel: 'Opening hours',
     locationLabel: 'Location',
-    mapNote: 'The map is just below ↓',
-    mapKicker: 'Location',
     mapTitle: 'Find us in Grófin',
+    footerOnPage: 'On this page',
+    footerContact: 'Contact',
+    footerCompany: 'Bílageirinn ehf · Reg. no. 460803-2410',
+    footerLube: 'Lube station',
     mapIframeTitle: 'Bílageirinn location on a map',
     openMaps: 'Open in Google Maps',
     lubeLabel: 'Lube station:',
     hoursStrip: 'Mon–Thu 08:00–17:00 · Fri 08:00–15:00 · Closed on weekends',
+    hoursShort: ['Mon–Thu', 'Fri', 'Sat–Sun'],
     formKicker: 'Rather write?',
     formTitle: 'Drop us a line',
     formIntro: 'For general inquiries. If the damage is new or urgent, calling is fastest.',
@@ -368,10 +371,10 @@ const EN: typeof IS = {
     namePlaceholder: 'John Smith',
     phonePlaceholder: 'e.g. 555 5555',
     platePlaceholder: 'AB 123',
-    messagePlaceholder: 'Tell us what happened or what you need...',
+    messagePlaceholder: 'Tell us what happened or what you need…',
     selectPlaceholder: 'Choose a service',
     submit: 'Send message',
-    sending: 'Sending...',
+    sending: 'Sending…',
     sentNotice: 'Your email app is opening with the message ready. Press send there to finish.',
     recoveryQ: 'No email app opened?',
     copyMsg: 'Copy the message',
@@ -394,10 +397,9 @@ const EN: typeof IS = {
     headlightAlt: 'Headlight on a dark car at night',
     garageAlt: 'Cars on lifts on a dark workshop floor',
     boothAlt: 'A car masked with paper and primed in a spray booth',
-    reviewsKicker: 'Reviews',
     reviewsTitle: 'What customers say',
-    reviewsGoogle: '4.1 of 5 · 21 reviews on Google',
-    reviewsFacebook: '86% recommend on Facebook',
+    reviewsGoogle: '4.0 of 5 · 23 reviews on Google',
+    reviewsSource: 'Verbatim reviews from Google and Facebook.',
     reviewsOpenGoogle: 'See all reviews on Google',
     reviewsTranslatedNote: 'translated review',
     readMore: 'Read more',
