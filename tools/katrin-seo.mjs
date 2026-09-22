@@ -234,7 +234,8 @@ const personNode = {
   },
   memberOf: {
     '@type': 'Organization',
-    name: 'Félag húsgagna- og innanhússarkitekta (FHI)',
+    name: 'Félag húsgagna- og innanhússarkitekta',
+    alternateName: 'FHI',
     url: STUDIO.fhi,
   },
   knowsLanguage: ['is', 'en'],
