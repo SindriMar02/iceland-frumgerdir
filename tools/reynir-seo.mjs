@@ -536,6 +536,18 @@ function headFor(page) {
   const url = urlFor(page)
   const ld = [bakeryFor(page.lang), breadcrumb(page)]
   if (page.key === 'home') ld.push(faqFor(page.lang))
+  /* Google builds the site name above each search result from a WebSite node
+     on the home page. Without one it prints the domain, or keeps whatever the
+     old Wix site called itself ("Reynir bakari", no accent). */
+  if (page.key === 'home') ld.push({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Reynir bakarí',
+    alternateName: ['Reynir bakari', 'reynirbakari.is'],
+    url: urlFor(HOME),
+    inLanguage: page.lang,
+    publisher: { '@id': `${urlFor(HOME)}#bakery` },
+  })
   /* hreflang, both ways plus x-default.
    *
    * Google needs each URL to name every language version INCLUDING itself, and
