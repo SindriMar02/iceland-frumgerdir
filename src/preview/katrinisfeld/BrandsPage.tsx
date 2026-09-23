@@ -38,7 +38,6 @@ export function BrandsPage() {
       <section className="ki-pagehead" data-ki-band="light">
         <p className="ki-crumbs"><Link to="/">Forsíða</Link><span>·</span>Ítalskar innréttingar</p>
         <Headline as="h1" text="Ítalskar innréttingar, teiknaðar inn í rýmið." size={80} floor={32} />
-        {/* her own words, from the email */}
         <p className="ki-lead ki-rv">
           Eldhúsin koma frá ítalska framleiðandanum Arrital, sem gerir líka
           baðinnréttingarnar undir merkinu Altamarea og Living-línuna fyrir borðstofu
