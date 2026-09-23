@@ -4472,6 +4472,8 @@ import { companyEntry as GOA_ENTRY } from './goa/data'
 PREVIEW_COMPANIES.push(GOA_ENTRY)
 import { companyEntry as FAGRAVIK_ENTRY } from './fagravik/data'
 PREVIEW_COMPANIES.push(FAGRAVIK_ENTRY)
+import { companyEntry as EYVIK_ENTRY } from './eyvik/data'
+PREVIEW_COMPANIES.push(EYVIK_ENTRY)
 PREVIEW_COMPANIES.push(ICEHERBS_ENTRY)
 import { companyEntry as CHRISLUND_ENTRY } from './chrislund/data'
 PREVIEW_COMPANIES.push(CHRISLUND_ENTRY)
