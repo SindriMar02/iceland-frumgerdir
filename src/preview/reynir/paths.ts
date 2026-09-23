@@ -70,13 +70,24 @@ export const ROUTES = {
 
 export type RouteKey = keyof typeof ROUTES
 
+/** The href form of a route. Cloudflare Pages serves the prerendered
+ *  `sagan/index.html` at /sagan/ and 308s /sagan to it, and canonical and
+ *  sitemap use the slash form, so a slashless link sends every crawler through
+ *  a redirect (Search Console: "Page with redirect"). Routes stay registered
+ *  slashless; React Router matches both. The catalogue build is unchanged. */
+const href = (path: string): string => (STANDALONE && !path.endsWith('/') ? `${path}/` : path)
+
+/** Strip the trailing slash a served URL carries, so it matches a route key. */
+const routeKey = (pathname: string): string =>
+  pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname
+
 /** The four links a page needs, already in the reader's language. */
 export function pathsFor(lang: Lang) {
   return {
-    home: ROUTES.home[lang],
-    order: ROUTES.order[lang],
-    story: ROUTES.story[lang],
-    legal: ROUTES.legal[lang],
+    home: href(ROUTES.home[lang]),
+    order: href(ROUTES.order[lang]),
+    story: href(ROUTES.story[lang]),
+    legal: href(ROUTES.legal[lang]),
   }
 }
 
@@ -94,8 +105,9 @@ export function langFromPath(pathname: string): Lang {
 export function swapLang(pathname: string, to: Lang): string {
   const from: Lang = langFromPath(pathname)
   if (from === to) return pathname
+  const current = routeKey(pathname)
   for (const key of Object.keys(ROUTES) as RouteKey[]) {
-    if (ROUTES[key][from] === pathname) return ROUTES[key][to]
+    if (ROUTES[key][from] === current) return href(ROUTES[key][to])
   }
-  return ROUTES.home[to]
+  return href(ROUTES.home[to])
 }
