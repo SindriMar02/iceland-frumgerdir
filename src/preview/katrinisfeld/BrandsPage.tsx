@@ -40,14 +40,14 @@ export function BrandsPage() {
         <Headline as="h1" text="Ítalskar innréttingar, teiknaðar inn í rýmið." size={80} floor={32} />
         {/* her own words, from the email */}
         <p className="ki-lead ki-rv">
-          Framleiðandinn á Ítalíu er Arrital, bæði fyrir eldhúsið og baðinnréttingarnar,
-          sem þeir nefna Altamarea. Þeir eru líka með línu sem þeir kalla Living, fyrir
-          borðstofuna og stofuna.
+          Eldhúsin koma frá ítalska framleiðandanum Arrital, sem gerir líka
+          baðinnréttingarnar undir merkinu Altamarea og Living-línuna fyrir borðstofu
+          og stofu.
         </p>
         <p className="ki-body ki-rv">
-          Fyrir fataherbergið, fataskápa og húsgögn er það ítalski framleiðandinn
-          Novamobili. Arrital var stofnaður 1979 í Fontanafredda á Norður-Ítalíu, og
-          innréttingarnar fást hjá {STUDIO.name}.
+          Fataherbergi, fataskápar og húsgögn koma frá Novamobili. Arrital var stofnað
+          árið 1979 í Fontanafredda á Norður-Ítalíu og innréttingarnar fást hjá{' '}
+          {STUDIO.name}.
         </p>
         <p className="ki-cta-row ki-rv">
           <a className="ki-cta" href="https://www.arrital.it" target="_blank" rel="noopener">Arrital</a>
