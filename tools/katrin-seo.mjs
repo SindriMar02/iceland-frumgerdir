@@ -45,7 +45,7 @@ await build({
   define: { 'import.meta.env.BASE_URL': '"/"', 'import.meta.env.VITE_KATRIN_STANDALONE': '"1"' },
 })
 const D = await import(tmp + '?t=' + process.hrtime.bigint())
-const { STUDIO, CV, ADDRESS_LINE, BRANDS, CATEGORIES, PROJECTS, PHOTOGRAPHED, FAQ, FAQ_CONTACT, FAQ_BRANDS, FAQ_CATEGORY, SERVICES, PROCESS, PRESS, REDIRECTS } = D
+const { STUDIO, CV, ADDRESS_LINE, BRANDS, CATEGORIES, PROJECTS, PHOTOGRAPHED, FAQ, FAQ_CONTACT, FAQ_CATEGORY, SERVICES, PROCESS, PRESS, REDIRECTS } = D
 
 /** Where a page lives, in both homes. */
 const CAT_ORDER = ['innanhusshonnun', 'gistiheimili-og-hotel', 'atvinnuhusnaedi']
@@ -393,7 +393,8 @@ function graphFor(page) {
   nodes.push(webpage)
   if (page.kind === 'studio') nodes.push(faqNode, howToNode)
   if (page.kind === 'contact') nodes.push(faqPage('/hafa-samband', FAQ_CONTACT))
-  if (page.kind === 'brands') nodes.push(faqPage('/italskar-innrettingar', FAQ_BRANDS))
+  /* no FAQ node on the brands page: she had its questions removed as
+     repetition 2026-09-23, and schema may not claim what the page does not show */
   if (page.kind === 'category' && FAQ_CATEGORY[page.cat]) nodes.push(faqPage(`/verkefni/${page.cat}`, [FAQ_CATEGORY[page.cat]]))
   if (page.kind === 'press') nodes.push(pressNode(page))
   if (page.kind === 'project') nodes.push(projectNode(page.project))

@@ -16,15 +16,11 @@ const srv = http.createServer((q, r) => {
 }).listen(0)
 const base = `http://127.0.0.1:${srv.address().port}`
 const shots = [
-  ['home-cards', '/', '.ki-grid', 1440],
-  ['home-doors', '/', '.ki-doors', 1440],
-  ['work-cards', '/verkefni/heimili', '.ki-grid', 1440],
-  ['gal-bad', '/verkefni/badherbergi', '.ki-proj-gallery', 1440],
-  ['gal-sulu', '/verkefni/nybyggt-hus-i-suluhofda', '.ki-proj-gallery', 1440],
-  ['gal-solva', '/verkefni/solvallagata', '.ki-proj-gallery', 1440],
-  ['hero-solva', '/verkefni/solvallagata', null, 1440],
-  ['footer-credit', '/', '.ki-foot-fine', 1440],
-  ['m-cards', '/verkefni/heimili', '.ki-grid', 390],
+  ['brands-top', '/italskar-innrettingar', null, 1440],
+  ['brands-kitchen', '/italskar-innrettingar', '#eldhus', 1440],
+  ['brands-bath', '/italskar-innrettingar', '#bad', 1440],
+  ['brands-end', '/italskar-innrettingar', '.ki-wrap-tight', 1440],
+  ['m-brands-top', '/italskar-innrettingar', null, 390],
 ]
 const br = await puppeteer.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: 'new' })
 const pg = await br.newPage()

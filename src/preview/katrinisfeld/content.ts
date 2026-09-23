@@ -161,24 +161,6 @@ export const FAQ_CONTACT: Array<{ q: string; a: string }> = [
   },
 ]
 
-export const FAQ_BRANDS: Array<{ q: string; a: string }> = [
-  {
-    q: 'Hvar fæ ég Arrital eldhús á Íslandi?',
-    a:
-      'Hjá Katrín Ísfeld Hönnunar Studio í Katrínartúni 4 í Reykjavík, sem er með umboð fyrir Arrital á Íslandi. Innréttingarnar eru teiknaðar inn í rýmið af innanhússarkitekt og fluttar inn beint frá verksmiðjunni á Ítalíu, ekki valdar úr staðalstærðum. Í stúdíóinu stendur uppsett sýningareldhús frá Arrital sem hægt er að skoða og handleika.',
-  },
-  {
-    q: 'Hvað er Altamarea?',
-    a:
-      'Altamarea er ítalskur framleiðandi baðinnréttinga, vaska og spegla þar sem hver eining er gerð eftir máli. Katrín Ísfeld Hönnunar Studio er með umboð fyrir Altamarea á Íslandi og teiknar innréttingarnar inn í baðherbergið á sama hátt og eldhúsinnréttingarnar frá Arrital, svo breiddin ræðst af veggnum en ekki af staðalstærð.',
-  },
-  {
-    q: 'Af hverju kostar sérteiknuð innrétting meira en staðalinnrétting?',
-    a:
-      'Munurinn liggur í sentimetrunum. Þegar innréttingin er teiknuð inn í rýmið ráðast breiddirnar af veggjunum sem eru til staðar, ekki af staðalstærðum, og þess vegna verður engin fylliplata og engin sílikonrönd þar sem einingin nær ekki alveg að vegg.',
-  },
-]
-
 /** One question per flokkur, answered where the visitor is standing. */
 export const FAQ_CATEGORY: Record<string, { q: string; a: string }> = {
   'innanhusshonnun': {
