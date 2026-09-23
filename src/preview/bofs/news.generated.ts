@@ -6,14 +6,30 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-09-22T11:38:10.290Z
+ * Last synced: 2026-09-23T11:36:38.008Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 22. september 2026', en: 'Updated 22 September 2026' }
+export const SYNCED_AT = { is: 'Uppfært 23. september 2026', en: 'Updated 23 September 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
+  {
+    "date": "23.09.2026",
+    "source": "Umboðsmaður barna",
+    "topic": "samstarf",
+    "title": {
+      "is": "Bið barna eftir þjónustu í september 2026",
+      "en": "Bið barna eftir þjónustu í september 2026"
+    },
+    "href": "https://www.barn.is/frettir/m",
+    "untranslated": true,
+    "summary": {
+      "is": "Umboðsmaður barna birtir nú í tíunda sinn upplýsingar um bið barna eftir þjónustu.",
+      "en": "Umboðsmaður barna birtir nú í tíunda sinn upplýsingar um bið barna eftir þjónustu."
+    },
+    "summaryUntranslated": true
+  },
   {
     "date": "21.09.2026",
     "source": "Stjórnarráðið",
@@ -215,22 +231,6 @@ export const SYNCED_NEWS: NewsItem[] = [
       "en": "No waiting list for places at youth treatment homes"
     },
     "href": "https://www.visir.is/g/20262880648d/engin-bid-eftir-plassi-a-medferdarheimilum-ungmenna"
-  },
-  {
-    "date": "27.04.2026",
-    "source": "Umboðsmaður barna",
-    "topic": "barnahus",
-    "title": {
-      "is": "Heimsókn í Barnahús",
-      "en": "Heimsókn í Barnahús"
-    },
-    "href": "https://www.barn.is/frettir/heimsokn-i-barnahus-1",
-    "untranslated": true,
-    "summary": {
-      "is": "Skrifstofa umboðsmanns barna heimsótti Barnahús í síðustu viku og átti góðan fund með starfsfólki.",
-      "en": "Skrifstofa umboðsmanns barna heimsótti Barnahús í síðustu viku og átti góðan fund með starfsfólki."
-    },
-    "summaryUntranslated": true
   },
   {
     "date": "23.04.2026",
