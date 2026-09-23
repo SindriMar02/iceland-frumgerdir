@@ -47,8 +47,8 @@ export function StudioPage() {
         <p className="ki-body ki-rv" style={{ maxWidth: 'calc(var(--u) * 760)' }}>
           Innanhússarkitekt teiknar rýmið sjálft sem eina heild: skipulag,
           innréttingar, efnisval, liti og lýsingu, en ekki aðeins það sem sett er inn í
-          það. Á Íslandi er starfsheitið bundið við nám og félagsaðild að FHI, Félagi
-          húsgagna- og innanhússarkitekta.
+          það. Starfsheitið er lögverndað á Íslandi, og Katrín er löggiltur
+          innanhússarkitekt og félagi í FHI, Félagi húsgagna- og innanhússarkitekta.
         </p>
       </section>
 
