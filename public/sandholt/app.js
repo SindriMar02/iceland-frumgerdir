@@ -65,13 +65,17 @@
     state2: $('[data-state2]'), sub2: $('[data-sub2]'), clock2: $('[data-clock2]'), shell: $('#shell')
   };
 
+  /* Status strings are written in Icelandic and passed through i18n.js,
+     which hands back the English when that is the page's language. */
+  var T = function (s) { return window.SH_I18N ? window.SH_I18N.t(s) : s; };
+
   function render(s) {
     if (els.hstate) els.hstate.classList.toggle('is-closed', !s.open);
-    if (els.state) els.state.textContent = s.open ? 'Opið' : 'Lokað';
-    if (els.now) els.now.textContent = s.open ? 'til 18:00' : 'opnum 07:30';
+    if (els.state) els.state.textContent = T(s.open ? 'Opið' : 'Lokað');
+    if (els.now) els.now.textContent = T(s.open ? 'til 18:00' : 'opnum 07:30');
     if (els.shell) els.shell.classList.toggle('is-closed', !s.open);
-    if (els.state2) els.state2.textContent = s.open ? 'Opið' : 'Lokað';
-    if (els.sub2) els.sub2.textContent = s.open ? 'Við lokum kl. 18:00' : 'Við opnum kl. 07:30';
+    if (els.state2) els.state2.textContent = T(s.open ? 'Opið' : 'Lokað');
+    if (els.sub2) els.sub2.textContent = T(s.open ? 'Við lokum kl. 18:00' : 'Við opnum kl. 07:30');
     if (els.clock2) els.clock2.textContent = s.label;
 
     $$('.day__panel').forEach(function (li) {
@@ -109,28 +113,31 @@
     return out;
   }
 
-  var headings = [];
+  /* A record keeps its word list on itself, so a language switch can
+     re-split the heading and show() still reveals the new words. */
+  var headings = $$('[data-words]').map(function (h) {
+    var rec = { el: h, words: splitWords(h), done: REDUCED };
+    rec.show = function () {
+      rec.words.forEach(function (w, i) {
+        if (!REDUCED) w.style.transitionDelay = (i * 55) + 'ms';
+        w.classList.add('in');
+      });
+    };
+    return rec;
+  });
   if (!REDUCED) {
-    $$('[data-words]').forEach(function (h) {
-      var words = splitWords(h);
-      var show = function () {
-        words.forEach(function (w, i) {
-          w.style.transitionDelay = (i * 55) + 'ms';
-          w.classList.add('in');
-        });
-      };
-      var rec = { el: h, show: show, done: false };
-      headings.push(rec);
+    headings.forEach(function (rec) {
+      var h = rec.el;
       var io = new IntersectionObserver(function (es) {
         es.forEach(function (e) {
           if (!e.isIntersecting || rec.done) return;
-          rec.done = true; show(); io.disconnect();
+          rec.done = true; rec.show(); io.disconnect();
         });
       }, { threshold: 0.2, rootMargin: '0px 0px -8% 0px' });
       io.observe(h);
     });
   } else {
-    $$('[data-words]').forEach(function (h) { splitWords(h).forEach(function (w) { w.classList.add('in'); }); });
+    headings.forEach(function (rec) { rec.show(); });
   }
 
   /* ═══ 3 · RISE REVEALS ════════════════════════════════════ */
@@ -209,9 +216,10 @@
   var yearEl = $('[data-year]'), yearDigits = yearEl ? $$('span', yearEl) : [];
   var footEl = $('#foot'), footIn = $('[data-footin]'), footSpacer = $('[data-footspacer]');
   var scrubEl = $('[data-scrub]'), scrubWords = [], scrubHigh = 0;
-  if (scrubEl) {
+  function splitScrub() {
     var txt = scrubEl.textContent;
     scrubEl.textContent = '';
+    scrubWords = [];
     txt.split(/(\s+)/).forEach(function (p) {
       if (!p) return;
       if (/^\s+$/.test(p)) { scrubEl.appendChild(document.createTextNode(' ')); return; }
@@ -219,6 +227,7 @@
       scrubEl.appendChild(s); scrubWords.push(s);
     });
   }
+  if (scrubEl) splitScrub();
 
   /* Cache the digit weights once. getComputedStyle() inside the write phase
      flushed style for every digit, every frame, everywhere on the page. */
@@ -392,6 +401,34 @@
 
   function remeasure() { dayOver = sizeDay(); sizeFoot(); sizeHero(); onScroll(); }
 
+  /* ═══ 4a · LANGUAGE SWITCH ════════════════════════════════
+     i18n.js has already put the other language's text back into every
+     heading and the scrub line. Split them again, keep what the reader
+     had already revealed revealed (headings rise again, word by word,
+     which is the page's own entrance), and re-measure: the new words
+     change the day track's width and the hero line's height.          */
+  window.__shRelang = function () {
+    headings.forEach(function (rec) { rec.words = splitWords(rec.el); });
+    if (headings.length) void headings[0].el.offsetWidth;   // commit the hidden words first
+    // a switch answers a click, so the rise is quicker than the entrance:
+    // .5s with a 24ms stagger, readable in about .6s instead of 1.4s
+    headings.forEach(function (rec) {
+      if (!rec.done) return;
+      rec.words.forEach(function (w, i) {
+        if (!REDUCED) w.firstChild.style.transition = 'transform .5s cubic-bezier(.32,.72,0,1) ' + (i * 24) + 'ms';
+        w.classList.add('in');
+      });
+    });
+    if (scrubEl) {
+      var frac = scrubWords.length ? scrubHigh / scrubWords.length : 0;
+      splitScrub();
+      scrubHigh = REDUCED ? scrubWords.length : Math.round(frac * scrubWords.length);
+      for (var i = 0; i < scrubHigh; i++) scrubWords[i].classList.add('on');
+    }
+    render(readClock());
+    if (!REDUCED) remeasure();
+  };
+
   /* On a phone, the collapsing URL bar fires resize DURING the scroll. The
      old handler answered every one of those with sizeDay(), which reads
      scrollWidth and writes a section height — a full layout thrash mid-flick,
@@ -540,14 +577,21 @@
       job(function () { if (!fired) { fired = true; done++; } });
     });
 
-    /* The number eases toward the real fraction rather than stepping, so a
-       handful of coarse jobs still reads as motion. */
-    (function tick() {
+    /* The sweep eases toward the real fraction, but with a speed limit: a
+       plain lerp chased each coarse job in a burst and then stalled, which
+       read as the word arriving a letter or two at a time. Capped at a full
+       sweep per ~1.1s (the floor), the jumps melt into one steady glide, and
+       the exponential tail still lands it softly. Frame-rate independent. */
+    var preLast = performance.now();
+    (function tick(now) {
+      now = now || performance.now();
+      var dt = Math.min(now - preLast, 50); preLast = now;
       var target = capped ? 100 : (done / total) * 100;
-      shown += (target - shown) * (capped ? 0.3 : 0.12);
-      if (target - shown < 0.4) shown = target;
+      var step = (target - shown) * (1 - Math.exp(-dt / 160));
+      shown += Math.min(step, dt * (capped ? 0.2 : 0.09));
+      if (target - shown < 0.3) shown = target;
       if (pct) pct.textContent = Math.round(shown);
-      if (fill) fill.style.width = shown.toFixed(2) + '%';
+      if (fill) fill.style.setProperty('--p', shown.toFixed(2));
       if (shown > 99.6 && target === 100 && Date.now() - started >= 1100) return finish();
       preRaf = requestAnimationFrame(tick);
     })();

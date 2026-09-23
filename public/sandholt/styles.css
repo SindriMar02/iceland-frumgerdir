@@ -55,6 +55,7 @@ a{color:inherit}
 ::selection{background:var(--crust);color:var(--cream)}
 
 .wrap{max-width:var(--max);margin-inline:auto;padding-inline:var(--pad)}
+.nw{white-space:nowrap}   /* keep a short phrase of a headline on one line */
 .skip{position:absolute;left:-9999px;top:0;z-index:120;background:var(--ink);color:var(--cream);padding:12px 18px}
 .skip:focus{left:8px;top:8px}
 :focus-visible{outline:2px solid var(--ember);outline-offset:3px;border-radius:2px}
@@ -76,9 +77,14 @@ a{color:inherit}
 html:not(.js) .pre{display:none}
 .pre__mark{position:relative;width:min(420px,64vw)}
 .pre__base{width:100%;opacity:.13}
-.pre__fill{position:absolute;inset:0;overflow:hidden;width:0%;
-  transition:width .45s var(--ease-soft)}
-.pre__fill img{width:min(420px,64vw);max-width:none}
+/* a feathered sweep, not a hard wipe: the soft edge is 16% of the mark wide,
+   so it glows across letters instead of uncovering them one by one. --p is
+   0–100, written every frame by the JS, so there is no transition here —
+   one would restart on each write and turn the glide into steps. */
+.pre__fill{position:absolute;inset:0;--p:0;
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(var(--p) * 1.16% - 16%),transparent calc(var(--p) * 1.16%));
+          mask-image:linear-gradient(90deg,#000 calc(var(--p) * 1.16% - 16%),transparent calc(var(--p) * 1.16%))}
+.pre__fill img{width:100%}
 .pre__meta{margin:0;font-family:"Fragment Mono",monospace;font-size:12px;letter-spacing:.22em;
   color:var(--ink-58);font-variant-numeric:tabular-nums}
 .pre__meta i{font-style:normal;opacity:.5}
@@ -99,7 +105,7 @@ html:not(.js) .pre{display:none}
 .nav__slot{display:block;width:clamp(132px,15vw,196px);aspect-ratio:1065/153}
 .nav__set{list-style:none;margin:0;padding:0;display:flex;gap:clamp(14px,1.8vw,30px);
   font-family:"Fragment Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
-.nav__set a{text-decoration:none;color:var(--cream-58);position:relative;
+.nav__set a{text-decoration:none;color:var(--cream-58);position:relative;white-space:nowrap;
   transition:color .45s var(--ease)}
 .nav__set a::after{content:"";position:absolute;left:0;right:100%;bottom:-5px;height:1px;
   background:currentColor;transition:right .5s var(--ease)}
@@ -112,6 +118,38 @@ html:not(.js) .pre{display:none}
 .nav.is-past .nav__set a{color:var(--ink-58)}
 .nav.is-past .nav__set a:hover{color:var(--ink)}
 .nav.is-past .burger{color:var(--ink)}
+
+/* ── LANGUAGE — ÍS / EN. A hairline slides under the live one ──
+   The line is a fixed 100px scaled to the label (--bs) and moved with
+   --bx, both written by i18n.js, so the slide is a transform only.   */
+.lang{position:relative;display:flex;align-items:center;color:var(--cream-on-dark);
+  font-family:"Fragment Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase}
+.lang__b{appearance:none;-webkit-appearance:none;margin:0;border:0;background:none;cursor:pointer;
+  font:inherit;letter-spacing:inherit;text-transform:inherit;padding:10px 5px;
+  color:var(--cream-58);-webkit-tap-highlight-color:transparent;transition:color .45s var(--ease)}
+.lang__b span{display:block}
+.lang__b[aria-pressed="true"]{color:var(--cream-on-dark);cursor:default}
+.lang__b:focus-visible{outline:1px solid currentColor;outline-offset:2px}
+.lang__bar{position:absolute;left:0;bottom:5px;width:100px;height:1px;background:currentColor;
+  pointer-events:none;transform-origin:0 50%;transform:translateX(var(--bx,0)) scaleX(var(--bs,0))}
+.lang.is-set .lang__bar{transition:transform .3s var(--ease)}
+@media (prefers-reduced-motion:reduce){.lang.is-set .lang__bar{transition:none}}
+.nav__side--r .lang{margin-left:clamp(0px,.6vw,10px)}
+.nav.is-past .lang{color:var(--ink)}
+.nav.is-past .lang__b{color:var(--ink-58)}
+.nav.is-past .lang__b[aria-pressed="true"]{color:var(--ink)}
+@media (hover:hover) and (pointer:fine){
+  .lang__b:hover{color:var(--cream-on-dark)}
+  .nav.is-past .lang__b:hover,.ovl__foot .lang__b:hover{color:var(--ink)}
+}
+/* the switch is a crossfade of the page; the toggles stay live so the
+   hairline slides through it instead of fading out and back */
+.lang--nav{view-transition-name:sh-lang-nav}
+.lang--ovl{view-transition-name:sh-lang-ovl}
+::view-transition-old(root),::view-transition-new(root){
+  animation-duration:.34s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
+::view-transition-old(sh-lang-nav),::view-transition-old(sh-lang-ovl){display:none}
+::view-transition-new(sh-lang-nav),::view-transition-new(sh-lang-ovl){animation:none}
 
 /* ── THE WORDMARK — one element, hero centre -> header centre ── */
 .wm{position:fixed;left:50%;top:0;z-index:101;display:block;
@@ -289,6 +327,7 @@ html:not(.js) .pre{display:none}
   color:var(--cream-58);display:block;margin-bottom:10px;transition:color .5s var(--ease)}
 .day__panel.is-now .day__t{color:var(--ember)}
 .day__panel.is-now .day__t::after{content:" · núna"}
+html[lang="en"] .day__panel.is-now .day__t::after{content:" · now"}
 .day__n{font-family:Gambetta,serif;font-weight:400;font-size:clamp(22px,2.2vw,29px);
   line-height:1.08;margin:0 0 10px}
 .day__d{font-size:14.5px;line-height:1.6;color:var(--cream-58);margin:0;max-width:34ch}
@@ -358,6 +397,7 @@ html:not(.js) .scrub .sw{opacity:1}
   color:var(--crust);white-space:nowrap;padding:4px 10px;border:1px solid var(--ink-14);border-radius:100px}
 .mgroup__h.is-open .mgroup__t{color:var(--cream);border-color:var(--crust);background:var(--crust)}
 .mgroup__h.is-open .mgroup__t::after{content:" · í boði"}
+html[lang="en"] .mgroup__h.is-open .mgroup__t::after{content:" · serving now"}
 .mlist{list-style:none;margin:0;padding:0}
 .mlist li{display:grid;grid-template-columns:1fr auto;gap:4px 14px;padding:13px 0;border-bottom:1px solid var(--ink-08)}
 .mlist li:last-child{border-bottom:0}
@@ -553,10 +593,16 @@ html:not(.js) [data-rise]{opacity:1;transform:none;filter:none}
 .ovl.is-in .ovl__foot{opacity:1;transform:none}
 .ovl__foot p{margin:0 0 8px}
 .ovl__foot a{color:var(--crust)}
+/* in the panel the toggle is a thumb target: 44px tall, text aligned to the column */
+.ovl__foot .lang{margin:14px 0 -12px -11px;color:var(--ink);letter-spacing:.14em}
+.ovl__foot .lang__b{padding:14px 11px;min-height:44px;color:var(--ink-58)}
+.ovl__foot .lang__b[aria-pressed="true"]{color:var(--ink)}
+.ovl__foot .lang__bar{bottom:11px}
 body.is-open-menu{overflow:hidden}
 
 @media (max-width:860px){
   .burger{display:flex}
+  .nav .lang{display:none}
   .nav__pill{justify-content:space-between}
 }
 @media (prefers-reduced-motion:reduce){
