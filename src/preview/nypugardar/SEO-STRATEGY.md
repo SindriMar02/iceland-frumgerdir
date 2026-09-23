@@ -375,10 +375,9 @@ place logically (both mirror each other, not conflicting).
 | Date | Change | Expected effect | Metric | Window |
 |---|---|---|---|---|
 | 2026-09-23 | Strategy file created (this document); no code changed | — | — | — |
+| 2026-09-23 | **Window 1 (backlog #6).** Home meta descriptions rewritten to fit ~155 chars and name the region: EN "Farm guesthouse in South Iceland, 20 km from Höfn, about 50 km from Jökulsárlón. Glacier views, breakfast and dinner at the farm. Rated 8.8 on Booking.com."; IS "Sveitagisting á Suðausturlandi, …". Titles unchanged. Same deploy, hygiene only (not the measured change): sitemap now carries git-derived `lastmod` per page, `changefreq`/`priority` removed (backlog #7). | Higher CTR on generic queries where the home page already sits at position 2–3 with 0 clicks (09-17 to 09-22: "gisting suðurland", "gisting suðausturland", "guesthouse iceland", "guesthouse in iceland", "gästehaus island", "guesthouses islande") | GSC CTR per query for those queries plus brand queries, both home URLs. Compare per query, not per URL: Google is still moving impressions from the old `http://www.` address to `https://glacierview.is/` (redirects verified correct 2026-09-23), which will shift URL-level numbers on its own | 2026-09-23 → 2026-10-21 |
 
-No experiment has been run yet — this file is the baseline. The first measured change
-should be backlog #1 or #6 (both cheap, both technical/on-page only, both isolate
-cleanly), per the one-change-per-window rule in `seo-experiment-programme`.
+Backlog #1 closed 2026-09-23 without a change: all host variants 301 to `https://glacierview.is/` (curl-verified); the three GSC rows are launch-era URLs Google is still consolidating, not a missing redirect. Backlog #7 confirmed and fixed in window 1's deploy.
 
 ## 16. Open questions for the owner (Bogga)
 

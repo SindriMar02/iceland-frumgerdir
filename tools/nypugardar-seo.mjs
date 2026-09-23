@@ -37,6 +37,7 @@
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { execFileSync } from 'node:child_process'
 
 const dist = process.argv[2] || 'dist'
 const basePath = (process.argv.find((a) => a.startsWith('--base=')) || '--base=/').slice(7)
@@ -176,7 +177,9 @@ const COPY = {
   en: {
     home: {
       title: 'Nýpugarðar | Farm guesthouse between Höfn and Jökulsárlón',
-      desc: `Family-run farm guesthouse on Mýrar in Hornafjörður, 20 km from Höfn and about 50 km from Jökulsárlón. Quiet rooms and cottages, glacier views, breakfast and dinner at the farm. Rated ${B.rating} on Booking.com. Book direct.`,
+      /* Cut to fit the ~155 characters Google shows (SEO window 1, 23 Sep 2026): the
+         old text lost the rating and never named the region generic searches use. */
+      desc: `Farm guesthouse in South Iceland, 20 km from Höfn, about 50 km from Jökulsárlón. Glacier views, breakfast and dinner at the farm. Rated ${B.rating} on Booking.com.`,
     },
     rooms: {
       title: 'Rooms, cottages and prices | Nýpugarðar',
@@ -199,7 +202,7 @@ const COPY = {
   is: {
     home: {
       title: 'Nýpugarðar | Sveitagisting milli Hafnar og Jökulsárlóns',
-      desc: `Fjölskyldurekið sveitagistiheimili á Mýrum í Hornafirði, 20 km frá Höfn og um 50 km frá Jökulsárlóni. Kyrrlát herbergi og sumarhús, jöklasýn, morgunmatur og kvöldmatur á bænum. Einkunn ${String(B.rating).replace('.', ',')} á Booking.com. Bókaðu beint.`,
+      desc: `Sveitagisting á Suðausturlandi, 20 km frá Höfn og um 50 km frá Jökulsárlóni. Jöklasýn, morgunmatur og kvöldmatur á bænum. Einkunn ${String(B.rating).replace('.', ',')} á Booking.com.`,
     },
     rooms: {
       title: 'Herbergi, sumarhús og verð | Nýpugarðar',
@@ -493,6 +496,27 @@ Book directly at ${urlFor(homeOf('en'))} (live dates and prices) or call ${B.pho
   console.log('nypugardar-seo: llms.txt')
 }
 
+/* lastmod = the newest commit touching the files a page is built from, never
+   the build clock (Google stops trusting lastmod that moves on every deploy).
+   No git history (a shallow CI checkout still has one commit, so this only
+   fails outside a repo) means no lastmod at all. changefreq and priority are
+   ignored by Google and are gone. */
+const PAGE_SOURCES = {
+  home: ['Page.tsx', 'Hero.tsx', 'Scenes.tsx', 'copy.ts', 'data.ts', 'reviews.json'],
+  rooms: ['RoomsPage.tsx', 'copy.ts', 'data.ts', 'prices.json', 'photos.ts'],
+  winter: ['WinterPage.tsx', 'copy.ts'],
+  privacy: ['PrivacyPage.tsx', 'copy.ts'],
+}
+function lastmodFor(key) {
+  try {
+    const files = (PAGE_SOURCES[key] ?? []).map((f) => `src/preview/nypugardar/${f}`)
+    const d = execFileSync('git', ['log', '-1', '--format=%cs', '--', ...files], { encoding: 'utf8' }).trim()
+    return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null
+  } catch {
+    return null
+  }
+}
+
 /** Sitemap with the language pair declared on every URL, and robots. */
 function writeSitemap() {
   const dir = join(dist, STANDALONE_DIST ? '' : 'preview/nypugardar')
@@ -503,7 +527,8 @@ function writeSitemap() {
         `\n    <xhtml:link rel="alternate" hreflang="${other.lang}" href="${urlFor(other)}" />` +
         `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${urlFor(p.lang === 'en' ? p : other)}" />`
       : ''
-    return `  <url>\n    <loc>${urlFor(p)}</loc>${alt}\n    <changefreq>weekly</changefreq>\n    <priority>${p.key === 'home' ? (p.lang === 'en' ? '1.0' : '0.9') : p.key === 'privacy' ? '0.3' : '0.8'}</priority>\n  </url>`
+    const d = lastmodFor(p.key)
+    return `  <url>\n    <loc>${urlFor(p)}</loc>${alt}${d ? `\n    <lastmod>${d}</lastmod>` : ''}\n  </url>`
   }).join('\n')
   writeFileSync(
     join(dir, 'sitemap.xml'),
