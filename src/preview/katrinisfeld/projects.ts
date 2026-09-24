@@ -24,6 +24,10 @@ export interface Photo {
   /** object-position where a crop would lose the subject (a portrait photo
       in the landscape project hero), e.g. '50% 66%'. Omit for centre. */
   pos?: string
+  /** which room or house the photo belongs to, in a project that collects
+      several (Baðherbergi). The gallery starts a new row at every change of
+      group and never pairs photos across one. */
+  group?: string
 }
 
 export interface Project {
@@ -246,19 +250,45 @@ export const PROJECTS: Project[] = [
       'Ég hef tekið í gegn fjölmörg baðherbergi, og hér eru sýnishorn úr nokkrum verkefnum.',
       'Meðal þeirra eru baðherbergi á Hávallagötu í 101 Reykjavík, við Lækjarás í 110 Reykjavík, í Baldursgarði í Keflavík og í Álfheimum í 105 Reykjavík.',
     ],
+    /* HER ORDER, 2026-09-24. She wrote that the bathrooms were mixed up and
+       that the Keflavík one was missing: "Farðu yfir gömlu vefsíðuna og þá
+       áttar þú þig betur." Her old page shows them as whole rooms, in this
+       order: Hávallagata, Árbær (Lækjarás), Baldursgarður in Keflavík,
+       Álfheimar. The film bathroom she sent on 09-22 stays first, as she asked
+       on the walkthrough. Every photo below matches her original by
+       fingerprint; the Árbær and Keflavík sets were missing from the rebuild
+       and came from her own site. Never re-sort this list for layout. */
     photos: [
-      /* the film first, framed low so the grasses carry the landscape hero */
-      { ...P('p-badherbergi-8', 'Baðherbergisgluggi með filmu sem sýnir strá í mjúkum gráum tón'), pos: '50% 66%' },
-      P('p-badherbergi-9', 'Filman á glugganum frá öðru sjónarhorni, með ljósum flísum og veggskáp'),
-      P('p-badherbergi-10', 'Tvöföld innrétting með tveimur vöskum og baklýstum sporöskjulaga speglum við gluggann með filmunni'),
-      P('p-badherbergi-0', 'Baðherbergi á Hávallagötu með kringlóttum spegli, dökkri innréttingu og skálavaski'),
-      P('p-badherbergi-1', 'Baðherbergi með opnu sturtusvæði, svörtum blöndunartækjum og innfelldri lýsingu'),
-      P('p-badherbergi-4', 'Sturtuklefi með svörtum regnhaus og innfelldri hillu'),
-      P('p-badherbergi-5', 'Baðherbergi með kringlóttum spegli, kúluljósi og ljósum flísum'),
-      P('p-badherbergi-6', 'Sturtuklefi með glerhurð, handklæðaofni og baðkari'),
-      P('p-badherbergi-7', 'Sturtuveggur með svörtum regnhaus og faldri lýsingu við loft'),
-      P('p-badherbergi-2', 'Baðherbergi í Árbæ með ljósum flísum og svífandi innréttingu'),
-      P('p-badherbergi-3', 'Baðherbergi með svörtum blöndunartækjum og skálavaski á dökkri plötu'),
+      { ...P('p-badherbergi-8', 'Baðherbergisgluggi með filmu sem sýnir strá í mjúkum gráum tón'), pos: '50% 66%', group: 'filma' },
+      { ...P('p-badherbergi-9', 'Filman á glugganum frá öðru sjónarhorni, með ljósum flísum og veggskáp'), group: 'filma' },
+      { ...P('p-badherbergi-10', 'Tvöföld innrétting með tveimur vöskum og baklýstum sporöskjulaga speglum við gluggann með filmunni'), group: 'filma' },
+
+      { ...P('p-badherbergi-3', 'Baðherbergi á Hávallagötu með svörtum blöndunartækjum og skálavaski á dökkri plötu'), group: 'havallagata' },
+      { ...P('p-badherbergi-4', 'Sturtuklefi á Hávallagötu með svörtum regnhaus og innfelldri hillu'), group: 'havallagata' },
+      { ...P('p-badherbergi-0', 'Baðherbergi á Hávallagötu með kringlóttum spegli, dökkri innréttingu og skálavaski'), group: 'havallagata' },
+      { ...P('p-badherbergi-1', 'Opið sturtusvæði á Hávallagötu með svörtum blöndunartækjum og innfelldri lýsingu'), group: 'havallagata' },
+      { ...P('p-badherbergi-5', 'Kringlóttur spegill, kúluljós og ljósar flísar á Hávallagötu'), group: 'havallagata' },
+      { ...P('p-badherbergi-6', 'Sturtuklefi á Hávallagötu með glerhurð, handklæðaofni og baðkari'), group: 'havallagata' },
+      { ...P('p-badherbergi-7', 'Sturtuveggur á Hávallagötu með svörtum regnhaus og faldri lýsingu við loft'), group: 'havallagata' },
+
+      { ...P('p-badherbergi-arbaer-1', 'Baðherbergi í Árbæ með þakglugga, glersturtu og dökkri innréttingu'), group: 'arbaer' },
+      { ...P('p-badherbergi-2', 'Baðherbergi í Árbæ með ljósum flísum og svífandi innréttingu'), group: 'arbaer' },
+      { ...P('p-badherbergi-arbaer-2', 'Upphengt salerni og svartur handklæðaofn í baðherberginu í Árbæ'), group: 'arbaer' },
+      { ...P('p-badherbergi-arbaer-3', 'Sturta með svörtum regnhaus og steinflísum í baðherberginu í Árbæ'), group: 'arbaer' },
+      { ...P('p-badherbergi-arbaer-4', 'Handlaug á ljósri borðplötu og ávalur spegill í baðherberginu í Árbæ'), group: 'arbaer' },
+      { ...P('p-badherbergi-arbaer-5', 'Dökk innrétting með handlaug og baklýstum spegli í baðherberginu í Árbæ'), group: 'arbaer' },
+
+      { ...P('p-badherbergi-keflavik-1', 'Baðherbergi í Keflavík með skál á dökkri innréttingu, svörtum blöndunartækjum og upplýstum spegli'), group: 'keflavik' },
+      { ...P('p-badherbergi-keflavik-2', 'Innréttingin í Keflavík með skál og upplýstum speglaskáp'), group: 'keflavik' },
+      { ...P('p-badherbergi-keflavik-3', 'Upphengt salerni við mynstraðar veggflísar í baðherberginu í Keflavík'), group: 'keflavik' },
+      { ...P('p-badherbergi-keflavik-4', 'Dökk innrétting og upplýstur spegill í baðherberginu í Keflavík, séð frá dyrunum'), group: 'keflavik' },
+      { ...P('p-badherbergi-keflavik-5', 'Sturta með gljáðum veggflísum og svörtum blöndunartækjum í Keflavík'), group: 'keflavik' },
+      { ...P('p-badherbergi-keflavik-6', 'Sturtuveggur og gljáðar flísar í baðherberginu í Keflavík'), group: 'keflavik' },
+      { ...P('p-badherbergi-keflavik-7', 'Svört blöndunartæki úr vegg yfir hvítri handlaug í Keflavík'), group: 'keflavik' },
+      { ...P('p-badherbergi-keflavik-8', 'Hár skápur og gluggi í baðherberginu í Keflavík'), group: 'keflavik' },
+
+      { ...P('p-alfheimar-4', 'Snyrting í Álfheimum með korallrauðu lofti, kringlóttum spegli í leðuról og dökkri innréttingu'), group: 'alfheimar' },
+      { ...P('p-alfheimar-5', 'Salerni í Álfheimum með grænum flísum frá byggingartímanum og trjábolskolli'), group: 'alfheimar' },
     ],
     facts: [['Hlutverk', 'Hönnun baðherbergja'], ['Staðsetning', 'Reykjavík og Keflavík']],
   },

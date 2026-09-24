@@ -254,7 +254,15 @@ export const CSS = `
 
 .ki-slide, .ki-shutter, .ki-plain { position: relative; overflow: hidden; margin: 0; background: rgb(0 0 0 / .08); }
 .ki-slide picture, .ki-shutter picture, .ki-plain picture,
-.ki-slide img, .ki-shutter img, .ki-plain img { width: 100%; height: 100%; object-fit: cover; }
+/* .ki-root on the front: without it .ki-root picture > img { height: auto }
+   (line ~65) is more specific and wins, so a framed gallery photo kept its own
+   height, got cut from the top instead of cropped from the centre, and a
+   landscape photo in a square frame left a grey band. Found 2026-09-24. */
+.ki-root .ki-slide img, .ki-root .ki-shutter img, .ki-root .ki-plain img { width: 100%; height: 100%; object-fit: cover; }
+/* the <picture> is inline by default, so height:100% had nothing to fill: a
+   landscape photo in a square frame stopped at its own height and left a grey
+   band under it. Block, and the frame's aspect-ratio reaches the image. */
+.ki-slide picture, .ki-shutter picture, .ki-plain picture { display: block; }
 .ki-js .ki-slide { clip-path: polygon(0 12%, 100% 0, 100% 88%, 0 100%); opacity: 0; }
 .ki-js .ki-slide img { transform: scale(1.22); }
 .ki-js .ki-slide.is-in { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); opacity: 1; transition: clip-path 1.1s ${OUT}, opacity .5s ${OUT}; }
@@ -508,6 +516,8 @@ export const CSS = `
   .ki-press-wide, .ki-press-half { grid-column: 1 / -1; }
 }
 .ki-gal-half { grid-column: span 1; }
+/* the one photo left over in a room: half width, centred, so no row is half empty */
+.ki-gal-solo { grid-column: 1 / -1; width: calc(50% - var(--u) * 17); justify-self: center; }
 .ki-proj-credit {
   margin: calc(var(--u) * 30) 0 0;
   font-family: ${MONO}; font-size: ${fluid(11.5, 10.5)}; letter-spacing: .18em;
@@ -1229,6 +1239,7 @@ a.ki-verk-grid .ki-slide img, .ki-fig-link .ki-slide img, .ki-fig-link .ki-shutt
   .ki-pagehead { padding: 120px 20px 40px; }
   .ki-grid { --cols: 1; }
   .ki-proj-gallery { grid-template-columns: 1fr; }
+  .ki-gal-solo { width: 100%; }
   .ki-proj-gallery > *:nth-child(3n+1) { grid-column: auto; }
   .ki-samband-in { padding: 88px 20px 48px; }
   .ki-samband-row { gap: 22px; margin-top: 26px; }

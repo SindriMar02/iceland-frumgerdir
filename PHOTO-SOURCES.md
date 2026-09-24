@@ -84,3 +84,25 @@ else in the house, so the site names neither the house nor its location.
 | p-badherbergi-8 | Katrín Ísfeld - 18-2025-07-22 14.07.37-1.jpg | 2252×3752, native, not upscaled |
 | p-badherbergi-9 | Katrín Ísfeld - 17-2025-07-22 14.07.52-2.jpg | 2252×3698, native, not upscaled |
 | p-badherbergi-10 | Katrín Ísfeld - 16-2025-07-22 14.08.29.jpg | 2252×4000, EXIF-rotated upright, native |
+
+## Baðherbergi restored to her own page, 2026-09-24
+
+She wrote that the bathrooms were out of order and the Keflavík one was
+missing, and pointed at her old page. That page
+(`/verkefni/innanhusshonnun/badherbergi/`) shows 23 photographs as whole
+rooms: Hávallagata 7, Árbær 6, Baldursgarður in Keflavík 8, Álfheimar 2. The
+rebuild had carried 8 of them. Every existing photo was matched to her
+original by 12×12 grey fingerprint (all ≤0.7 mean delta, next-best ≥28):
+
+| ours | her original |
+|---|---|
+| p-badherbergi-3, -4, -0, -1, -5, -6, -7 | havallagata 16.17.19, 16.13.04, 16.18.34-2, 16.12.18, 16.14.33, 16.15.37, 16.15.49 |
+| p-badherbergi-2 | Arbaer-0001 |
+| p-alfheimar-4, -5 | Alfheimar-11, Alfheimar-10 |
+
+New from her site, native size, not upscaled (no photographer credited on her page):
+
+| id | her original |
+|---|---|
+| p-badherbergi-arbaer-1..5 | Arbaer-0052, -0006, -0010, -0018, -0020 |
+| p-badherbergi-keflavik-1..8 | baldursgardur-0002, -0008, -0014, -0024, -0025, -0029, -0034, -0036 |

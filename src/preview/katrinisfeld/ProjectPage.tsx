@@ -20,51 +20,54 @@ const HERO_SIZES = '100vw'
 const GAL_SIZES = '(max-width: 640px) 92vw, (max-width: 991px) 90vw, 46vw'
 
 /**
- * THE GALLERY, ROW BY ROW (rebuilt 2026-09-22).
+ * THE GALLERY, ROW BY ROW.
  *
- * The old rhythm gave every fifth photograph the full width of the page
- * regardless of its shape, so a portrait shot ran 1328 x 2200 and a visitor
- * met a slab of ceiling; and a row could pair a portrait with a landscape,
- * which left the two tiles different heights and the row looking unfinished.
+ * 2026-09-24, after she caught it: the 09-22 version sorted photographs into
+ * landscape and portrait buckets to get level rows, and that REORDERED her
+ * galleries. On Baðherbergi a Hávallagata shower landed between the film
+ * bathroom's photos and a lone Árbær shot sat in the middle of Hávallagata.
+ * Her order is her edit. This version never moves a photograph:
  *
- * Now a row only ever holds photographs of the same shape, and each shape has
- * one frame: 16/9 across the page, 3/2 for a landscape pair, 4/5 for a
- * portrait pair. Her order is kept inside each shape. A photograph never goes
- * full width unless it is landscape AND at least 1200px wide, which is the
- * old rule that kept Hótel Hekla's 662px source from being stretched.
+ *   - photos are taken strictly in her order, two to a row;
+ *   - a row never spans two rooms (Photo.group) — a new room starts a new row;
+ *   - both photos in a row share one frame, so the row ends level:
+ *     4/5 for two portraits, 3/2 for two landscapes, 1/1 for one of each;
+ *   - a room with an odd count lets its FIRST photo run full width if it is
+ *     landscape and at least 1200px (the old Hótel Hekla rule), otherwise its
+ *     last photo stands alone, centred, so nothing sits in half a row.
  */
-type Tile = { photo: PhotoRef; kind: 'wide' | 'half'; ratio: string }
+type Tile = { photo: PhotoRef; kind: 'wide' | 'half' | 'solo'; ratio: string }
 type PhotoRef = Project['photos'][number]
 
 function tiles(rest: ReadonlyArray<PhotoRef>): Tile[] {
   const wideOk = (p: PhotoRef) => isLandscape(p.id) && (PHOTO_DIMS[p.id]?.w ?? 0) >= 1200
-  const land = rest.filter((p) => isLandscape(p.id))
-  const port = rest.filter((p) => !isLandscape(p.id))
-  const out: Tile[] = []
-  let rows = 0
-  const pairFrom = (q: PhotoRef[], ratio: string) => {
-    out.push({ photo: q.shift()!, kind: 'half', ratio }, { photo: q.shift()!, kind: 'half', ratio })
-    rows++
+  const frame = (a: PhotoRef, b: PhotoRef) => {
+    const la = isLandscape(a.id), lb = isLandscape(b.id)
+    return la && lb ? '3 / 2' : !la && !lb ? '4 / 5' : '1 / 1'
   }
-  // the page opens on a room, full width, whenever a landscape can carry it
-  if (land.length && wideOk(land[0])) out.push({ photo: land.shift()!, kind: 'wide', ratio: '16 / 9' })
-  while (land.length || port.length) {
-    // every third row a landscape returns to full width, so the page breathes
-    if (rows > 0 && rows % 3 === 0 && land.length && wideOk(land[0])) {
-      out.push({ photo: land.shift()!, kind: 'wide', ratio: '16 / 9' })
-      rows++
-      continue
+  // split into consecutive runs of the same room, keeping her order
+  const runs: PhotoRef[][] = []
+  for (const p of rest) {
+    const last = runs[runs.length - 1]
+    if (last && last[0].group === p.group) last.push(p)
+    else runs.push([p])
+  }
+  const out: Tile[] = []
+  for (const run of runs) {
+    let i = 0
+    if (run.length % 2 === 1 && wideOk(run[0])) {
+      out.push({ photo: run[0], kind: 'wide', ratio: '16 / 9' })
+      i = 1
     }
-    if (port.length >= 2 && (port.length >= land.length || land.length < 2)) pairFrom(port, '4 / 5')
-    else if (land.length >= 2) pairFrom(land, '3 / 2')
-    else {
-      // one photograph left over: full width if it can carry it, otherwise a
-      // single tile that keeps the column it would have shared
-      const last = (port.length ? port : land).shift()!
+    for (; i + 1 < run.length; i += 2) {
+      const r = frame(run[i], run[i + 1])
+      out.push({ photo: run[i], kind: 'half', ratio: r }, { photo: run[i + 1], kind: 'half', ratio: r })
+    }
+    if (i < run.length) {
+      const last = run[i]
       out.push(wideOk(last)
         ? { photo: last, kind: 'wide', ratio: '16 / 9' }
-        : { photo: last, kind: 'half', ratio: isLandscape(last.id) ? '3 / 2' : '4 / 5' })
-      rows++
+        : { photo: last, kind: 'solo', ratio: isLandscape(last.id) ? '3 / 2' : '4 / 5' })
     }
   }
   return out
@@ -138,7 +141,7 @@ export function ProjectPage({ slug }: { slug: string }) {
         <div className="ki-wrap" data-ki-band="light" style={{ paddingTop: 0 }}>
           <div className="ki-proj-gallery">
             {tiles(rest).map((t, i) => (
-              <div key={t.photo.id} className={t.kind === 'wide' ? 'ki-gal-wide' : 'ki-gal-half'}>
+              <div key={t.photo.id} className={t.kind === 'wide' ? 'ki-gal-wide' : t.kind === 'solo' ? 'ki-gal-solo' : 'ki-gal-half'}>
                 <Slide
                   id={t.photo.id}
                   alt={t.photo.alt}
