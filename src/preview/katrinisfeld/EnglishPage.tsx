@@ -45,9 +45,9 @@ export function EnglishPage() {
 
         <div className="ki-wrap" data-ki-band="dark">
           <p className="ki-kicker">Guesthouses and hotels</p>
-          <Headline text="Rooms that have to earn their nightly rate." size={62} floor={30} measure={820} />
+          <Headline text="Guesthouses, apartments and a hotel." size={62} floor={30} measure={820} />
           <p className="ki-body ki-rv">
-            {hospitality.length} of her {PROJECTS.length} published projects are guesthouse,
+            Six of her {PROJECTS.length} published projects are guesthouse,
             apartment or hotel interiors. The project pages are in Icelandic, and the
             photographs speak for themselves.
           </p>

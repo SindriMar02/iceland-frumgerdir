@@ -12,7 +12,7 @@ import { Link } from './link'
 import { RollText } from './flair'
 import { Shell, type Head } from './Shell'
 import { Headline, Slide } from './kit'
-import { STUDIO, CV, ADDRESS_LINE } from './facts'
+import { CV, ADDRESS_LINE } from './facts'
 import { PROJECTS } from './projects'
 import { PROCESS, SERVICES, FAQ } from './content'
 import { CONTACT_PATH, WORK, BRANDS_PATH } from './paths'
@@ -67,8 +67,7 @@ export function StudioPage() {
               Margreed Van der Hooven í Hollandi. Hún er innanhússarkitektinn sem lætur innréttingar, húsgögn og litasamsetningar spila rétt saman, með útkomu sem tekið er eftir.
             </p>
             <p className="ki-body ki-rv">
-              Hún er félagi í FHI, Félagi húsgagna- og innanhússarkitekta, og hefur rekið
-              eigið stúdíó frá {STUDIO.founded}. Í verkefnaskránni eru {PROJECTS.length} verk:
+              Í verkefnaskránni eru {PROJECTS.length} verk:
               heimili og sumarhús, gistiheimili og hótel, skrifstofur og heilbrigðisrými.
             </p>
             <p className="ki-cta-row ki-rv">

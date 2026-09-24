@@ -44,6 +44,8 @@ export interface Project {
   facts?: Array<[string, string]>
   /** Photographer, where she credits one. Her credit, carried verbatim. */
   credit?: string
+  /** "Ljósmyndun" where the credit is a magazine rather than a person */
+  creditLabel?: string
   /** Old WordPress path, for the 301 map. */
   oldPath: string
 }
@@ -63,23 +65,23 @@ export const CATEGORIES: Record<CategorySlug, {
     slug: 'gistiheimili-og-hotel',
     title: 'Hönnun gistiheimila og hótela',
     nav: 'Gistiheimili og hótel',
-    lead: 'Rými sem þurfa að þola gesti allt árið og líta samt út fyrir að vera heimili.',
+    lead: 'Gistiíbúðir, gistiheimili og hótel.',
     body:
-      'Gistirými eru hönnuð undir öðrum kröfum en heimili. Efnin þurfa að þola þrif og umgengni ókunnugra, herbergin þurfa að vera samræmd svo öll gistingin seljist á sama verði, og myndirnar þurfa að standast samanburð á Booking og Airbnb. Sex verkefni Katrínar eru af þessu tagi, allt frá einstökum íbúðum upp í heilt hótel.',
+      'Sex verkefni Katrínar eru gistirými, allt frá einni gistiíbúð upp í heilt hótel.',
   },
   'atvinnuhusnaedi': {
     slug: 'atvinnuhusnaedi',
     title: 'Hönnun atvinnuhúsnæðis',
     nav: 'Atvinnuhúsnæði',
-    lead: 'Skrifstofur og móttökurými þar sem fyrsta mínútan gestsins ræðst af hönnuninni.',
+    lead: 'Skrifstofur og tannlæknastofa.',
     body:
-      'Í atvinnuhúsnæði er hönnunin hluti af þjónustunni. Móttakan segir til um hvers konar fyrirtæki tekur á móti þér, biðstofan ræður hvort bið líður hratt eða hægt, og starfsfólkið vinnur í rýminu alla daga ársins. Katrín hefur hannað bæði skrifstofurými og heilbrigðisrými, og í báðum tilvikum er verkefnið það sama: að rýmið vinni með því sem fyrirtækið er að reyna að gera, frekar en á móti því. Rýmin eru hönnuð í anda þeirra fyrirtækja sem þar starfa; þarfirnar eru misjafnar en flest hafa haft sömu ósk, að stíllinn sé hlýlegur og skipulagið gott með góðu flæði. Þar sem grafísk hönnun þarf að fylgja, til dæmis merkingar á rúðum, skilrúm og leiðbeinandi merkingar, er hún unnin samhliða rýminu en ekki límd á það eftir á.',
+      'Rýmin eru hönnuð í anda þeirra fyrirtækja sem þar starfa. Þarfirnar eru misjafnar, en flest fyrirtækin hafa haft sömu ósk: að stíllinn sé hlýlegur og rýmið vel skipulagt, með góðu flæði og skemmtilegri hönnun sem tekið er eftir.',
   },
   'ymislegt': {
     slug: 'ymislegt',
     title: 'Ýmislegt',
     nav: 'Ýmislegt',
-    lead: 'Umfjöllun og stemningsverkefni.',
+    lead: 'Stemning úr ólíkum verkefnum.',
     body: 'Verkefni sem falla utan hinna þriggja flokkanna.',
   },
 }
@@ -574,12 +576,13 @@ export const PROJECTS: Project[] = [
     slug: 'eldhus-i-107-sersmidi',
     title: 'Eldhús í 107, sérsmíði',
     category: 'innanhusshonnun',
+    credit: 'Hús og híbýli',
+    creditLabel: 'Ljósmyndun',
     oldPath: '/verkefni/innanhusshonnun/eldhus-sersmidi/',
     lead: 'Eldhúsið flutt inn frá stofunni og opnað í gegn, með sérsmíðaðri eikarinnréttingu.',
     body: [
       'Hér var eldhúsið flutt í innra rýmið frá stofunni og opnað í gegn. Eldhúsið er bæði praktískt og stofulegt, þar sem stofan og eldhúsið eru í sama rýminu.',
       'Innréttingin er sérsmíðuð og liturinn á eikinni sérblandaður. Koparfilma var notuð á eyjuna stofumegin og einnig inni í tækjaskápnum, sem poppar upp eldhúsið og gerir það skemmtilegt og flott. Stólarnir eftir Daníel Magnússon fara einstaklega vel við.',
-      'Myndirnar birtust í Hús og híbýli.',
     ],
     /* her old page's gallery, in her order (restored 2026-09-24); the lead
        photograph above it is shown once, as the project hero */
@@ -747,6 +750,7 @@ export const PROJECTS: Project[] = [
     slug: 'skrifstofurymi',
     title: 'Skrifstofurými',
     category: 'atvinnuhusnaedi',
+    credit: 'Gunnar Freyr Jónsson',
     oldPath: '/verkefni/atvinnuhusnaedi/skrifstofurymi/',
     lead: 'Skemmtileg og fjölbreytt skrifstofurými, hönnuð í anda fyrirtækjanna sem þar starfa.',
     body: [

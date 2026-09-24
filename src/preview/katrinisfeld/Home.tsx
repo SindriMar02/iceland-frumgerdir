@@ -71,7 +71,7 @@ export function Home() {
     desc:
       `Katrín Ísfeld er innanhússarkitekt í Reykjavík og hannar innanhús frá grunni: heimili, ` +
       `gistiheimili, hótel og atvinnurými. ${PROJECTS.length} verk í skránni, ásamt ítölskum ` +
-      `innréttingum frá Arrital og Altamarea. ${ADDRESS_LINE}.`,
+      `innréttingum frá Arrital og Novamobili. ${ADDRESS_LINE}.`,
     clean: '/',
   }
 
@@ -189,22 +189,17 @@ export function Home() {
         <Link className="ki-dome-arch" to={projPath('nybyggt-hus-i-suluhofda')} data-ki-par="rise" aria-label="Sturturými í Súluhöfða, sjá verkefnið">
           <Photo id="s-sturta" alt="Sturturými með dökkum steinvegg og grænni plöntu" sizes="(max-width: 991px) 94vw, 72vw" />
         </Link>
-        <p className="ki-body ki-dome-body ki-rv">
-          Steinn sem heldur skugganum, viður sem heldur hitanum, kopar sem eldist með
-          húsinu. Efnisvalið er helmingur hönnunarinnar; ljósið sér um hitt.
-        </p>
       </section>
 
       {/* 06 · the Italian lines, and the studio they are standing in */}
       <section className="ki-wrap ki-italskar" data-ki-band="dark">
         <div className="ki-split">
           <div>
-            <p className="ki-kicker">Arrital og Altamarea</p>
+            <p className="ki-kicker">Arrital og Novamobili</p>
             <Headline text="Ítalskar innréttingar." size={64} floor={30} measure={560} />
             <p className="ki-body ki-rv">
-              Eldhúsinnréttingar frá Arrital og baðinnréttingar frá Altamarea fást hjá
-              stúdíóinu og eru teiknaðar inn í hvert verkefni frá grunni, hvort sem um er
-              að ræða heimili eða gistiheimili.
+              Eldhúsinnréttingar frá Arrital, baðinnréttingar frá Arrital undir merkinu
+              Altamarea og fataskápar og húsgögn frá Novamobili fást hjá stúdíóinu.
             </p>
             <p className="ki-cta-row ki-rv">
               <Link className="ki-cta" to={BRANDS_PATH}><RollText text="Ítalskar innréttingar" /></Link>
@@ -276,9 +271,9 @@ export function Home() {
             <p className="ki-body ki-rv">
               Katrín er með BSc í innanhússarkitektúr frá Art Institute of Fort Lauderdale
               í Flórída, útskrifaðist með láði og hlaut annað sæti í alþjóðlegri
-              hönnunarsamkeppni. Hún starfaði á arkitektastofum í Fort Lauderdale og í
-              Hollandi áður en hún opnaði eigið stúdíó, og er félagi í Félagi húsgagna- og
-              innanhússarkitekta.
+              hönnunarsamkeppni í Bandaríkjunum. Hún starfaði á arkitektastofum í Fort Lauderdale og í
+              Hollandi áður en hún opnaði eigið stúdíó, og er félagi í FHI, Félagi
+              húsgagna- og innanhússarkitekta.
             </p>
             <p className="ki-cta-row ki-rv"><Link className="ki-cta" to={STUDIO_PATH}><RollText text="Um Katrínu" /></Link></p>
           </div>

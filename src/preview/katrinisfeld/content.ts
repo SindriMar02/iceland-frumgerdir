@@ -13,29 +13,25 @@
  * stated process is a site visit followed by a quote. Inventing a price band
  * would be the single easiest way to lose her a job before the phone rings.
  */
-import { STUDIO, CV, ADDRESS_LINE, BRANDS, HOURS_DAYS_IS } from './facts'
-import { PROJECTS, byCategory } from './projects'
+import { STUDIO, CV, ADDRESS_LINE, HOURS_DAYS_IS } from './facts'
+import { PROJECTS } from './projects'
 
 export const SERVICES = [
   {
-    name: 'Heildarhönnun innanhúss',
-    desc: 'Húsið eða íbúðin öll: skipulag rýma, innréttingar, efnisval, litir, lýsing og húsgögn, teiknað sem ein heild frá byrjun.',
+    name: 'Heildræn hönnun',
+    desc: 'Skipulag, innréttingar, efnisval og lýsing fyrir heil hús og íbúðir, hannað sem ein heild.',
   },
   {
     name: 'Eldhús og baðherbergi',
-    desc: 'Einstök rými þar sem sérsmíðuð innrétting skilar mestu. Teikning, efnisval og innréttingar frá Arrital og Altamarea.',
+    desc: 'Stök rými eru líka verkefni, því ekkert verk er of stórt eða lítið. Ítalskar innréttingar frá Arrital fást í stúdíóinu.',
   },
   {
     name: 'Gistiheimili og hótel',
-    desc: 'Gistirými sem þola stöðuga umgengni, haldast samræmd á milli herbergja og standast samanburð á bókunarsíðum.',
+    desc: 'Allt frá einni gistiíbúð upp í heilt hótel.',
   },
   {
     name: 'Atvinnuhúsnæði',
-    desc: 'Móttökur, biðstofur og skrifstofurými þar sem hönnunin er hluti af þjónustunni sem fyrirtækið veitir.',
-  },
-  {
-    name: 'Ráðgjöf um efni, liti og húsgögn',
-    desc: 'Afmörkuð ráðgjöf fyrir þá sem eru komnir af stað en vantar að láta valið ganga upp saman.',
+    desc: 'Skrifstofur og tannlæknastofa, hannaðar í anda fyrirtækjanna sem þar starfa, hlýlegar og vel skipulagðar með góðu flæði.',
   },
 ] as const
 
@@ -43,19 +39,15 @@ export const SERVICES = [
 export const PROCESS = [
   {
     title: 'Þú sendir stutta verklýsingu',
-    body: 'Nokkrar línur um rýmið, hvað stendur til og hvenær. Sími eða tölvupóstur, hvort sem hentar betur.',
+    body: 'Nokkrar línur um rýmið og hvað stendur til, í síma eða tölvupósti.',
   },
   {
     title: 'Katrín kemur á staðinn',
-    body: 'Verkefnið er tekið út á staðnum í samráði við eigendur, því birtan, hlutföllin og hvernig rýmið er notað skilja sig best á staðnum.',
+    body: 'Verkefnið er tekið út á staðnum í samráði við eigendur.',
   },
   {
     title: 'Tilboð í verkið',
-    body: 'Í framhaldi af úttektinni færðu tilboð í verkið, miðað við umfangið eins og það liggur fyrir.',
-  },
-  {
-    title: 'Hönnun og eftirfylgni',
-    body: 'Teikningar, efnisval og innréttingar, og eftirfylgni með þeim sem smíða og setja upp.',
+    body: 'Í framhaldinu gerir Katrín tilboð í verkið.',
   },
 ] as const
 
@@ -79,17 +71,17 @@ export const FAQ: Array<{ q: string; a: string }> = [
   {
     q: 'Hvað kostar að fá innanhússarkitekt?',
     a:
-      'Verðið ræðst af umfangi verkefnisins. Katrín tekur verkefnið út á staðnum og gerir tilboð í framhaldinu, svo verðið miðast við raunverulegt umfang en ekki ágiskun.',
+      'Verðið ræðst af umfangi verkefnisins. Katrín kemur á staðinn, tekur verkefnið út í samráði við eigendur og gerir í framhaldi tilboð í verkið.',
   },
   {
     q: 'Hannar hún gistiheimili og hótel?',
     a:
-      `Já. Gistirými eru ${byCategory('gistiheimili-og-hotel').length} af verkefnunum í skránni, allt frá einstökum gistiíbúðum í eldri húsum upp í heilt hótel: Freyja gistiheimili, Freyja lúxusíbúð, Svala Apartments, Sólvallagata, Old Charm Reykjavik Apartment og Hótel Hekla.`,
+      `Já. Sex af verkefnunum í skránni eru gistirými, allt frá einstökum gistiíbúðum í eldri húsum upp í heilt hótel: Freyja gistiheimili, Freyja lúxusíbúð, Svala Apartments, Sólvallagata, Old Charm Reykjavik Apartment og Hótel Hekla.`,
   },
   {
     q: 'Hvaða innréttingar er hægt að fá hjá henni?',
     a:
-      `Ítalskar innréttingar frá ${BRANDS.map((b) => b.name).join(' fyrir eldhús og ')} fyrir baðherbergi fást hjá Katrín Ísfeld Hönnunar Studio, og eru teiknaðar inn í hvert verkefni fyrir sig.`,
+      'Eldhúsinnréttingar frá ítalska framleiðandanum Arrital, baðinnréttingar frá Arrital undir merkinu Altamarea og Living-línuna fyrir borðstofu og stofu. Fyrir fataherbergi, fataskápa og húsgögn er það ítalski framleiðandinn Novamobili. Innréttingarnar fást hjá Katrín Ísfeld Hönnunar Studio.',
   },
   {
     q: 'Hvar er stúdíóið og hvenær er opið?',
@@ -111,13 +103,12 @@ export const FAQ: Array<{ q: string; a: string }> = [
 export const EN = {
   title: 'Katrín Ísfeld, interior architect in Reykjavík, Iceland',
   desc:
-    'Katrín Ísfeld is an interior architect in Reykjavík designing homes, guesthouses, hotels and commercial interiors, and the Icelandic stockist for Arrital kitchens and Altamarea bathrooms.',
+    'Katrín Ísfeld is an interior architect in Reykjavík designing homes, guesthouses, hotels and commercial interiors, and sells Italian kitchens, bathrooms and wardrobes from Arrital and Novamobili.',
   lead: 'An interior architect in Reykjavík who designs a space as a whole, from the plan to the last light fitting.',
   paras: [
-    `Katrín Ísfeld holds a BSc in interior architecture from the ${CV.school} in Florida, where she graduated with honours and took second place in a national design competition. She worked as an interior architect at an architecture practice in Fort Lauderdale designing luxury villas, and at the practice of Margreed Van der Hooven in the Netherlands, before opening her own studio in Reykjavík.`,
-    `She is a member of FHI, the Icelandic association of furniture and interior architects. Her portfolio includes ${PROJECTS.length} projects across four categories: private homes and summer houses, guesthouses and hotels, commercial and healthcare interiors, and smaller single-room commissions.`,
-    'For owners of guesthouses and short-stay apartments, the work is specific: rooms that stay consistent with each other so every unit sells at the same rate, materials that survive constant turnover, and interiors that photograph well enough to compete on Booking and Airbnb.',
-    'The studio is also the Icelandic stockist for Arrital, the Italian kitchen manufacturer, and Altamarea, which makes made-to-measure bathroom furniture. Both are drawn into each project rather than picked from a catalogue.',
+    `Katrín Ísfeld holds a BSc in interior architecture from the ${CV.school} in Florida, where she graduated with honours and took second place in an international design competition in the United States. She worked as an interior architect at an architecture practice in Fort Lauderdale designing luxury villas, and at the practice of Margreed Van der Hooven in the Netherlands, before opening her own studio in Reykjavík.`,
+    `She is a member of FHI, the Icelandic association of furniture and interior architects. Her portfolio includes ${PROJECTS.length} projects: homes and summer houses, guesthouses and a hotel, offices and a dental clinic.`,
+    'The studio also sells Italian interiors: kitchens from Arrital, bathroom furniture from Arrital under the Altamarea name, Arrital\'s Living line for dining and living rooms, and wardrobes and furniture from Novamobili.',
   ],
   how: {
     title: 'How a project starts',
@@ -164,18 +155,18 @@ export const FAQ_CONTACT: Array<{ q: string; a: string }> = [
 /** One question per flokkur, answered where the visitor is standing. */
 export const FAQ_CATEGORY: Record<string, { q: string; a: string }> = {
   'innanhusshonnun': {
-    q: 'Hvað felst í heildarhönnun á heimili?',
+    q: 'Hvað felst í heildrænni hönnun á heimili?',
     a:
-      'Heildarhönnun þýðir að skipulag, innréttingar, efnisval, litir og lýsing eru ákveðin saman í stað þess að vera valin hvert í sínu lagi. Það á jafnt við um nýbyggingu sem teiknuð er innan frá og eldra hús sem er tekið í gegn; umfangið breytist en aðferðin er sú sama.',
+      'Skipulag, innréttingar, efnisval og lýsing eru hönnuð saman, sem ein heild. Það á jafnt við um nýbyggingu og eldra hús sem er tekið í gegn.',
   },
   'gistiheimili-og-hotel': {
-    q: 'Hvað er ólíkt við að hanna gistirými?',
+    q: 'Hvers konar gistirými hefur Katrín hannað?',
     a:
-      'Efnin þurfa að þola þrif og umgengni ókunnugra allt árið, herbergin þurfa að vera samræmd svo öll gistingin seljist á sama verði, og rýmin þurfa að standast samanburð á ljósmynd á Booking og Airbnb. Heimili þarf ekkert af þessu þrennu.',
+      'Gistiíbúðir, gistiheimili og hótel, allt frá einni íbúð upp í heilt hótel. Meðal þeirra eru Freyja gistiheimili, Freyja lúxusíbúð, Svala Apartments, Sólvallagata, Old Charm Reykjavik Apartment og Hótel Hekla.',
   },
   'atvinnuhusnaedi': {
-    q: 'Af hverju skiptir hönnun máli í atvinnuhúsnæði?',
+    q: 'Hvers konar atvinnuhúsnæði hefur Katrín hannað?',
     a:
-      'Í atvinnuhúsnæði er hönnunin hluti af þjónustunni. Móttakan segir til um hvers konar fyrirtæki tekur á móti gestinum, biðstofan ræður hvort bið líður hratt eða hægt, og starfsfólkið vinnur í rýminu alla daga ársins. Katrín hefur hannað bæði skrifstofurými og heilbrigðisrými, meðal annars Tannlæknastofuna á Garðatorgi og Samkennd Heilsusetur.',
+      'Skrifstofur og tannlæknastofu. Rýmin eru hönnuð í anda þeirra fyrirtækja sem þar starfa, hlýleg og vel skipulögð með góðu flæði. Meðal þeirra eru Lánasjóður sveitarfélaga, Samkennd Heilsusetur, Alfreð Atvinnuleit, Digido, Múr & Mál og Tannlæknastofan á Garðatorgi.',
   },
 }

@@ -42,7 +42,7 @@ function Register() {
     <div className="ki-wrap" data-ki-band="dark">
       <Headline text="Skráin öll." size={72} floor={32} />
       <p className="ki-body ki-rv">
-        Öll verkefnin á einum stað, {PROJECTS.length} verk í {Object.keys(CATEGORIES).length} flokkum.
+        Öll verkefnin á einum stað, {PROJECTS.length} verk í fjórum flokkum.
       </p>
       <div style={{ marginTop: 'calc(var(--u) * 40)' }}>
         <PreviewZone>

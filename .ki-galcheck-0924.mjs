@@ -1,5 +1,5 @@
 // Every project gallery, desktop + phone: no photo cropped, every row level,
-// nothing wider than the page. usage: node .ki-galcheck-0924.mjs
+// nothing wider than the page, at 1920/1440/1024/768/390/320. usage: node .ki-galcheck-0924.mjs
 import http from 'node:http'
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs'
 import { join, extname } from 'node:path'
@@ -16,7 +16,7 @@ const br = await puppeteer.launch({ executablePath: '/Applications/Google Chrome
 const pg = await br.newPage()
 await pg.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }])
 let bad = 0, tiles = 0, pages = 0
-for (const w of [1440, 1024, 390]) {
+for (const w of [1920, 1440, 1024, 768, 390, 320]) {
   await pg.setViewport({ width: w, height: 900, deviceScaleFactor: 1 })
   for (const r of routes) {
     await pg.goto(`http://127.0.0.1:${srv.address().port}${r}`, { waitUntil: 'domcontentloaded' })
@@ -43,5 +43,5 @@ for (const w of [1440, 1024, 390]) {
     for (const i of out.issues) { bad++; if (bad <= 15) console.log(`${w} ${r}: ${i}`) }
   }
 }
-console.log(`${pages} gallery views (27 pages × 3 widths), ${tiles} photos measured, ${bad} problems`)
+console.log(`${pages} gallery views (27 pages × 6 widths), ${tiles} photos measured, ${bad} problems`)
 await br.close(); srv.close()

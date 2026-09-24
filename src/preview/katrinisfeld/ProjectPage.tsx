@@ -153,7 +153,7 @@ export function ProjectPage({ slug }: { slug: string }) {
             })}
           </div>
           {p.credit && (
-            <p className="ki-proj-credit ki-rv">Ljósmyndari: {p.credit}</p>
+            <p className="ki-proj-credit ki-rv">{p.creditLabel ?? 'Ljósmyndari'}: {p.credit}</p>
           )}
         </div>
       )}

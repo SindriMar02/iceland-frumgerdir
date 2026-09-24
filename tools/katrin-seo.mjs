@@ -165,7 +165,8 @@ const studioNode = {
   url: urlFor('/'),
   telephone: STUDIO.phone,
   email: STUDIO.email,
-  foundingDate: STUDIO.founded,
+  /* no foundingDate: 2018 comes only from her site's copyright line, which
+     does not prove when the studio opened (checked 2026-09-24) */
   founder: { '@id': PERSON_ID },
   employee: { '@id': PERSON_ID },
   image: [photo('s-eldhus-vitt'), photo('s-eyja'), photo('f-stofa')],
