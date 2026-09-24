@@ -476,9 +476,19 @@ export const CSS = `
   background: linear-gradient(180deg, rgb(16 13 11 / .58), rgb(16 13 11 / .18) 55%, transparent);
 }
 .ki-proj-body { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: calc(var(--u) * 80); align-items: start; }
-.ki-proj-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 34);   }
+.ki-proj-gallery { --gap: calc(var(--u) * 24); display: flex; flex-direction: column; gap: var(--gap); }
+/* justified rows: a cell grows in proportion to its photo's aspect ratio from a
+   zero basis, so every photo in a row ends up the same height and nothing is
+   cropped. An open row (a short leftover) keeps the height of a full row. */
+.ki-gal-row { display: flex; gap: var(--gap); justify-content: center; }
+.ki-gal-cell { flex: var(--a) 1 0%; min-width: 0; }
+.ki-gal-row--open .ki-gal-cell { flex: 0 0 calc((100% - var(--gap) * 2) * var(--a) / 2.4); }
+/* a phone: one photograph per row, full width, whole */
+@media (max-width: 640px) {
+  .ki-gal-row { flex-direction: column; }
+  .ki-gal-cell, .ki-gal-row--open .ki-gal-cell { flex: none; width: 100%; }
+}
 /* the two widths the gallery is built from, and the credit under it */
-.ki-gal-wide { grid-column: 1 / -1; }
 /* ── Í FJÖLMIÐLUM ────────────────────────────────────────────────────────
    The headline under each clipping is the page: on her site every one of them
    is pixels inside a JPEG, which is why the page has never ranked for a single
@@ -515,9 +525,7 @@ export const CSS = `
   .ki-press { grid-template-columns: minmax(0, 1fr); gap: calc(var(--u) * 40); }
   .ki-press-wide, .ki-press-half { grid-column: 1 / -1; }
 }
-.ki-gal-half { grid-column: span 1; }
-/* the one photo left over in a room: half width, centred, so no row is half empty */
-.ki-gal-solo { grid-column: 1 / -1; width: calc(50% - var(--u) * 17); justify-self: center; }
+
 .ki-proj-credit {
   margin: calc(var(--u) * 30) 0 0;
   font-family: ${MONO}; font-size: ${fluid(11.5, 10.5)}; letter-spacing: .18em;
@@ -1238,9 +1246,6 @@ a.ki-verk-grid .ki-slide img, .ki-fig-link .ki-slide img, .ki-fig-link .ki-shutt
   }
   .ki-pagehead { padding: 120px 20px 40px; }
   .ki-grid { --cols: 1; }
-  .ki-proj-gallery { grid-template-columns: 1fr; }
-  .ki-gal-solo { width: 100%; }
-  .ki-proj-gallery > *:nth-child(3n+1) { grid-column: auto; }
   .ki-samband-in { padding: 88px 20px 48px; }
   .ki-samband-row { gap: 22px; margin-top: 26px; }
   .ki-foot { padding: 40px 20px 28px; }

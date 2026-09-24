@@ -11,64 +11,56 @@
 import { Link } from './link'
 import { RollText } from './flair'
 import { Shell, type Head } from './Shell'
-import { Headline, Photo, Slide, isLandscape, landscapeFirst } from './kit'
+import { Headline, Photo, Slide, aspectOf, isLandscape, landscapeFirst } from './kit'
 import { PHOTO_DIMS } from './photo-dims'
 import { CATEGORIES, PROJECTS, hasPage, type Project } from './projects'
 import { category as catPath, project as projPath, WORK, CONTACT_PATH } from './paths'
 
 const HERO_SIZES = '100vw'
-const GAL_SIZES = '(max-width: 640px) 92vw, (max-width: 991px) 90vw, 46vw'
 
 /**
- * THE GALLERY, ROW BY ROW.
+ * THE GALLERY: HER ORDER, NO CROPPING (2026-09-24).
  *
- * 2026-09-24, after she caught it: the 09-22 version sorted photographs into
- * landscape and portrait buckets to get level rows, and that REORDERED her
- * galleries. On Baðherbergi a Hávallagata shower landed between the film
- * bathroom's photos and a lone Árbær shot sat in the middle of Hávallagata.
- * Her order is her edit. This version never moves a photograph:
+ * Every photograph is shown whole, at its own shape. Rows are "justified": the
+ * photos in a row share one height and their widths follow their proportions,
+ * so the row ends level without cutting anything off. Her order is never
+ * changed, and a row never spans two rooms (Photo.group).
  *
- *   - photos are taken strictly in her order, two to a row;
- *   - a row never spans two rooms (Photo.group) — a new room starts a new row;
- *   - both photos in a row share one frame, so the row ends level:
- *     4/5 for two portraits, 3/2 for two landscapes, 1/1 for one of each;
- *   - a room with an odd count lets its FIRST photo run full width if it is
- *     landscape and at least 1200px (the old Hótel Hekla rule), otherwise its
- *     last photo stands alone, centred, so nothing sits in half a row.
+ * Packing, in order: add photos to a row until their combined aspect ratio
+ * reaches ROW (about 550px tall on a laptop) or the row holds three. A short
+ * leftover joins the row before it when that row has room; otherwise it sits
+ * centred at the same height as a full row rather than stretching huge.
+ * On a phone every photo gets the full width, one per row (CSS).
  */
-type Tile = { photo: PhotoRef; kind: 'wide' | 'half' | 'solo'; ratio: string }
-type PhotoRef = Project['photos'][number]
+const ROW = 2.4
+const MAX_PER_ROW = 3
 
-function tiles(rest: ReadonlyArray<PhotoRef>): Tile[] {
-  const wideOk = (p: PhotoRef) => isLandscape(p.id) && (PHOTO_DIMS[p.id]?.w ?? 0) >= 1200
-  const frame = (a: PhotoRef, b: PhotoRef) => {
-    const la = isLandscape(a.id), lb = isLandscape(b.id)
-    return la && lb ? '3 / 2' : !la && !lb ? '4 / 5' : '1 / 1'
-  }
-  // split into consecutive runs of the same room, keeping her order
+type PhotoRef = Project['photos'][number]
+type Cell = { photo: PhotoRef; a: number }
+type Row = { cells: Cell[]; open: boolean }
+
+function rows(rest: ReadonlyArray<PhotoRef>): Row[] {
   const runs: PhotoRef[][] = []
   for (const p of rest) {
     const last = runs[runs.length - 1]
     if (last && last[0].group === p.group) last.push(p)
     else runs.push([p])
   }
-  const out: Tile[] = []
+  const out: Row[] = []
   for (const run of runs) {
-    let i = 0
-    if (run.length % 2 === 1 && wideOk(run[0])) {
-      out.push({ photo: run[0], kind: 'wide', ratio: '16 / 9' })
-      i = 1
+    const mine: Row[] = []
+    let cur: Cell[] = []
+    const sum = (c: Cell[]) => c.reduce((t, x) => t + x.a, 0)
+    for (const photo of run) {
+      cur.push({ photo, a: aspectOf(photo.id) })
+      if (sum(cur) >= ROW || cur.length === MAX_PER_ROW) { mine.push({ cells: cur, open: false }); cur = [] }
     }
-    for (; i + 1 < run.length; i += 2) {
-      const r = frame(run[i], run[i + 1])
-      out.push({ photo: run[i], kind: 'half', ratio: r }, { photo: run[i + 1], kind: 'half', ratio: r })
+    if (cur.length) {
+      const prev = mine[mine.length - 1]
+      if (prev && prev.cells.length + cur.length <= MAX_PER_ROW) prev.cells.push(...cur)
+      else mine.push({ cells: cur, open: sum(cur) < ROW })
     }
-    if (i < run.length) {
-      const last = run[i]
-      out.push(wideOk(last)
-        ? { photo: last, kind: 'wide', ratio: '16 / 9' }
-        : { photo: last, kind: 'solo', ratio: isLandscape(last.id) ? '3 / 2' : '4 / 5' })
-    }
+    out.push(...mine)
   }
   return out
 }
@@ -140,18 +132,25 @@ export function ProjectPage({ slug }: { slug: string }) {
       {rest.length > 0 && (
         <div className="ki-wrap" data-ki-band="light" style={{ paddingTop: 0 }}>
           <div className="ki-proj-gallery">
-            {tiles(rest).map((t, i) => (
-              <div key={t.photo.id} className={t.kind === 'wide' ? 'ki-gal-wide' : t.kind === 'solo' ? 'ki-gal-solo' : 'ki-gal-half'}>
-                <Slide
-                  id={t.photo.id}
-                  alt={t.photo.alt}
-                  ratio={t.ratio}
-                  pos={t.photo.pos}
-                  sizes={t.kind === 'wide' ? GAL_SIZES : '(max-width: 860px) 92vw, 44vw'}
-                  variant={i === 0 ? 'shutter' : 'slide'}
-                />
-              </div>
-            ))}
+            {rows(rest).map((r, ri) => {
+              const total = r.cells.reduce((t, c) => t + c.a, 0)
+              return (
+                <div key={r.cells[0].photo.id} className={`ki-gal-row${r.open ? ' ki-gal-row--open' : ''}`}>
+                  {r.cells.map((c, ci) => (
+                    <div key={c.photo.id} className="ki-gal-cell" style={{ ['--a' as string]: c.a.toFixed(4) }}>
+                      <Slide
+                        id={c.photo.id}
+                        alt={c.photo.alt}
+                        ratio={`${PHOTO_DIMS[c.photo.id].w} / ${PHOTO_DIMS[c.photo.id].h}`}
+                        pos={c.photo.pos}
+                        sizes={`(max-width: 640px) 92vw, ${Math.max(20, Math.round((92 * c.a) / Math.max(total, ROW)))}vw`}
+                        variant={ri === 0 && ci === 0 ? 'shutter' : 'slide'}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )
+            })}
           </div>
           {p.credit && (
             <p className="ki-proj-credit ki-rv">Ljósmyndari: {p.credit}</p>

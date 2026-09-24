@@ -106,3 +106,21 @@ New from her site, native size, not upscaled (no photographer credited on her pa
 |---|---|
 | p-badherbergi-arbaer-1..5 | Arbaer-0052, -0006, -0010, -0018, -0020 |
 | p-badherbergi-keflavik-1..8 | baldursgardur-0002, -0008, -0014, -0024, -0025, -0029, -0034, -0036 |
+
+## Every project restored to her old site, 2026-09-24
+
+Sindri: "restore all projects to match her old site with all of her photos."
+The Elementor gallery on each of her 27 old project pages lists its
+photographs in order, each linking to the full-size original; that list is
+kept verbatim in `.ki-oldsite-galleries-0924.json` (311 photographs).
+
+- 205 matched a master we already had (12×12 grey fingerprint, all ≤4 mean
+  delta, no borderline cases), so existing ids, upscales and descriptions
+  were reused.
+- 106 were new. 7 of those were the same photograph on two of her pages
+  (Stemning shares shots with Skrifstofurými, Álfheimar and the studio) and
+  share one file, so 99 new files: `k-<project>-<her position>-2400.jpg`,
+  her original at native size, EXIF-rotated, not upscaled.
+- Each project keeps its lead photograph as the hero; the gallery below it is
+  her page's list in her order with that one photograph not repeated.
+  Baðherbergi was already restored the same way earlier today.
