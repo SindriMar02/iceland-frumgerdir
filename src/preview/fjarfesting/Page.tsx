@@ -31,6 +31,9 @@ const company = getPreviewCompany('fjarfesting')
 const YEAR = new Date().getFullYear()
 const B = import.meta.env.BASE_URL
 const PAPER = '#F7F6F3'
+/* the page colour Safari samples at load for its status and toolbar strips: the maroon of
+ * the phone bar and the footer sheet, so all three read one source (mobile-chrome-standard) */
+const M1 = '#8C3A3D'
 const OUT = 'cubic-bezier(0.25, 1, 0.5, 1)'
 const SEEN = 'fj-opened'
 
@@ -47,7 +50,7 @@ const CSS = `
 @font-face{font-family:'FjS';src:url('${B}fonts/hanken-grotesk/hanken-grotesk-v12-latin_latin-ext-700.woff2') format('woff2');font-weight:700;font-display:swap}
 @font-face{font-family:'FjI';src:url('${B}fonts/recia/Recia-Italic.woff2') format('woff2');font-style:italic;font-weight:400;font-display:swap}
 @font-face{font-family:'FjI';src:url('${B}fonts/recia/Recia-LightItalic.woff2') format('woff2');font-style:italic;font-weight:300;font-display:swap}
-html,body{background-color:${PAPER}}
+html,body{background-color:${M1}}
 .fj{--paper:${PAPER};--band:#EFEDEA;--ink:#2B2123;--mute:#5F6064;--m1:#8C3A3D;--m2:#A85A52;--rose:#E4D6D0;--hair:rgba(151,64,66,.25);
   --grad:linear-gradient(15deg,var(--m1),var(--m2));--out:${OUT};--hov:cubic-bezier(.25,.46,.45,.94);
   --mark:url('${B}fjarfesting/merki.svg');--ms:1.51vw;--gut:1.66em;--R:4.33em;--r:1em;
@@ -75,6 +78,8 @@ html,body{background-color:${PAPER}}
 .fj .h1{font-size:var(--h1);color:var(--paper);text-transform:uppercase;font-weight:400;line-height:1;text-align:center;text-wrap:balance}
 .fj .h1 em,.fj .disp em{font-family:'FjI',Georgia,serif;font-style:italic;line-height:0}
 .fj .h1 em{font-size:1.08em}
+/* SplitText's line masks are 1em tall and clip; the 1.08em italic Ú/Í accents reach above that, so pad the masks up and pull the padding back */
+.fj .h1 > *{padding-top:.3em;margin-top:-.3em}
 .fj .h2{font-family:'FjI',Georgia,serif;font-style:italic;font-weight:400;font-size:var(--h2);text-transform:uppercase;line-height:.95;padding:.06em .04em .1em 0;
   background-image:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .fj .h2.white{background:none;-webkit-text-fill-color:var(--paper);color:var(--paper)}
@@ -159,8 +164,10 @@ html,body{background-color:${PAPER}}
 .fj-awning{display:none}
 @media (max-width:767px){
   /* mobile-chrome-standard: the constant bar + a colourless awning. No behaviour. */
-  .fj-sticky{opacity:1;pointer-events:auto;height:calc(3.9em + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);background:rgba(247,246,243,.9);
-    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:none;border-bottom:1px solid rgba(43,33,35,.08);transition:none}
+  .fj-sticky{opacity:1;pointer-events:auto;height:calc(3.9em + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);background:rgba(140,58,61,.94);color:var(--paper);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:none;border-bottom:1px solid rgba(247,246,243,.14);transition:none}
+  .fj-sticky .logo{color:var(--paper)}.fj-sticky .logo img{filter:brightness(0) invert(1)}
+  .fj-sticky .call{color:var(--paper)}.fj-sticky .burger{color:var(--paper)}
   .fj-sticky .row{background:transparent;height:3.9em;padding-top:0;padding-bottom:0}
   .fj-sticky .call b{font-size:1.25em}
   .fj.menu-open .fj-sticky,.fj.pop-open .fj-sticky{opacity:1;pointer-events:auto}
@@ -226,6 +233,9 @@ html,body{background-color:${PAPER}}
   .fj-pop .close{position:sticky;top:0;right:auto;display:flex;justify-content:flex-end;padding:1em var(--gut);background:var(--paper);box-shadow:0 .33em 1.66em rgba(43,33,35,.05)}
   .fj-pop .close .x{background:var(--hair)}
   .fj-pop .body{padding:2.86em var(--gut) 2em}
+  .fj-pop .head{gap:.9em;align-items:center}
+  .fj-pop .h2{font-size:1.65em;text-wrap:balance}
+  .fj-pop .num{top:0}
 }
 .fj .num{width:2.33em;height:2.33em;border-radius:9999px;background:var(--m1);color:var(--paper);display:flex;align-items:center;justify-content:center;flex:none;font-size:var(--pp);transition:background-color .3s var(--hov),color .3s var(--hov)}
 .fj-pop .num{position:relative;top:.33em}
@@ -293,6 +303,7 @@ html,body{background-color:${PAPER}}
 @media (hover:hover) and (pointer:fine){.fj .arrows button:hover{background:var(--ink);color:var(--paper)}}
 .fj .rail{overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior-x:contain}
 .fj .rail::-webkit-scrollbar{display:none}
+@media (hover:none){.fj .rail{scroll-snap-type:x mandatory;scroll-padding-inline:calc(var(--gut) + .01em)}.fj .rail .card2,.fj .rail .sign{scroll-snap-align:start}}
 .fj .rail.drag{cursor:grabbing}
 .fj .rail .list{display:flex;gap:1em}
 .fj .rail .pad{flex:0 0 .66em}
@@ -365,8 +376,12 @@ html,body{background-color:${PAPER}}
 
 /* Opin hús: the A-frame sign agents stand on the pavement, as a ticker */
 .fj-open{z-index:2;background:var(--paper);margin-top:calc(var(--R) * -1);padding:11.19em 0 7.33em;display:flex;flex-direction:column;gap:2em;overflow:hidden}
-.fj-open .tick .ln{animation:fj-tick var(--dur) linear infinite}
-@media (hover:hover) and (pointer:fine){.fj-open .tick:hover .ln,.fj-open .tick:focus-within .ln{animation-play-state:paused}}
+/* a real scroller: useTicker drifts it and wraps it, so it can also be dragged or swiped by hand */
+/* a scroller clips on both axes, so pad it (and pull the padding back out) to leave room for the .35em hover lift */
+.fj-open .tick{overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior-x:contain;cursor:grab;padding:.8em 0;margin:-.8em 0}
+.fj-open .tick::-webkit-scrollbar{display:none}
+.fj-open .tick.drag{cursor:grabbing}
+.fj-open .tick .ln{transform:none;will-change:auto}
 .fj-open .row{display:flex;gap:1em;padding-right:1em}
 .fj .sign{flex:none;width:15.4em;display:flex;flex-direction:column;border-radius:.5em;overflow:hidden;background:var(--band);white-space:normal;transition:transform .45s var(--out)}
 .fj .sign .bar{display:flex;justify-content:space-between;align-items:center;padding:.7em 1.1em;background:var(--grad);color:var(--paper);font-size:var(--lab);font-weight:700;letter-spacing:.12em;text-transform:uppercase}
@@ -376,6 +391,7 @@ html,body{background-color:${PAPER}}
 .fj .sign .tm{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
 .fj .sign .ad{padding:0 1.1em;color:var(--ink);font-weight:600;line-height:1.25}
 .fj .sign .me{padding:.15em 1.1em 1em;font-size:.86em;font-variant-numeric:tabular-nums}
+.fj .sign .me b{display:block;color:var(--ink);font-weight:600;margin-top:.15em}
 .fj .sign .ph{margin-top:auto;height:6em;position:relative;background:var(--rose)}
 .fj .sign .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s var(--out)}
 @media (hover:hover) and (pointer:fine){.fj .sign:hover{transform:translateY(-.35em)}.fj .sign:hover .ph img{transform:scale(1.06)}}
@@ -468,6 +484,8 @@ html,body{background-color:${PAPER}}
   .fj-contact .form,.fj-contact .info{grid-column:1}
   .fj-contact .info{order:-1}
   .fj-contact .fields{grid-template-columns:1fr}
+  .fj-menu .soc{padding-left:var(--gut)}
+  .fj-menu .div{left:var(--gut);width:calc(100% - 2 * var(--gut))}
   .fj-foot{padding-top:4em}
   .fj-foot .legal{flex-direction:column}
 }
@@ -481,6 +499,8 @@ html,body{background-color:${PAPER}}
   .fj-team,.fj-proj{padding-top:3.86em;padding-bottom:4.66em;gap:1.46em}
   .fj .person,.fj .dev{flex-basis:calc(100% - 3em)}
   .fj .dev .ph{height:15em}
+  .fj .dev .hd{flex-direction:column;align-items:flex-start;gap:.35em}
+  .fj .dev .nm{font-size:1.85em;text-wrap:balance}
   .fj .arrows button{width:3em;height:3em}
   .fj .idx .t{font-size:1.45em}
   .fj .idx .row{grid-template-columns:1fr 1.2em;row-gap:.2em}
@@ -495,8 +515,14 @@ html,body{background-color:${PAPER}}
   .fj .btn{height:3.5em;padding:0 1.8em}
   .fj .burger,.fj .x{width:2.2em;height:2.2em}
   .fj .logo{font-size:.83em}
-  .fj-sticky .menu-btns{gap:0}
-  .fj-foot .cols{grid-template-columns:1fr;gap:1.6em}
+  .fj-sticky .menu-btns{gap:1em}
+  .fj-sticky .call small{display:none}
+  .fj-sticky .call b{font-size:1.1em}
+  .fj-foot .cols{grid-template-columns:1fr 1fr;gap:1.6em 1em;font-size:.9em}
+  .fj-foot ul{gap:0}
+  .fj-foot li a{display:inline-block;padding:.35em 0}
+  .fj-foot .cols>div:nth-child(2){grid-column:1 / -1;order:-1}
+  .fj-foot .legal{gap:.5em}
 }
 .fj.still .mask img{animation:none}
 @media (prefers-reduced-motion:reduce){
@@ -549,6 +575,83 @@ function Mask({ children, as = 'h2', white, id }: { children: ReactNode; as?: 'h
       <T className={`h2${white ? ' white' : ''}`} data-a="mask" id={id}>{children}</T>
     </div>
   )
+}
+
+/* Opin hús ticker: drifts one sign every ~4.5s, loops seamlessly over two copies of the row,
+ * and hands over to the visitor on hover, focus, drag (0.95 inertia like the rails) or a
+ * trackpad swipe, resuming 2.5s after they let go. Only runs while on screen. */
+function useTicker() {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    /* look the row up live: React can swap these nodes after mount, and a kept
+     * reference then measures 0 wide */
+    const row = () => el.querySelector<HTMLElement>('.ln')
+    let raf = 0, prev = 0, seen = false, hover = false, down = false, moved = false
+    let sx = 0, sl = 0, last = 0, v = 0, idleUntil = 0, pos = 0
+    const half = () => row()?.offsetWidth ?? 0
+    const wrap = () => {
+      const h = half()
+      if (!h) return
+      if (el.scrollLeft >= h) { el.scrollLeft -= h; sl -= h }
+      else if (el.scrollLeft <= 0) { el.scrollLeft += h; sl += h }
+      pos = el.scrollLeft
+    }
+    const hold = () => { idleUntil = performance.now() + 2500 }
+    const frame = (t: number) => {
+      const dt = prev ? Math.min(t - prev, 64) : 0
+      prev = t
+      const drift = !down && Math.abs(v) <= 0.5 && !hover && !el.contains(document.activeElement) && t > idleUntil
+      if (drift) {
+        /* keep the fractional position ourselves: scrollLeft may round, which would stall
+         * a sub-pixel step on a 120Hz screen */
+        const h = half()
+        const n = row()?.querySelectorAll('.sign').length || 1
+        pos += (h / n / 4500) * dt
+        if (h && pos >= h) pos -= h
+        el.scrollLeft = pos
+      } else {
+        if (!down && Math.abs(v) > 0.5) { el.scrollLeft -= v; v *= 0.95; hold() }
+        wrap()
+      }
+      raf = seen ? requestAnimationFrame(frame) : 0
+    }
+    const io = new IntersectionObserver(([e]) => {
+      seen = e.isIntersecting
+      if (seen && !raf) { prev = 0; pos = el.scrollLeft; raf = requestAnimationFrame(frame) }
+    })
+    io.observe(el)
+    const md = (e: MouseEvent) => { down = true; moved = false; el.classList.add('drag'); sx = last = e.pageX; sl = el.scrollLeft; v = 0 }
+    const mm = (e: MouseEvent) => { if (!down) return; e.preventDefault(); if (Math.abs(e.pageX - sx) > 4) moved = true; el.scrollLeft = sl - (e.pageX - sx); v = e.pageX - last; last = e.pageX; wrap() }
+    const mu = () => { if (!down) return; down = false; el.classList.remove('drag'); hold() }
+    const click = (e: MouseEvent) => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false } }
+    const enter = () => { hover = true }
+    const leave = () => { hover = false; mu() }
+    /* trackpad / shift-wheel scrolls natively; just note it so the drift waits */
+    const wheel = (e: WheelEvent) => { if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) { v = 0; hold() } }
+    el.scrollLeft = 1
+    pos = 1
+    el.addEventListener('mousedown', md)
+    el.addEventListener('mousemove', mm)
+    el.addEventListener('mouseup', mu)
+    el.addEventListener('mouseenter', enter)
+    el.addEventListener('mouseleave', leave)
+    el.addEventListener('click', click, true)
+    el.addEventListener('wheel', wheel, { passive: true })
+    return () => {
+      cancelAnimationFrame(raf)
+      io.disconnect()
+      el.removeEventListener('mousedown', md)
+      el.removeEventListener('mousemove', mm)
+      el.removeEventListener('mouseup', mu)
+      el.removeEventListener('mouseenter', enter)
+      el.removeEventListener('mouseleave', leave)
+      el.removeEventListener('click', click, true)
+      el.removeEventListener('wheel', wheel)
+    }
+  }, [])
+  return ref
 }
 
 /* Wild's rails: native scroll, mouse drag with 0.95 inertia, arrows step 2 cards (1 on phones). */
@@ -647,12 +750,13 @@ export default function Page() {
   const root = useRef<HTMLDivElement>(null)
   const team = useRail()
   const proj = useRail()
+  const openTick = useTicker()
 
   /* head: title, meta, noindex, JSON-LD */
   useEffect(() => {
     const prevTitle = document.title
     document.title = 'Fjárfesting fasteignasala | Borgartún 31'
-    setThemeColor(PAPER)
+    setThemeColor(M1)
     const a = setMetaDescription(`Fjárfesting fasteignasala í Borgartúni 31. ${LISTING_COUNT} eignir á söluskrá, opin hús í hverri viku og frítt söluverðmat. Sími 562 4250.`)
     const b = setNoindex(true)
     const ld = document.createElement('script')
@@ -885,14 +989,13 @@ export default function Page() {
   const openPop = (id: string) => { setMenu(false); setPop(id) }
   const go = (id: string) => () => { setMenu(false); setPop(null); requestAnimationFrame(() => { const t = document.getElementById(id); if (!t) return; if (pageLenis) { pageLenis.start(); pageLenis.scrollTo(t, { offset: -8 }) } else t.scrollIntoView({ behavior: still ? 'auto' : 'smooth' }) }) }
   const current = POPS.find((p) => p.id === pop)
-  const ohDur = { '--dur': `${(14.5 * OPEN_HOUSES.length) / 8}s` } as CSSProperties
 
   const OpenTile = ({ o, tab }: { o: (typeof OPEN_HOUSES)[number]; tab?: boolean }) => (
     <a className="sign" href={o.href} target="_blank" rel="noopener" tabIndex={tab === false ? -1 : undefined} aria-label={`Opið hús ${o.day}, ${o.time}, ${o.street}, ${o.town}`}>
       <span className="bar"><span>Opið hús</span><span>{o.wd}</span></span>
       <span className="bd"><span className="dd">{o.dd}</span><span className="mo">sept.</span><span className="tm">{o.time}</span></span>
       <span className="ad">{o.street}, {o.town}</span>
-      <span className="me">{o.size} m², {o.rooms} herb. · {o.price}</span>
+      <span className="me">{o.size} m², {o.rooms} herb.<b>{o.price}</b></span>
       <span className="ph"><img src={o.img} alt="" loading="lazy" width={600} height={332} /></span>
     </a>
   )
@@ -1131,7 +1234,7 @@ export default function Page() {
             <div className="hcol"><Mask id="h-open">Opin hús.</Mask>
             <p className="aside">{OPEN_HOUSES.length} opin hús dagana 23. til 25. september. Tími og staður við hverja eign.</p></div>
           </div>
-          <div className="tick" style={ohDur}>
+          <div className="tick" ref={openTick}>
             {[0, 1].map((k) => (
               <div className="ln" key={k} aria-hidden={k === 1 ? true : undefined}>
                 <div className="row">{OPEN_HOUSES.map((o) => <OpenTile key={o.id} o={o} tab={k === 1 ? false : undefined} />)}</div>
