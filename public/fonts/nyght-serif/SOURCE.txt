@@ -1,0 +1,6 @@
+Nyght Serif — imported 2026-09-01 (Tier 1 of the 2026-09-01 font scour, see _docs/FONT-SCOUR-2026-09-01.md)
+License: OFL 1.1
+Archive: https://gitlab.com/mkobuzan/nyght-serif/-/archive/main/nyght-serif-main.zip; web regenerated with fontTools
+Static styles: 10; variable files: 0. Icelandic (Þ Ð Æ Ö + acutes) verified present per saved file via cmap check — no synthesis needed.
+otf/ = native OTF from source.
+https://gitlab.com/mkobuzan/nyght-serif/-/archive/main/nyght-serif-main.zip

@@ -397,7 +397,7 @@ export default function App() {
             <Route path="/preview/sagakayak" element={<SagakayakPage />} />
             <Route path="/preview/saudakofinn" element={<SaudakofinnPage />} />
             <Route path="/preview/ljomalind" element={<LjomalindPage />} />
-            <Route path="/preview/bjarkalundur" element={<BjarkalundurPage />} />
+            <Route path="/preview/bjarkalundur/*" element={<BjarkalundurPage />} />
             <Route path="/preview/kauptun" element={<KauptunPage />} />
             <Route path="/preview/issi" element={<IssiPage />} />
             <Route path="/preview/hunabud" element={<HunabudPage />} />

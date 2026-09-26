@@ -1,260 +1,409 @@
-/* Hótel Bjarkalundur — content model. Every fact, price, quote and name here
-   traces to the redesign brief + dossier (prep10). Honesty guardrails honoured:
-   no invented room rates, no invented menu prices, no invented closure reason,
-   no named owner on the public page, no "EV charger", softened superlative,
-   reviews flagged as illustrative pending exact-quote verification. */
+/* Hótel Bjarkalundur v3, content model.
+   Every factual line here traces to _docs/BJARKALUNDUR-FACTS-2026-09-26.md
+   (section named in the comment) or to Sindri's visit notes (§7 of that file).
+   Photos are the owner's own Booking.com uploads (harvest manifest in
+   _docs/bjarkalundur-harvest-2026-09-26/); a photo sits next to a room type
+   only when the owner filed it under that type (associated_rooms). */
 
 const BASE = import.meta.env.BASE_URL
+const v2 = (f: string) => `${BASE}bjarkalundur/v2/${f}`
+const v3 = (f: string) => `${BASE}bjarkalundur/v3/${f}`
 
-const img = (file: string) => `${BASE}bjarkalundur/${file}`
-
-/* ── Contact / actions ─────────────────────────────────────────────────── */
-export const PHONE_DISPLAY = '+354 562 1900'
+/* ── Contact / actions (§3 own site footer, §4 Godo) ─────────────────── */
+export const ROOT = '/preview/bjarkalundur'
+export const PHONE_DISPLAY = '562 1900'
 export const PHONE_HREF = 'tel:+3545621900'
 export const EMAIL = 'info.hotelbjarkalundur@gmail.com'
 export const EMAIL_HREF = 'mailto:info.hotelbjarkalundur@gmail.com'
 export const ADDRESS = 'Bjarkalundi, 381 Reykhólahreppur'
-export const GPS = 'N65° 33′ 22,703″ · V22° 6′ 14,057″'
-/* Booking portal (property.godo.is) returned a maintenance page at build time,
-   so the primary booking CTA routes to the live Booking.com listing per the
-   brief's conversion note, rather than a broken page. */
-export const BOOKING_URL = 'https://www.booking.com/hotel/is/thomsen-bjarkarlundur.html'
-/* Google Maps embed centred on the verified hotel coordinates (eager-loaded). */
-export const MAP_EMBED = 'https://www.google.com/maps?q=65.55631,-22.10390&z=10&output=embed'
-export const MAP_LINK = 'https://www.google.com/maps/search/?api=1&query=65.55631,-22.10390'
+export const BOOKING_URL = 'https://property.godo.is/booking.php?propid=51121&lang=is'
+export const MAP_EMBED = 'https://www.google.com/maps?q=65.55643,-22.10442&z=11&output=embed'
+export const MAP_LINK = 'https://www.google.com/maps/search/?api=1&query=H%C3%B3tel+Bjarkalundur'
+export const GOOGLE_REVIEWS = 'https://www.google.com/maps/search/?api=1&query=H%C3%B3tel+Bjarkalundur'
+export const TRIPADVISOR = 'https://www.tripadvisor.com/Hotel_Review-g4909297-d3312639-Reviews-Thomsen_Bjarkalundur-Strandabyggo_Westfjords_Region.html'
 
-/* ── Images (client's own photography + 2 CC BY-SA Wikimedia landmark shots) ─ */
+/* ── Images ──────────────────────────────────────────────────────────── */
+export type Pic = { src: string; srcS?: string; w: number; h: number; alt: string }
+const p = (name: string, w: number, h: number, alt: string, small = true): Pic =>
+  ({ src: v2(`${name}.webp`), srcS: small ? v2(`${name}-s.webp`) : undefined, w, h, alt })
+const L = (n: string, alt: string) => p(n, 2400, 1800, alt) /* 4:3 landscape */
+const W = (n: string, alt: string) => p(n, 2400, 1600, alt) /* 3:2 landscape */
+const T = (n: string, alt: string) => p(n, 2250, 3000, alt) /* 3:4 portrait */
+/* Higgsfield 4K upscales (bytedance), graded once in-house, exported 2560 + 1280 */
+const U = (n: string, w: number, h: number, alt: string): Pic => ({ src: v3(`${n}.webp`), srcS: v3(`${n}-s.webp`), w, h, alt })
+
 export const IMG = {
-  hero: img('hero-exterior.webp'),
-  archival: img('archival.webp'),
-  vadalfjoll1: img('vadalfjoll-1.webp'),
-  vadalfjoll2: img('vadalfjoll-2.webp'),
-  loungeGreen: img('lounge-green.webp'),
-  muralPiano: img('mural-piano.webp'),
-  dining: img('dining.webp'),
-  loungeWindow: img('lounge-window.webp'),
-  library: img('library.webp'),
-  desk: img('desk.webp'),
-  bedroom: img('bedroom.webp'),
-  kitchenPrep: img('kitchen-prep.webp'),
-  tableDetail: img('table-detail.webp'),
-  campsiteField: img('campsite-field.webp'),
-  heathPanorama: img('heath-panorama.webp'),
+  valley: U('valley', 2560, 1711, 'Hvíta hótelhúsið með rauða þakinu í grænum dal og sumarhúsin við hliðina.'),
+  lake: U('lake', 2560, 1711, 'Berufjarðarvatn í logni og annar stapi Vaðalfjalla handan við vatnið.'),
+  kayaks: U('kayaks', 2560, 1711, 'Tveir rauðir kajakar við litla trébryggju úti í vatninu.'),
+  boat: W('boat-dock', 'Bátur og kajakar við bryggjuna í sefinu.'),
+  bird: W('bird-fence', 'Fugl á girðingarstaur við vatnið.'),
+  peaks: p('hotel-peaks', 2400, 1218, 'Hótelið lágt í landinu og stapi Vaðalfjalla á hæðinni fyrir ofan.'),
+  window: U('window', 2560, 1920, 'Útsýni út um gluggann yfir planið, vatnið og fjöllin.'),
+  sign: L('facade-sign', 'Nafnið Hótel Bjarkalundur í hvítum stöfum á rauða bandinu undir þakinu og borð og bekkir fyrir framan.'),
+  facade: L('facade-long', 'Langa hvíta hótelhúsið með rauða bandinu undir þakinu.'),
+  lounge: U('lounge', 2560, 1920, 'Græna stofan með hægindastólum og ljósakrónu og matsalurinn fyrir innan.'),
+  piano: U('piano', 2560, 1920, 'Píanó, lampi og hægindastólar við vegg með blómaveggfóðri í grænu stofunni.'),
+  lamp: T('lounge-lamp', 'Lampi og glös á borði við grænan vegg með blómaveggfóðri.'),
+  dining: U('dining', 2560, 3413, 'Matsalurinn með dökkum borðum, stólum og myndum á grænum veggjum.'),
+  candle: T('table-candle', 'Kerti og grein í vasa á dúklögðu borði.'),
+  roomRed: L('room-twin-red', 'Tvö rúm og rauðir hægindastólar í björtu herbergi.'),
+  lomur: U('lomur', 2560, 1920, 'Nafnaskiltið Lómur við herbergisdyr og rúm fyrir innan.'),
+  roomShared: L('room-shared', 'Rúm með rósóttum rúmfötum og tréhurð í litlu herbergi.'),
+  himbrimi: p('sign-himbrimi', 1505, 1316, 'Tréfugl og nafnaskiltið Himbrimi á herbergisdyrum.', false),
+  bathShared: L('bath-shared', 'Sameiginleg snyrting með tveimur vöskum.'),
+  bathShared2: L('bath-shared-2', 'Sameiginleg snyrting með vöskum og speglum.'),
+  bathPrivate: L('bath-private', 'Baðherbergi með sturtu, salerni og vaski.'),
+  cottageBeds: U('cottagebeds', 2560, 1920, 'Tvö rúm í sumarhúsi með viðarklæddum veggjum.'),
+  cottageA: U('cottage', 2560, 1920, 'Sumarhús úr timbri með palli og hótelið og vatnið fyrir neðan.'),
+  cottageLog: L('cottage-log', 'Bjálkahús með palli og bekk við dyrnar.'),
+  cottageTowel: p('cottage-towel', 2250, 3000, 'Handklæði merkt hótelinu á rósóttum rúmfötum.'),
+  cottageKitchen: p('cottage-kitchen', 1739, 1304, 'Eldhúskrókur með litlum ísskáp, borði og stólum í sumarhúsi.', false),
+  cottageRoad: L('cottage-road', 'Sumarhús við malarveginn á lóðinni.'),
+  cottagePair: L('cottage-pair', 'Tvö sumarhús við malarveginn.'),
+  cottageRow: L('cottage-row', 'Sumarhúsin í röð í hlíðinni fyrir ofan hótelið.'),
+  single: p('single-a', 2048, 1536, 'Eins manns herbergi með rúmi, glugga og stól.'),
+  single2: p('single-b', 2048, 1536, 'Skrifborð, stóll og rúm í eins manns herbergi.'),
+  campTables: L('camp-tables', 'Rauð borð og bekkir á grasflötinni fyrir framan hótelið.'),
+  campGrass: L('camp-grass', 'Rauð nestisborð í röð á grasflötinni.'),
+  heroPoster: { src: v3('hero-poster.webp'), srcS: v3('hero-poster-s.webp'), w: 1920, h: 1080, alt: 'Langa hvíta hótelhúsið með rauða bandinu og nafninu Hótel Bjarkalundur, ský á hreyfingu yfir.' } as Pic,
+  archival: { src: `${BASE}bjarkalundur/archival.webp`, w: 800, h: 564, alt: 'Gömul ljósmynd af Bjarkalundi: hótelið í dalnum og vegurinn heim að því.' } as Pic,
 }
 
-/* ── Nav ───────────────────────────────────────────────────────────────── */
-export const NAV = [
-  { id: 'vadalfjoll', label: 'Vaðalfjöll' },
-  { id: 'herbergi', label: 'Gisting' },
-  { id: 'veitingar', label: 'Veitingar' },
-  { id: 'saga', label: 'Sagan' },
-  { id: 'tjaldsvaedi', label: 'Tjaldsvæði' },
-  { id: 'hafa-samband', label: 'Hafa samband' },
+/* ── Navigation ──────────────────────────────────────────────────────── */
+export type NavItem = { label: string; to: string }
+export const NAV: NavItem[] = [
+  { label: 'Gisting', to: `${ROOT}/gisting` },
+  { label: 'Veitingar', to: `${ROOT}#stofan` },
+  { label: 'Umhverfið', to: `${ROOT}#umhverfid` },
+  { label: 'Sagan', to: `${ROOT}#sagan` },
+  { label: 'Umsagnir', to: `${ROOT}/umsagnir` },
+  { label: 'Hafa samband', to: `${ROOT}#hafa-samband` },
 ]
 
-/* ── Hero ──────────────────────────────────────────────────────────────── */
+/* ── Home (v4: Edelhaus board × MRC scroll) ────────────────────────────
+   Titles use "|" for a line break and *…* for the italic words. Every fact
+   below is the same fact-checked line as v3; sources in the facts file:
+   §2 history (Vísir, mbl, Wikipedia), §1 owners (mbl 8.9.2025, bb.is
+   20.3.2026, Lifðu núna 10.5.2024), §6 place (Wikipedia, Google listing),
+   §3 own site (campsite), Booking.com (check-in/out), §7 Sindri. */
+export const HERO_FILM = {
+  src: v3('hero-loop.mp4'),
+  srcS: v3('hero-loop-720.mp4'),
+  poster: v3('hero-poster.webp'),
+  posterS: v3('hero-poster-s.webp'),
+}
+
 export const HERO = {
-  eyebrow: 'Reykhólasveit · Vestfirðir',
-  line1: 'HLIÐIÐ',
-  line2: 'AÐ VESTFJÖRÐUM',
-  sub: 'Hótel Bjarkalundur stendur við rætur Vaðalfjalla, á mörkum Berufjarðar og Þorskafjarðar, þar sem leiðin inn í Vestfirði hefst. Opið á ný frá 1. apríl 2026.',
-  alt: 'Hótel Bjarkalundur, langt hvítt og dökkrautt hús með gráðaðri hlíð í haustlitum að baki og bílum á malarplaninu fyrir framan.',
+  name: 'Bjarkalundur',
+  sub: 'Elsta sumarhótel landsins, við rætur Vaðalfjalla.',
+  book: 'Bóka gistingu',
 }
 
-/* ── The threshold — quick facts strip (all sourced, no invented meters) ─── */
-export const FACTS: { value: string; label: string; count?: number }[] = [
-  { value: '1947', label: 'Stofnað', count: 1947 },
-  { value: '19 + 6', label: 'Herbergi og gestahús' },
-  { value: '1. apríl 2026', label: 'Enduropnað' },
-  { value: '214 km', label: 'Frá Reykjavík' },
-]
-
-/* ── Vaðalfjöll — signature section ────────────────────────────────────── */
-export const VADALFJOLL = {
-  eyebrow: 'Kennileitið',
-  title: 'Vaðalfjöll',
-  body: 'Sex til sjö kílómetra fyrir norðan hótelið rísa Vaðalfjöll, tveir stapar úr storknuðu hrauni upp af Þorskafjarðarheiði. Af tindunum sést yfir Vestfirði, Breiðafjörð og Dali. Gönguleiðin að þeim byrjar við dyrnar á Bjarkalundi.',
-  detailAlt: 'Nærmynd af öðrum stapa Vaðalfjalla, þar sem stuðlabergið sést greinilega, með grænni mosaþúfu í forgrunni.',
-  wideAlt: 'Vaðalfjöll rísa upp af kjarri vaxinni heiðinni undir bláum himni og lítið hús stendur undir hlíðinni.',
-  credit: 'Ljósmyndir af Vaðalfjöllum: Hornstrandir1 og ArniGael, Wikimedia Commons, CC BY-SA 4.0.',
-  waypoint: 'Bjarkalundur',
+export const INTRO = {
+  eyebrow: 'Síðan 1947',
+  title: 'Sumarhótel|*við veginn vestur*',
+  body: [
+    'Hótel Bjarkalundur var reist á árunum 1945 til 1947 og er elsta sumarhótel landsins. Það stendur við Vestfjarðaveg, 214 kílómetra frá Reykjavík, beint neðan við Vaðalfjöll.',
+    'Hér eru herbergi og sumarhús, matsalur með grænum veggjum og tjaldsvæði við lækinn.',
+  ],
 }
 
-/* ── Rooms / accommodation (no price table — brief honesty guardrail) ────── */
-export const ROOMS = {
+export const EXPERIENCE = {
+  title: 'Vaðalfjöll|*og vatnið*',
+  sub: 'Tveir gígtappar úr blágrýti beint norðan við hótelið og Berufjarðarvatn í sjö mínútna göngufæri.',
+  card: { pic: 'kayaks' as const, title: 'Kajak á vatninu', text: 'Á Berufjarðarvatni er róið á kajak og rennt fyrir fisk.' },
+  hike: 'Það er auðvelt að ganga að Vaðalfjöllum og upp á tindana.',
+}
+
+export const STAY = {
   eyebrow: 'Gisting',
-  title: 'Herbergi og gestahús',
-  body: 'Á Bjarkalundi eru um 19 herbergi í aðalhúsinu og 6 sjálfstæð gestahús. Herbergin eru einföld og hlýleg, hvert gestahús með tvíbreiðu rúmi, litlu eldhorni og baðherbergi. Verð og laust framboð birtast á bókunarsíðunni.',
-  alt: 'Gestaherbergi með uppábúnu tvíbreiðu rúmi, gulbrúnu teppi, vegglampa og litlu skrifborði.',
-  note: 'Verð og framboð eru sýnd á bókunarsíðunni.',
-  cta: 'Bóka gistingu',
+  title: 'Herbergi|*og sumarhús*',
+  features: [
+    { icon: 'bed', label: '19 herbergi' },
+    { icon: 'house', label: 'Sumarhús' },
+    { icon: 'bath', label: 'Sérbað í boði' },
+    { icon: 'wifi', label: 'Þráðlaust net' },
+  ] as const,
+  strip: [
+    { pic: 'lomur', label: 'Lómur', to: `${ROOT}/gisting#vaskur` },
+    { pic: 'cottageBeds', label: 'Sumarhús', to: `${ROOT}/gisting#hus-bad` },
+    { pic: 'single', label: 'Fyrir einn', to: `${ROOT}/gisting#einn` },
+    { pic: 'cottageKitchen', label: 'Eldhúskrókur', to: `${ROOT}/gisting#hus-eldhus` },
+  ] as const,
+  cta: 'Öll herbergin',
 }
 
-/* ── Room categories for the on-page browser — the same two counts and the
-   same gestahús furnishing list from ROOMS.body above, split into a
-   selectable pair instead of one paragraph. No amenity is added that is not
-   already stated verbatim in ROOMS.body (no breakfast/wifi/parking claims,
-   since inclusion isn't confirmed for either room type). ─────────────────── */
-export interface RoomCategory {
-  id: 'adalhus' | 'gestahus'
-  label: string
-  count: string
-  countLabel: string
-  body: string
-  features: string[]
-  img: keyof typeof IMG
-  alt: string
-}
-export const ROOM_CATEGORIES: RoomCategory[] = [
-  {
-    id: 'adalhus',
-    label: 'Herbergi í aðalhúsinu',
-    count: '19',
-    countLabel: 'herbergi í aðalhúsinu',
-    body: 'Um 19 herbergi í sjálfu hótelhúsinu, einföld og hlýleg að innan.',
-    features: ['Í sjálfu hótelhúsinu', 'Einföld og hlýleg innrétting'],
-    img: 'bedroom',
-    alt: ROOMS.alt,
-  },
-  {
-    id: 'gestahus',
-    label: 'Sjálfstæð gestahús',
-    count: '6',
-    countLabel: 'sjálfstæð gestahús',
-    body: 'Sex sjálfstæð gestahús á lóðinni, hvert með sínu tvíbreiða rúmi, eldhorni og baðherbergi.',
-    features: ['Tvíbreitt rúm', 'Lítið eldhorn', 'Eigið baðherbergi'],
-    img: 'bedroom',
-    alt: ROOMS.alt,
-  },
-]
-
-/* ── „Þá / Nú" — signature 1947↔2026 slider copy. Reuses the already-verified
-   alt text for the two photos (STORY.archivalAlt / HERO.alt) rather than
-   writing new descriptions of the same images. ────────────────────────────── */
-export const THEN_NOW = {
-  eyebrow: 'Þá og nú',
-  title: '1947 mætir 2026',
-  body: 'Sama hlið, sami staður. Dragðu sleðann til að bera saman gamla hótelið og Bjarkalund eins og hann er í dag.',
-  instruction: 'Dragðu til að bera saman, eða notaðu örvatakkana.',
-  labelThen: '1947',
-  labelNow: '2026',
+export const COTTAGES = {
+  title: 'Sumarhúsin|*á lóðinni*',
+  body: 'Viðarklædd hús með palli, sum með eldhúskrók og eigin baðherbergi. Ný sumarhús eru í smíðum og bætast við.',
+  link: 'Skoða gistingu',
 }
 
-/* ── Restaurant & bar ──────────────────────────────────────────────────── */
-export const RESTAURANT = {
+export const OWNERS = {
+  eyebrow: 'Nýir eigendur',
+  title: 'Diddi og Evelyn|*opnuðu á ný*',
+  body: [
+    'Bjarkalundur stóð lokaður í þrjú ár. Árið 2025 tóku hjónin Sigurður Friðriksson, Diddi, og Evelyn Rojas Tagalog við staðnum og 1. apríl 2026 var hótelið opnað aftur.',
+    'Diddi var lengst af skipstjóri og hefur rekið hótel frá árinu 2004. Nú er opið frá klukkan sjö á morgnana, morgunmatur í boði og eldhúsið opið fram á kvöld, alla daga.',
+    'Ný sumarhús eru í smíðum á lóðinni. Hótelið er lokað hluta vetrar og opnar aftur í mars.',
+  ],
+  link: 'Saga hússins',
+  archivalCaption: 'Bjarkalundur á árum áður.',
+}
+
+/* Skip Jones (Google 2026) is the source for the view from the dining room. */
+export const FOOD = {
   eyebrow: 'Veitingar',
-  title: 'Veitingastaður og bar',
-  body: 'Á staðnum er veitingastaður og bar sem býður hefðbundinn íslenskan og alþjóðlegan mat úr hráefni úr héraðinu, ásamt morgunverðarhlaðborði. Opið frá kl. 7 til kvölds, alla daga.',
-  hours: 'Opið kl. 7 til kvölds · alla daga',
-  gallery: [
-    { key: 'dining', alt: 'Matsalur með ljósakrónu, dökkum viðarborðum sem búið er að leggja á, grænum veggjum og dagsbirtu úr gluggum.' },
-    { key: 'kitchenPrep', alt: 'Hendur að skera grænmeti, radísur, kryddjurtir og chili, á viðarbretti með litlum skálum við hlið.' },
-    { key: 'tableDetail', alt: 'Borðdúkur með blúndukanti, kveikt á kerti og lítil pottaplanta á dökku viðarborði.' },
+  title: 'Matur|*með útsýni*',
+  cards: [
+    { h: 'Morgunmatur', t: 'Frá klukkan sjö á morgnana, alla daga.' },
+    { h: 'Græna stofan', t: 'Píanó, hægindastólar og blómaveggfóður.', pic: 'piano' as const },
+    { h: 'Hádegi og kvöld', t: 'Eldhúsið er opið fram á kvöld, alla daga.' },
   ],
-  quote: 'Besta pítsa í mörg ár, fersk og full af bragði.',
-  quoteBy: 'Gestur, hotelbjarkalundur.is',
+  quoteId: 'skip',
 }
 
-/* ── Character / the green rooms (photo-led gallery) ───────────────────── */
-export const CHARACTER = {
-  eyebrow: 'Andrúmsloftið',
-  title: 'Grænu stofurnar',
-  body: 'Innandyra tekur á móti gestum annar heimur en glansandi keðjuhótel, skógargrænir veggir, messingslampar, gömul húsgögn og handmáluð blóm. Þetta er raunverulegt útlit hússins, ekki sviðsett.',
-  panels: [
-    { key: 'loungeGreen', title: 'Setustofan', alt: 'Setustofa með djúpgrænum veggjum, innrömmuðum gömlum myndum, blúndugardínum og dökku antíkborði í morgunbirtu.' },
-    { key: 'muralPiano', title: 'Píanóhornið', alt: 'Horn með handmáluðu blómaskrauti á vegg, uppréttu píanó og ólífugrænum flauelsstólum í hlýrri lampabirtu.' },
-    { key: 'library', title: 'Bókahornið', alt: 'Gangur með háum dökkum bókahillum, pottaplöntum, innrömmuðum myndum og hlýju hengiljósi við græna veggi.' },
-    { key: 'desk', title: 'Skrifhornið', alt: 'Notalegt horn með skrifborði, antíkstól og myndavegg af litlum innrömmuðum prentum við grænan vegg.' },
-    { key: 'loungeWindow', title: 'Útsýnið innan úr', alt: 'Sinnepsgulur flauelssófi við stóran glugga sem snýr að malarplaninu og grænum heiðarhólum með fjarlægum sumarhúsum.' },
-  ],
+export const REVIEWS_TEASER = {
+  title: 'Það sem gestir|*segja*',
+  sub: 'Frá því hótelið opnaði á ný í apríl 2026.',
+  cta: 'Allar umsagnir',
 }
 
-/* ── The story — 1947 to 2026 (only dated facts) ───────────────────────── */
-export const STORY = {
-  eyebrow: 'Sagan',
-  title: '1947 → 2026',
-  intro: 'Bjarkalundur hefur staðið við mynni Vestfjarða frá stríðslokum. Sagan er sögð hér eins og hún er staðfest, án þess að fylla upp í eyðurnar.',
-  archivalAlt: 'Gömul sepíu-tónuð ljósmynd af upprunalega hótelhúsinu í dalnum með aðkomuveginum sem sveigir að því.',
-  timeline: [
-    {
-      year: '1947',
-      text: 'Barðstrendingafélagið reisir Bjarkalund á árunum 1945 til 1947, lengi þekktan sem elsta starfandi sumarhótel landsins, sem áningarstað fyrir ferðalanga á leið um Vestfirði.',
-    },
-    {
-      year: '2026',
-      text: 'Opnað á ný 1. apríl 2026 eftir um þriggja ára hlé, undir nýjum eigendum, með áform um að hafa opið lengur fram á haustið en áður.',
-    },
+export const HISTORY = {
+  title: 'Saga|*hússins*',
+  years: [
+    { y: '1947', h: 'Hótelið rís', t: 'Hótelið er reist á árunum 1945 til 1947. Í dag er það elsta sumarhótel landsins.' },
+    { y: '2008', h: 'Dagvaktin', t: 'Gamanþættirnir Dagvaktin eru teknir upp í Bjarkalundi.' },
+    { y: '2023', h: 'Lokað', t: 'Hótelið lokar og stendur lokað í þrjú ár.' },
+    { y: '2025', h: 'Nýir eigendur', t: 'Diddi og Evelyn taka við staðnum.' },
+    { y: '2026', h: 'Opnað á ný', t: 'Hótelið er opnað aftur 1. apríl.' },
   ],
 }
 
-/* ── Campsite (real, public prices) ────────────────────────────────────── */
 export const CAMPSITE = {
-  eyebrow: 'Tjaldsvæði',
-  title: 'Tjaldsvæðið',
-  body: 'Grasflöt við litla á, í nokkurra skrefa fjarlægð frá veitingastaðnum og versluninni. Þjónustuhús með snyrtingum og sturtum, leikvöllur og veiðivatn í göngufæri.',
-  fieldAlt: 'Opin grasflöt með fáeinum litlum húsum í fjarska, lágum hæðum og björtum skýjuðum himni, tjaldsvæðið.',
-  wideAlt: 'Breið heiðarmynd í mildum haustlitum með mjúkum öldóttum hæðum.',
+  body: 'Grasflöt við lækinn rétt við hótelið, nokkur skref frá veitingastaðnum. Þjónustuhús með salernum og sturtum, rafmagn og leiksvæði fyrir börn.',
   prices: [
-    { label: 'Á mann / nótt', value: '1.500 kr.' },
-    { label: 'Rafmagn / nótt', value: '1.000 kr.' },
-    { label: 'Sturta / mín', value: '100 kr.' },
-    { label: 'Börn 12 ára og yngri', value: 'Frítt' },
+    { k: 'Á mann', v: '1.500 kr.' },
+    { k: 'Rafmagn, nóttin', v: '1.000 kr.' },
+    { k: 'Sturta, mínútan', v: '100 kr.' },
+    { k: 'Börn 12 ára og yngri', v: 'Frítt' },
   ],
 }
 
-/* ── Reviews (ILLUSTRATIVE — verify exact wording + attribution before launch) */
-export const REVIEWS = {
-  eyebrow: 'Umsagnir',
-  title: 'Það sem gestir segja',
-  score: '7,6',
-  scoreScale: '/10',
-  scoreCount: '128 umsagnir · Booking.com',
-  /* VERIFY EXACT QUOTE + NAME + DATE BEFORE LAUNCH — these are WebSearch
-     paraphrases (Booking.com/TripAdvisor blocked direct fetch 2026-07-22).
-     The pizza line is from the hotel's own published testimonial. */
+export const INFO = {
+  title: 'Gott|*að vita*',
   items: [
-    { quote: 'Starfsfólkið var mjög hjálplegt og herbergin hrein og snyrtileg.', by: 'Booking.com, sumar 2024' },
-    { quote: 'Herbergið var notalegt, rúmið þægilegt og baðherbergið hreint.', by: 'TripAdvisor' },
-    { quote: 'Eitt elsta hótelið á svæðinu og mætti gjarnan yngja upp, en það er hluti af sjarmanum.', by: 'TripAdvisor' },
+    { id: 'leidin', h: 'Að komast hingað', rows: [
+      { k: 'Heimilisfang', v: ADDRESS },
+      { k: 'Frá Reykjavík', v: '214 km, um tveir og hálfur tími á bíl' },
+      { k: 'Vegur', v: 'Vestfjarðavegur (60)' },
+    ] },
+    { id: 'innritun', h: 'Innritun og útritun', rows: [
+      { k: 'Innritun', v: 'Frá klukkan 15' },
+      { k: 'Útritun', v: 'Til klukkan 11' },
+    ] },
+    { id: 'opid', h: 'Opnunartími', rows: [
+      { k: 'Alla daga', v: 'Frá klukkan sjö og fram á kvöld' },
+      { k: 'Veturinn', v: 'Lokað hluta vetrar, opnar aftur í mars' },
+    ] },
+    { id: 'tjald', h: 'Tjaldsvæðið', rows: [] },
+    { id: 'stadnum', h: 'Á staðnum', rows: [
+      { k: 'Bíllinn', v: 'Eldsneyti og hleðsla fyrir rafbíla' },
+      { k: 'Innifalið', v: 'Þráðlaust net og bílastæði' },
+    ] },
   ],
-  disclaimer: 'Umsagnir eru sýndar sem dæmi í þessari frumgerð og verða staðfestar orðrétt fyrir birtingu.',
+  mapLabel: 'Opna í Google Maps',
 }
 
-/* ── Practical / location ──────────────────────────────────────────────── */
-const PRACTICAL_ROWS: { label: string; value: string; href?: string }[] = [
-  { label: 'Heimilisfang', value: ADDRESS },
-  { label: 'Sími', value: PHONE_DISPLAY, href: PHONE_HREF },
-  { label: 'Netfang', value: EMAIL, href: EMAIL_HREF },
-  { label: 'Hnit', value: GPS },
-]
-export const PRACTICAL = {
-  eyebrow: 'Hagnýtt',
-  title: 'Að finna okkur',
-  gateway: 'Bjarkalundur er fyrsti og síðasti áningarstaðurinn á leið um Vestfirði, þar sem hringvegurinn greinist inn á milli fjarðanna.',
-  season: 'Opið frá 1. apríl, fram á haust.',
-  rows: PRACTICAL_ROWS,
-}
-
-/* ── Final CTA + sticky ────────────────────────────────────────────────── */
 export const CLOSING = {
-  eyebrow: 'Verið velkomin',
-  title: 'Gistið við hliðið að Vestfjörðum',
-  body: 'Bókið herbergi, hringið eftir borði eða komið við á leið ykkar um Vestfirði.',
+  title: 'Gistu við rætur|*Vaðalfjalla*',
   book: 'Bóka gistingu',
   call: 'Hringja',
 }
-export const STICKY = { call: 'Hringja', book: 'Bóka' }
 
-/* ── SEO ───────────────────────────────────────────────────────────────── */
+/* ── Rooms (§4 Godo propid 51121, all eight types, names translated) ─── */
+export type Room = {
+  id: string
+  group: 'hotel' | 'sumarhus'
+  name: string
+  size: number
+  guests: string
+  beds: string
+  bath: string
+  kitchen: boolean
+  privateBath: boolean
+  text: string
+  note?: string
+  pics: (keyof typeof IMG)[]
+}
+
+export const ROOMS: Room[] = [
+  {
+    id: 'thaegindi', group: 'hotel', name: 'Herbergi með sérbaði', size: 20,
+    guests: '3 að hámarki', beds: 'Tvö einbreið rúm og sófi í sumum herbergjum', bath: 'Sérbaðherbergi',
+    kitchen: false, privateBath: true,
+    text: 'Stærstu herbergin í aðalhúsinu, hvert með sínu baðherbergi.',
+    pics: ['bathPrivate'],
+  },
+  {
+    id: 'vaskur', group: 'hotel', name: 'Herbergi með vaski', size: 14,
+    guests: '2', beds: 'Tvö einbreið rúm', bath: 'Salerni og sturtur á ganginum',
+    kitchen: false, privateBath: false,
+    text: 'Vaskur inni á herberginu, salerni og sturtur frammi á gangi. Herbergin bera fuglanöfn, eins og Lómur og Himbrimi.',
+    pics: ['lomur', 'roomShared', 'himbrimi', 'bathShared'],
+  },
+  {
+    id: 'einn', group: 'hotel', name: 'Eins manns herbergi', size: 7,
+    guests: '1', beds: 'Eitt einbreitt rúm', bath: 'Sameiginlegt baðherbergi',
+    kitchen: false, privateBath: false,
+    text: 'Lítið og hagkvæmt herbergi fyrir þann sem ferðast einn.',
+    pics: ['single', 'single2'],
+  },
+  {
+    id: 'hus-eldhus', group: 'sumarhus', name: 'Sumarhús með eldhúskrók og baði', size: 22,
+    guests: '2', beds: 'Tvö einbreið rúm', bath: 'Sérbaðherbergi með sturtu',
+    kitchen: true, privateBath: true,
+    text: 'Eldhúskrókur með litlum ísskáp, aðstaða til að laga te og kaffi og pallur fyrir framan.',
+    pics: ['cottageKitchen', 'cottageTowel', 'cottageRoad', 'cottagePair'],
+  },
+  {
+    id: 'hus-bad', group: 'sumarhus', name: 'Sumarhús með baði', size: 22,
+    guests: '3 að hámarki', beds: 'Tvö einbreið rúm', bath: 'Sérbaðherbergi með sturtu',
+    kitchen: false, privateBath: true,
+    text: 'Viðarklætt sumarhús með eigin baðherbergi og palli.',
+    pics: ['cottageBeds', 'cottageA', 'cottageLog', 'bathPrivate'],
+  },
+  {
+    id: 'hus-stort', group: 'sumarhus', name: 'Stórt sumarhús með eldhúskrók', size: 24,
+    guests: '4 fullorðnir og 1 barn að hámarki', beds: 'Rúm fyrir fjóra', bath: 'Eigið salerni, sturtur í hótelinu',
+    kitchen: true, privateBath: false,
+    text: 'Stærsta sumarhúsið, með eldhúskrók, aðstöðu til að laga te og kaffi og eigin palli.',
+    pics: [],
+  },
+  {
+    id: 'hus-litid', group: 'sumarhus', name: 'Lítið sumarhús', size: 15,
+    guests: '2', beds: 'Rúm fyrir tvo', bath: 'Salerni og sturtur í hótelinu',
+    kitchen: false, privateBath: false,
+    text: 'Einfalt hús fyrir tvo. Salerni og sturtur eru inni í hótelinu.',
+    note: 'Án rafmagns í bili.',
+    pics: [],
+  },
+  {
+    id: 'hus-tveggja', group: 'sumarhus', name: 'Tveggja manna smáhýsi', size: 11,
+    guests: '2', beds: 'Tvö einbreið rúm', bath: 'Salerni og sturtur í hótelinu',
+    kitchen: false, privateBath: false,
+    text: 'Minnsta húsið á lóðinni, með tveimur einbreiðum rúmum.',
+    note: 'Án rafmagns í bili.',
+    pics: [],
+  },
+]
+
+export const ROOMS_PAGE = {
+  title: 'Gisting|*í Bjarkalundi*',
+  sub: 'Herbergi í aðalhúsinu og sumarhús á lóðinni. Þú bókar beint hjá hótelinu.',
+  filters: [
+    { id: 'allt', label: 'Allt' },
+    { id: 'hotel', label: 'Í hótelinu' },
+    { id: 'sumarhus', label: 'Sumarhús' },
+    { id: 'bad', label: 'Með sérbaði' },
+    { id: 'eldhus', label: 'Með eldhúskrók' },
+  ],
+  groups: { hotel: 'Í hótelinu', sumarhus: 'Sumarhúsin' },
+  count: (n: number) => (n === 1 ? '1 tegund' : `${n} tegundir`),
+  labels: { size: 'Stærð', guests: 'Gestir', beds: 'Rúm', bath: 'Bað' },
+  book: 'Bóka',
+  all: 'Allir gestir',
+  included: 'Þráðlaust net og bílastæði fylgja öllum herbergjum. Morgunmatur fæst í matsalnum.',
+  newCottages: 'Ný sumarhús eru í smíðum á lóðinni og bætast við síðar.',
+  prices: 'Verð og laus herbergi sjást á bókunarsíðunni.',
+  empty: 'Ekkert herbergi uppfyllir þessi skilyrði.',
+  reset: 'Sýna allt',
+}
+
+/* ── Reviews (Google + Tripadvisor, since the April 2026 reopening) ───
+   Verbatim, one review = one quote, attributed to the real reviewer.
+   Captured 2026-09-26: raw JSON in _docs/bjarkalundur-harvest-2026-09-26/.
+   `is` is my translation; the original is always shown first. */
+export type Review = {
+  id: string
+  name: string
+  source: 'Google' | 'Tripadvisor'
+  when: string
+  lang: 'en' | 'de'
+  title?: string
+  text: string
+  is: string
+  pic: keyof typeof IMG
+  excerpt?: boolean
+}
+
+export const REVIEWS: Review[] = [
+  {
+    id: 'marketa', name: 'Marketa Svarcova', source: 'Google', when: 'September 2026', lang: 'en', excerpt: true,
+    text: 'We had a great stay in Bjarkalundur. The location and views from the hotel are stunning. I highly recommend to rent out the kayaks and explore the lake nearby.',
+    is: 'Dvölin í Bjarkalundi var frábær. Staðsetningin og útsýnið frá hótelinu eru stórkostleg. Ég mæli eindregið með því að leigja kajak og skoða vatnið í grenndinni.',
+    pic: 'kayaks',
+  },
+  {
+    id: 'skip', name: 'Skip Jones', source: 'Google', when: 'Sumarið 2026', lang: 'en',
+    text: 'Stopped in for a quick lunch. The views of the fjord were amazing. The soup for lunch was some of the best soup I have ever eaten. It was followed by a fresh Arctic char dish that was amazing too.',
+    is: 'Stoppuðum stutt til að fá okkur hádegismat. Útsýnið yfir fjörðinn var stórkostlegt. Súpan í hádeginu var með þeim bestu sem ég hef borðað. Á eftir kom réttur úr ferskri bleikju sem var líka frábær.',
+    pic: 'dining',
+  },
+  {
+    id: 'carolina', name: 'Carolina Vega Recalde', source: 'Google', when: 'September 2026', lang: 'en',
+    text: 'Stayed in cabin 1 for a night and it was just what we needed. Small stove, sink, cabinet and microwave. Enough space to put bags and a small dinner table. The bed was amazing. There’s a gas station and a charging station on site',
+    is: 'Gistum eina nótt í húsi 1 og það var einmitt það sem við þurftum. Lítil eldavél, vaskur, skápur og örbylgjuofn. Nóg pláss fyrir töskurnar og lítið matarborð. Rúmið var frábært. Á staðnum er bensínstöð og hleðslustöð.',
+    pic: 'cottageKitchen',
+  },
+  {
+    id: 'marco', name: 'Marco', source: 'Tripadvisor', when: 'Ágúst 2026', lang: 'de',
+    title: 'Super Ausgangspunkt zu den Westfjords',
+    text: 'Waren zur Sonnenfinsternis dort, das Hotel war voll mit Gästen. Aber das Personal hat die Situation sehr gut gehandhabt und war flexibel. Besonders Eddy war sehr freundlich und professionell im Umgang mit den Gästen. Das Abendessen ist klasse. Gutes Preis-Leistungsverhältnis.',
+    is: 'Vorum þarna yfir sólmyrkvann og hótelið var fullt af gestum. Starfsfólkið réð samt mjög vel við aðstæður og var sveigjanlegt. Sérstaklega var Eddy vingjarnlegur og fagmannlegur við gestina. Kvöldmaturinn er frábær. Gott verð miðað við gæði.',
+    pic: 'lounge',
+  },
+  {
+    id: 'jean', name: 'Jean Mârêņ', source: 'Google', when: 'September 2026', lang: 'en',
+    text: 'We didn’t stay at the hotel, only ate at the restaurant. The food was very good and the staff was extremely nice. Can recommend.',
+    is: 'Við gistum ekki á hótelinu en borðuðum á veitingastaðnum. Maturinn var mjög góður og starfsfólkið einstaklega elskulegt. Mæli með.',
+    pic: 'candle',
+  },
+  {
+    id: 'kristyna', name: 'Kristýnka Kazdova', source: 'Google', when: 'Sumarið 2026', lang: 'en',
+    text: 'The staff was extremely helpful, especially Mr. Martin, who fulfilled all of our demanding requirements with great professionalism and willingness',
+    is: 'Starfsfólkið var einstaklega hjálplegt, sérstaklega Martin, sem uppfyllti allar okkar ströngu kröfur af mikilli fagmennsku og greiðvikni.',
+    pic: 'piano',
+  },
+]
+
+export const REVIEWS_PAGE = {
+  title: 'Umsagnir|*gesta*',
+  sub: 'Það sem gestir hafa skrifað síðan Bjarkalundur opnaði á ný í apríl 2026. Hver umsögn birtist orðrétt, undir nafni þess sem skrifaði.',
+  translate: 'Á íslensku',
+  original: 'Frumtexti',
+  more: 'Fleiri umsagnir',
+  google: 'Á Google',
+  tripadvisor: 'Á Tripadvisor',
+  photoNote: 'Myndirnar eru frá hótelinu og sýna það sem umsögnin fjallar um.',
+}
+
+export const FOOTER = {
+  tagline: 'Elsta sumarhótel landsins, við rætur Vaðalfjalla.',
+  season: 'Lokað hluta vetrar. Opnar aftur í mars.',
+}
+
 export const JSON_LD = {
   '@context': 'https://schema.org',
-  '@type': 'LodgingBusiness',
+  '@type': 'Hotel',
   name: 'Hótel Bjarkalundur',
-  description:
-    'Sögulegt sumarhótel við rætur Vaðalfjalla í Reykhólasveit, lengi þekkt sem eitt elsta starfandi sumarhótel landsins, opnað á ný 2026. Hótel, veitingastaður, bar og tjaldsvæði.',
+  description: 'Elsta sumarhótel landsins, reist 1945 til 1947 við rætur Vaðalfjalla í Reykhólasveit. Herbergi, sumarhús, veitingastaður og tjaldsvæði við Vestfjarðaveg.',
   url: 'https://www.hotelbjarkalundur.is',
   telephone: '+354 562 1900',
   email: EMAIL,
+  checkinTime: '15:00',
+  checkoutTime: '11:00',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Bjarkalundi',
@@ -263,6 +412,10 @@ export const JSON_LD = {
     addressRegion: 'Vestfirðir',
     addressCountry: 'IS',
   },
-  geo: { '@type': 'GeoCoordinates', latitude: 65.55631, longitude: -22.1039 },
-  foundingDate: '1947',
+  geo: { '@type': 'GeoCoordinates', latitude: 65.55643, longitude: -22.10442 },
+  amenityFeature: [
+    { '@type': 'LocationFeatureSpecification', name: 'Þráðlaust net', value: true },
+    { '@type': 'LocationFeatureSpecification', name: 'Bílastæði', value: true },
+    { '@type': 'LocationFeatureSpecification', name: 'Veitingastaður', value: true },
+  ],
 }

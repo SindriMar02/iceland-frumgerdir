@@ -16,10 +16,10 @@ export const companyEntry: PreviewCompany = {
     established: 'Síðan 1947',
     currentUrl: 'https://www.hotelbjarkalundur.is',
     ownerEmail: 'info.hotelbjarkalundur@gmail.com',
-    concept: 'Hliðið að Vestfjörðum',
+    concept: 'Bandið: vefurinn byggður eins og húsið',
     conceptTagline:
-      'The twin peaks of Vaðalfjöll and the hotel’s real forest-green lounges carry the arrival from road to gate to table, telling both the 1947 heritage and the fresh 2026 reopening as one continuous story instead of a Wix icon list.',
-    accent: '#B08A3E',
+      'The site is built like the house: a cool white wall with one dark red band carrying the name, and the green salon inside. Rooms page with all eight Godo types, a reviews page since the April 2026 reopening, and the story of Diddi and Evelyn bringing the hotel back.',
+    accent: '#5A1F18',
     dark: true,
     status: 'Concept ready',
     thumb: 'https://static.wixstatic.com/media/3d6816_9fcd9dd021f5427fa264407d12d5094a~mv2.jpg',
@@ -28,7 +28,7 @@ export const companyEntry: PreviewCompany = {
       strengths: [
         'Iceland’s oldest continuously built summer hotel, raised 1945 to 1947 at the foot of Vaðalfjöll, corroborated by Vísir (2016), mbl.is (2025) and the hotel’s own history page',
         'A genuine 2026 relaunch, reopened 1 April 2026 under new owner Sigurður Friðriksson, confirmed by regional press and current 2026 pricing across Booking.com, Klook, Hotels.com and Expedia',
-        '128 reviews on Booking.com and a full set of amenities already running, restaurant, bar, café, garden, campsite and EV charger',
+        '360 reviews on Booking.com (7.5, staff 8.9) and a full set of amenities already running: restaurant, campsite, fuel and EV charging',
       ],
       weaknesses: [
         'A mid-2010s Wix template with plain icon lists and a stacked photo gallery, the footer still shows a static, unmaintained “©2026 by Hotel Bjarkalundur” placeholder string',
