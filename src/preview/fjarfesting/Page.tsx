@@ -253,6 +253,11 @@ html,body{background-color:${M1}}
 .fj-hero .els{position:relative;z-index:1;height:100svh;min-height:11.6em;display:flex;flex-direction:column}
 .fj-hero .head-wrap{flex:1;padding:1.66em 0 6.86em}
 .fj .hero-head{position:sticky;top:1.66em;padding-top:0;padding-bottom:0}
+/* centred slogan over the hero photo, before any scroll */
+.fj-hero .hero-slogan{position:absolute;inset:0 0 auto;height:100svh;padding:0 var(--gut);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:calc(var(--h1) * 1.3);line-height:1.12;pointer-events:none;text-shadow:0 .04em .5em rgba(20,12,13,.4)}
+.fj-hero .hero-slogan::before{content:'';position:absolute;inset:18% 0;z-index:-1;background:radial-gradient(ellipse 50% 45% at 50% 50%,rgba(20,12,13,.34),rgba(20,12,13,0))}
+.fj-hero .hero-slogan span{display:block;white-space:nowrap}
+@media (max-width:479px){.fj-hero .hero-slogan{font-size:calc(var(--h1) * .78)}}
 .fj-hero .arrow{position:absolute;inset:auto 0 0 0;height:100svh;display:flex;align-items:flex-end;justify-content:center;padding:1.66em;pointer-events:none}
 .fj-hero .arrow a{pointer-events:auto;overflow:hidden;color:var(--paper);display:block;padding:.4em}
 .fj-hero .arrow svg{width:.66em;height:2.33em;display:block}
@@ -807,7 +812,9 @@ export default function Page() {
         setLoader(false)
       },
     })
+    const slogan = el.querySelector<HTMLElement>('.hero-slogan')
     const entrance = [...heads, arrow].filter(Boolean) as HTMLElement[]
+    if (slogan) { gsap.set(slogan, { opacity: 0, yPercent: 3 }); entrance.push(slogan) }
     gsap.set(heads, { yPercent: -50, opacity: 0 })
     if (arrow) gsap.set(arrow, { yPercent: 50, opacity: 0 })
     if (long) {
@@ -1101,6 +1108,7 @@ export default function Page() {
                 </div>
               </div>
             </div>
+            <p className="h1 hero-slogan"><span><em>Rétta</em> verðið,</span> <span><em>rétti</em> kaupandinn.</span></p>
             <div className="arrow">
               <a href="#stofan" aria-label="Áfram að Stofunni">
                 <svg viewBox="0 0 10 36" fill="none" aria-hidden="true"><line x1="5" y1="1" x2="5" y2="34" stroke="currentColor" strokeWidth="1.5" /><path d="M1 30 L5 34.5 L9 30" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /></svg>
