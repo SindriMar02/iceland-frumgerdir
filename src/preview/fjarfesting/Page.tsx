@@ -146,7 +146,8 @@ html,body{background-color:${M1}}
 .fj-loader .mark{position:relative;display:flex;align-items:center;gap:1.2em;color:#6D6E71}
 .fj-loader svg{width:6.5em;height:7.6em;overflow:visible}
 .fj-loader svg path{fill:var(--m1);fill-opacity:0;stroke:var(--m1);stroke-width:22;stroke-dasharray:1;stroke-dashoffset:1}
-.fj-loader .word{overflow:hidden}
+/* the mask is only line-height:1 tall, so give the Á accent headroom and pull it back out */
+.fj-loader .word{overflow:hidden;padding-top:.5em;margin-top:-.5em}
 .fj-loader .word span{display:block;transform:translateY(110%);font-weight:600;letter-spacing:.07em;line-height:1}
 .fj-loader .word span:first-child{font-size:2.9em}
 .fj-loader .word span:last-child{font-size:1.4em;letter-spacing:.14em;margin-top:.45em}
@@ -814,7 +815,7 @@ export default function Page() {
       const words = L.querySelectorAll('.word span')
       tl.to(paths, { strokeDashoffset: 0, duration: 2.6, ease: 'power2.inOut' }, 0.3)
         .to(paths, { fillOpacity: 1, strokeOpacity: 0, duration: 0.7, ease: OUT }, 2.9)
-        .fromTo(words, { yPercent: 110 }, { yPercent: 0, duration: 0.8, ease: OUT, stagger: 0.12 }, 3.3)
+        .fromTo(words, { y: 0, yPercent: 110 }, { y: 0, yPercent: 0, duration: 0.8, ease: OUT, stagger: 0.12 }, 3.3)
         .to(L, { opacity: 0, duration: 0.6, ease: OUT }, 5.0)
         .to(blur, { opacity: 0, duration: 0.6, ease: OUT }, 5.2)
         .to(entrance, { yPercent: 0, opacity: 1, duration: 0.6, ease: OUT }, 5.3)
