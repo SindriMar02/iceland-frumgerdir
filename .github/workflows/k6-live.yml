@@ -1,0 +1,88 @@
+name: K6 live (k6veitingar, rub23, bautinn, pizzasmidjan)
+
+# Rebuilds and deploys the four K6 sites when Margrét publishes in the K6 studio (k6-veitingar.sanity.studio).
+# Same pattern as reynir-live.yml: Sanity webhook (_tools/cms-publish-webhook.sh 3gt1u1vu sanity-publish-k6) →
+# repository_dispatch here → build → gate → wrangler pages deploy, with this repo's CLOUDFLARE_API_TOKEN.
+# The K6 code is its own private repo (SindriMar02/k6veitingar), read with a read-only deploy key
+# (secret K6VEITINGAR_DEPLOY_KEY). A full build of all four takes seconds, so every publish rebuilds all four.
+# The nightly run deploys only if a host's content stamp differs (notices and closures start and end by date).
+#
+# TARGET: until go-live the four sites are the noindexed review hosts (k6veitingar-preview etc.).
+on:
+  repository_dispatch:
+    types: [sanity-publish-k6]
+  workflow_dispatch:
+  schedule:
+    - cron: '7 0 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: k6-live
+  cancel-in-progress: false
+
+env:
+  TARGET: preview
+  CLOUDFLARE_ACCOUNT_ID: 381fb216c6a65237476b5583061b3648
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: k6
+    steps:
+      - name: Target is wired
+        if: env.TARGET != 'preview'
+        working-directory: .
+        run: |
+          echo "TARGET=$TARGET has no deploy path yet: go-live needs the live build, gate --release, deploys to the four live projects and stamp checks on the live domains."
+          exit 1
+      - uses: actions/checkout@v4
+        with:
+          repository: SindriMar02/k6veitingar
+          ssh-key: ${{ secrets.K6VEITINGAR_DEPLOY_KEY }}
+          path: k6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: k6/package-lock.json
+      - run: npm ci
+      - name: Published CMS content (fails if Sanity cannot be read or the content would break a site)
+        run: node _tools/cms-pull.mjs
+      - name: Anything to deploy?
+        id: check
+        run: |
+          STAMP=$(cat src/content/cms/stamp.txt)
+          GO=0
+          [ "${{ github.event_name }}" != "schedule" ] && GO=1
+          for h in k6veitingar-preview rub23-preview bautinn-preview pizzasmidjan-preview; do
+            LIVE=$(curl -sf "https://$h.pages.dev/cms-stamp.txt?$(date +%s)" || echo none)
+            echo "$h: live $LIVE, content $STAMP"
+            [ "$LIVE" = "$STAMP" ] || GO=1
+          done
+          [ "$GO" = 1 ] && echo "go=1" >> "$GITHUB_OUTPUT" || echo "all four hosts already carry this content"
+      - if: steps.check.outputs.go == '1'
+        name: Typecheck
+        run: npx tsc -b
+      - if: steps.check.outputs.go == '1' && env.TARGET == 'preview'
+        name: Build, gate and deploy the four review sites
+        run: K6_SKIP_PULL=1 bash _tools/deploy-preview.sh
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - if: steps.check.outputs.go == '1'
+        name: The four hosts serve this content
+        run: |
+          STAMP=$(cat src/content/cms/stamp.txt)
+          for h in k6veitingar-preview rub23-preview bautinn-preview pizzasmidjan-preview; do
+            for i in 1 2 3 4 5 6; do
+              LIVE=$(curl -sf "https://$h.pages.dev/cms-stamp.txt?$(date +%s)" || true)
+              [ "$LIVE" = "$STAMP" ] && break
+              sleep 10
+            done
+            [ "$LIVE" = "$STAMP" ] || { echo "$h serves $LIVE, expected $STAMP"; exit 1; }
+            echo "$h: $STAMP"
+          done
