@@ -8,6 +8,7 @@ import { applyHead, clearHead, headFor } from './seo'
 import { SiteContext } from './site'
 import type { Stay } from './site'
 import { startOfDay } from './godo'
+import { liftCurtain } from './curtain'
 import { BAND, CSS, Header, Awning, Footer, jump, useMotion } from './shell'
 import { Home, HOME_CSS } from './Home'
 import { Rooms, ROOMS_CSS } from './Rooms'
@@ -144,6 +145,8 @@ export default function Page() {
     return () => { document.documentElement.lang = prev }
   }, [lang])
   useEffect(() => () => { if (!STANDALONE) clearHead() }, [])
+  /* the shell's loading curtain comes off once the name's font and the hero picture are in */
+  useEffect(() => { liftCurtain() }, [])
 
   return (
     <SiteContext.Provider value={site}>

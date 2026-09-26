@@ -3,6 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      /* Hótel Bjarkalundur: its fonts and landing picture start now, not after the app
+         bundle and its route chunk (they started at ~1.3 s on a 12 Mbps line, 2026-09-26).
+         Stays above the stylesheets: an inline script waits for every stylesheet before
+         it. Path-gated, try/catch. The srcset matches the hero <img> exactly, or the
+         browser fetches the picture twice. Keep in step with bjarkalundur.html. */
+      (function () {
+        try {
+          var m = location.pathname.match(/^(.*?)\/preview\/bjarkalundur(\/.*)?$/)
+          if (!m) return
+          var b = m[1] + '/', h = document.head, rest = (m[2] || '').replace(/\/+$/, '')
+          var pre = function (as, href, extra) {
+            var l = document.createElement('link')
+            l.rel = 'preload'; l.as = as; l.href = b + href
+            if (as === 'font') { l.type = 'font/woff2'; l.crossOrigin = 'anonymous' }
+            for (var k in extra) l.setAttribute(k, extra[k])
+            h.appendChild(l)
+          }
+          pre('font', 'fonts/nyght-serif/NyghtSerif-Light.woff2')
+          pre('font', 'fonts/finlandica-text/FinlandicaText-Variable.woff2')
+          if (rest === '' || rest === '/en') {
+            var v = b + 'bjarkalundur/v3/'
+            pre('image', 'bjarkalundur/v3/hero-poster-s.webp', { imagesrcset: v + 'hero-poster-s.webp 1280w, ' + v + 'hero-poster.webp 1920w', imagesizes: '100vw', fetchpriority: 'high' })
+          }
+        } catch (e) {}
+      })()
+    </script>
     <meta name="description" content="Endurhannanir — frumgerðir að nýjum vefsíðum fyrir íslensk fyrirtæki. Hugmyndir, ekki raunverulegar vefsíður." />
     <meta name="theme-color" content="#0a1320" />
     <meta name="robots" content="noindex, nofollow" />
@@ -134,6 +161,44 @@
           document.body.appendChild(el)
           /* the app reads this to know how much of the coil has already played */
           window.__faxiBootAt = Date.now()
+        } catch (e) {}
+      })()
+    </script>
+    <script>
+      /* Hótel Bjarkalundur's loading curtain, painted from the shell like Faxi's above:
+         a dark ground, the name in Nyght Serif once that font is in (font-display:block,
+         so never a fallback serif), a hairline that fills as the load really progresses.
+         src/preview/bjarkalundur/curtain.ts lifts it once the name's font and the hero
+         picture are in; if the app never arrives, it fades by itself at 9 s so the page
+         is never trapped. Path-gated, try/catch. Keep in step with bjarkalundur.html. */
+      (function () {
+        try {
+          var m = location.pathname.match(/^(.*?)\/preview\/bjarkalundur(\/|$)/)
+          if (!m) return
+          var b = m[1] + '/', d = document, s = d.createElement('style')
+          var OUT = 'cubic-bezier(.23,1,.32,1)'
+          s.textContent =
+            "@font-face{font-family:bjc;src:url('" + b + "fonts/nyght-serif/NyghtSerif-Light.woff2') format('woff2');font-weight:300;font-display:block}" +
+            '#bjc{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(18px,2.2vw,26px);background:#232421;color:#F5F4F1;clip-path:inset(0 0 0 0);animation:bjc-gone .5s ease 9s forwards}' +
+            '#bjc .w{margin:0;font:300 clamp(30px,4.4vw,56px)/1 bjc,serif;letter-spacing:-.005em;opacity:0;transform:translateY(10px);transition:opacity .8s ' + OUT + ',transform 1s ' + OUT + '}' +
+            '#bjc.f .w{opacity:1;transform:none}' +
+            '#bjc .l{position:relative;width:clamp(84px,9vw,128px);height:1px;overflow:hidden;background:rgba(245,244,241,.16)}' +
+            '#bjc .l i{position:absolute;inset:0;background:rgba(245,244,241,.85);transform:scaleX(var(--p,.06));transform-origin:0 50%;transition:transform .9s ' + OUT + '}' +
+            '#bjc.out{pointer-events:none;clip-path:inset(0 0 100% 0);transition:clip-path .95s cubic-bezier(.16,1,.3,1)}' +
+            '#bjc.out .w,#bjc.out .l{opacity:0;transform:translateY(-12px);transition:opacity .25s ' + OUT + ',transform .45s ' + OUT + '}' +
+            '@keyframes bjc-gone{to{opacity:0;visibility:hidden}}' +
+            '@media (prefers-reduced-motion:reduce){#bjc .w,#bjc.out .w,#bjc.out .l{transform:none}#bjc.out{clip-path:none;opacity:0;transition:opacity .35s ease}}'
+          d.head.appendChild(s)
+          var c = d.createElement('div')
+          c.id = 'bjc'
+          c.setAttribute('aria-hidden', 'true')
+          c.innerHTML = '<p class="w">Bjarkalundur</p><span class="l"><i></i></span>'
+          c.setAttribute('data-t0', String(performance.now()))
+          d.body.appendChild(c)
+          d.documentElement.setAttribute('data-bjc', '')
+          var shown = function () { c.setAttribute('data-shown', String(performance.now())); c.style.setProperty('--p', '.4'); c.classList.add('f') }
+          if (d.fonts && d.fonts.load) d.fonts.load('300 1em bjc').then(shown, shown)
+          else shown()
         } catch (e) {}
       })()
     </script>

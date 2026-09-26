@@ -146,6 +146,12 @@ html:has(.bj3),body:has(.bj3){background-color:#232421}
 .bj3 .hero{position:sticky;top:0;height:101svh;z-index:1;overflow:hidden;color:var(--on);background:#2A2B27}
 .bj3 .hero-media{position:absolute;inset:0 0 -9% 0;will-change:transform}
 .bj3 .hero-media video,.bj3 .hero-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 58%;display:block}
+/* the film sits over the still and fades in once it is really playing (curtain.ts) */
+.bj3 .hero-media video{opacity:0;transition:opacity 1.1s var(--ease)}
+.bj3 .hero-media video.on{opacity:1}
+/* while the shell's loading curtain is up, the hero's entrance waits under it, so the
+   name rises as the curtain lifts instead of having already played behind it */
+html[data-bjc] .bj3 [data-hero] *{animation-play-state:paused!important}
 .bj3 .hero-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,18,16,.52) 0%,rgba(18,18,16,.16) 40%,rgba(18,18,16,0) 58%,rgba(18,18,16,.38) 100%)}
 .bj3 .hero-tint{position:absolute;inset:0;background:#121210;opacity:.18}
 .bj3 .hero-copy{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:clamp(112px,19svh,200px) var(--gut) 0;text-align:center}

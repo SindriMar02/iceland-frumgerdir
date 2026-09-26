@@ -12,6 +12,7 @@ import { Accordion, Eyebrow, Photo, Stars, Title, useNavTo } from './shell'
 import { StayPicker } from './StayPicker'
 import { useSite } from './site'
 import { SECTION, pathFor, roomHref, sectionHref } from './paths'
+import { whenLifted } from './curtain'
 
 /* Home, v4. The order is the Edelhaus board's: film hero, staggered serif
    intro, a full-bleed photo chapter with a framed card, rooms with icons and
@@ -204,25 +205,37 @@ function Hero() {
     mq.addEventListener('change', on)
     return () => mq.removeEventListener('change', on)
   }, [])
+  /* the film fades in over the still once it is really playing */
+  const [rolling, setRolling] = useState(false)
   useEffect(() => {
     const v = film.current
     if (!v) return
     v.muted = true
     if (still) { v.pause(); return }
     gsap.registerPlugin(ScrollTrigger)
-    /* the film only plays while it can be seen; the sheet covers it after one screen */
-    const play = () => { v.play().catch(() => {}) }
+    /* the film only plays while it can be seen; the sheet covers it after one screen.
+       It is not even fetched until the loading curtain has lifted: the still and the
+       fonts get the connection first. */
+    let armed = false
+    const play = () => { if (armed) v.play().catch(() => {}) }
     const st = ScrollTrigger.create({ start: 0, end: () => window.innerHeight * 1.05, onLeave: () => v.pause(), onEnterBack: play })
-    /* scroll 0 sits on the start edge, which ScrollTrigger counts as outside */
-    if (window.scrollY < window.innerHeight * 1.05) play()
-    return () => { st.kill(); v.pause() }
+    const off = whenLifted(() => {
+      armed = true
+      /* scroll 0 sits on the start edge, which ScrollTrigger counts as outside */
+      if (window.scrollY < window.innerHeight * 1.05) play()
+    })
+    return () => { off(); st.kill(); v.pause() }
   }, [still])
   const letters = [...t.hero.name]
   const prefix = t.hero.h1.replace(t.hero.name, '')
   return (
     <section className="hero" data-hero data-anchor="top" aria-labelledby="bj3-h1">
       <div className="hero-media">
-        <video ref={film} muted loop playsInline preload={still ? 'none' : 'metadata'} poster={HERO_FILM.posterS} aria-hidden="true" tabIndex={-1}>
+        {/* the landing picture is a real, responsive image the shell preloads (same srcset),
+            not the video's poster: a poster has one size, and the phone one looked soft on desktop */}
+        <img className="hero-still" src={IMG.heroPoster.srcS} srcSet={`${IMG.heroPoster.srcS} 1280w, ${IMG.heroPoster.src} ${IMG.heroPoster.w}w`} sizes="100vw"
+          width={IMG.heroPoster.w} height={IMG.heroPoster.h} alt={IMG.heroPoster.alt[lang]} decoding="async" {...{ fetchpriority: 'high' }} />
+        <video ref={film} className={rolling ? 'on' : undefined} onPlaying={() => setRolling(true)} muted loop playsInline preload="none" aria-hidden="true" tabIndex={-1}>
           <source media="(min-width: 901px)" src={HERO_FILM.src} type="video/mp4" />
           <source src={HERO_FILM.srcS} type="video/mp4" />
         </video>
