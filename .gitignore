@@ -15,3 +15,5 @@ research-assets/
 .env.*.local
 dist-nypugardar
 dist-nypugardar-server
+dist-bjarkalundur
+dist-bjarkalundur-server

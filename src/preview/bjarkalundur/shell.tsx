@@ -4,11 +4,13 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
-import { Plus, ArrowRight } from 'lucide-react'
-import {
-  NAV, ROOT, BOOKING_URL, PHONE_DISPLAY, PHONE_HREF, EMAIL, EMAIL_HREF, ADDRESS, FOOTER,
-} from './data'
+import { Plus, ArrowRight, ArrowLeft } from 'lucide-react'
+import { PHONE_DISPLAY, PHONE_HREF, EMAIL, EMAIL_HREF, ADDRESS } from './data'
 import type { Pic } from './data'
+import { useSite } from './site'
+import type { NavItem } from './copy'
+import { LANGS, SECTION, counterpart, pathFor, sectionHref } from './paths'
+import type { Lang, PageKey, SectionKey } from './paths'
 
 /* v4, the Edelhaus board × the MRC scroll (teardown in
    _docs/teardowns/mrc-residences-2026-09-26/TEARDOWN.md). Tokens: DESIGN.md. */
@@ -98,6 +100,17 @@ html:has(.bj3),body:has(.bj3){background-color:#232421}
 .bj3 .hdr .right{justify-self:end;display:flex;align-items:center;gap:20px}
 .bj3 .hdr .tel{font-size:.9rem;text-decoration:none;opacity:.9}
 .bj3 .hdr .pill{min-height:44px;padding:0 22px}
+.bj3 .hdr .left{justify-self:start;display:flex;align-items:center;gap:clamp(14px,2vw,28px)}
+.bj3 .hdr .back{display:inline-flex;align-items:center;gap:10px;min-height:44px;text-decoration:none;font-size:.85rem;font-weight:560;letter-spacing:.14em;text-transform:uppercase;color:inherit;opacity:.92;transition:opacity .2s}
+.bj3 .hdr .back svg{transition:transform .45s var(--ease)}
+@media (hover:hover) and (pointer:fine){.bj3 .hdr .back:hover{opacity:1}.bj3 .hdr .back:hover svg{transform:translateX(-4px)}}
+.bj3 .lang{display:inline-flex;align-items:center;border:1px solid currentColor;border-radius:999px;padding:3px;gap:2px;opacity:.95}
+.bj3 .lang a{display:grid;place-items:center;min-width:38px;height:36px;border-radius:999px;font-size:.78rem;font-weight:600;letter-spacing:.12em;text-decoration:none;color:inherit;transition:background-color .35s var(--ease),color .35s var(--ease)}
+.bj3 .lang a[aria-current]{background:currentColor}
+.bj3 .hdr[data-state="over"] .lang a[aria-current],.bj3 .lang.light a[aria-current]{background:var(--on);color:var(--ink)}
+.bj3 .hdr[data-state="solid"] .lang a[aria-current]{background:var(--ink);color:var(--on)}
+.bj3 .lang a:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+@media (max-width:767px){.bj3 .hdr .pill.book,.bj3 .hdr .back{display:none}}
 @media (max-width:900px){.bj3 .hdr .tel,.bj3 .hdr .burger span{display:none}.bj3 .hdr .bar{height:60px}.bj3 .hdr .mark{font-size:.86rem;letter-spacing:.24em}.bj3 .hdr .mark small{display:none}}
 
 /* side menu (MRC slides from the right; Edelhaus serif links) */
@@ -107,7 +120,8 @@ html:has(.bj3),body:has(.bj3){background-color:#232421}
   transform:translateX(102%);transition:transform .7s var(--ease);display:flex;flex-direction:column;padding:calc(26px + env(safe-area-inset-top)) clamp(24px,4vw,48px) calc(28px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain}
 .bj3 .menu[data-open="true"]{transform:none}
 .bj3 .menu:focus{outline:none}
-.bj3 .menu .close{align-self:flex-end;background:none;border:0;color:inherit;font:inherit;font-size:.85rem;font-weight:560;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;gap:10px}
+.bj3 .menu .menu-top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.bj3 .menu .close{background:none;border:0;color:inherit;font:inherit;font-size:.85rem;font-weight:560;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;gap:10px}
 .bj3 .menu ul{list-style:none;margin:clamp(24px,6vh,64px) 0 0;padding:0}
 .bj3 .menu li{overflow:hidden}
 .bj3 .menu li a{display:block;font-family:var(--serif);font-weight:300;font-size:clamp(2.1rem,4.6vw,3.2rem);line-height:1.18;text-decoration:none;padding:4px 0;
@@ -120,6 +134,8 @@ html:has(.bj3),body:has(.bj3){background-color:#232421}
 /* phone awning (mobile chrome standard) */
 .bj3 .awning{display:none}
 @media (max-width:767px){
+  .bj3 .awning.has-back{grid-template-columns:48px 1fr 1.6fr}
+  .bj3 .awning .back-c{padding:0;min-width:48px}
   .bj3 .awning{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:38;
     padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:rgba(236,235,232,.93);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
   .bj3 .awning .pill{min-height:48px}
@@ -193,6 +209,19 @@ html:has(.bj3),body:has(.bj3){background-color:#232421}
 .bj3 .foot .fine{margin-top:56px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;font-size:.82rem;color:var(--on-mute)}
 @media (max-width:767px){.bj3 .foot .cols{grid-template-columns:1fr;text-align:center}.bj3 .foot .end{text-align:center}.bj3 .foot ul{gap:0}.bj3 .foot li a{display:inline-block;padding:10px 0}}
 
+.bj3 .foot .fine .langs{display:flex;gap:18px}
+.bj3 .foot .fine .langs a[aria-current]{color:var(--on);text-decoration:underline;text-underline-offset:.3em}
+.bj3 .stars{display:inline-flex;gap:2px;line-height:0}
+.bj3 .stars svg{fill:rgba(28,29,26,.16)}
+.bj3 .stars svg.on{fill:var(--band)}
+.bj3 main[data-pop="true"]{animation:bj3-fade .5s ease both}
+
+/* the language switch crossfades in place instead of wiping like a page change */
+html[data-vt="lang"]::view-transition-old(root){animation:bj3-xout .28s ease-out both}
+html[data-vt="lang"]::view-transition-new(root){animation:bj3-xin .42s ease-out both}
+@keyframes bj3-xout{to{opacity:0}}
+@keyframes bj3-xin{from{opacity:0}}
+
 /* page transitions between routes (View Transitions API, react-router viewTransition) */
 ::view-transition-old(root){animation:bj3-vt-out .55s cubic-bezier(.7,0,.84,0) both}
 ::view-transition-new(root){animation:bj3-vt-in .95s cubic-bezier(.16,1,.3,1) both}
@@ -246,8 +275,9 @@ export function lockScroll(on: boolean) {
  *  - pictures settle 1.15 → 1 (their .bg 115% → 100%); full-bleed photos run the centred parallax
  *  - cards over a photo rise faster than the photo (depth)
  */
+const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 export function useMotion(root: RefObject<HTMLDivElement>, key: string) {
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     const el = root.current
     if (!el) return
     gsap.registerPlugin(ScrollTrigger)
@@ -338,8 +368,10 @@ export function Title({ text, as = 'h2', className = 't-h2', id, stagger, center
   const lines = text.split('|')
   return (
     <Tag id={id} className={`${className} ${intro ? 'intro-h' : 'rv-h'}${stagger ? ' stagger' : ''}${center ? ' center' : ''}`}>
+      {/* the space between the lines is for crawlers and screen readers: without it the
+          heading's text reads "Gistingí Bjarkalundi" */}
       {lines.map((l, i) => (
-        <span key={i} className="ln"><span>
+        <span key={i} className="ln">{i > 0 ? ' ' : null}<span>
           {l.split(/(\*[^*]+\*)/).filter(Boolean).map((seg, k) =>
             seg.startsWith('*') ? <em key={k}>{seg.slice(1, -1)}</em> : <span key={k}>{seg}</span>)}
         </span></span>
@@ -351,6 +383,7 @@ export function Title({ text, as = 'h2', className = 't-h2', id, stagger, center
 export function Photo({ pic, sizes, className = '', ratio, eager, style }: {
   pic: Pic; sizes: string; className?: string; ratio?: string; eager?: boolean; style?: CSSProperties
 }) {
+  const { lang } = useSite()
   return (
     <figure className={`pic ${className}`} style={{ aspectRatio: ratio ?? `${pic.w} / ${pic.h}`, ...style }}>
       <img
@@ -359,7 +392,7 @@ export function Photo({ pic, sizes, className = '', ratio, eager, style }: {
         sizes={sizes}
         width={pic.w}
         height={pic.h}
-        alt={pic.alt}
+        alt={pic.alt[lang]}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
       />
@@ -373,7 +406,7 @@ export function Eyebrow({ children, className = '' }: { children: ReactNode; cla
 
 export type AccItem = { id: string; head: ReactNode; body: ReactNode }
 /** Expand/collapse list; one open at a time, the first open by default. */
-export function Accordion({ items, initial = 0 }: { items: AccItem[]; initial?: number }) {
+export function Accordion({ items, initial = 0, onOpen }: { items: AccItem[]; initial?: number; onOpen?: (i: number) => void }) {
   const [open, setOpen] = useState<number>(initial)
   const uid = useId()
   return (
@@ -382,7 +415,8 @@ export function Accordion({ items, initial = 0 }: { items: AccItem[]; initial?: 
         const isOpen = open === i
         return (
           <div key={it.id} className="acc-item">
-            <button type="button" className="acc-btn" aria-expanded={isOpen} aria-controls={`${uid}-${it.id}`} onClick={() => { setOpen(isOpen ? -1 : i); refreshSoon() }}>
+            <button type="button" className="acc-btn" aria-expanded={isOpen} aria-controls={`${uid}-${it.id}`}
+              onClick={() => { const next = isOpen ? -1 : i; setOpen(next); if (next >= 0) onOpen?.(next); refreshSoon() }}>
               <span className="t-h3">{it.head}</span>
               <i aria-hidden="true"><Plus size={18} strokeWidth={1.4} /></i>
             </button>
@@ -396,18 +430,24 @@ export function Accordion({ items, initial = 0 }: { items: AccItem[]; initial?: 
   )
 }
 
-/** Route links carry a view transition; home anchors glide through Lenis. */
+/* ───────────────────────── navigation ───────────────────────── */
+
+export const navHref = (lang: Lang, n: NavItem) =>
+  n.page ? pathFor(lang, n.page as PageKey) : sectionHref(lang, n.section as SectionKey)
+
+const norm = (p: string) => p.replace(/\/+$/, '') || '/'
+
+/** Route links carry a view transition; same-page anchors glide through Lenis. */
 export function useNavTo() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const onHome = pathname.replace(/\/+$/, '').endsWith(ROOT)
   return (to: string, e: MouseEvent) => {
     const [path, hash] = to.split('#')
-    if (hash && onHome && path === ROOT) {
+    if (hash && norm(path) === norm(pathname)) {
       e.preventDefault()
       go(hash)
       /* keep React Router's state: its location key is what Back restores scroll by */
-      history.replaceState(history.state, '', `${BASE.replace(/\/$/, '')}${ROOT}#${hash}`)
+      history.replaceState(history.state, '', `${BASE.replace(/\/$/, '')}${path}#${hash}`)
       return
     }
     if (hash) {
@@ -417,14 +457,76 @@ export function useNavTo() {
   }
 }
 
+/** Where "Bóka" goes: this page's calendar when it has one, else the home page's. */
+export function useBookHref() {
+  const { lang, page } = useSite()
+  const here = page === 'home' || page === 'rooms'
+  return here ? `${pathFor(lang, page)}#${SECTION.booking[lang]}` : sectionHref(lang, 'booking')
+}
+
+/**
+ * Back: to the exact place the reader came from when they came from this site
+ * (React Router's history index says so; Page.tsx restores the scroll), and to
+ * the matching home section when they landed here from outside.
+ */
+const BACK_TO: Partial<Record<PageKey, SectionKey>> = { rooms: 'stay', reviews: 'reviews', campsite: 'surroundings' }
+export function useBack() {
+  const { lang, page } = useSite()
+  const navigate = useNavigate()
+  const href = sectionHref(lang, BACK_TO[page] ?? 'stay')
+  const onClick = (e: MouseEvent) => {
+    e.preventDefault()
+    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0
+    if (idx > 0) navigate(-1)
+    else navigate(href, { viewTransition: true })
+  }
+  return { href, onClick }
+}
+
+/**
+ * The language switch. Each language is its own URL, so this is a link to the
+ * counterpart page (crawlable, hreflang's twin in the UI). Clicking it keeps the
+ * reader where they are: the section in view is remembered by its language-free
+ * key (data-anchor) with its offset, the page crossfades instead of wiping, and
+ * Page.tsx lands the same section at the same offset in the other language.
+ */
+export function LangSwitch({ className = '' }: { className?: string }) {
+  const { lang, t } = useSite()
+  const { pathname, hash } = useLocation()
+  const navigate = useNavigate()
+  const go2 = (to: Lang) => (e: MouseEvent) => {
+    e.preventDefault()
+    if (to === lang) return
+    const marks = [...document.querySelectorAll<HTMLElement>('[data-anchor]')]
+    let anchor: { key: string; offset: number } | null = null
+    for (const m of marks) {
+      const top = m.getBoundingClientRect().top
+      if (top <= window.innerHeight * 0.35) anchor = { key: m.dataset.anchor!, offset: top }
+    }
+    document.documentElement.dataset.vt = 'lang'
+    window.setTimeout(() => { delete document.documentElement.dataset.vt }, 900)
+    navigate(counterpart(pathname, hash, to), { viewTransition: true, state: { keepScroll: true, langFrom: anchor } })
+  }
+  return (
+    <div className={`lang ${className}`} role="group" aria-label={t.ui.langLabel}>
+      {LANGS.map((l) => (
+        <a key={l} href={counterpart(pathname, hash, l)} hrefLang={l} lang={l} aria-label={t.ui.langAria[l]}
+          aria-current={l === lang ? 'true' : undefined} onClick={go2(l)}>{l.toUpperCase()}</a>
+      ))}
+    </div>
+  )
+}
+
 export function Header() {
   const [open, setOpen] = useState(false)
   const [state, setState] = useState<'over' | 'solid' | 'hidden'>('over')
   const { pathname } = useLocation()
+  const { lang, page, t } = useSite()
   const navTo = useNavTo()
+  const back = useBack()
+  const bookHref = useBookHref()
   const burger = useRef<HTMLButtonElement>(null)
   const panel = useRef<HTMLDivElement>(null)
-  const clean = pathname.replace(/\/+$/, '')
   /* the header is inert until the closing render lands, so focus waits a frame */
   const refocus = () => requestAnimationFrame(() => burger.current?.focus())
 
@@ -471,40 +573,54 @@ export function Header() {
     return () => { window.removeEventListener('keydown', onKey); shut.forEach((el) => el.removeAttribute('inert')); lockScroll(false) }
   }, [open])
 
-  const current = (to: string) => (!to.includes('#') && clean.endsWith(to) ? 'page' : undefined)
   const close = () => { setOpen(false); refocus() }
+  const home = pathFor(lang, 'home')
   return (
     <>
       <header className="hdr" data-state={open ? 'over' : state}>
-        <a className="skip" href="#efni">Fara beint í efnið</a>
+        <a className="skip" href="#efni">{t.ui.skip}</a>
         <div className="wrap bar">
-          <button ref={burger} type="button" className="burger" aria-expanded={open} aria-controls="bj3-menu" onClick={() => setOpen(true)}>
-            <b aria-hidden="true" /><span>Valmynd</span>
-          </button>
-          <Link to={ROOT} viewTransition className={`mark${clean.endsWith(ROOT) ? ' quiet' : ''}`} translate="no" aria-label="Hótel Bjarkalundur, forsíða">
-            Bjarkalundur<small>Hótel · síðan 1947</small>
+          <div className="left">
+            <button ref={burger} type="button" className="burger" aria-expanded={open} aria-controls="bj3-menu" onClick={() => setOpen(true)}>
+              <b aria-hidden="true" /><span>{t.ui.menu}</span>
+            </button>
+            {page !== 'home' ? (
+              <a className="back" href={back.href} onClick={back.onClick} aria-label={t.ui.backAria}>
+                <ArrowLeft size={18} strokeWidth={1.4} aria-hidden="true" /><span>{t.ui.back}</span>
+              </a>
+            ) : null}
+          </div>
+          <Link to={home} viewTransition className={`mark${page === 'home' ? ' quiet' : ''}`} translate="no" aria-label={t.ui.markAria}>
+            Bjarkalundur<small>{t.ui.since}</small>
           </Link>
           <div className="right">
+            <LangSwitch />
             <a className="tel" href={PHONE_HREF}>{PHONE_DISPLAY}</a>
-            <a className="pill" href={BOOKING_URL} target="_blank" rel="noreferrer">Bóka</a>
+            <a className="pill book" href={bookHref} onClick={(e) => navTo(bookHref, e)}>{t.ui.book}</a>
           </div>
         </div>
       </header>
       <div className="scrim" data-open={open} onClick={close} aria-hidden="true" />
-      <div id="bj3-menu" ref={panel} className="menu on-dark" data-open={open} role="dialog" aria-modal="true" aria-label="Valmynd" tabIndex={-1} {...inertIf(!open)}>
-        <button type="button" className="close" onClick={close}>Loka <Plus size={18} strokeWidth={1.4} style={{ transform: 'rotate(45deg)' }} /></button>
+      <div id="bj3-menu" ref={panel} className="menu on-dark" data-open={open} role="dialog" aria-modal="true" aria-label={t.ui.menu} tabIndex={-1} {...inertIf(!open)}>
+        <div className="menu-top">
+          <LangSwitch className="light" />
+          <button type="button" className="close" onClick={close}>{t.ui.close} <Plus size={18} strokeWidth={1.4} style={{ transform: 'rotate(45deg)' }} /></button>
+        </div>
         <ul>
-          <li><Link to={ROOT} viewTransition aria-current={clean.endsWith(ROOT) ? 'page' : undefined} onClick={() => setOpen(false)} style={{ transitionDelay: open ? '120ms' : '0ms' }}>Forsíða</Link></li>
-          {NAV.map((n, i) => (
-            <li key={n.label}>
-              <Link to={n.to} viewTransition aria-current={current(n.to)} style={{ transitionDelay: open ? `${170 + i * 55}ms` : '0ms' }}
-                onClick={(e) => { setOpen(false); navTo(n.to, e) }}>{n.label}</Link>
-            </li>
-          ))}
+          <li><Link to={home} viewTransition aria-current={page === 'home' ? 'page' : undefined} onClick={() => setOpen(false)} style={{ transitionDelay: open ? '120ms' : '0ms' }}>{t.ui.home}</Link></li>
+          {t.nav.map((n, i) => {
+            const to = navHref(lang, n)
+            return (
+              <li key={n.label}>
+                <Link to={to} viewTransition aria-current={n.page && n.page === page ? 'page' : undefined} style={{ transitionDelay: open ? `${170 + i * 45}ms` : '0ms' }}
+                  onClick={(e) => { setOpen(false); navTo(to, e) }}>{n.label}</Link>
+              </li>
+            )
+          })}
         </ul>
         <div className="foot2">
-          <a className="pill pill-light" href={BOOKING_URL} target="_blank" rel="noreferrer">Bóka gistingu</a>
-          <a href={PHONE_HREF}>Sími {PHONE_DISPLAY}</a>
+          <a className="pill pill-light" href={bookHref} onClick={(e) => { setOpen(false); navTo(bookHref, e) }}>{t.ui.bookStay}</a>
+          <a href={PHONE_HREF}>{t.ui.phone} {PHONE_DISPLAY}</a>
           <a href={EMAIL_HREF}>{EMAIL}</a>
           <span>{ADDRESS}</span>
         </div>
@@ -514,47 +630,59 @@ export function Header() {
 }
 
 export function Awning() {
+  const { page, t } = useSite()
+  const navTo = useNavTo()
+  const back = useBack()
+  const bookHref = useBookHref()
   return (
-    <div className="awning" role="region" aria-label="Flýtileiðir">
-      <a className="pill pill-ink" href={PHONE_HREF}>Hringja</a>
-      <a className="pill pill-solid" href={BOOKING_URL} target="_blank" rel="noreferrer">Bóka gistingu</a>
+    <div className={`awning${page !== 'home' ? ' has-back' : ''}`} role="region" aria-label={t.ui.quick}>
+      {page !== 'home' ? (
+        <a className="pill pill-ink back-c" href={back.href} onClick={back.onClick} aria-label={t.ui.backAria}><ArrowLeft size={18} strokeWidth={1.5} aria-hidden="true" /></a>
+      ) : null}
+      <a className="pill pill-ink" href={PHONE_HREF}>{t.ui.call}</a>
+      <a className="pill pill-solid" href={bookHref} onClick={(e) => navTo(bookHref, e)}>{t.ui.bookStay}</a>
     </div>
   )
 }
 
 export function Footer() {
+  const { lang, t } = useSite()
   const navTo = useNavTo()
+  const { pathname, hash } = useLocation()
+  const bookHref = useBookHref()
   return (
     <footer className="foot on-dark">
       <div className="wrap">
         <p className="name" translate="no">Bjarkalundur</p>
-        <p className="since">Hótel · síðan 1947</p>
+        <p className="since">{t.ui.since}</p>
         <div className="cols">
           <div>
-            <h2>Síður</h2>
+            <h2>{t.ui.pages}</h2>
             <ul>
-              <li><Link to={ROOT} viewTransition>Forsíða</Link></li>
-              {NAV.map((n) => <li key={n.label}><Link to={n.to} viewTransition onClick={(e) => navTo(n.to, e)}>{n.label}</Link></li>)}
+              <li><Link to={pathFor(lang, 'home')} viewTransition>{t.ui.home}</Link></li>
+              {t.nav.map((n) => { const to = navHref(lang, n); return <li key={n.label}><Link to={to} viewTransition onClick={(e) => navTo(to, e)}>{n.label}</Link></li> })}
             </ul>
           </div>
           <div className="mid">
-            <h2>Hótelið</h2>
-            <p>{FOOTER.tagline}</p>
-            <p style={{ marginTop: 8 }}>{FOOTER.season}</p>
-            <p style={{ marginTop: 22 }}><a className="round" href={BOOKING_URL} target="_blank" rel="noreferrer" style={{ color: 'var(--on)' }}><i><ArrowRight size={20} strokeWidth={1.3} /></i>Bóka gistingu</a></p>
+            <h2>{t.ui.hotel}</h2>
+            <p>{t.footer.tagline}</p>
+            <p style={{ marginTop: 8 }}>{t.footer.season}</p>
+            <p style={{ marginTop: 22 }}><a className="round" href={bookHref} onClick={(e) => navTo(bookHref, e)} style={{ color: 'var(--on)' }}><i><ArrowRight size={20} strokeWidth={1.3} /></i>{t.ui.bookStay}</a></p>
           </div>
           <div className="end">
-            <h2>Hafa samband</h2>
+            <h2>{t.ui.contact}</h2>
             <ul>
               <li>{ADDRESS}</li>
-              <li><a href={PHONE_HREF}>Sími {PHONE_DISPLAY}</a></li>
+              <li><a href={PHONE_HREF}>{t.ui.phone} {PHONE_DISPLAY}</a></li>
               <li><a href={EMAIL_HREF}>{EMAIL}</a></li>
             </ul>
           </div>
         </div>
         <div className="fine">
-          <span>© Hótel Bjarkalundur</span>
-          <a href={BOOKING_URL} target="_blank" rel="noreferrer">Bókunarsíða hótelsins</a>
+          <span>{t.ui.copyright}</span>
+          <span className="langs">
+            {LANGS.map((l) => <a key={l} href={counterpart(pathname, hash, l)} hrefLang={l} lang={l} aria-current={l === lang ? 'true' : undefined}>{t.ui.langAria[l]}</a>)}
+          </span>
         </div>
       </div>
     </footer>
@@ -563,11 +691,12 @@ export function Footer() {
 
 /** Inner pages open on a still photo that the sheet slides over, like the film on home. */
 export function PageHero({ pic, title, sub, id }: { pic: Pic; title: string; sub: string; id: string }) {
+  const { lang } = useSite()
   return (
-    <section className="hero pg-hero" data-hero aria-labelledby={id}>
+    <section className="hero pg-hero" data-hero data-anchor="top" aria-labelledby={id}>
       <div className="hero-media">
         <img src={pic.srcS ?? pic.src} srcSet={pic.srcS ? `${pic.srcS} 1280w, ${pic.src} ${pic.w}w` : undefined} sizes="100vw"
-          width={pic.w} height={pic.h} alt={pic.alt} decoding="async" {...{ fetchpriority: 'high' }} />
+          width={pic.w} height={pic.h} alt={pic.alt[lang]} decoding="async" {...{ fetchpriority: 'high' }} />
       </div>
       <div className="hero-grad" />
       <div className="hero-tint" />
@@ -576,6 +705,19 @@ export function PageHero({ pic, title, sub, id }: { pic: Pic; title: string; sub
         <p className="pg-sub">{sub}</p>
       </div>
     </section>
+  )
+}
+
+/** The rating the reviewer gave, drawn, never marked up (self-serving review rule). */
+export function Stars({ n, label }: { n: number; label: string }) {
+  return (
+    <span className="stars" role="img" aria-label={label}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <svg key={i} viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" className={i < n ? 'on' : ''}>
+          <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.6 7.7l5.8-.8z" />
+        </svg>
+      ))}
+    </span>
   )
 }
 

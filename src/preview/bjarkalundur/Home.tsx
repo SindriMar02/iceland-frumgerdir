@@ -3,20 +3,23 @@ import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { ArrowRight, ArrowUpRight, BedDouble, Home as House, ShowerHead, Wifi } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, BedDouble, Home as House, Plus, ShowerHead, Wifi } from 'lucide-react'
 import {
-  IMG, ROOT, BOOKING_URL, PHONE_HREF, EMAIL, EMAIL_HREF, MAP_EMBED, MAP_LINK, REVIEWS,
-  HERO_FILM, HERO, INTRO, EXPERIENCE, STAY, COTTAGES, OWNERS, FOOD, REVIEWS_TEASER,
-  HISTORY, CAMPSITE, INFO, CLOSING,
+  IMG, EMAIL, EMAIL_HREF, MAP_EMBED, MAP_LINK, DIRECTIONS, PHONE_HREF, REVIEWS, HERO_FILM, ROADS, WEATHER, VEIDIKORTID, quote,
 } from './data'
 import type { Review } from './data'
-import { Accordion, Eyebrow, Photo, Title, useNavTo } from './shell'
+import { Accordion, Eyebrow, Photo, Stars, Title, useNavTo } from './shell'
+import { StayPicker } from './StayPicker'
+import { useSite } from './site'
+import { SECTION, pathFor, roomHref, sectionHref } from './paths'
 
 /* Home, v4. The order is the Edelhaus board's: film hero, staggered serif
    intro, a full-bleed photo chapter with a framed card, rooms with icons and
-   a photo strip, food cards, a full-bleed closing, the dark footer. The page
-   moves the MRC way (TEARDOWN.md): the hero stays put and a rounded sheet
-   (our Fagravík grammar) slides up over it. */
+   a photo strip, food, the reviews, the story, what guests ask, and the
+   booking calendar at the foot. The page moves the MRC way (TEARDOWN.md): the
+   hero stays put and a rounded sheet (our Fagravík grammar) slides up over it.
+   Every section carries a language-free data-anchor so the IS/EN switch can
+   land the reader on the same section in the other language. */
 
 export const HOME_CSS = `
 /* intro */
@@ -99,7 +102,9 @@ export const HOME_CSS = `
 .bj3 .food .q{font-family:var(--serif);font-weight:300;font-style:italic;font-size:clamp(1.45rem,2.4vw,2.2rem);line-height:1.24;letter-spacing:-.01em;text-wrap:pretty}
 .bj3 .food .said figcaption{margin-top:18px;font-size:.95rem;color:var(--mute)}
 .bj3 .food .said figcaption strong{color:var(--ink);font-weight:560}
-.bj3 .meals{grid-area:meals;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);list-style:none;margin:0;padding:0}
+.bj3 .meals-wrap{grid-area:meals;display:grid;gap:18px}
+.bj3 .meals-wrap .guests{max-width:none;color:var(--mute);font-size:.95rem}
+.bj3 .meals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);list-style:none;margin:0;padding:0}
 .bj3 .meal{background:var(--paper);border-radius:var(--r);padding:clamp(20px,2vw,28px);display:grid;gap:8px;align-content:start}
 .bj3 .meal .t-h3{font-size:1.3rem}
 @media (max-width:1199px){.bj3 .meals{grid-template-columns:1fr}}
@@ -115,6 +120,7 @@ export const HOME_CSS = `
 .bj3 .drift .col{display:flex;flex-direction:column;gap:clamp(12px,1.6vw,20px);animation:bj3-drift var(--d,44s) linear infinite}
 .bj3 .drift:hover .col,.bj3 .drift:focus-within .col,.bj3 .drift[data-paused="true"] .col{animation-play-state:paused}
 .bj3 .drift .card{border-top:1px solid var(--line);padding:clamp(20px,2vw,26px) 0 clamp(26px,2.6vw,34px);display:grid;gap:18px;margin:0}
+.bj3 .drift .card .stars{margin-bottom:-4px}
 .bj3 .drift .card.short blockquote{font-family:var(--serif);font-weight:300;font-size:clamp(1.3rem,1.6vw,1.55rem);line-height:1.3;color:var(--ink)}
 .bj3 .drift .card blockquote{margin:0;font-size:1.02rem;line-height:1.6;color:var(--text)}
 .bj3 .drift .card footer{display:grid;gap:2px;font-size:.88rem;color:var(--mute)}
@@ -126,49 +132,75 @@ export const HOME_CSS = `
 @media (max-width:640px){.bj3 .drift{grid-template-columns:1fr}.bj3 .drift .c2{display:none}}
 @media (prefers-reduced-motion:reduce){.bj3 .drift{height:auto;-webkit-mask-image:none;mask-image:none}.bj3 .drift .dup,.bj3 .drift-ctl{display:none}}
 
-/* history: the years fold open */
+/* history: the years fold open, the picture flips to each year */
 .bj3 .saga{padding:var(--sec) 0;background:var(--paper)}
 .bj3 .saga .grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(32px,6vw,110px);align-items:start}
-.bj3 .saga .left{display:grid;gap:clamp(32px,4vw,56px);position:sticky;top:110px}
-.bj3 .saga .left .pic{border-radius:var(--r)}
+.bj3 .saga .left{display:grid;gap:clamp(28px,3.4vw,48px);position:sticky;top:110px}
+.bj3 .flip{position:relative;aspect-ratio:4/3;border-radius:var(--r);overflow:hidden;background:#D9D8D4}
+.bj3 .flip .fp{position:absolute;inset:0;z-index:1;clip-path:inset(100% 0 0 0);transition:clip-path 0s linear .95s}
+.bj3 .flip .fp[data-on="true"]{z-index:2;clip-path:inset(0 0 0 0);transition:clip-path .95s var(--ease)}
+.bj3 .flip .fp .pic{position:absolute;inset:0}
+.bj3 .flip .fp .pic img{transform:scale(1.08);transition:transform 1.4s var(--ease)}
+.bj3 .flip .fp[data-on="true"] .pic img{transform:none}
+.bj3 .flip-cap{display:flex;align-items:baseline;gap:14px;margin-top:12px;font-size:.88rem;color:var(--mute)}
+.bj3 .flip-cap b{font-family:var(--serif);font-weight:300;font-size:1.4rem;color:var(--ink)}
 .bj3 .saga .yr{font-family:var(--serif);font-weight:300;font-variant-numeric:lining-nums;display:inline-block;min-width:3.4em}
 .bj3 .saga .acc-inner p{max-width:52ch;color:var(--text);padding-left:calc(3.4em * 1.6)}
 @media (max-width:899px){.bj3 .saga .grid{grid-template-columns:1fr}.bj3 .saga .left{position:static}.bj3 .saga .acc-inner p{padding-left:0}}
+@media (prefers-reduced-motion:reduce){.bj3 .flip .fp,.bj3 .flip .fp[data-on="true"]{transition:none}}
 
-/* practical: folds + map */
-.bj3 .info{padding:var(--sec) 0}
-.bj3 .info .grid{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:clamp(32px,6vw,110px);align-items:start}
-.bj3 .info .left{display:grid;gap:clamp(32px,4vw,52px)}
-.bj3 .info .contact{display:flex;flex-wrap:wrap;gap:12px}
-.bj3 .info .camp p{max-width:52ch;color:var(--text);margin-bottom:18px}
-.bj3 .info .map{display:block;width:100%;aspect-ratio:4/5;border:0;border-radius:var(--r);background:#DAD9D5}
-.bj3 .info .maplink{display:inline-block;margin-top:14px}
-@media (max-width:899px){.bj3 .info .grid{grid-template-columns:1fr}.bj3 .info .map{aspect-ratio:4/3}}
+/* good to know: native <details> (read by every crawler), the contact card beside */
+.bj3 .faq{padding:var(--sec) 0;interpolate-size:allow-keywords}
+.bj3 .faq .grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(32px,6vw,110px);align-items:start}
+.bj3 .faq .head{display:grid;gap:20px;margin-bottom:clamp(28px,3.4vw,48px)}
+.bj3 .qa{border-top:1px solid var(--line)}
+.bj3 .qa details{border-bottom:1px solid var(--line)}
+.bj3 .qa summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 0;font-family:var(--serif);font-weight:300;font-size:clamp(1.2rem,1.7vw,1.55rem);line-height:1.25}
+.bj3 .qa summary::-webkit-details-marker{display:none}
+.bj3 .qa summary:focus-visible{outline:2px solid var(--band);outline-offset:4px}
+.bj3 .qa summary i{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);transition:transform .5s var(--ease),background-color .3s,color .3s}
+.bj3 .qa details[open] summary i{transform:rotate(45deg);background:var(--ink);color:var(--on);border-color:var(--ink)}
+.bj3 .qa details::details-content{block-size:0;overflow:hidden;transition:block-size .55s var(--ease),content-visibility .55s allow-discrete}
+.bj3 .qa details[open]::details-content{block-size:auto}
+.bj3 .qa .ans{padding:0 0 24px;max-width:60ch;color:var(--text);display:grid;gap:12px}
+.bj3 .qa .ans .links{display:flex;flex-wrap:wrap;gap:8px 22px}
+@media (prefers-reduced-motion:reduce){.bj3 .qa details::details-content{transition:none}}
+.bj3 .reach{position:sticky;top:110px;display:grid;gap:22px;background:var(--paper);border-radius:var(--r);padding:clamp(22px,2.6vw,34px)}
+.bj3 .reach .t-h2{font-size:clamp(2rem,3.4vw,3rem)}
+.bj3 .reach .map{display:block;width:100%;aspect-ratio:4/3;border:0;border-radius:10px;background:#DAD9D5}
+.bj3 .reach .contact{display:flex;flex-wrap:wrap;gap:10px}
+.bj3 .reach .links{display:flex;flex-wrap:wrap;gap:8px 22px}
+@media (max-width:899px){.bj3 .faq .grid{grid-template-columns:1fr}.bj3 .reach{position:static}}
 @media (max-width:420px){.bj3 .facts{grid-template-columns:1fr;gap:2px}.bj3 .facts dd{margin-bottom:10px}}
 
-/* closing: full bleed, booking at the bottom (house rule) */
-.bj3 .closing{min-height:max(100svh,640px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(32px,4vw,52px);padding:120px var(--gut);text-align:center}
-.bj3 .closing .shade{background:rgba(18,18,16,.34)}
+/* closing: full bleed, the booking calendar at the bottom (house rule) */
+.bj3 .closing{min-height:max(100svh,640px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(28px,3.4vw,44px);padding:clamp(96px,11vw,150px) var(--gut);text-align:center}
+.bj3 .closing .shade{background:rgba(18,18,16,.4)}
 .bj3 .closing .t-h2{position:relative;font-size:clamp(2.8rem,7vw,6rem)}
-.bj3 .closing .ctas{position:relative;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:18px 28px}
+.bj3 .closing .lede{position:relative;max-width:52ch;color:rgba(245,244,241,.9)}
+.bj3 .closing .picker{position:relative;width:min(1080px,100%)}
+.bj3 .closing .ctas{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
 .bj3 .closing .pill-light{background:rgba(18,18,16,.46);border-color:rgba(245,244,241,.62)}
 .bj3 .closing .pill-light:hover{background:var(--on);color:var(--ink)}
-.bj3 .big-round{display:grid;place-items:center;width:clamp(128px,12vw,164px);aspect-ratio:1;border-radius:50%;background:var(--on);color:var(--ink);text-decoration:none;font-weight:560;font-size:1rem;
-  transition:transform .6s var(--ease),background-color .3s ease,color .3s ease}
-.bj3 .big-round span{display:grid;justify-items:center;gap:6px}
-@media (hover:hover) and (pointer:fine){.bj3 .big-round:hover{transform:scale(1.06);background:var(--band);color:var(--on)}}
-.bj3 .big-round:active{transform:scale(.97)}
 `
 
-const ICONS = { bed: BedDouble, house: House, bath: ShowerHead, wifi: Wifi }
+const ICONS = [BedDouble, House, ShowerHead, Wifi]
+const STRIP = [
+  { pic: 'lomur', room: 'vaskur' },
+  { pic: 'cottageBeds', room: 'hus-bad' },
+  { pic: 'single', room: 'einn' },
+  { pic: 'cottageKitchen', room: 'hus-eldhus' },
+] as const
 
 function Hero() {
+  const { t, lang } = useSite()
   const film = useRef<HTMLVideoElement>(null)
   /* reduced motion: the poster only, and the film is not even fetched */
-  const [still, setStill] = useState(() => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const [still, setStill] = useState(false)
   useEffect(() => {
     const mq = matchMedia('(prefers-reduced-motion: reduce)')
     const on = () => setStill(mq.matches)
+    on()
     mq.addEventListener('change', on)
     return () => mq.removeEventListener('change', on)
   }, [])
@@ -180,21 +212,17 @@ function Hero() {
     gsap.registerPlugin(ScrollTrigger)
     /* the film only plays while it can be seen; the sheet covers it after one screen */
     const play = () => { v.play().catch(() => {}) }
-    const st = ScrollTrigger.create({
-      start: 0,
-      end: () => window.innerHeight * 1.05,
-      onLeave: () => v.pause(),
-      onEnterBack: play,
-    })
+    const st = ScrollTrigger.create({ start: 0, end: () => window.innerHeight * 1.05, onLeave: () => v.pause(), onEnterBack: play })
     /* scroll 0 sits on the start edge, which ScrollTrigger counts as outside */
     if (window.scrollY < window.innerHeight * 1.05) play()
     return () => { st.kill(); v.pause() }
   }, [still])
-  const letters = [...HERO.name]
+  const letters = [...t.hero.name]
+  const prefix = t.hero.h1.replace(t.hero.name, '')
   return (
-    <section className="hero" data-hero aria-labelledby="bj3-h1">
+    <section className="hero" data-hero data-anchor="top" aria-labelledby="bj3-h1">
       <div className="hero-media">
-        <video ref={film} muted loop playsInline preload={still ? 'none' : 'auto'} poster={HERO_FILM.posterS} aria-hidden="true" tabIndex={-1}>
+        <video ref={film} muted loop playsInline preload={still ? 'none' : 'metadata'} poster={HERO_FILM.posterS} aria-hidden="true" tabIndex={-1}>
           <source media="(min-width: 901px)" src={HERO_FILM.src} type="video/mp4" />
           <source src={HERO_FILM.srcS} type="video/mp4" />
         </video>
@@ -203,53 +231,67 @@ function Hero() {
       <div className="hero-tint" />
       {/* the scroll fade sits on this wrapper: the children's CSS entrances (fill: both) would override it */}
       <div className="hero-copy hero-leave">
-        <h1 id="bj3-h1" className="hero-name" aria-label="Hótel Bjarkalundur" translate="no">
-          <span className="mask" aria-hidden="true">
+        {/* the text a crawler reads is "Hótel Bjarkalundur"; the letters are the show */}
+        <h1 id="bj3-h1" className="hero-name" aria-label={t.hero.h1} translate="no">
+          <span className="sr">{prefix}</span>
+          <span className="mask">
             {letters.map((c, i) => <span key={i} className="ch" style={{ '--i': i } as CSSProperties}>{c}</span>)}
           </span>
         </h1>
-        <p className="hero-sub">{HERO.sub}</p>
+        <p className="hero-sub">{t.hero.sub}</p>
         <div className="hero-ctas">
-          <a className="pill" href={BOOKING_URL} target="_blank" rel="noreferrer">{HERO.book}</a>
-          <Link className="tlink" to={`${ROOT}/gisting`} viewTransition style={{ color: 'var(--on)' }}>{STAY.cta}</Link>
+          <HeroBook />
+          <Link className="tlink" to={pathFor(lang, 'rooms')} viewTransition style={{ color: 'var(--on)' }}>{t.hero.rooms}</Link>
         </div>
       </div>
     </section>
   )
 }
 
+function HeroBook() {
+  const { t, lang } = useSite()
+  const navTo = useNavTo()
+  const href = sectionHref(lang, 'booking')
+  return <a className="pill" href={href} onClick={(e) => navTo(href, e)}>{t.ui.bookStay}</a>
+}
+
 function Strip() {
+  const { t, lang } = useSite()
   const [on, setOn] = useState(0)
   const navTo = useNavTo()
   return (
     <ul className="strip rv-up">
-      {STAY.strip.map((s, i) => (
-        <li key={s.label} data-on={on === i} onMouseEnter={() => setOn(i)} onFocus={() => setOn(i)}>
-          <Link to={s.to} viewTransition onClick={(e) => navTo(s.to, e)}>
-            <Photo pic={IMG[s.pic]} sizes="(max-width: 899px) 76vw, 44vw" ratio="auto" />
-            <span className="lab"><span>{s.label}</span><i aria-hidden="true"><ArrowUpRight size={18} strokeWidth={1.5} /></i></span>
-          </Link>
-        </li>
-      ))}
+      {STRIP.map((s, i) => {
+        const to = roomHref(lang, s.room)
+        return (
+          <li key={s.room} data-on={on === i} onMouseEnter={() => setOn(i)} onFocus={() => setOn(i)}>
+            <Link to={to} viewTransition onClick={(e) => navTo(to, e)}>
+              <Photo pic={IMG[s.pic]} sizes="(max-width: 899px) 76vw, 44vw" ratio="auto" />
+              <span className="lab"><span>{t.stay.strip[i]}</span><i aria-hidden="true"><ArrowUpRight size={18} strokeWidth={1.5} /></i></span>
+            </Link>
+          </li>
+        )
+      })}
     </ul>
   )
 }
 
-export const quote = (r: Review) => (r.lang === 'en' ? `“${r.text}${r.excerpt ? ' …' : ''}”` : `„${r.text}${r.excerpt ? ' …' : ''}“`)
-
 function Card({ r, dup }: { r: Review; dup?: boolean }) {
+  const { t, lang } = useSite()
   return (
-    <figure className={`card${r.text.length < 160 ? ' short' : ''}${dup ? ' dup' : ''}`} aria-hidden={dup || undefined} lang={r.lang}>
-      <blockquote><p>{quote(r)}</p></blockquote>
-      <footer lang="is">
+    <figure className={`card${r.text.length < 160 ? ' short' : ''}${dup ? ' dup' : ''}`} aria-hidden={dup || undefined}>
+      {r.stars ? <Stars n={r.stars} label={t.ui.starsLabel(r.stars)} /> : null}
+      <blockquote lang={r.lang}><p>{quote(r)}</p></blockquote>
+      <footer>
         <strong>{r.name}</strong>
-        <span>{r.source}, {r.when.toLowerCase()}</span>
+        <span>{r.source}, {r.when[lang]}</span>
       </footer>
     </figure>
   )
 }
 
 function Drift() {
+  const { t } = useSite()
   const [paused, setPaused] = useState(false)
   const cols = [REVIEWS.filter((_, i) => i % 3 === 0), REVIEWS.filter((_, i) => i % 3 === 1), REVIEWS.filter((_, i) => i % 3 === 2)]
   const speeds = ['46s', '58s', '50s']
@@ -264,187 +306,240 @@ function Drift() {
         ))}
       </div>
       <button type="button" className="drift-ctl" aria-pressed={paused} onClick={() => setPaused((p) => !p)}>
-        {paused ? 'Hreyfa umsagnirnar aftur' : 'Stöðva hreyfinguna'}
+        {paused ? t.ui.driftPlay : t.ui.driftPause}
       </button>
     </div>
   )
 }
 
-export function Home() {
+/** The years fold open one at a time and the picture flips to each year's photo. */
+function History() {
+  const { t, lang } = useSite()
+  const [active, setActive] = useState(0)
+  const years = t.history.years
+  return (
+    <section id={SECTION.history[lang]} data-anchor="history" className="saga" aria-labelledby="bj3-saga">
+      <div className="wrap grid">
+        <div className="left">
+          <Title id="bj3-saga" text={t.history.title} stagger />
+          <div className="rv-up">
+            <div className="flip">
+              {years.map((y, i) => (
+                <div key={y.y} className="fp" data-on={i === active} aria-hidden={i !== active}>
+                  <Photo pic={IMG[y.pic]} sizes="(max-width: 899px) 92vw, 38vw" ratio="auto" />
+                </div>
+              ))}
+            </div>
+            <p className="flip-cap" aria-live="polite"><b>{years[active].y}</b>{years[active].h}</p>
+          </div>
+        </div>
+        <div className="rv-up">
+          <Accordion
+            initial={0}
+            onOpen={setActive}
+            items={years.map((y) => ({ id: y.y, head: <><span className="yr">{y.y}</span>{y.h}</>, body: <p>{y.t}</p> }))}
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Faq() {
+  const { t, lang } = useSite()
   const navTo = useNavTo()
-  const skip = REVIEWS.find((r) => r.id === FOOD.quoteId)!
+  const campsite = pathFor(lang, 'campsite')
+  const book = sectionHref(lang, 'booking')
+  const extra: Record<string, JSX.Element> = {
+    faerd: <><a className="tlink" href={ROADS.is} target="_blank" rel="noopener">{t.faq.roadsLink}</a><a className="tlink" href={WEATHER.is} target="_blank" rel="noopener">{t.faq.weatherLink}</a></>,
+    roads: <><a className="tlink" href={ROADS.en} target="_blank" rel="noopener">{t.faq.roadsLink}</a><a className="tlink" href={WEATHER.en} target="_blank" rel="noopener">{t.faq.weatherLink}</a></>,
+    veidi: <a className="tlink" href={VEIDIKORTID} target="_blank" rel="noopener">{t.faq.fishingLink}</a>,
+    fishing: <a className="tlink" href={VEIDIKORTID} target="_blank" rel="noopener">{t.faq.fishingLink}</a>,
+    tjald: <Link className="tlink" to={campsite} viewTransition>{t.nav.find((n) => n.page === 'campsite')?.label}</Link>,
+    camping: <Link className="tlink" to={campsite} viewTransition>{t.nav.find((n) => n.page === 'campsite')?.label}</Link>,
+    boka: <a className="tlink" href={book} onClick={(e) => navTo(book, e)}>{t.ui.bookStay}</a>,
+    book: <a className="tlink" href={book} onClick={(e) => navTo(book, e)}>{t.ui.bookStay}</a>,
+  }
+  return (
+    <section id={SECTION.faq[lang]} data-anchor="faq" className="faq" aria-labelledby="bj3-faq">
+      <div className="wrap grid">
+        <div>
+          <div className="head">
+            <Eyebrow>{t.faq.eyebrow}</Eyebrow>
+            <Title id="bj3-faq" text={t.faq.title} stagger />
+          </div>
+          <div className="qa rv-up">
+            {t.faq.items.map((f, i) => (
+              <details key={f.id} name="bj-faq" open={i === 0 || undefined}>
+                <summary><span>{f.q}</span><i aria-hidden="true"><Plus size={18} strokeWidth={1.4} /></i></summary>
+                <div className="ans">
+                  <p>{f.a}</p>
+                  {extra[f.id] ? <p className="links">{extra[f.id]}</p> : null}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+        <aside id={SECTION.contact[lang]} data-anchor="contact" className="reach rv-up" aria-labelledby="bj3-contact">
+          <Title id="bj3-contact" text={t.contact.title} as="h2" />
+          <dl className="facts">{t.contact.rows.map((r) => <FactRow key={r.k} k={r.k} v={r.v} />)}</dl>
+          <div className="contact">
+            <a className="pill pill-ink" href={PHONE_HREF}>{t.ui.call}</a>
+            <a className="pill pill-ink" href={EMAIL_HREF}>{EMAIL}</a>
+          </div>
+          <iframe className="map" src={MAP_EMBED} title={t.ui.mapTitle} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+          <p className="links">
+            <a className="tlink" href={DIRECTIONS} target="_blank" rel="noopener">{t.ui.directions}</a>
+            <a className="tlink" href={MAP_LINK} target="_blank" rel="noopener">{t.ui.mapLink}</a>
+          </p>
+        </aside>
+      </div>
+    </section>
+  )
+}
+
+export function Home() {
+  const { t, lang } = useSite()
+  const navTo = useNavTo()
+  const skip = REVIEWS.find((r) => r.id === 'skip')!
+  const history = sectionHref(lang, 'history')
+  const rooms = pathFor(lang, 'rooms')
   return (
     <>
       <Hero />
       <div className="over">
-        <section className="intro" aria-labelledby="bj3-intro">
+        <section className="intro" data-anchor="intro" aria-labelledby="bj3-intro">
           <div className="wrap grid">
             <div className="head">
-              <Eyebrow>{INTRO.eyebrow}</Eyebrow>
-              <Title id="bj3-intro" text={INTRO.title} stagger />
+              <Eyebrow>{t.intro.eyebrow}</Eyebrow>
+              <Title id="bj3-intro" text={t.intro.title} stagger />
             </div>
             <div className="text">
-              {INTRO.body.map((t) => <p key={t} className="body rv-up">{t}</p>)}
-              <a className="round rv-up" href="#sagan" onClick={(e) => navTo(`${ROOT}#sagan`, e)}>
-                <i aria-hidden="true"><ArrowRight size={20} strokeWidth={1.3} /></i>{OWNERS.link}
+              {t.intro.body.map((p) => <p key={p} className="body rv-up">{p}</p>)}
+              <a className="round rv-up" href={history} onClick={(e) => navTo(history, e)}>
+                <i aria-hidden="true"><ArrowRight size={20} strokeWidth={1.3} /></i>{t.intro.link}
               </a>
             </div>
           </div>
         </section>
 
-        <section id="umhverfid" className="bleed exp on-dark" aria-labelledby="bj3-exp">
+        <section id={SECTION.surroundings[lang]} data-anchor="surroundings" className="bleed exp on-dark" aria-labelledby="bj3-exp">
           <Photo pic={IMG.lake} sizes="100vw" ratio="auto" className="rv-par" />
           <div className="shade" />
           <div className="copy">
-            <Title id="bj3-exp" text={EXPERIENCE.title} center />
-            <p className="body rv-up">{EXPERIENCE.sub} {EXPERIENCE.hike}</p>
+            <Title id="bj3-exp" text={t.experience.title} center />
+            <p className="body rv-up">{t.experience.sub}</p>
+            <p className="body rv-up">{t.experience.road}</p>
           </div>
           <article className="frame rv-card">
-            <Photo pic={IMG[EXPERIENCE.card.pic]} sizes="(max-width: 520px) 92vw, 440px" ratio="3 / 2" />
-            <h3 className="t-h3">{EXPERIENCE.card.title}</h3>
-            <p>{EXPERIENCE.card.text}</p>
+            <Photo pic={IMG.kayaks} sizes="(max-width: 520px) 92vw, 440px" ratio="3 / 2" />
+            <h3 className="t-h3">{t.experience.card.title}</h3>
+            <p>{t.experience.card.text}</p>
           </article>
         </section>
 
-        <section id="gisting" className="stay" aria-labelledby="bj3-stay">
+        <section id={SECTION.stay[lang]} data-anchor="stay" className="stay" aria-labelledby="bj3-stay">
           <div className="wrap">
             <div className="head">
-              <Eyebrow>{STAY.eyebrow}</Eyebrow>
-              <Title id="bj3-stay" text={STAY.title} center />
+              <Eyebrow>{t.stay.eyebrow}</Eyebrow>
+              <Title id="bj3-stay" text={t.stay.title} center />
             </div>
             <ul className="icons rv-stagger">
-              {STAY.features.map((f) => {
-                const I = ICONS[f.icon]
-                return <li key={f.label}><i aria-hidden="true"><I size={24} strokeWidth={1.2} /></i>{f.label}</li>
+              {t.stay.features.map((f, i) => {
+                const I = ICONS[i]
+                return <li key={f}><i aria-hidden="true"><I size={24} strokeWidth={1.2} /></i>{f}</li>
               })}
             </ul>
             <Strip />
             <div className="more rv-up">
-              <Link className="pill pill-ink" to={`${ROOT}/gisting`} viewTransition>{STAY.cta}</Link>
-              <a className="pill pill-solid" href={BOOKING_URL} target="_blank" rel="noreferrer">{HERO.book}</a>
+              <Link className="pill pill-ink" to={rooms} viewTransition>{t.stay.cta}</Link>
+              <HeroBookSolid />
             </div>
           </div>
         </section>
 
-        <section className="cott" aria-labelledby="bj3-cott">
+        <section className="cott" data-anchor="cottages" aria-labelledby="bj3-cott">
           <div className="wrap grid">
             <div className="text">
-              <Title id="bj3-cott" text={COTTAGES.title} stagger />
-              <p className="body rv-up">{COTTAGES.body}</p>
-              <Link className="round rv-up" to={`${ROOT}/gisting#hus-bad`} viewTransition onClick={(e) => navTo(`${ROOT}/gisting#hus-bad`, e)}>
-                <i aria-hidden="true"><ArrowRight size={20} strokeWidth={1.3} /></i>{COTTAGES.link}
+              <Title id="bj3-cott" text={t.cottages.title} stagger />
+              <p className="body rv-up">{t.cottages.body}</p>
+              <Link className="round rv-up" to={roomHref(lang, 'hus-bad')} viewTransition onClick={(e) => navTo(roomHref(lang, 'hus-bad'), e)}>
+                <i aria-hidden="true"><ArrowRight size={20} strokeWidth={1.3} /></i>{t.cottages.link}
               </Link>
             </div>
             <Photo pic={IMG.cottageA} sizes="(max-width: 899px) 92vw, 56vw" ratio="4 / 3" className="rounded rv-settle" />
           </div>
         </section>
 
-        <section className="owners on-dark" aria-labelledby="bj3-owners">
+        <section className="owners on-dark" data-anchor="owners" aria-labelledby="bj3-owners">
           <div className="panel rv-settle"><Photo pic={IMG.lamp} sizes="(max-width: 899px) 100vw, 44vw" ratio="auto" /></div>
           <div className="text">
-            <Eyebrow>{OWNERS.eyebrow}</Eyebrow>
-            <Title id="bj3-owners" text={OWNERS.title} />
-            <div>{OWNERS.body.map((t) => <p key={t} className="body rv-up">{t}</p>)}</div>
-            <a className="tlink rv-up" href="#sagan" onClick={(e) => navTo(`${ROOT}#sagan`, e)}>{OWNERS.link}</a>
+            <Eyebrow>{t.owners.eyebrow}</Eyebrow>
+            <Title id="bj3-owners" text={t.owners.title} />
+            <div>{t.owners.body.map((p) => <p key={p} className="body rv-up">{p}</p>)}</div>
+            <a className="tlink rv-up" href={history} onClick={(e) => navTo(history, e)}>{t.owners.link}</a>
           </div>
         </section>
 
-        <section id="stofan" className="food" aria-labelledby="bj3-food">
+        <section id={SECTION.food[lang]} data-anchor="food" className="food" aria-labelledby="bj3-food">
           <div className="wrap spread">
             <div className="head">
-              <Eyebrow>{FOOD.eyebrow}</Eyebrow>
-              <Title id="bj3-food" text={FOOD.title} stagger />
+              <Eyebrow>{t.food.eyebrow}</Eyebrow>
+              <Title id="bj3-food" text={t.food.title} stagger />
             </div>
             <Photo pic={IMG.dining} sizes="(max-width: 899px) 92vw, 38vw" ratio="3 / 4" className="lead rv-settle" />
             <figure className="said">
               <blockquote className="rv-up" lang={skip.lang}><p className="q">{quote(skip)}</p></blockquote>
-              <figcaption className="rv-up"><strong>{skip.name}</strong>, {skip.source}, {skip.when.toLowerCase()}</figcaption>
+              <figcaption className="rv-up"><strong>{skip.name}</strong>, {skip.source}, {skip.when[lang]}</figcaption>
             </figure>
-            <ul className="meals rv-stagger">
-              {FOOD.cards.map((c) => <li key={c.h} className="meal"><h3 className="t-h3">{c.h}</h3><p>{c.t}</p></li>)}
-            </ul>
+            <div className="meals-wrap">
+              <ul className="meals rv-stagger">
+                {t.food.cards.map((c) => <li key={c.h} className="meal"><h3 className="t-h3">{c.h}</h3><p>{c.t}</p></li>)}
+              </ul>
+              <p className="body rv-up guests">{t.food.guests}</p>
+            </div>
           </div>
         </section>
 
-        <section id="umsagnir" className="voices" aria-labelledby="bj3-voices">
+        <section id={SECTION.reviews[lang]} data-anchor="reviews" className="voices" aria-labelledby="bj3-voices">
           <div className="wrap">
             <div className="head">
               <div>
-                <Title id="bj3-voices" text={REVIEWS_TEASER.title} stagger />
-                <p className="body rv-up">{REVIEWS_TEASER.sub}</p>
+                <Title id="bj3-voices" text={t.reviewsTeaser.title} stagger />
+                <p className="body rv-up">{t.reviewsTeaser.sub}</p>
               </div>
-              <Link className="round rv-up" to={`${ROOT}/umsagnir`} viewTransition>
-                <i aria-hidden="true"><ArrowRight size={20} strokeWidth={1.3} /></i>{REVIEWS_TEASER.cta}
+              <Link className="round rv-up" to={pathFor(lang, 'reviews')} viewTransition>
+                <i aria-hidden="true"><ArrowRight size={20} strokeWidth={1.3} /></i>{t.reviewsTeaser.cta}
               </Link>
             </div>
             <Drift />
           </div>
         </section>
 
-        <section id="sagan" className="saga" aria-labelledby="bj3-saga">
-          <div className="wrap grid">
-            <div className="left">
-              <Title id="bj3-saga" text={HISTORY.title} stagger />
-              <figure className="rv-up" style={{ margin: 0 }}>
-                <Photo pic={IMG.archival} sizes="(max-width: 899px) 92vw, 36vw" className="rv-settle" />
-                <figcaption>{OWNERS.archivalCaption}</figcaption>
-              </figure>
-            </div>
-            <div className="rv-up">
-              <Accordion
-                initial={0}
-                items={HISTORY.years.map((y) => ({
-                  id: y.y,
-                  head: <><span className="yr">{y.y}</span>{y.h}</>,
-                  body: <p>{y.t}</p>,
-                }))}
-              />
-            </div>
-          </div>
-        </section>
+        <History />
+        <Faq />
 
-        <section id="hafa-samband" className="info" aria-labelledby="bj3-info">
-          <div className="wrap grid">
-            <div className="left">
-              <Title id="bj3-info" text={INFO.title} stagger />
-              <div className="rv-up">
-                <Accordion
-                  initial={0}
-                  items={INFO.items.map((it) => ({
-                    id: it.id,
-                    head: it.h,
-                    body: it.id === 'tjald'
-                      ? <div className="camp"><p>{CAMPSITE.body}</p><dl className="facts">{CAMPSITE.prices.map((r) => <FactRow key={r.k} k={r.k} v={r.v} />)}</dl></div>
-                      : <dl className="facts">{it.rows.map((r) => <FactRow key={r.k} k={r.k} v={r.v} />)}</dl>,
-                  }))}
-                />
-              </div>
-              <div className="contact rv-up">
-                <a className="pill pill-ink" href={PHONE_HREF}>Hringja</a>
-                <a className="pill pill-ink" href={EMAIL_HREF}>{EMAIL}</a>
-              </div>
-            </div>
-            <div className="rv-up">
-              <iframe className="map" src={MAP_EMBED} title="Kort: Hótel Bjarkalundur við Vestfjarðaveg" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
-              <a className="tlink maplink" href={MAP_LINK} target="_blank" rel="noreferrer">{INFO.mapLabel}</a>
-            </div>
-          </div>
-        </section>
-
-        <section className="bleed closing on-dark" aria-labelledby="bj3-close">
+        <section id={SECTION.booking[lang]} data-anchor="booking" className="bleed closing on-dark" aria-labelledby="bj3-close">
           <Photo pic={IMG.valley} sizes="100vw" ratio="auto" className="rv-par" />
           <div className="shade" />
-          <Title id="bj3-close" text={CLOSING.title} center />
+          <Title id="bj3-close" text={t.closing.title} center />
+          <p className="lede rv-up">{t.booking.lede}</p>
+          <StayPicker />
           <div className="ctas rv-up">
-            <a className="big-round" href={BOOKING_URL} target="_blank" rel="noreferrer">
-              <span><ArrowUpRight size={22} strokeWidth={1.4} aria-hidden="true" />{CLOSING.book}</span>
-            </a>
-            <a className="pill pill-light" href={PHONE_HREF}>{CLOSING.call}</a>
+            <a className="pill pill-light" href={PHONE_HREF}>{t.closing.call}</a>
+            <a className="pill pill-light" href={EMAIL_HREF}>{t.ui.email}</a>
           </div>
         </section>
       </div>
     </>
   )
+}
+
+function HeroBookSolid() {
+  const { t, lang } = useSite()
+  const navTo = useNavTo()
+  const href = sectionHref(lang, 'booking')
+  return <a className="pill pill-solid" href={href} onClick={(e) => navTo(href, e)}>{t.ui.bookStay}</a>
 }
 
 function FactRow({ k, v }: { k: string; v: string }) {

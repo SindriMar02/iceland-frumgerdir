@@ -1,13 +1,19 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Home as House, Plus } from 'lucide-react'
-import { IMG, ROOMS, ROOMS_PAGE, BOOKING_URL } from './data'
+import { IMG, ROOMS } from './data'
 import type { Room } from './data'
 import { PageHero, Photo, Title, inertIf, refreshSoon } from './shell'
+import { StayPicker } from './StayPicker'
+import { godoBookingUrl } from './godo'
+import { useSite } from './site'
+import { ROOM_SLUG, SECTION } from './paths'
 
-/* /gisting, v4: every Godo room type as a row that folds open (the same
-   0fr → 1fr grammar as the home page), grouped hotel / cottages, filtered
-   by ?tegund= so a filtered list can be shared and survives back. */
+/* /gisting and /en/rooms: every Godo room type as a row that folds open (the
+   same 0fr → 1fr grammar as the home page), grouped hotel / cottages, filtered
+   by ?tegund= so a filtered list can be shared and survives Back. Each row's
+   Book link opens Godo on THAT room, carrying the dates and party chosen in the
+   calendar at the foot of the page (roomid verified per room, see godo.ts). */
 
 export const ROOMS_CSS = `
 .bj3 .rooms{padding:clamp(64px,8vw,120px) 0 var(--sec)}
@@ -61,6 +67,8 @@ export const ROOMS_CSS = `
 .bj3 .rnotes div{display:grid;gap:8px;color:var(--text)}
 @media (max-width:767px){.bj3 .rnotes{grid-template-columns:1fr}}
 .bj3 .rempty{display:grid;gap:16px;justify-items:start;padding:32px 0}
+.bj3 .rbook{margin-top:clamp(72px,9vw,128px);scroll-margin-top:calc(80px + env(safe-area-inset-top));display:grid;gap:clamp(24px,3vw,40px)}
+.bj3 .rbook .head{display:grid;gap:14px;max-width:60ch}
 `
 
 type FilterId = 'allt' | 'hotel' | 'sumarhus' | 'bad' | 'eldhus'
@@ -69,33 +77,36 @@ const match = (r: Room, f: FilterId) =>
   (f === 'bad' && r.privateBath) || (f === 'eldhus' && r.kitchen)
 
 function RoomRow({ r, initial }: { r: Room; initial: boolean }) {
+  const { t, lang, stay } = useSite()
   const [open, setOpen] = useState(initial)
   const [i, setI] = useState(0)
   const uid = useId()
   const pics = r.pics.map((k) => IMG[k])
-  const L = ROOMS_PAGE.labels
+  const c = t.rooms[r.id]
+  const L = t.roomsPage.labels
+  const href = godoBookingUrl({ checkin: stay.checkin, checkout: stay.checkout, adults: stay.adults, children: stay.children, room: r.id, lang })
   useEffect(() => { if (initial) setOpen(true) }, [initial])
   return (
-    <article className="rrow" id={r.id}>
+    <article className="rrow" id={ROOM_SLUG[r.id][lang]} data-anchor={`room-${r.id}`}>
       <h3>
         <button type="button" className="rbtn" aria-expanded={open} aria-controls={`${uid}-p`} onClick={() => { setOpen((o) => !o); refreshSoon() }}>
           {pics.length
             ? <span className="thumb"><img src={pics[0].srcS ?? pics[0].src} alt="" width={148} height={111} loading="lazy" decoding="async" /></span>
             : <span className="thumb plain"><House size={22} strokeWidth={1.2} aria-hidden="true" /></span>}
-          <span className="name"><b>{r.name}</b><span>{r.size} m² · {L.guests}: {r.guests}</span></span>
+          <span className="name"><b>{c.name}</b><span>{r.size} m² · {L.guests}: {c.guests}</span></span>
           <i aria-hidden="true"><Plus size={18} strokeWidth={1.4} /></i>
         </button>
       </h3>
-      <div id={`${uid}-p`} className="acc-panel rpanel" data-open={open} role="region" aria-label={r.name} {...inertIf(!open)}>
+      <div id={`${uid}-p`} className="acc-panel rpanel" data-open={open} role="region" aria-label={c.name} {...inertIf(!open)}>
         <div><div className="acc-inner">
           <div className="gal">
             {pics.length ? (
               <>
                 <Photo key={i} pic={pics[i]} sizes="(max-width: 899px) 92vw, 52vw" ratio="4 / 3" className="main" />
                 {pics.length > 1 && (
-                  <div className="thumbs" role="group" aria-label={`Myndir: ${r.name}`}>
+                  <div className="thumbs" role="group" aria-label={t.ui.pictures(c.name)}>
                     {pics.map((p, k) => (
-                      <button key={p.src} type="button" aria-pressed={k === i} aria-label={`Mynd ${k + 1} af ${pics.length}`} onClick={() => setI(k)}>
+                      <button key={p.src} type="button" aria-pressed={k === i} aria-label={t.ui.picture(k + 1, pics.length)} onClick={() => setI(k)}>
                         <img src={p.srcS ?? p.src} alt="" width={72} height={54} loading="lazy" decoding="async" />
                       </button>
                     ))}
@@ -103,21 +114,21 @@ function RoomRow({ r, initial }: { r: Room; initial: boolean }) {
                 )}
               </>
             ) : (
-              <div className="plain" role="img" aria-label={`${r.name}, ${r.size} fermetrar. Engin mynd enn.`}>
-                <div><strong>{r.size} m²</strong><span>Mynd væntanleg</span></div>
+              <div className="plain" role="img" aria-label={t.ui.noPhoto(c.name, r.size)}>
+                <div><strong>{r.size} m²</strong><span>{t.ui.photoComing}</span></div>
               </div>
             )}
           </div>
           <div className="rdet">
-            <p className="body">{r.text}</p>
-            {r.note && <p className="note">{r.note}</p>}
+            <p className="body">{c.text}</p>
+            {r.noPower && <p className="note">{t.noPower}</p>}
             <dl className="facts">
               <dt>{L.size}</dt><dd>{r.size} m²</dd>
-              <dt>{L.guests}</dt><dd>{r.guests}</dd>
-              <dt>{L.beds}</dt><dd>{r.beds}</dd>
-              <dt>{L.bath}</dt><dd>{r.bath}</dd>
+              <dt>{L.guests}</dt><dd>{c.guests}</dd>
+              <dt>{L.beds}</dt><dd>{c.beds}</dd>
+              <dt>{L.bath}</dt><dd>{c.bath}</dd>
             </dl>
-            <a className="pill pill-solid" href={BOOKING_URL} target="_blank" rel="noreferrer" aria-label={`${ROOMS_PAGE.book}: ${r.name}`}>{ROOMS_PAGE.book}</a>
+            <a className="pill pill-solid" href={href} aria-label={t.booking.roomFor(c.name)}>{t.roomsPage.book}</a>
           </div>
         </div></div>
       </div>
@@ -126,12 +137,14 @@ function RoomRow({ r, initial }: { r: Room; initial: boolean }) {
 }
 
 export function Rooms() {
+  const { t, lang } = useSite()
   const { hash } = useLocation()
-  const [params] = useSearchParams()
   const navigate = useNavigate()
-  const ids = ROOMS_PAGE.filters.map((x) => x.id)
+  const [params] = useSearchParams()
+  const ids = t.roomsPage.filters.map((x) => x.id)
   const q = params.get('tegund') ?? ''
-  const target = hash.replace('#', '')
+  const slug = decodeURIComponent(hash.replace('#', ''))
+  const target = Object.keys(ROOM_SLUG).find((k) => ROOM_SLUG[k][lang] === slug) ?? ''
   const f = (ids.includes(q) ? q : 'allt') as FilterId
   /* the room hash rides along: clearing a filter that hid a deep-linked room must not lose it */
   const setF = (id: FilterId) => { navigate({ search: id === 'allt' ? '' : `?tegund=${id}`, hash }, { replace: true, preventScrollReset: true }); refreshSoon() }
@@ -146,46 +159,53 @@ export function Rooms() {
     .map((g) => ({ g, list: shown.filter((r) => r.group === g) }))
     .filter((x) => x.list.length)
   const count = (id: FilterId) => ROOMS.filter((r) => match(r, id)).length
-  const anyTarget = ROOMS.some((r) => r.id === target)
+  const anyTarget = !!target
   return (
     <>
-      <PageHero pic={IMG.window} title={ROOMS_PAGE.title} sub={ROOMS_PAGE.sub} id="bj3-rooms-h1" />
+      <PageHero pic={IMG.window} title={t.roomsPage.title} sub={t.roomsPage.sub} id="bj3-rooms-h1" />
       <div className="over">
-        <section className="rooms" aria-label="Herbergi og sumarhús">
+        <section className="rooms" aria-label={t.meta.rooms.title.split(' | ')[0]}>
           <div className="wrap">
             <div className="bar">
-              <div className="filters" role="group" aria-label="Sía herbergi">
-                {ROOMS_PAGE.filters.map((x) => (
+              <div className="filters" role="group" aria-label={t.ui.filterAria}>
+                {t.roomsPage.filters.map((x) => (
                   <button key={x.id} type="button" aria-pressed={f === x.id} onClick={() => setF(x.id as FilterId)}>
                     {x.label}<span>{count(x.id as FilterId)}</span>
                   </button>
                 ))}
               </div>
-              <p className="count" role="status">{`Sýni ${ROOMS_PAGE.count(shown.length)}`}</p>
+              <p className="count" role="status">{t.ui.showing(t.roomsPage.count(shown.length))}</p>
             </div>
             {groups.length === 0 && (
               <div className="rempty">
-                <p>{ROOMS_PAGE.empty}</p>
-                <button type="button" className="pill pill-ink" onClick={() => setF('allt')}>{ROOMS_PAGE.reset}</button>
+                <p>{t.roomsPage.empty}</p>
+                <button type="button" className="pill pill-ink" onClick={() => setF('allt')}>{t.roomsPage.reset}</button>
               </div>
             )}
             {groups.map(({ g, list }) => (
               <div key={`${f}-${g}`} className="rgroup">
-                <Title text={ROOMS_PAGE.groups[g]} className="t-h2" />
-                <p className="sr">{ROOMS_PAGE.count(list.length)}</p>
+                <Title text={t.roomsPage.groups[g]} className="t-h2" />
+                <p className="sr">{t.roomsPage.count(list.length)}</p>
                 <div className="rlist rv-up">
                   {list.map((r) => <RoomRow key={r.id} r={r} initial={anyTarget && r.id === target} />)}
                 </div>
               </div>
             ))}
-            <aside className="rnotes rv-up" aria-label="Gott að vita">
+            <aside className="rnotes rv-up" aria-label={t.faq.eyebrow}>
               <div>
-                <p>{ROOMS_PAGE.included}</p>
-                <p>{ROOMS_PAGE.newCottages}</p>
-                <p>{ROOMS_PAGE.prices}</p>
+                <p>{t.roomsPage.included}</p>
+                <p>{t.roomsPage.newCottages}</p>
+                <p>{t.roomsPage.prices}</p>
               </div>
-              <a className="pill pill-solid" href={BOOKING_URL} target="_blank" rel="noreferrer">Bóka gistingu</a>
             </aside>
+            <section id={SECTION.booking[lang]} data-anchor="booking" className="rbook" aria-labelledby="bj3-rbook">
+              <div className="head">
+                <p className="eyebrow rv-up">{t.booking.eyebrow}</p>
+                <Title id="bj3-rbook" text={t.booking.title} stagger />
+                <p className="body rv-up">{t.booking.lede}</p>
+              </div>
+              <StayPicker />
+            </section>
           </div>
         </section>
       </div>

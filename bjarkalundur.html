@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="is">
+  <!-- Hótel Bjarkalundur's OWN shell: the standalone build's index.html
+       (hotelbjarkalundur.is). Never the catalogue's shell: no catalogue title,
+       icons, thirty font families or blanket robots block to strip back out.
+       tools/bjarkalundur-standalone-post.mjs prerenders each route into #root
+       and writes that route's own lang, title, description, canonical,
+       hreflang pair, Open Graph card and structured data into the head. -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hótel Bjarkalundur</title>
+    <meta name="theme-color" content="#5A1F18" />
+    <!-- Safari samples html/body for the status and home-indicator strips, and
+         this static rule kills the white flash before the page's CSS arrives. -->
+    <style>html, body { background-color: #232421; margin: 0; }</style>
+    <!-- PNG icons at multiples of 48: Google Search does not use SVG or data: favicons. -->
+    <link rel="icon" href="/bjarkalundur/brand/favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="icon" href="/bjarkalundur/brand/favicon-96.png" type="image/png" sizes="96x96" />
+    <link rel="icon" href="/bjarkalundur/brand/favicon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/bjarkalundur/brand/apple-touch-icon.png" />
+    <link rel="preload" href="/fonts/nyght-serif/NyghtSerif-Light.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/finlandica-text/FinlandicaText-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/bjarkalundur-main.tsx"></script>
+  </body>
+</html>

@@ -110,3 +110,24 @@ in the header over the home film, pinned empty scroll, Lenis on touch.
   2560 + 1280: lake, valley, kayaks, window, lounge, piano, lomur, cottagebeds, cottage,
   dining.
 - `public/bjarkalundur/v2/`: the Booking originals, manifest in the harvest folder.
+
+## 10. Languages, navigation and booking (added 2026-09-26)
+
+- **Two languages, two sets of URLs.** Icelandic at the root, English under `/en`, in the preview
+  and the launch build alike (`paths.ts`). The switch is an IS/EN pill in the header, the menu
+  and the footer: plain links to the counterpart page (crawlable), and on click the page
+  crossfades in place (`html[data-vt="lang"]`) and lands on the same section at the same height
+  (`data-anchor` on every section and room).
+- **Back.** Every subpage has a back control (header on desktop, a round arrow in the phone's
+  bottom bar). It returns to the exact place the reader left when they came from the site, and to
+  the matching home section when they landed from outside.
+- **Booking.** A stay calendar (StayPicker: arrival, departure, adults, children) sits at the
+  foot of home (inside the closing photograph) and of the rooms page, never under the hero. The
+  header and bar "Bóka" glide to it. It hands off to Godo with the dates and party; each room's
+  Book button opens Godo on that room with the same stay.
+- **Good to know.** The FAQ is native `<details>` (one open at a time, smooth open where the
+  browser supports `::details-content`), beside a sticky contact card with the map.
+- **History.** The years fold open and the picture flips (clip-path wipe up, 0.95 s) to that
+  year's photograph.
+- **Campsite page.** Photo hero, text and facilities left, a sticky prices card right.
+- **Stars.** Drawn in the house red, only where the reviewer's rating was verified; never marked up.
