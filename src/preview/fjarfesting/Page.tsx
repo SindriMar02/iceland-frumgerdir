@@ -146,12 +146,14 @@ html,body{background-color:${M1}}
 .fj-loader .mark{position:relative;display:flex;align-items:center;gap:1.2em;color:#6D6E71}
 .fj-loader svg{width:6.5em;height:7.6em;overflow:visible}
 .fj-loader svg path{fill:var(--m1);fill-opacity:0;stroke:var(--m1);stroke-width:22;stroke-dasharray:1;stroke-dashoffset:1}
-/* the mask is only line-height:1 tall, so give the Á accent headroom and pull it back out */
-.fj-loader .word{overflow:hidden;padding-top:.5em;margin-top:-.5em}
-.fj-loader .word span{display:block;transform:translateY(110%);font-weight:600;letter-spacing:.07em;line-height:1}
-.fj-loader .word span:first-child{font-size:2.9em}
-.fj-loader .word span:last-child{font-size:1.4em;letter-spacing:.14em;margin-top:.45em}
-@media (max-width:767px){.fj-loader .mark{flex-direction:column;gap:.9em;text-align:center}.fj-loader svg{width:5em;height:5.85em}.fj-loader .word span:first-child{font-size:2.2em}.fj-loader .word span:last-child{font-size:1.1em}}
+/* one mask per line, so the name can't show through the subtitle's slot before it rises;
+   each mask is line-height:1 tall, so it gets headroom for the Á accent, pulled back out */
+.fj-loader .word .l{display:block;overflow:hidden;padding-top:.35em;margin-top:-.35em}
+.fj-loader .word .l > span{display:block;transform:translateY(110%);font-weight:600;letter-spacing:.07em;line-height:1}
+.fj-loader .word .l:first-child{font-size:2.9em}
+.fj-loader .word .l:last-child{font-size:1.4em;margin-top:.1em}
+.fj-loader .word .l:last-child > span{letter-spacing:.14em}
+@media (max-width:767px){.fj-loader .mark{flex-direction:column;gap:.9em;text-align:center}.fj-loader svg{width:5em;height:5.85em}.fj-loader .word .l:first-child{font-size:2.2em}.fj-loader .word .l:last-child{font-size:1.1em}}
 .fj-blur{position:fixed;inset:0;z-index:999998;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);pointer-events:none}
 
 /* ── chrome ── */
@@ -819,7 +821,7 @@ export default function Page() {
     if (arrow) gsap.set(arrow, { yPercent: 50, opacity: 0 })
     if (long) {
       const paths = L.querySelectorAll('path')
-      const words = L.querySelectorAll('.word span')
+      const words = L.querySelectorAll('.word .l > span')
       tl.to(paths, { strokeDashoffset: 0, duration: 2.6, ease: 'power2.inOut' }, 0.3)
         .to(paths, { fillOpacity: 1, strokeOpacity: 0, duration: 0.7, ease: OUT }, 2.9)
         .fromTo(words, { y: 0, yPercent: 110 }, { y: 0, yPercent: 0, duration: 0.8, ease: OUT, stagger: 0.12 }, 3.3)
@@ -1024,7 +1026,7 @@ export default function Page() {
                   <path d={MARK_PATH} pathLength={1} fillRule="evenodd" />
                 </g>
               </svg>
-              <div className="word"><span>FJÁRFESTING</span><span>FASTEIGNASALA EHF</span></div>
+              <div className="word"><span className="l"><span>FJÁRFESTING</span></span><span className="l"><span>FASTEIGNASALA EHF</span></span></div>
             </div>
           </div>
           <div className="fj-blur" aria-hidden="true" />
