@@ -8,7 +8,10 @@ import NotFound from './pages/NotFound'
 // Eager for the same reason, and one level further out: it is what turns a
 // stale-deploy chunk 404 from a permanent white page into a single reload.
 import StaleBuildBoundary, { clearStaleBuildRetry } from './StaleBuildBoundary'
-import { ROUTE_FAVICONS } from './preview/favicons'
+import ROUTE_ICON_DIRS from './preview/route-icons.json'
+import CATALOGUE_ICON_32 from '../favicon-32.png'
+import CATALOGUE_ICON_48 from '../favicon-48.png'
+import CATALOGUE_TOUCH_ICON from '../apple-touch-icon.png'
 // Eager: shown as this route's OWN Suspense fallback while its chunk downloads, so it must be
 // available synchronously - a lazy-loaded fallback can't render before its own chunk has loaded.
 import FlatbakanLoading from './preview/flatbakan/Loading'
@@ -212,39 +215,51 @@ const TryggvaskaliPage = lazy(() => import('./preview/tryggvaskali/Page'))
 const FjorubordidPage = lazy(() => import('./preview/fjorubordid/Page'))
 
 /**
- * Every route here is served by the same index.html, so without this each client
- * preview would wear the same placeholder icon in the tab. It also guards against a
- * worse failure: this SPA shares an origin with the ARTIX site at the root, and a
- * page that declares no icon inherits whichever one the origin already has cached.
- * Unknown routes (the hub, admin, outreach) keep the neutral icon from index.html.
+ * Every client route shows ITS OWN raster icon, never the catalogue's and never one
+ * inherited from the origin. This SPA shares an origin with the ARTIX site, and Safari
+ * ignores SVG favicons: when client icons were SVGs swapped in here, Safari showed the
+ * catalogue flag or ARTIX's cached helm (Bjarkalundur, 2026-09-26). The postbuild
+ * writes the same icons into each route's HTML (tools/route-favicons.mjs, which also
+ * fails the build if a client has none); this keeps them right when the reader moves
+ * between routes. The hub, admin and outreach keep the catalogue icon.
  */
-const DEFAULT_ICON =
-  document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.getAttribute('href') ?? ''
+const ICON_LINKS = 'link[rel~="icon"],link[rel="apple-touch-icon"]'
+const ICON_DIRS: Record<string, string> = ROUTE_ICON_DIRS
 
 /** Exact route first, then the closest parent, so a client's sub-pages
  *  (/preview/bofs/studlar, /preview/bilageirinn/signal) keep their own brand. */
-function iconFor(pathname: string) {
-  if (ROUTE_FAVICONS[pathname]) return ROUTE_FAVICONS[pathname]
+function iconDirFor(pathname: string) {
+  const path = pathname.replace(/\/+$/, '') || '/'
+  if (ICON_DIRS[path]) return ICON_DIRS[path]
   let best = ''
-  for (const route of Object.keys(ROUTE_FAVICONS)) {
-    if (pathname.startsWith(route + '/') && route.length > best.length) best = route
+  for (const route of Object.keys(ICON_DIRS)) {
+    if (path.startsWith(route + '/') && route.length > best.length) best = route
   }
-  return best ? ROUTE_FAVICONS[best] : DEFAULT_ICON
+  return best ? ICON_DIRS[best] : null
+}
+
+function iconLink(rel: string, href: string, sizes?: string) {
+  const link = document.createElement('link')
+  link.rel = rel
+  link.href = href
+  if (rel === 'icon') link.type = 'image/png'
+  if (sizes) link.setAttribute('sizes', sizes)
+  return link
 }
 
 function RouteFavicon() {
   const { pathname } = useLocation()
   useEffect(() => {
-    const href = iconFor(pathname)
-    if (!href) return
-    let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
-    if (!link) {
-      link = document.createElement('link')
-      link.rel = 'icon'
-      document.head.appendChild(link)
-    }
-    link.type = 'image/svg+xml'
-    if (link.getAttribute('href') !== href) link.setAttribute('href', href)
+    const dir = iconDirFor(pathname)
+    const at = dir ? `${import.meta.env.BASE_URL}${dir}/` : ''
+    const want = dir
+      ? [iconLink('icon', `${at}favicon-32.png`, '32x32'), iconLink('icon', `${at}favicon-48.png`, '48x48'), iconLink('apple-touch-icon', `${at}apple-touch-icon.png`)]
+      : [iconLink('icon', CATALOGUE_ICON_32, '32x32'), iconLink('icon', CATALOGUE_ICON_48, '48x48'), iconLink('apple-touch-icon', CATALOGUE_TOUCH_ICON)]
+    const have = Array.from(document.head.querySelectorAll<HTMLLinkElement>(ICON_LINKS))
+    /* already right (the prerendered head, or a move within one client): touch nothing */
+    if (have.length === want.length && have.every((l, i) => l.rel === want[i].rel && l.href === want[i].href)) return
+    have.forEach((l) => l.remove())
+    want.forEach((l) => document.head.appendChild(l))
   }, [pathname])
   return null
 }
