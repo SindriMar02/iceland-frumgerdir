@@ -223,8 +223,10 @@ html[data-bjc] .bj3 [data-hero] *{animation-play-state:paused!important}
 .bj3 main[data-pop="true"]{animation:bj3-fade .5s ease both}
 
 /* the language switch crossfades in place instead of wiping like a page change */
-html[data-vt="lang"]::view-transition-old(root){animation:bj3-xout .28s ease-out both}
-html[data-vt="lang"]::view-transition-new(root){animation:bj3-xin .42s ease-out both}
+/* one duration and one curve for both halves: their opacities then always add up to one, so
+   what did not change (the photographs) holds perfectly still and only the words cross */
+html[data-vt="lang"]::view-transition-old(root){animation:bj3-xout .34s cubic-bezier(.4,0,.2,1) both}
+html[data-vt="lang"]::view-transition-new(root){animation:bj3-xin .34s cubic-bezier(.4,0,.2,1) both}
 @keyframes bj3-xout{to{opacity:0}}
 @keyframes bj3-xin{from{opacity:0}}
 
@@ -496,6 +498,18 @@ export function useBack() {
  * key (data-anchor) with its offset, the page crossfades instead of wiping, and
  * Page.tsx lands the same section at the same offset in the other language.
  */
+/* The language switch crossfades through a same-document view transition, started here:
+   react-router's viewTransition option only works with a data router, and this app uses
+   <BrowserRouter>, so it never ran (probe 2026-09-27). The browser holds the old picture
+   while the new language renders under it; Page calls settleLang() once the text has
+   landed and the scroll motion is re-measured, and the pictures crossfade. */
+let langSettled: (() => void) | null = null
+export function settleLang() {
+  const done = langSettled
+  langSettled = null
+  done?.()
+}
+
 export function LangSwitch({ className = '' }: { className?: string }) {
   const { lang, t } = useSite()
   const { pathname, hash } = useLocation()
@@ -509,9 +523,19 @@ export function LangSwitch({ className = '' }: { className?: string }) {
       const top = m.getBoundingClientRect().top
       if (top <= window.innerHeight * 0.35) anchor = { key: m.dataset.anchor!, offset: top }
     }
-    document.documentElement.dataset.vt = 'lang'
-    window.setTimeout(() => { delete document.documentElement.dataset.vt }, 900)
-    navigate(counterpart(pathname, hash, to), { viewTransition: true, state: { keepScroll: true, langFrom: anchor } })
+    const go = () => navigate(counterpart(pathname, hash, to), { state: { keepScroll: true, langFrom: anchor } })
+    const html = document.documentElement
+    if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) { go(); return }
+    html.dataset.vt = 'lang'
+    const vt = document.startViewTransition(() => new Promise<void>((done) => {
+      langSettled = done
+      /* never hold the page frozen on the old picture */
+      window.setTimeout(settleLang, 700)
+      go()
+    }))
+    /* a second switch mid-crossfade skips the first; that is not an error */
+    vt.ready.catch(() => {})
+    vt.finished.finally(() => { delete html.dataset.vt }).catch(() => {})
   }
   return (
     <div className={`lang ${className}`} role="group" aria-label={t.ui.langLabel}>

@@ -9,7 +9,7 @@ import { SiteContext } from './site'
 import type { Stay } from './site'
 import { startOfDay } from './godo'
 import { liftCurtain } from './curtain'
-import { BAND, CSS, Header, Awning, Footer, jump, useMotion } from './shell'
+import { BAND, CSS, Header, Awning, Footer, jump, settleLang, useMotion } from './shell'
 import { Home, HOME_CSS } from './Home'
 import { Rooms, ROOMS_CSS } from './Rooms'
 import { Reviews, REVIEWS_CSS } from './Reviews'
@@ -36,9 +36,12 @@ export default function Page() {
   const loc = useLocation()
   const nav = useNavigationType()
   const { lang, page } = parsePath(loc.pathname)
-  const route = `${lang}-${page}`
   const root = useRef<HTMLDivElement>(null)
-  useMotion(root, route)
+  /* keyed on the page, not the language: switching language is a text change in the same
+     structure (verified IS vs EN, element for element), so the page stays mounted and the
+     scroll motion is re-measured, not torn down and rebuilt. Rebuilding it froze the page
+     for 304 ms per switch at 4x CPU (2026-09-27), three quarters of it GSAP. */
+  useMotion(root, page)
 
   /* the stay the calendar and every room link share */
   const [stay, setStayState] = useState<Stay>({ checkin: null, checkout: null, adults: 2, children: 0 })
@@ -126,6 +129,17 @@ export default function Page() {
     return () => { window.clearTimeout(t); ScrollTrigger.removeEventListener('refresh', land) }
   }, [loc.key])
 
+  /* a language switch keeps the page mounted: re-measure the scroll motion for the new
+     text (the landing above re-lands on this refresh), then hand the switch's crossfade
+     its second picture. Declared after the landing effect so its listener is in place. */
+  const langWas = useRef(lang)
+  useEffect(() => {
+    if (langWas.current === lang) return
+    langWas.current = lang
+    ScrollTrigger.refresh()
+    settleLang()
+  }, [lang])
+
   /* recorded as the reader scrolls: by the time a route unmounts, the next page
      is already in the DOM and the old position may have been clamped */
   useEffect(() => {
@@ -154,7 +168,7 @@ export default function Page() {
         {/* dangerouslySetInnerHTML, not {CSS}: a server render HTML-escapes text in <style> and the prerendered stylesheet breaks */}
         <style dangerouslySetInnerHTML={{ __html: ALL_CSS }} />
         <Header />
-        <main key={route} id="efni" tabIndex={-1} style={{ outline: 'none' }} data-pop={pop || undefined}>
+        <main key={page} id="efni" tabIndex={-1} style={{ outline: 'none' }} data-pop={pop || undefined}>
           {page === 'rooms' ? <Rooms /> : page === 'reviews' ? <Reviews /> : page === 'campsite' ? <Campsite /> : <Home />}
         </main>
         <Footer />

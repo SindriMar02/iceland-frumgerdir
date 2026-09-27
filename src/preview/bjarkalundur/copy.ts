@@ -112,7 +112,7 @@ const is = {
     title: 'Diddi og Evelyn|*opnuðu á ný*',
     body: [
       'Bjarkalundur stóð lokaður í þrjú ár. Árið 2025 tóku hjónin Sigurður Friðriksson, Diddi, og Evelyn Rojas Tagalog við staðnum og 1. apríl 2026 var hótelið opnað aftur.',
-      'Diddi var lengst af skipstjóri og hefur rekið hótel frá árinu 2004. Nú er opið frá klukkan sjö á morgnana, morgunmatur í boði og eldhúsið opið fram á kvöld, alla daga.',
+      'Diddi var skipstjóri lengst af starfsævinni og hefur rekið hótel frá árinu 2004. Nú er opið frá klukkan sjö á morgnana, morgunmatur í boði og eldhúsið opið fram á kvöld, alla daga.',
       'Ný sumarhús eru í smíðum á lóðinni. Hótelið er lokað hluta vetrar og opnar aftur í mars.',
     ],
     link: 'Saga hússins',
@@ -140,7 +140,7 @@ const is = {
       { y: '2008', h: 'Dagvaktin', pic: 'facade', t: 'Haustið 2008 voru gamanþættirnir Dagvaktin teknir upp í Bjarkalundi, með Jóni Gnarr, Jörundi Ragnarssyni, Pétri Jóhanni Sigfússyni og Ólafíu Hrönn Jónsdóttur í aðalhlutverkum. Eftir þættina þekkti öll þjóðin hótelið.' },
       { y: '2021', h: 'Brúarsmiðir', pic: 'window', t: 'Á meðan Þorskafjörður var brúaður gistu brúarsmiðir Suðurverks í Bjarkalundi, sem þá var rekinn sem vinnubúðir. Nýi vegurinn liggur nú yfir fjörðinn norðan við hótelið.' },
       { y: '2023', h: 'Lokað', pic: 'peaks', t: 'Hótelið lokaði og stóð lokað í þrjú ár á meðan staðurinn var á söluskrá.' },
-      { y: '2025', h: 'Nýir eigendur', pic: 'sign', t: 'Í september 2025 tóku Diddi og Evelyn við staðnum. Diddi var lengst af skipstjóri og hefur rekið hótel frá árinu 2004. Veturinn fór í að undirbúa opnunina.' },
+      { y: '2025', h: 'Nýir eigendur', pic: 'sign', t: 'Í september 2025 tóku Diddi og Evelyn við staðnum. Diddi var skipstjóri lengst af starfsævinni og hefur rekið hótel frá árinu 2004. Veturinn nýttu þau til að undirbúa opnunina.' },
       { y: '2026', h: 'Opnað á ný', pic: 'lounge', t: 'Hótelið var opnað aftur 1. apríl 2026 eftir þriggja ára lokun. Nú er opið frá klukkan sjö alla daga og ný sumarhús eru í smíðum á lóðinni.' },
     ] as { y: string; h: string; pic: ImgKey; t: string }[],
   },
