@@ -429,7 +429,7 @@ const PAGE_CSS = `
   /* An outlined button with an arrow means this one leaves the site. The arrow
      is a separate span so it can sit at the size of the text without being
      read out as a word. */
-  .rb-cta-ext { display:inline-flex; align-items:center; gap:9px; }
+  .rb-cta-ext { display:inline-flex; align-items:center; justify-content:center; gap:9px; }
   .rb-cta-ext > span[aria-hidden] { font-size:13px; opacity:.75; transition:transform .2s ${EASE}; }
   .rb-cta-ext:hover > span[aria-hidden] { transform:translate(2px,-2px); }
   .rb-cta-ghost:hover { border-color:${GOLD}; background:rgba(238,211,170,.05); }
