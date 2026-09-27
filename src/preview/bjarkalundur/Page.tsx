@@ -9,7 +9,7 @@ import { SiteContext } from './site'
 import type { Stay } from './site'
 import { startOfDay } from './godo'
 import { liftCurtain } from './curtain'
-import { BAND, CSS, Header, Awning, Footer, jump, settleLang, useMotion } from './shell'
+import { BAND, CSS, Header, Awning, Footer, jump, settleTransition, useMotion } from './shell'
 import { Home, HOME_CSS } from './Home'
 import { Rooms, ROOMS_CSS } from './Rooms'
 import { Reviews, REVIEWS_CSS } from './Reviews'
@@ -75,7 +75,8 @@ export default function Page() {
     /* a filter (?tegund=) is the same page at another address: the reader stays where they are */
     if (same && nav !== 'POP') { hold.current = null; seen.set(loc.key, window.scrollY); return }
     window.clearTimeout(timer.current)
-    setPop(nav === 'POP' && !!had)
+    /* Back fades in, unless the back transition is already playing (runTransition) */
+    setPop(nav === 'POP' && !!had && !document.documentElement.dataset.vt)
     /* the language switch: the same section, at the same height on screen */
     const from = (loc.state as { langFrom?: { key: string; offset: number } | null } | null)?.langFrom
     if (from !== undefined && had) {
@@ -129,16 +130,18 @@ export default function Page() {
     return () => { window.clearTimeout(t); ScrollTrigger.removeEventListener('refresh', land) }
   }, [loc.key])
 
-  /* a language switch keeps the page mounted: re-measure the scroll motion for the new
-     text (the landing above re-lands on this refresh), then hand the switch's crossfade
-     its second picture. Declared after the landing effect so its listener is in place. */
+  /* every navigation has landed by now: a language switch keeps the page mounted, so it
+     re-measures the scroll motion for the new text first (the landing above re-lands on
+     this refresh); then the transition started by the click gets its second picture.
+     Declared after the landing effect so its refresh listener is already in place. */
   const langWas = useRef(lang)
   useEffect(() => {
-    if (langWas.current === lang) return
-    langWas.current = lang
-    ScrollTrigger.refresh()
-    settleLang()
-  }, [lang])
+    if (langWas.current !== lang) {
+      langWas.current = lang
+      ScrollTrigger.refresh()
+    }
+    settleTransition()
+  }, [loc.key, lang])
 
   /* recorded as the reader scrolls: by the time a route unmounts, the next page
      is already in the DOM and the old position may have been clamped */

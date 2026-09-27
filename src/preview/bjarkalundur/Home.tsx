@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { Link } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ArrowRight, ArrowUpRight, BedDouble, Home as House, Plus, ShowerHead, Wifi } from 'lucide-react'
@@ -8,7 +7,7 @@ import {
   IMG, EMAIL, EMAIL_HREF, MAP_EMBED, MAP_LINK, DIRECTIONS, PHONE_HREF, REVIEWS, HERO_FILM, ROADS, WEATHER, VEIDIKORTID, quote,
 } from './data'
 import type { Review } from './data'
-import { Accordion, Eyebrow, Photo, Stars, Title, useNavTo } from './shell'
+import { Accordion, Eyebrow, Link, Photo, Stars, Title, useNavTo } from './shell'
 import { StayPicker } from './StayPicker'
 import { useSite } from './site'
 import { SECTION, pathFor, roomHref, sectionHref } from './paths'
@@ -254,7 +253,7 @@ function Hero() {
         <p className="hero-sub">{t.hero.sub}</p>
         <div className="hero-ctas">
           <HeroBook />
-          <Link className="tlink" to={pathFor(lang, 'rooms')} viewTransition style={{ color: 'var(--on)' }}>{t.hero.rooms}</Link>
+          <Link className="tlink" to={pathFor(lang, 'rooms')} style={{ color: 'var(--on)' }}>{t.hero.rooms}</Link>
         </div>
       </div>
     </section>
@@ -278,7 +277,7 @@ function Strip() {
         const to = roomHref(lang, s.room)
         return (
           <li key={s.room} data-on={on === i} onMouseEnter={() => setOn(i)} onFocus={() => setOn(i)}>
-            <Link to={to} viewTransition onClick={(e) => navTo(to, e)}>
+            <Link to={to} onClick={(e) => navTo(to, e)}>
               <Photo pic={IMG[s.pic]} sizes="(max-width: 899px) 76vw, 44vw" ratio="auto" />
               <span className="lab"><span>{t.stay.strip[i]}</span><i aria-hidden="true"><ArrowUpRight size={18} strokeWidth={1.5} /></i></span>
             </Link>
@@ -368,8 +367,8 @@ function Faq() {
     roads: <><a className="tlink" href={ROADS.en} target="_blank" rel="noopener">{t.faq.roadsLink}</a><a className="tlink" href={WEATHER.en} target="_blank" rel="noopener">{t.faq.weatherLink}</a></>,
     veidi: <a className="tlink" href={VEIDIKORTID} target="_blank" rel="noopener">{t.faq.fishingLink}</a>,
     fishing: <a className="tlink" href={VEIDIKORTID} target="_blank" rel="noopener">{t.faq.fishingLink}</a>,
-    tjald: <Link className="tlink" to={campsite} viewTransition>{t.nav.find((n) => n.page === 'campsite')?.label}</Link>,
-    camping: <Link className="tlink" to={campsite} viewTransition>{t.nav.find((n) => n.page === 'campsite')?.label}</Link>,
+    tjald: <Link className="tlink" to={campsite}>{t.nav.find((n) => n.page === 'campsite')?.label}</Link>,
+    camping: <Link className="tlink" to={campsite}>{t.nav.find((n) => n.page === 'campsite')?.label}</Link>,
     boka: <a className="tlink" href={book} onClick={(e) => navTo(book, e)}>{t.ui.bookStay}</a>,
     book: <a className="tlink" href={book} onClick={(e) => navTo(book, e)}>{t.ui.bookStay}</a>,
   }
@@ -465,7 +464,7 @@ export function Home() {
             </ul>
             <Strip />
             <div className="more rv-up">
-              <Link className="pill pill-ink" to={rooms} viewTransition>{t.stay.cta}</Link>
+              <Link className="pill pill-ink" to={rooms}>{t.stay.cta}</Link>
               <HeroBookSolid />
             </div>
           </div>
@@ -476,7 +475,7 @@ export function Home() {
             <div className="text">
               <Title id="bj3-cott" text={t.cottages.title} stagger />
               <p className="body rv-up">{t.cottages.body}</p>
-              <Link className="round rv-up" to={roomHref(lang, 'hus-bad')} viewTransition onClick={(e) => navTo(roomHref(lang, 'hus-bad'), e)}>
+              <Link className="round rv-up" to={roomHref(lang, 'hus-bad')} onClick={(e) => navTo(roomHref(lang, 'hus-bad'), e)}>
                 <i aria-hidden="true"><ArrowRight size={20} strokeWidth={1.3} /></i>{t.cottages.link}
               </Link>
             </div>
@@ -521,7 +520,7 @@ export function Home() {
                 <Title id="bj3-voices" text={t.reviewsTeaser.title} stagger />
                 <p className="body rv-up">{t.reviewsTeaser.sub}</p>
               </div>
-              <Link className="round rv-up" to={pathFor(lang, 'reviews')} viewTransition>
+              <Link className="round rv-up" to={pathFor(lang, 'reviews')}>
                 <i aria-hidden="true"><ArrowRight size={20} strokeWidth={1.3} /></i>{t.reviewsTeaser.cta}
               </Link>
             </div>

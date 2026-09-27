@@ -1,6 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, ReactNode, RefObject } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
+import type { LinkProps, NavigateOptions } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
@@ -220,7 +221,7 @@ html[data-bjc] .bj3 [data-hero] *{animation-play-state:paused!important}
 .bj3 .stars{display:inline-flex;gap:2px;line-height:0}
 .bj3 .stars svg{fill:rgba(28,29,26,.16)}
 .bj3 .stars svg.on{fill:var(--band)}
-.bj3 main[data-pop="true"]{animation:bj3-fade .5s ease both}
+.bj3 main[data-pop="true"]{animation:bj3-fade .4s cubic-bezier(.23,1,.32,1) both}
 
 /* the language switch crossfades in place instead of wiping like a page change */
 /* one duration and one curve for both halves: their opacities then always add up to one, so
@@ -230,12 +231,15 @@ html[data-vt="lang"]::view-transition-new(root){animation:bj3-xin .34s cubic-bez
 @keyframes bj3-xout{to{opacity:0}}
 @keyframes bj3-xin{from{opacity:0}}
 
-/* page transitions between routes (View Transitions API, react-router viewTransition) */
-::view-transition-old(root){animation:bj3-vt-out .55s cubic-bezier(.7,0,.84,0) both}
+/* page transitions between routes (View Transitions API, started by runTransition below) */
+::view-transition-old(root){animation:bj3-vt-out .55s cubic-bezier(.16,1,.3,1) both}
 ::view-transition-new(root){animation:bj3-vt-in .95s cubic-bezier(.16,1,.3,1) both}
 ::view-transition-group(bj3-hdr){animation:none}
 @keyframes bj3-vt-out{to{opacity:.3;transform:scale(.965)}}
 @keyframes bj3-vt-in{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
+/* going back, the page returns from above: the reverse of going forward */
+html[data-vt="back"]::view-transition-new(root){animation-name:bj3-vt-back}
+@keyframes bj3-vt-back{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
 
 @keyframes bj3-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes bj3-char{from{transform:translateY(112%)}to{transform:none}}
@@ -448,7 +452,7 @@ const norm = (p: string) => p.replace(/\/+$/, '') || '/'
 /** Route links carry a view transition; same-page anchors glide through Lenis. */
 export function useNavTo() {
   const { pathname } = useLocation()
-  const navigate = useNavigate()
+  const navigate = useVtNavigate()
   return (to: string, e: MouseEvent) => {
     const [path, hash] = to.split('#')
     if (hash && norm(path) === norm(pathname)) {
@@ -460,7 +464,7 @@ export function useNavTo() {
     }
     if (hash) {
       e.preventDefault()
-      navigate(to, { viewTransition: true })
+      navigate(to)
     }
   }
 }
@@ -480,13 +484,13 @@ export function useBookHref() {
 const BACK_TO: Partial<Record<PageKey, SectionKey>> = { rooms: 'stay', reviews: 'reviews', campsite: 'surroundings' }
 export function useBack() {
   const { lang, page } = useSite()
-  const navigate = useNavigate()
+  const navigate = useVtNavigate()
   const href = sectionHref(lang, BACK_TO[page] ?? 'stay')
   const onClick = (e: MouseEvent) => {
     e.preventDefault()
     const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0
     if (idx > 0) navigate(-1)
-    else navigate(href, { viewTransition: true })
+    else navigate(href)
   }
   return { href, onClick }
 }
@@ -498,16 +502,59 @@ export function useBack() {
  * key (data-anchor) with its offset, the page crossfades instead of wiping, and
  * Page.tsx lands the same section at the same offset in the other language.
  */
-/* The language switch crossfades through a same-document view transition, started here:
-   react-router's viewTransition option only works with a data router, and this app uses
-   <BrowserRouter>, so it never ran (probe 2026-09-27). The browser holds the old picture
-   while the new language renders under it; Page calls settleLang() once the text has
-   landed and the scroll motion is re-measured, and the pictures crossfade. */
-let langSettled: (() => void) | null = null
-export function settleLang() {
-  const done = langSettled
-  langSettled = null
+/* Page changes and the language switch run through same-document view transitions started
+   here: react-router's option only works with a data router, and this app
+   uses <BrowserRouter>, so none of them ever ran (probe 2026-09-27). The browser holds the
+   old picture while the new route renders under it; Page calls settleTransition() once the
+   new route has landed (and, after a language switch, re-measured its scroll motion), and
+   the CSS below plays: a page sinks and the next is uncovered from the bottom (from the top
+   going back), a language crossfades in place. */
+let pending: (() => void) | null = null
+export function settleTransition() {
+  const done = pending
+  pending = null
   done?.()
+}
+type VtKind = 'page' | 'back' | 'lang'
+function runTransition(kind: VtKind, go: () => void) {
+  if (typeof document === 'undefined' || !document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) { go(); return }
+  const html = document.documentElement
+  html.dataset.vt = kind
+  const vt = document.startViewTransition(() => new Promise<void>((done) => {
+    pending = done
+    /* never hold the page frozen on the old picture */
+    window.setTimeout(settleTransition, 900)
+    go()
+  }))
+  /* a second click mid-transition skips the first; that is not an error */
+  vt.ready.catch(() => {})
+  vt.finished.finally(() => { if (html.dataset.vt === kind) delete html.dataset.vt }).catch(() => {})
+}
+
+/** navigate(), with the page transition when the page actually changes. */
+export function useVtNavigate() {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  return (to: string | number, opts?: NavigateOptions) => {
+    if (typeof to === 'number') { runTransition('back', () => navigate(to)); return }
+    const same = norm(to.split('#')[0].split('?')[0]) === norm(pathname)
+    if (same) { navigate(to, opts); return }
+    runTransition('page', () => navigate(to, opts))
+  }
+}
+
+/** react-router's Link, but its page change plays the transition (see runTransition). The
+ *  href stays a real link: crawlable, and cmd/ctrl-click or a new tab behave as usual. */
+export function Link({ onClick, viewTransition: _vt, to, ...rest }: LinkProps) {
+  const vtNavigate = useVtNavigate()
+  return (
+    <RouterLink to={to} {...rest} onClick={(e) => {
+      onClick?.(e)
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (rest.target && rest.target !== '_self')) return
+      e.preventDefault()
+      vtNavigate(typeof to === 'string' ? to : `${to.pathname ?? ''}${to.search ?? ''}${to.hash ?? ''}`, { replace: rest.replace, state: rest.state })
+    }} />
+  )
 }
 
 export function LangSwitch({ className = '' }: { className?: string }) {
@@ -523,19 +570,7 @@ export function LangSwitch({ className = '' }: { className?: string }) {
       const top = m.getBoundingClientRect().top
       if (top <= window.innerHeight * 0.35) anchor = { key: m.dataset.anchor!, offset: top }
     }
-    const go = () => navigate(counterpart(pathname, hash, to), { state: { keepScroll: true, langFrom: anchor } })
-    const html = document.documentElement
-    if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) { go(); return }
-    html.dataset.vt = 'lang'
-    const vt = document.startViewTransition(() => new Promise<void>((done) => {
-      langSettled = done
-      /* never hold the page frozen on the old picture */
-      window.setTimeout(settleLang, 700)
-      go()
-    }))
-    /* a second switch mid-crossfade skips the first; that is not an error */
-    vt.ready.catch(() => {})
-    vt.finished.finally(() => { delete html.dataset.vt }).catch(() => {})
+    runTransition('lang', () => navigate(counterpart(pathname, hash, to), { state: { keepScroll: true, langFrom: anchor } }))
   }
   return (
     <div className={`lang ${className}`} role="group" aria-label={t.ui.langLabel}>
@@ -620,7 +655,7 @@ export function Header() {
               </a>
             ) : null}
           </div>
-          <Link to={home} viewTransition className={`mark${page === 'home' ? ' quiet' : ''}`} translate="no" aria-label={t.ui.markAria}>
+          <Link to={home} className={`mark${page === 'home' ? ' quiet' : ''}`} translate="no" aria-label={t.ui.markAria}>
             Bjarkalundur<small>{t.ui.since}</small>
           </Link>
           <div className="right">
@@ -637,12 +672,12 @@ export function Header() {
           <button type="button" className="close" onClick={close}>{t.ui.close} <Plus size={18} strokeWidth={1.4} style={{ transform: 'rotate(45deg)' }} /></button>
         </div>
         <ul>
-          <li><Link to={home} viewTransition aria-current={page === 'home' ? 'page' : undefined} onClick={() => setOpen(false)} style={{ transitionDelay: open ? '120ms' : '0ms' }}>{t.ui.home}</Link></li>
+          <li><Link to={home} aria-current={page === 'home' ? 'page' : undefined} onClick={() => setOpen(false)} style={{ transitionDelay: open ? '120ms' : '0ms' }}>{t.ui.home}</Link></li>
           {t.nav.map((n, i) => {
             const to = navHref(lang, n)
             return (
               <li key={n.label}>
-                <Link to={to} viewTransition aria-current={n.page && n.page === page ? 'page' : undefined} style={{ transitionDelay: open ? `${170 + i * 45}ms` : '0ms' }}
+                <Link to={to} aria-current={n.page && n.page === page ? 'page' : undefined} style={{ transitionDelay: open ? `${170 + i * 45}ms` : '0ms' }}
                   onClick={(e) => { setOpen(false); navTo(to, e) }}>{n.label}</Link>
               </li>
             )
@@ -689,8 +724,8 @@ export function Footer() {
           <div>
             <h2>{t.ui.pages}</h2>
             <ul>
-              <li><Link to={pathFor(lang, 'home')} viewTransition>{t.ui.home}</Link></li>
-              {t.nav.map((n) => { const to = navHref(lang, n); return <li key={n.label}><Link to={to} viewTransition onClick={(e) => navTo(to, e)}>{n.label}</Link></li> })}
+              <li><Link to={pathFor(lang, 'home')}>{t.ui.home}</Link></li>
+              {t.nav.map((n) => { const to = navHref(lang, n); return <li key={n.label}><Link to={to} onClick={(e) => navTo(to, e)}>{n.label}</Link></li> })}
             </ul>
           </div>
           <div className="mid">
