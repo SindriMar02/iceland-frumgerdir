@@ -55,6 +55,14 @@ const CSS = `
   .rb-st-bar { position:sticky; top:0; z-index:150; display:flex; align-items:center;
     justify-content:space-between; gap:20px; padding:calc(14px + env(safe-area-inset-top, 0px)) clamp(20px,4.5vw,72px) 14px;
     background-color:${INK}; border-bottom:1px solid ${HAIR_SOFT}; }
+  /* THE AWNING, same mechanism as the landing page. iOS renders only the
+     SCROLLING layer in the status-bar / Dynamic Island strip, so without this
+     the photos scrolled up into it and the bar looked like it floated under a
+     band of page. Parked at top:-100px it lives in that strip and paints it
+     ink, so the bar reaches the top edge. margin-top cancels its height: zero
+     layout footprint. Needs overflow-x:clip (never hidden) above it. */
+  .rb-st-awning { position:sticky; top:-100px; height:106px; margin-top:-106px; z-index:140;
+    background:${INK}; pointer-events:none; }
   .rb-st-back { display:inline-flex; align-items:center; gap:8px; text-decoration:none;
     font-family:${BODY}; font-size:14px; color:${DIM}; padding:10px 0; transition:color .2s ${EASE}; }
   .rb-st-back:hover { color:${GOLD_LIGHT}; font-style:italic; }
@@ -142,6 +150,7 @@ function StoryPageInner() {
     <div className="rb-st" style={{ background: INK, color: IVORY, fontFamily: BODY, minHeight: '100svh' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
+      <div className="rb-st-awning" aria-hidden="true" />
       <div className="rb-st-bar">
         <Link to={P.home} className="rb-st-back">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

@@ -35,6 +35,12 @@ const CSS = `
   .rb-lg a:focus-visible, .rb-lg button:focus-visible { outline:2px solid ${GOLD}; outline-offset:3px; border-radius:4px; }
   .rb-lg-bar { display:flex; align-items:center; justify-content:space-between; gap:20px;
     padding:calc(18px + env(safe-area-inset-top, 0px)) clamp(20px,4.5vw,72px) 18px; border-bottom:1px solid ${HAIR_SOFT}; }
+  /* THE AWNING, same mechanism as the landing page: iOS renders only the
+     SCROLLING layer in the status-bar / Dynamic Island strip, so parked at
+     top:-100px this paints that strip ink instead of scrolled text. margin-top
+     cancels its height. Needs overflow-x:clip on the root (hidden kills it). */
+  .rb-lg-awning { position:sticky; top:-100px; height:106px; margin-top:-106px; z-index:140;
+    background:${INK_DEEP}; pointer-events:none; }
   .rb-lg-back { display:inline-flex; align-items:center; gap:8px; text-decoration:none;
     font-family:${BODY}; font-size:14px; color:${DIM}; padding:11px 0; transition:color .2s ${EASE}; }
   .rb-lg-back:hover { color:${GOLD_LIGHT}; }
@@ -228,9 +234,10 @@ function LegalInner() {
   }, [])
 
   return (
-    <div className="rb-lg" lang={lang} style={{ fontFamily: BODY, color: IVORY, background: INK_DEEP, minHeight: '100svh', overflowX: 'hidden', WebkitFontSmoothing: 'antialiased' }}>
+    <div className="rb-lg" lang={lang} style={{ fontFamily: BODY, color: IVORY, background: INK_DEEP, minHeight: '100svh', overflowX: 'clip', WebkitFontSmoothing: 'antialiased' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
+      <div className="rb-lg-awning" aria-hidden="true" />
       <header className="rb-lg-bar">
         <Link to={P.home} aria-label={lang === 'is' ? 'Til baka á vefinn' : 'Back to the bakery'}>
           <img src={LOGO} alt="Reynir bakarí" width={124} height={54} decoding="async" style={{ width: 124, height: 'auto', display: 'block' }} />

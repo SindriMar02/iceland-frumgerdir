@@ -333,9 +333,11 @@ const PAGE_CSS = `
   /* A permanent bar that blurs what passes under it blurs it again on every
      scrolled frame. On a phone that is a tax charged for the whole visit, and
      the glass is nearly invisible at this opacity anyway, so touch devices get
-     ink instead — same bar, same hairline, no per-frame blur. */
+     ink instead — same bar, same hairline, no per-frame blur. The SAME ink as
+     the awning above it: a deeper bar under a lighter island strip read as a
+     band floating below the clock. One colour, one surface, edge to edge. */
   @media (hover:none) {
-    .rb-stickybar { background-color:rgb(11,10,9);
+    .rb-stickybar { background-color:${INK};
       -webkit-backdrop-filter:none; backdrop-filter:none; }
   }
   .rb-sticky-nav { display:flex; gap:22px; align-items:center; }
