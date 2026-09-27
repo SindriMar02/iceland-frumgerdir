@@ -628,7 +628,10 @@ const PAGE_CSS = `
   @media (max-width:980px) {
     .rb-cover-grid { grid-template-columns:1fr !important; }
     .rb-cover-art { position:static !important; transform:none !important; width:min(62vw,300px) !important; order:-1; margin:0 auto 8px; }
-    .rb-cover-copy { text-align:center; align-items:center !important; }
+    /* auto margins for the same reason as .rb-menu-art below: the copy keeps
+       its 640px cap in a wider single column, so on every iPad in portrait it
+       sat 50px left of the centred pastry. */
+    .rb-cover-copy { text-align:center; align-items:center !important; margin-left:auto; margin-right:auto; }
     .rb-cover-meta { justify-content:center !important; }
     .rb-cover-ctas { justify-content:center !important; }
     .rb-menu-cols { grid-template-columns:1fr !important; }

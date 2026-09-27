@@ -178,6 +178,26 @@ const ORDER_CSS = `
   .rb-ord-prod[data-on="true"] .rb-ord-prod-mark { border-color:${GOLD}; background:${GOLD}; }
   .rb-ord-prod-mark svg { opacity:0; transform:scale(.6); transition:opacity .18s ${EASE}, transform .18s ${EASE}; }
   .rb-ord-prod[data-on="true"] .rb-ord-prod-mark svg { opacity:1; transform:none; }
+  /* "Below the dock's usable width the picker becomes a list" (see the
+     900px block) is a rule about the DOCK, not the viewport. From 901px to
+     about 1140px the slip takes 360px beside it, the four cards fall to
+     ~125px and "Barnaafmæliskaka" is cut off mid-word (13-inch iPad portrait,
+     iPad mini landscape). So the dock measures itself: under 640px, which is
+     four cards wide enough for the longest name, it takes the list layout.
+     Each card spans the row because a container cannot restyle its own
+     grid columns. */
+  .rb-ord-prods { container-type:inline-size; }
+  @container (max-width:640px) {
+    .rb-ord-prod { grid-column:1 / -1; display:grid; grid-template-columns:auto minmax(0,1fr);
+      grid-template-areas:"pic name" "pic from"; align-content:center; row-gap:2px;
+      aspect-ratio:auto; column-gap:13px; padding:10px 12px; }
+    .rb-ord-prod-pic { position:static; grid-area:pic; aspect-ratio:1 / 1; align-self:center;
+      border-radius:3px; margin:0; width:62px; height:62px; }
+    .rb-ord-prod-pic::after { display:none; }
+    .rb-ord-prod-name { position:static; grid-area:name; align-self:end; font-size:17px; padding-right:30px; }
+    .rb-ord-prod-from { position:static; grid-area:from; align-self:start; }
+    .rb-ord-prod-mark { top:50%; margin-top:-9px; right:12px; }
+  }
 
   /* Option groups.
      MARGIN, never padding. A <legend> is laid out above the fieldset's content
