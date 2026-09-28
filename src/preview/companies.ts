@@ -4476,6 +4476,8 @@ import { companyEntry as EYVIK_ENTRY } from './eyvik/data'
 PREVIEW_COMPANIES.push(EYVIK_ENTRY)
 import { companyEntry as FJARFESTING_ENTRY } from './fjarfesting/data'
 PREVIEW_COMPANIES.push(FJARFESTING_ENTRY)
+import { companyEntry as HABORG_ENTRY } from './haborg/data'
+PREVIEW_COMPANIES.push(HABORG_ENTRY)
 PREVIEW_COMPANIES.push(ICEHERBS_ENTRY)
 import { companyEntry as CHRISLUND_ENTRY } from './chrislund/data'
 PREVIEW_COMPANIES.push(CHRISLUND_ENTRY)
