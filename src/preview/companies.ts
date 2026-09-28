@@ -4468,6 +4468,8 @@ import { companyEntry as ICEHERBS_ENTRY } from './iceherbs/data'
 PREVIEW_COMPANIES.push(HBH_ENTRY)
 import { companyEntry as ROBERTS_ENTRY } from './roberts/data'
 PREVIEW_COMPANIES.push(ROBERTS_ENTRY)
+import { companyEntry as TREBORG_ENTRY } from './treborg/data'
+PREVIEW_COMPANIES.push(TREBORG_ENTRY)
 import { companyEntry as GOA_ENTRY } from './goa/data'
 PREVIEW_COMPANIES.push(GOA_ENTRY)
 import { companyEntry as FAGRAVIK_ENTRY } from './fagravik/data'
