@@ -23,7 +23,7 @@
  * Usage:  node tools/reynir-standalone-post.mjs
  *         REYNIR_SITE_URL=https://reynirbakari.is node tools/reynir-standalone-post.mjs
  */
-import { existsSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
@@ -39,7 +39,7 @@ if (existsSync(join(dist, 'reynir.html'))) {
 }
 
 /* 2 ── prune everything the bakery does not own */
-const KEEP = new Set(['index.html', '404.html', 'assets', 'reynir', 'robots.txt', 'sitemap.xml', 'llms.txt'])
+const KEEP = new Set(['index.html', '404.html', 'assets', 'reynir', 'robots.txt', 'sitemap.xml', 'llms.txt', 'favicon.ico'])
 let pruned = 0
 for (const entry of readdirSync(dist)) {
   if (!KEEP.has(entry)) {
@@ -109,7 +109,7 @@ execFileSync('node', ['tools/reynir-seo.mjs', dist, '--base=/'], {
   html = html
     .replace(/\s*<link rel="canonical"[^>]*>/, '')
     .replace(/<meta name="robots" content="[^"]*"/, '<meta name="robots" content="noindex, follow"')
-    .replace(/<title>[^<]*<\/title>/, '<title>Síðan fannst ekki — Reynir bakarí</title>')
+    .replace(/<title>[^<]*<\/title>/, '<title>Síðan fannst ekki | Reynir bakarí</title>')
   writeFileSync(join(dist, '404.html'), html)
   console.log('reynir-post: 404.html (noindex, no canonical, real 404 status — no SPA catch-all)')
 }
@@ -124,6 +124,14 @@ writeFileSync(join(dist, '_redirects'), [
   '',
 ].join('\n'))
 console.log('reynir-post: _redirects for the old Wix URLs')
+
+/* 4b ── /favicon.ico at the domain root. Google's favicon crawler and older
+ * browsers ask for it before reading any <link rel="icon">; without it they
+ * got the 404 page. It holds the same 32 and 48px PNGs the pages link, so it
+ * lives in the bakery's own brand folder (never public/'s root, which the
+ * catalogue shares) and is copied up only into this standalone build. */
+copyFileSync(join(dist, 'reynir/brand/favicon.ico'), join(dist, 'favicon.ico'))
+console.log('reynir-post: /favicon.ico')
 
 /* 5 ── icon inheritance guard */
 execFileSync('node', ['tools/favicon-guard.mjs', dist], { stdio: 'inherit' })

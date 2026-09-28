@@ -262,6 +262,10 @@ function assertMatchesData() {
 }
 
 const addr = `${B.street}, ${B.postal} ${B.city}`
+/* After "á" Icelandic takes the dative: "á Dalvegi 4, 201 Kópavogi". The
+ * nominative form above is right for the schema and the English answers, and
+ * read as a grammar mistake in the Icelandic FAQ that Google can quote. */
+const addrIsDat = 'Dalvegi 4, 201 Kópavogi'
 const img = (p) => `${origin}${prefix}/reynir/${p}`
 
 /* Social cards, cut to 1.91:1 on purpose.
@@ -307,13 +311,13 @@ const CONTENT = [
     path: '/',
     image: og('heim.jpg'),
     is: {
-      title: `Reynir bakarí — handverksbakarí í Kópavogi síðan 1994`,
+      title: 'Reynir bakarí | Handverksbakarí í Kópavogi síðan 1994',
       desc:
         'Handverksbakarí og kaffihús á Dalvegi 4 í Kópavogi. Súrdeigsbrauð, vínarbrauð, snúðar og tertur, allt bakað á staðnum frá grunni. Opið alla daga 07–17.',
       imageAlt: 'Bakari við steinofninn í Reyni bakara, brauð inni í ofninum',
     },
     en: {
-      title: 'Reynir bakarí — a craft bakery in Kópavogur since 1994',
+      title: 'Reynir bakarí | A craft bakery in Kópavogur since 1994',
       desc:
         'A family craft bakery and café at Dalvegur 4 in Kópavogur, Iceland. Sourdough, Danish pastries, buns and cakes, all baked on site from scratch. Open daily 07–17.',
       imageAlt: 'A baker at the deck oven in Reynir bakarí, bread inside the oven',
@@ -325,14 +329,14 @@ const CONTENT = [
     image: og('panta.jpg'),
     is: {
       crumb: 'Sérpantanir',
-      title: 'Panta tertu eða veislubakka — Reynir bakarí í Kópavogi',
+      title: 'Panta tertu eða veislubakka í Kópavogi | Reynir bakarí',
       desc:
         'Pantaðu tertu, veislubakka eða bakkelsi hjá Reyni bakara á Dalvegi 4 í Kópavogi. Við staðfestum pöntunina símleiðis og greitt er þegar sótt er.',
       imageAlt: 'Rjómaterta frá Reyni bakara skreytt með rjómatoppum og kokteilberjum',
     },
     en: {
       crumb: 'Custom orders',
-      title: 'Order a cake or party platter — Reynir bakarí, Kópavogur',
+      title: 'Order a cake or party platter in Kópavogur | Reynir bakarí',
       desc:
         'Order a celebration cake, party platter or pastry tray from Reynir bakarí at Dalvegur 4 in Kópavogur. We confirm the order by phone and you pay on collection.',
       imageAlt: 'A Reynir cream cake finished with piped cream and cocktail cherries',
@@ -344,14 +348,14 @@ const CONTENT = [
     image: og('sagan.jpg'),
     is: {
       crumb: 'Sagan og myndasafnið',
-      title: 'Sagan af Reyni bakara — fjölskyldubakarí í Kópavogi frá 1994',
+      title: 'Sagan: fjölskyldubakarí í Kópavogi frá 1994 | Reynir bakarí',
       desc:
         'Fjölskyldubakarí á Dalvegi í Kópavogi síðan 1994. Sagan af Reyni bakara og myndasafn úr bakaríinu sjálfu, myndað á einum vinnumorgni í ágúst.',
       imageAlt: 'Bakari stráir hveiti yfir vinnuborðið í Reyni bakara',
     },
     en: {
       crumb: 'The story and the archive',
-      title: 'The story of Reynir bakarí — a family bakery since 1994',
+      title: 'The story: a family bakery since 1994 | Reynir bakarí',
       desc:
         'A family bakery on Dalvegur in Kópavogur since 1994. The story of Reynir bakarí and a photographic archive from inside the bakery, shot across one working morning in August.',
       imageAlt: 'A baker throwing flour across the bench in Reynir bakarí',
@@ -364,14 +368,14 @@ const CONTENT = [
     noindexAlways: true,
     is: {
       crumb: 'Persónuvernd og skilmálar',
-      title: 'Persónuvernd og skilmálar — Reynir bakarí',
+      title: 'Persónuvernd og skilmálar | Reynir bakarí',
       desc:
         'Hvaða upplýsingum Reynir bakarí safnar þegar þú sendir pöntunarbeiðni, af hverju, hversu lengi þær eru geymdar og hver réttindi þín eru. Ásamt skilmálum sérpantana.',
       imageAlt: 'Myndaveggurinn í búðinni hjá Reyni bakara á Dalvegi',
     },
     en: {
       crumb: 'Privacy and terms',
-      title: 'Privacy and terms — Reynir bakarí',
+      title: 'Privacy and terms | Reynir bakarí',
       desc:
         'What Reynir bakarí collects when you send an order request, why, how long it is kept and what your rights are. Plus the terms for custom orders.',
       imageAlt: 'The wall of framed photographs in the shop at Reynir bakarí',
@@ -462,7 +466,7 @@ const bakeryFor = (lang) => ({
  *  something the page does not say is the fastest way to a manual penalty. */
 const FAQ_IS = [
   ['Hvenær er opið hjá Reyni bakara?', hoursSentence('is')],
-  ['Hvar er Reynir bakarí?', `Reynir bakarí er á ${addr}. Bakaríið er eitt, á Dalvegi.`],
+  ['Hvar er Reynir bakarí?', `Reynir bakarí er á ${addrIsDat}. Bakaríið er eitt, á Dalvegi.`],
   [
     'Er hægt að panta tertu hjá Reyni bakara?',
     `Já. Hægt er að panta tertur, veislubakka og bakkelsi fyrirfram á vefnum eða í síma ${B.phoneDisplay}. Við staðfestum pöntunina símleiðis og greitt er þegar sótt er.`,
@@ -608,6 +612,7 @@ ${
          and gold, in a serif, drawn to survive the size. -->
     <link rel="icon" href="${prefix}/reynir/brand/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="icon" href="${prefix}/reynir/brand/favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="icon" href="${prefix}/reynir/brand/favicon-96.png" type="image/png" sizes="96x96" />
     <link rel="apple-touch-icon" href="${prefix}/reynir/brand/apple-touch-icon.png" />
     <meta name="theme-color" content="#131313" />
 ${ld.map((o) => `    <script type="application/ld+json">${JSON.stringify(o)}</script>`).join('\n')}
