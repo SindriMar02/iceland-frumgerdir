@@ -1,210 +1,166 @@
-/* ── Húðflúrstofa Norðurlands · „Fine Line" ───────────────────────────────────
-   Verified facts only: est. 2011 (15 years by 2026), Gránufélagsgata 4,
-   Akureyri, 256 Facebook reviews at 88% recommend, ~2,300 Instagram followers,
-   phone +354 866 5757, contact hudflur@hudflur.net. Hours Mon-Sat 13:00-18:00,
-   sourced from glartent.com's business-directory mirror of their Facebook
-   listing (a second independent source, not their own site — they have none).
-   No artist names or specific tattoo styles were supplied — none invented.
-   Real logo (a chrome/silver heraldic shield-and-eagle mark) recovered from
-   their Facebook profile photo via the public graph.facebook.com/<id>/picture
-   endpoint, at public/hudflur/brand/logo.png (background keyed transparent).
-   Ferlið (process) and Umhirða (aftercare) are standard, generic tattoo-
-   industry practice, not studio-specific claims.                            */
+/* Húðflúrstofa Norðurlands · "Blek á húð" (2026-09-29 rebuild)
 
-const u = (id: string, w: number) =>
-  `https://images.unsplash.com/${id}?q=80&w=${w}&auto=format&fit=crop`
+   Facts, each checked on the studio's own Facebook page on 2026-09-29
+   (facebook.com/hudflurstofanordurlands, About + Intro + photo posts):
+   - Tattoo and piercing shop, Gránufélagsgata 4, 600 Akureyri
+   - Mobile 866 5757, hudflur@hudflur.net
+   - 86% recommend (255 reviews), 5.2K followers
+   - Intro, verbatim: "Stofan hefur verið opin síðan 10. maí 2011 og mun vera það áfram um ókomna tíð ;)"
+   - English name used in their own posts: "Northern Tattoo Studio"
+   - Every work photo is watermarked JO.HELGASON TATTOO; hashtags name the styles
+     (black and grey, realism, lettering, flowers, traditional/old school, anime)
+   - Guest artists: Bruno (@no_tilusse_tattoo, watercolour, France) in March 2024 and 2025,
+     Jón Þór Ísberg in June 2024
+   - Gift cards: their own post of 21 Nov 2024 (quoted verbatim below)
+   Hours Mon-Sat 13-18 come from a business-directory mirror of the FB listing (glartent.com),
+   found on the first build; Facebook itself only shows "Open now" to a logged-out visitor.
 
-export const IMG = {
-  /* hero — hands with a tattoo machine mid-line. Ambient/mood stock, not this
-     studio's own work (see honesty rule in PreviewFooter + captions below). */
-  hero: {
-    src: u('photo-1568515045052-f9a854d70bfd', 1280),
-    srcSet: `${u('photo-1568515045052-f9a854d70bfd', 828)} 828w, ${u('photo-1568515045052-f9a854d70bfd', 1280)} 1280w, ${u('photo-1568515045052-f9a854d70bfd', 2000)} 2000w`,
-    alt: 'Hendur halda á húðflúrvél og teikna línu á húð, svipmynd',
-  },
-  inkCaps: {
-    src: u('photo-1777160422885-2c9ba49b700d', 1000),
-    alt: 'Nærmynd af litabökkum og áhöldum sem notuð eru við húðflúrun',
-  },
-  studio: {
-    src: u('photo-1760877611905-0f885a3ce551', 1600),
-    srcSet: `${u('photo-1760877611905-0f885a3ce551', 828)} 828w, ${u('photo-1760877611905-0f885a3ce551', 1280)} 1280w, ${u('photo-1760877611905-0f885a3ce551', 2000)} 2000w`,
-    alt: 'Dimm og stílhrein vinnustofa með húðflúrstól',
-  },
-  sketch: {
-    src: u('photo-1635183783375-98e857771351', 1200),
-    srcSet: `${u('photo-1635183783375-98e857771351', 828)} 828w, ${u('photo-1635183783375-98e857771351', 1200)} 1200w, ${u('photo-1635183783375-98e857771351', 2000)} 2000w`,
-    alt: 'Tattúveruð hönd teiknar hugmyndir í skissubók við skrifborð, svipmynd',
-  },
-  aftercare: {
-    src: u('photo-1712168044214-f5a272c23a5b', 1000),
-    alt: 'Ómerkt krem, sýnishorn af umhirðuvöru eftir húðflúr',
-  },
-  lounge: {
-    src: u('photo-1781925856343-c97d0d44f94c', 1400),
-    srcSet: `${u('photo-1781925856343-c97d0d44f94c', 828)} 828w, ${u('photo-1781925856343-c97d0d44f94c', 1400)} 1400w, ${u('photo-1781925856343-c97d0d44f94c', 2000)} 2000w`,
-    alt: 'Dimm og notaleg setustofa með sófa og römmuðum myndum á vegg, svipmynd',
-  },
-  fineLine: {
-    src: u('photo-1598816639574-47ef99da24fd', 1200),
-    alt: 'Svarthvít nærmynd af fíngerðu línuverki á húð',
-  },
-} as const
+   Photos: 27 of the studio's own posts (1440px originals), harvest + manifest in
+   _docs/hudflur-harvest-2026-09-29/. A title in quotes is their own caption; the others are
+   our plain descriptions and are marked `own: false`. */
 
-export const LOGO = 'hudflur/brand/logo.png'
+const BASE = import.meta.env.BASE_URL
+export const work = (f: string, w: 480 | 960 | 1440) => `${BASE}hudflur/work/${f}-${w}.webp`
+export const workSet = (f: string) => `${work(f, 480)} 480w, ${work(f, 960)} 960w, ${work(f, 1440)} 1440w`
+export const LOGO = `${BASE}hudflur/brand/logo.png`
 
 export const META = {
-  title: 'Húðflúrstofa Norðurlands | Húðflúr og húðgötun á Akureyri',
+  title: 'Húðflúrstofa Norðurlands | Húðflúr og götun á Akureyri síðan 2011',
   description:
-    'Húðflúrstofa Norðurlands hefur starfað á Akureyri frá 2011. Húðflúr eftir pöntun og húðgötun, byggt á fimmtán ára reynslu og trausti viðskiptavina — 88% mæla með stofunni. Opið mán.-lau. 13-18.',
+    'Húðflúrstofa Norðurlands, Gránufélagsgata 4 á Akureyri. Húðflúr og götun síðan 10. maí 2011: svart og grátt raunsæi, letur, dýr, blóm og old school. Sími 866 5757.',
 }
+
+export const EMAIL = 'hudflur@hudflur.net'
+export const PHONE = { display: '866 5757', href: 'tel:+3548665757' }
+export const FACEBOOK = 'https://www.facebook.com/hudflurstofanordurlands/'
+export const MAP = `https://maps.google.com/?q=${encodeURIComponent('Gránufélagsgata 4, 600 Akureyri')}`
+export const BOOK_HREF = `mailto:${EMAIL}?subject=${encodeURIComponent('Fyrirspurn um tíma')}`
 
 export const NAV = [
-  { label: 'Þjónusta', href: '#thjonusta' },
+  { label: 'Verk', href: '#verk' },
+  { label: 'Stofan', href: '#stofan' },
   { label: 'Ferlið', href: '#ferlid' },
-  { label: 'Umhirða', href: '#umhirda' },
-  { label: 'Um okkur', href: '#um' },
-  { label: 'Heimsókn', href: '#heimsokn' },
-]
-
-export const HERO = {
-  eyebrow: 'Húðflúrstofa Norðurlands · Akureyri',
-  line1: 'Hvert húðflúr byrjar',
-  line2: 'á einni línu.',
-  sub: 'Í fimmtán ár hefur Húðflúrstofa Norðurlands byggt upp orðspor á Akureyri í kyrrþey — og fær nú loksins eigin heimasíðu.',
-  ctaPrimary: 'Senda skilaboð á Facebook',
-  ctaSecondary: 'Senda tölvupóst',
-}
-
-export const TRUST = [
-  { value: '15', label: 'ár í rekstri á Akureyri' },
-  { value: '88%', label: 'mæla með stofunni · 256 umsagnir á Facebook' },
-  { value: '2.300+', label: 'fylgjendur á Instagram' },
+  { label: 'Hafa samband', href: '#samband' },
 ] as const
 
-export const ABOUT = {
-  heading: 'Um stofuna',
-  body1:
-    'Húðflúrstofa Norðurlands hefur verið starfrækt á Akureyri frá árinu 2011. Í fimmtán ár hefur stofan byggt upp nafn sem margir þekkja — ekki í gegnum auglýsingar, heldur í gegnum orðspor sem gengur mann fram af manni.',
-  body2:
-    '256 umsagnir á Facebook og 88% meðmæli tala sínu máli: þetta er stofa sem fólk kemur aftur til, og bendir vinum og fjölskyldu á.',
-  caption: 'Svipmynd — andrúmsloft vinnustofu (ekki mynd af stofunni sjálfri)',
+export const HERO = {
+  line: 'Húðflúr og götun á Akureyri síðan 10.\u00a0maí\u00a02011.',
+  cta: 'Bóka tíma',
+  ctaAlt: 'Skoða verkin',
+  address: 'Gránufélagsgata 4, Akureyri',
 }
 
-export const SERVICES = {
-  heading: 'Þjónusta',
-  intro: 'Tvær megingreinar, unnar af nákvæmni og alúð.',
-  items: [
-    {
-      title: 'Húðflúr eftir pöntun',
-      body: 'Hvert verk er unnið í samráði við viðskiptavin, frá fyrstu hugmynd að lokahandbragði.',
-    },
-    {
-      title: 'Húðgötun',
-      body: 'Fagleg húðgötun í öruggu og hreinlegu umhverfi.',
-    },
+/* the blackletter wall: two of their own phrases, repeated like a lettering sleeve */
+export const WALL = {
+  rows: ['Um ókomna tíð', 'Síðan 2011', 'Um ókomna tíð', 'Síðan 2011'],
+  photo: 'w54-medusa',
+  alt: 'Medúsa í svörtu og gráu á framhandlegg, verk frá stofunni',
+  caption: 'Blek á húð, Akureyri.',
+}
+
+export type Tag = 'dyr' | 'figurur' | 'letur' | 'blom'
+export const TAGS: { key: 'allt' | Tag; label: string; note: string }[] = [
+  { key: 'allt', label: 'Allt', note: 'Nýleg verk af stofunni, beint af Facebook-síðunni.' },
+  { key: 'dyr', label: 'Dýr', note: 'Tígrisdýr, kettir, hundar og górilla í svörtu og gráu.' },
+  { key: 'figurur', label: 'Fígúrur', note: 'Andlit, hauskúpur, anime og tölvuleikir.' },
+  { key: 'letur', label: 'Letur', note: 'Nöfn, bænir og tákn, unnin í höndunum.' },
+  { key: 'blom', label: 'Blóm og litir', note: 'Bóndarósir, koi og old school í lit.' },
+]
+
+export type Work = { f: string; w: number; h: number; tag: Tag; title: string; own: boolean; date: string; alt: string }
+export const WORKS: Work[] = [
+  { f: 'w02-tigur', w: 1440, h: 1440, tag: 'dyr', title: 'Toight, Toight like a Toiger!', own: true, date: 'Ágúst 2026', alt: 'Tígrisdýr á göngu niður upphandlegg' },
+  { f: 'w22-jesus', w: 1440, h: 1800, tag: 'figurur', title: 'Jesús Kristur! (bókstaflega)', own: true, date: 'Febrúar 2025', alt: 'Raunsæ andlitsmynd af Kristi með þyrnikórónu' },
+  { f: 'w04-sjomannabaen', w: 1440, h: 1440, tag: 'letur', title: 'Sjómannabæn', own: true, date: 'Júní 2026', alt: 'Sjómannabæn í skrautletri á síðu' },
+  { f: 'w00-blom', w: 1440, h: 1440, tag: 'blom', title: 'Ljónynja og bóndarósir', own: false, date: 'September 2026', alt: 'Ljónynja umvafin bóndarósum á læri' },
+  { f: 'w08-colossus', w: 1440, h: 1440, tag: 'figurur', title: 'Shadow of the colossus', own: true, date: 'Mars 2026', alt: 'Risinn úr Shadow of the Colossus og riddari á upphandlegg' },
+  { f: 'w39-tigur2', w: 1440, h: 1440, tag: 'dyr', title: 'Tígrisdýr', own: false, date: 'Maí 2024', alt: 'Raunsætt tígrisdýrsandlit á upphandlegg' },
+  { f: 'w16-hals', w: 1440, h: 1440, tag: 'letur', title: 'Faith', own: false, date: 'Maí 2025', alt: 'Orðið Faith í gotnesku letri aftan á hálsi' },
+  { f: 'w34-rosir', w: 1440, h: 1800, tag: 'blom', title: 'Rósir á framhandlegg', own: false, date: 'Ágúst 2024', alt: 'Rósir og lauf í svörtu og gráu niður framhandlegg' },
+  { f: 'w49-meow2', w: 1440, h: 1440, tag: 'dyr', title: 'Meow!', own: true, date: 'Mars 2024', alt: 'Hvæsandi köttur og loppufar á upphandlegg' },
+  { f: 'w01-anime', w: 1440, h: 1440, tag: 'figurur', title: 'Anime-rammi', own: false, date: 'September 2026', alt: 'Anime-teikning í ramma á framhandlegg' },
+  { f: 'w05-fodurnafn', w: 1440, h: 1440, tag: 'letur', title: 'Föðurnafn', own: true, date: 'Júní 2026', alt: 'Föðurnafn í skrautletri með rós á framhandlegg' },
+  { f: 'w50-gorilla', w: 1440, h: 1440, tag: 'dyr', title: 'Jungle sleeve in progress', own: true, date: 'Febrúar 2024', alt: 'Öskrandi górilla, hluti af frumskógarermi' },
+  { f: 'w12-hauskupa', w: 1440, h: 1800, tag: 'figurur', title: 'Hauskúpuermi', own: false, date: 'Júlí 2025', alt: 'Ermi með hauskúpu og skrauti í svörtu og gráu' },
+  { f: 'w15-dreki', w: 1440, h: 1800, tag: 'blom', title: 'Koi', own: false, date: 'Maí 2025', alt: 'Tveir koi-fiskar og stjörnumerki á framhandlegg' },
+  { f: 'w24-tyson', w: 1440, h: 1440, tag: 'dyr', title: 'Tyson', own: true, date: 'Desember 2024', alt: 'Raunsæ mynd af hundi á upphandlegg' },
+  { f: 'w31-sol', w: 1440, h: 1440, tag: 'letur', title: 'Sól og auga', own: false, date: 'September 2024', alt: 'Sól með auga í miðjunni á bringu' },
+  { f: 'w13-bak', w: 1440, h: 1440, tag: 'figurur', title: 'Klukka og hauskúpa', own: false, date: 'Júní 2025', alt: 'Klukka, hauskúpa og tunglfasar niður bakið' },
+  { f: 'w51-svala', w: 1440, h: 1442, tag: 'blom', title: 'Old school job stopper', own: true, date: 'Febrúar 2024', alt: 'Svala og blóm í lit á handarbaki, old school' },
+  { f: 'w07-pride', w: 1080, h: 1440, tag: 'dyr', title: 'Pride', own: true, date: 'Júní 2026', alt: 'Ljón og hvolpar með blómagrein á upphandlegg' },
+  { f: 'w29-hauskupa2', w: 1440, h: 1442, tag: 'figurur', title: 'Hauskúpa', own: false, date: 'Október 2024', alt: 'Hauskúpa með glóandi augu á kálfa' },
+  { f: 'w43-kross', w: 1440, h: 1440, tag: 'letur', title: 'Kross og rósir', own: false, date: 'Apríl 2024', alt: 'Skreyttur kross með rósum á upphandlegg' },
+  { f: 'w09-hrutur', w: 1440, h: 1440, tag: 'dyr', title: 'Hrútshauskúpa', own: false, date: 'Nóvember 2025', alt: 'Hrútshauskúpa með hornum á upphandlegg' },
+  { f: 'w36-blom2', w: 1440, h: 1440, tag: 'blom', title: 'Blómagrein', own: false, date: 'Júní 2024', alt: 'Fíngerð blómagrein á síðu' },
+  { f: 'w14-meow', w: 1440, h: 1800, tag: 'dyr', title: 'Meow.', own: true, date: 'Júní 2025', alt: 'Köttur með nornahatt á bókastafla' },
+  { f: 'w27-oldschool', w: 1440, h: 1440, tag: 'blom', title: 'Old School Stuff', own: true, date: 'Nóvember 2024', alt: 'Konuandlit í old school stíl, í lit á framhandlegg' },
+  { f: 'w48-bangsi', w: 1440, h: 1440, tag: 'dyr', title: 'Bangsi', own: true, date: 'Mars 2024', alt: 'Hundur með borða sem á stendur Bangsi' },
+]
+
+export const STUDIO = {
+  heading: ['Opin síðan', '10. maí 2011'],
+  quote: 'Stofan hefur verið opin síðan 10. maí 2011 og mun vera það áfram um ókomna tíð ;)',
+  quoteBy: 'Húðflúrstofa Norðurlands, á Facebook',
+  body: 'Svart og grátt raunsæi er rauði þráðurinn, en líka letur, blóm, dýr, anime og old school í lit. Á stofunni er líka boðið upp á götun.',
+  guests: 'Gestalistamenn koma reglulega í heimsókn, síðast Bruno frá Frakklandi, sem sérhæfir sig í vatnslitaflúri.',
+  stats: [
+    { value: '15', label: 'ár á Gránufélagsgötu' },
+    { value: '86%', label: 'mæla með stofunni, 255 umsagnir' },
+    { value: '5.200', label: 'fylgjendur á Facebook' },
   ],
-  caption: 'Svipmynd — litabakkar og áhöld',
-} as const
+  photos: ['w08-colossus', 'w48-bangsi'] as const,
+}
 
 export const PROCESS = {
-  eyebrow: 'Ferlið',
-  heading: 'Fjögur skref, engin pressa',
+  heading: 'Ferlið',
   steps: [
-    {
-      n: '01',
-      title: 'Hugmynd',
-      body: 'Þú sendir hugmynd, tilvísun eða bara stærð og staðsetningu sem þú hefur í huga, á Facebook, Instagram eða í tölvupósti.',
-    },
-    {
-      n: '02',
-      title: 'Hönnun',
-      body: 'Áður en tími er bókaður er hönnunin unnin í samráði við þig, þangað til hún er tilbúin fyrir húðina.',
-    },
-    {
-      n: '03',
-      title: 'Tíminn sjálfur',
-      body: 'Unnið er í rólegu og hreinlegu umhverfi. Hvert verk fær þann tíma sem það þarf, ekkert flýtt.',
-    },
-    {
-      n: '04',
-      title: 'Gróandi',
-      body: 'Að lokinni vinnu færðu skýrar leiðbeiningar um umhirðu, svo verkið grói vel og haldi lit.',
-    },
+    { title: 'Hugmynd', body: 'Sendu hugmynd, tilvísun eða bara stærð og staðsetningu, í tölvupósti, á Facebook eða í síma.' },
+    { title: 'Hönnun', body: 'Hönnunin er unnin í samráði við þig áður en tími er bókaður, þar til hún er tilbúin fyrir húðina.' },
+    { title: 'Tíminn', body: 'Unnið er í rólegu og hreinlegu umhverfi. Hvert verk fær þann tíma sem það þarf.' },
+    { title: 'Gróandi', body: 'Þú ferð heim með skýrar leiðbeiningar um umhirðu svo verkið grói vel.' },
   ],
-  caption: 'Svipmynd — hugmynd tekur á sig mynd á blaði',
-} as const
-
-export const CARE = {
-  eyebrow: 'Umhirða',
-  heading: 'Eftir tímann',
-  intro: 'Almennar leiðbeiningar sem fylgja hverju verki, svo það grói vel.',
-  items: [
-    'Hafðu umbúðirnar á í þann tíma sem mælt er með eftir tímann.',
+  careTitle: 'Umhirða eftir tímann',
+  care: [
+    'Hafðu umbúðirnar á eins lengi og mælt er með.',
     'Þvoðu svæðið varlega með ilmlausri sápu og volgu vatni.',
-    'Berðu þunnt lag af ilmlausu rakakremi á, nokkrum sinnum á dag.',
-    'Forðastu sund, heita potta og beint sólarljós þar til verkið er alveg gróið.',
-    'Ekki klóra eða krukka í hreistrið, láttu það losna af sjálfu sér.',
+    'Berðu þunnt lag af ilmlausu kremi á nokkrum sinnum á dag.',
+    'Forðastu sund, heita potta og sól þar til verkið er gróið.',
+    'Ekki klóra í hrúðrið, leyfðu því að losna af sjálfu sér.',
   ],
-  caption: 'Svipmynd — ilmlaust rakakrem',
-} as const
+}
 
-export const REVIEWS = {
-  heading: 'Umsagnir',
-  disclaimer:
-    'Sýnishorn: umsagnirnar hér að neðan eru dæmi, sett fram til að sýna hvernig síðan gæti litið út — ekki orðréttar tilvitnanir af Facebook.',
-  items: [
-    {
-      quote: '„Búið að fara nokkrum sinnum og alltaf sama fagmennskan og hlýja viðmótið.“',
-      name: 'Sýnishorn umsagnar',
-    },
-    {
-      quote: '„Nákvæmni og natni sem skilar sér í lokaverkinu. Mæli hiklaust með.“',
-      name: 'Sýnishorn umsagnar',
-    },
-  ],
-  caption: 'Svipmynd — andrúmsloft setustofu',
-} as const
+export const GIFT = {
+  heading: 'Gjafabréf',
+  quote: 'Ef þú vilt vera uppáhald allra í fjölskyldunni og/eða vinahópnum, þá gefurðu gjafabréf í húðflúr í jólagjöf #truestory',
+  quoteBy: 'Af Facebook-síðu stofunnar',
+  cta: 'Spyrja um gjafabréf',
+  href: `mailto:${EMAIL}?subject=${encodeURIComponent('Gjafabréf')}`,
+  photo: 'w25-gjafabref',
+  alt: 'Hrafn, hauskúpa og gjafabréf stofunnar á borði',
+}
 
-export const VISIT = {
-  heading: 'Heimsókn',
-  name: 'Húðflúrstofa Norðurlands',
-  address: 'Gránufélagsgata 4, 600 Akureyri',
-  hoursLabel: 'Opnunartími',
-  hoursValue: 'Mán.-lau. 13:00-18:00',
-  hoursNote: 'Pantaðu tíma með skilaboðum á Facebook/Instagram, í tölvupósti eða síma, og fáðu svar milliliðalaust.',
-  phoneDisplay: '866 5757',
-  phoneHref: 'tel:+3548665757',
-  mapHref: `https://maps.google.com/?q=${encodeURIComponent('Gránufélagsgata 4, Akureyri')}`,
-  closing: {
-    heading: 'Tilbúin/n að panta tíma?',
-    body: 'Engin bókunarvél, engin bið — sendu línu og fáðu svar milliliðalaust.',
-  },
-  caption: 'Svipmynd — fíngert línuverk',
+export const CONTACT = {
+  heading: 'Bóka tíma',
+  lead: 'Engin bókunarvél. Sendu línu með hugmyndinni og fáðu svar beint frá stofunni.',
+  address: ['Gránufélagsgata 4', '600 Akureyri'],
+  hours: 'Mán.-lau. 13:00-18:00',
+  copy: 'Afrita netfang',
+  copied: 'Afritað!',
 }
 
 export const JSON_LD = {
   '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
+  '@type': 'TattooParlor',
   name: 'Húðflúrstofa Norðurlands',
-  foundingDate: '2011',
-  email: 'hudflur@hudflur.net',
+  alternateName: 'Northern Tattoo Studio',
+  foundingDate: '2011-05-10',
+  email: EMAIL,
   telephone: '+354 866 5757',
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'Gránufélagsgata 4',
-    addressLocality: 'Akureyri',
-    postalCode: '600',
-    addressCountry: 'IS',
-  },
-  areaServed: 'Akureyri',
+  address: { '@type': 'PostalAddress', streetAddress: 'Gránufélagsgata 4', addressLocality: 'Akureyri', postalCode: '600', addressCountry: 'IS' },
+  areaServed: 'Norðurland',
+  priceRange: '££',
   openingHoursSpecification: [
-    {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-      opens: '13:00',
-      closes: '18:00',
-    },
+    { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], opens: '13:00', closes: '18:00' },
   ],
-  sameAs: ['https://www.facebook.com/hudflurstofanordurlands/'],
+  sameAs: [FACEBOOK],
 }

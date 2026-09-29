@@ -16,18 +16,20 @@ export const companyEntry: PreviewCompany = {
     established: 'Frá 2011',
     currentUrl: 'https://www.facebook.com/hudflurstofanordurlands/',
     ownerEmail: 'hudflur@hudflur.net',
-    concept: 'Fine Line',
+    concept: 'Blek á húð',
     conceptTagline:
-      'Fifteen years of steady hands in Akureyri, told as one continuous ink line drawn the length of the page.',
-    accent: '#C22A2E',
-    dark: true,
+      'Their own blackletter and eagle, set as a black-and-white poster, with 27 of their own pieces on a filterable wall.',
+    accent: '#0E0E0E',
+    dark: false,
+    noOwnSite: true,
+    photoCredit: 'Allar myndir eru af verkum stofunnar sjálfrar, af Facebook-síðu hennar.',
     status: 'Concept ready',
-    thumb: 'https://images.unsplash.com/photo-1568515045052-f9a854d70bfd?q=80&w=1200&auto=format&fit=crop',
+    thumb: `${import.meta.env.BASE_URL}hudflur/work/w54-medusa-960.webp`,
     audit: {
       strengths: [
         '15 years operating in Akureyri with a loyal following',
-        '256 Facebook reviews at 88% recommend, an unusually strong track record for a single studio',
-        'Active, engaged Instagram (2,300+ followers)',
+        '255 Facebook reviews at 86% recommend, and 5.2K followers',
+        'A deep archive of strong black-and-grey realism, posted with titles and dates',
       ],
       weaknesses: [
         'No website at all — everything lives on Facebook/Instagram',
@@ -41,7 +43,7 @@ export const companyEntry: PreviewCompany = {
       ],
     },
     positioning:
-      'Fifteen years of real work and an 88% recommend rate deserve more than a Facebook wall. The site should feel as considered and modern as the studio itself: dark, confident, understated.',
+      'Fifteen years of real work and an 86% recommend rate deserve more than a Facebook wall. The site should feel as considered and modern as the studio itself: black and white, confident, their own letter.',
     outreach: {
       subject: 'Hugmynd að nýrri vefsíðu fyrir Húðflúrstofu Norðurlands',
       body: `Góðan dag,

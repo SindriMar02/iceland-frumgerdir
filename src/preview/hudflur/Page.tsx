@@ -1,591 +1,473 @@
 /**
- * Húðflúrstofa Norðurlands — "Fine Line"
+ * Húðflúrstofa Norðurlands · "Blek á húð" (rebuild 2026-09-29, replaces "Fine Line").
  *
- * SIGNATURE: a single continuous ink line drawn down the page as the user
- * scrolls, connecting hero → trust → about → services → reviews/visit like
- * one piece of linework tattoo art. Driven by a SYNCHRONOUS passive `window`
- * scroll listener that reads the wrapping track's getBoundingClientRect()
- * and writes the SVG path's stroke-dashoffset directly — no Framer
- * useScroll/useVelocity, no rAF loop (this project's screenshot/verification
- * tooling and production behavior both depend on that exact pattern; see
- * cavesofhella/Page.tsx §DescentSection for the precedent). Reduced motion:
- * the line renders fully drawn, no listener attached.
+ * Look: Sindri's SAINTS reference board (anydesign pass in _docs/hudflur-harvest-2026-09-29/design.md),
+ * made theirs: the studio's own Facebook cover already pairs a blackletter wordmark with the chrome
+ * eagle shield, so the blackletter here is Grenze Gotisch (self-hosted, carries ð þ æ ö) standing in
+ * for their letter, the name is set as the SAINTS poster in Cabinet Grotesk 800, and every picture is
+ * one of their own posted pieces.
+ * Motion: the live-up.co.jp teardown (sndr-teardowns PR #3), see motion.ts.
  *
- * Hero is opacity:1 on mount — its entrance is a CSS transform-only keyframe
- * (never gated on a Framer mount/whileInView fire), per this project's rule
- * that a backgrounded preview tab freezes rAF/Framer mounts.
- *
- * Fonts: Space Grotesk (font-grotesk, display — swapped from the too-soft
- * Bricolage Grotesque per Sindri's "look more like an actual tattoo parlor"
- * note: a confident geometric grotesk pairs better against the real chrome
- * heraldic logo than a rounded friendly face), Hanken Grotesk (font-hanken,
- * body), Space Mono (font-mono, labels/stats). All already loaded
- * project-wide, no self-load needed — verified in index.html + the @theme
- * block in src/index.css before writing this file.
- *
- * Real logo: a chrome/silver heraldic shield-and-eagle mark recovered from
- * the studio's own Facebook profile photo (public/hudflur/brand/logo.png,
- * background keyed transparent). Anchors the header + a large low-opacity
- * hero watermark.
+ * Structure that must work without motion (header state, drawer, filters, tap-to-open, e-mail copy,
+ * the fitted type) lives here and runs in both branches; motion.ts only adds travel.
  */
-import { useEffect, useRef } from 'react'
-import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { useReducedMotion } from 'framer-motion'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { MouseEvent as RMouseEvent } from 'react'
 import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
-import { Reveal } from '../../components/Reveal'
-import { StickyCta } from '../../components/StickyCta'
-import { Img } from '../../components/Img'
-import { setThemeColor } from '../../lib/preview'
-import { ABOUT, CARE, HERO, IMG, JSON_LD, LOGO, META, NAV, PROCESS, REVIEWS, SERVICES, TRUST, VISIT } from './data'
+import { setMetaDescription, setThemeColor } from '../../lib/preview'
+import { hudflurCss } from './styles'
+import { initHudflurMotion, refreshTriggers, scrollToHash } from './motion'
+import {
+  BOOK_HREF, CONTACT, EMAIL, FACEBOOK, GIFT, HERO, JSON_LD, LOGO, MAP, META, NAV, PHONE, PROCESS, STUDIO, TAGS, WALL, WORKS,
+  work, workSet,
+} from './data'
+import type { Tag, Work } from './data'
 
-const company = companyEntry
+const B = import.meta.env.BASE_URL
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const INTRO_KEY = 'hf-intro-seen'
+const ROMAN = ['I', 'II', 'III', 'IV']
 
-/* ── palette ────────────────────────────────────────────────────────────────
-   Near-black ink ground, off-white ink text, ONE accent — deep ink-crimson,
-   starting from the company's accent field #C22A2E.
-
-   Contrast math (WCAG relative luminance, sRGB channel c ∈ [0,1]):
-     lin(c) = c/12.92                   if c <= 0.03928
-     lin(c) = ((c+0.055)/1.055)^2.4     otherwise
-     L = 0.2126*R + 0.7152*G + 0.0722*B      (contrast = (L1+0.05)/(L2+0.05))
-
-   INK   #0D0D0F → R13 G13 B15  → L ≈ 0.0041
-   ACCENT (raw) #C22A2E → R194 G42 B46 → L ≈ 0.1336
-     contrast vs INK = (0.1336+0.05)/(0.0041+0.05) ≈ 3.39:1
-     → only meets the AA "large text" floor (≥3:1: headings ≥24px, borders,
-       icons) — NOT safe for small body text/links on the dark ground.
-   ACCENT_TINT #D97577 = ACCENT mixed 35% toward white (same hue, lighter):
-     R 194+(255-194)*.35≈215  G 42+(255-42)*.35≈117  B 46+(255-46)*.35≈119
-     → L ≈ 0.2850 → contrast vs INK = (0.2850+0.05)/(0.0041+0.05) ≈ 6.19:1
-     → AA-safe (≥4.5:1) for small text — the same lighten-for-small-text
-       trick as Weider's #ff5470-on-dark. Used for every small accent label,
-       stat caption, link and inline emphasis on the ink ground.
-   MUTED rgba(241,238,233,0.68) over INK ≈ effective RGB (168,166,163)
-     → L ≈ 0.383 → contrast ≈ 8:1 — safe for secondary body copy.        ── */
-const INK = '#0D0D0F'
-const PANEL = '#131217'
-const OFFWHITE = '#F1EEE9'
-const MUTED = 'rgba(241,238,233,0.68)'
-const ACCENT = '#C22A2E'
-const ACCENT_TINT = '#D97577'
-const HAIR = 'rgba(241,238,233,0.14)'
-const HAIR_ACCENT = 'rgba(194,42,46,0.4)'
-/* Steel-silver, sampled from the real chrome logo — decorative only (icon
- * strokes, hairlines, ghost numerals), never load-bearing text, so it
- * doesn't need its own AA math: it's as light as OFFWHITE on this ground. */
-const SILVER = '#C7CBCE'
-
-const FACEBOOK_HREF = company.currentUrl
-const EMAIL_HREF = `mailto:${company.ownerEmail}`
-
-/** Shared inner-content wrapper: clears the ink-line gutter on the left
- *  (w-7/md:w-14 below), standard right gutter, centred reading column. */
-const WRAP = 'mx-auto w-full max-w-[1240px] pl-9 pr-5 md:pl-16 md:pr-8'
-
-/* ── SIGNATURE — the ink line ────────────────────────────────────────────── */
-
-/** Deterministic snake path in a fixed 100×1000 coordinate space. Stretched
- *  via preserveAspectRatio="none" to whatever height the track renders at —
- *  getTotalLength()/dashoffset stay in these same local units regardless of
- *  the visual stretch, so no remeasuring is needed when content height
- *  changes (responsive reflow, image load, etc). */
-function buildInkPath(waves = 7, totalY = 1000): string {
-  const midX = 50
-  const amp = 30
-  const stepY = totalY / waves
-  let d = `M ${midX} 0`
-  for (let i = 0; i < waves; i++) {
-    const y0 = i * stepY
-    const y1 = y0 + stepY
-    const dir = i % 2 === 0 ? 1 : -1
-    const cx1 = midX + dir * amp
-    const cy1 = y0 + stepY * 0.35
-    const cx2 = midX - dir * amp
-    const cy2 = y0 + stepY * 0.65
-    d += ` C ${cx1.toFixed(1)} ${cy1.toFixed(1)} ${cx2.toFixed(1)} ${cy2.toFixed(1)} ${midX} ${y1.toFixed(1)}`
-  }
-  return d
+/* one masked line (live-up M4): the outer span clips, the inner span travels */
+function Line({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <span className={`hf-line ${className}`} data-hf-mask=""><span>{children}</span></span>
 }
-const INK_PATH = buildInkPath()
 
-function InkLine({ trackRef, reduced }: { trackRef: RefObject<HTMLDivElement>; reduced: boolean }) {
-  const pathRef = useRef<SVGPathElement>(null)
-  const lenRef = useRef(0)
-
-  // Set up dasharray/dashoffset once the path node exists. Reduced motion:
-  // fully drawn immediately (dashoffset 0), no listener attached below.
-  useEffect(() => {
-    const path = pathRef.current
-    if (!path) return
-    const len = path.getTotalLength()
-    lenRef.current = len
-    path.style.strokeDasharray = String(len)
-    path.style.strokeDashoffset = reduced ? '0' : String(len)
-  }, [reduced])
-
-  useEffect(() => {
-    if (reduced) return
-    const track = trackRef.current
-    const path = pathRef.current
-    if (!track || !path) return
-
-    // Synchronous passive scroll handler: read the track's rect, map to a
-    // 0..1 progress across "track enters viewport" → "track fully scrolled
-    // past", write stroke-dashoffset directly. No rAF loop, no CSS
-    // transition on this property (it must track the scroll tick exactly).
-    const onScroll = () => {
-      const rect = track.getBoundingClientRect()
-      const vh = window.innerHeight
-      const p = Math.min(1, Math.max(0, (vh - rect.top) / (rect.height + vh)))
-      path.style.strokeDashoffset = String(lenRef.current * (1 - p))
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    onScroll()
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-    }
-  }, [reduced, trackRef])
-
+/* big sans title + blackletter gloss, the live-up EN title / JA gloss pairing */
+function Title({ id, lines, gloss }: { id: string; lines: string[]; gloss: string }) {
   return (
-    <svg
-      aria-hidden="true"
-      className="pointer-events-none absolute left-0 top-0 h-full w-7 md:w-14"
-      viewBox="0 0 100 1000"
-      preserveAspectRatio="none"
-    >
-      <path
-        ref={pathRef}
-        d={INK_PATH}
-        fill="none"
-        stroke={ACCENT_TINT}
-        strokeWidth={2.4}
-        strokeLinecap="round"
-        vectorEffect="non-scaling-stroke"
-      />
+    <h2 className="hf-title" id={id}>
+      {lines.map((l) => <Line key={l}>{l}</Line>)}
+      <Line className="hf-gloss">{gloss}</Line>
+    </h2>
+  )
+}
+
+function Arrow() {
+  return (
+    <svg className="hf-btn__arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+      <path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   )
 }
 
-/* ── small bits ─────────────────────────────────────────────────────────── */
-function Eyebrow({ children }: { children: ReactNode }) {
+/* the live-up Contact Form label roll: the same word twice, the second rolls up on hover */
+function Btn({ href, children, ghost = false, onClick }: { href: string; children: string; ghost?: boolean; onClick?: (e: RMouseEvent<HTMLAnchorElement>) => void }) {
   return (
-    <p className="font-mono m-0 text-[11.5px] font-medium uppercase tracking-[0.22em]" style={{ color: ACCENT_TINT }}>
-      {children}
-    </p>
-  )
-}
-
-function Cta({ href, children, variant, external, className = '' }: {
-  href: string; children: ReactNode; variant: 'filled' | 'ghost'; external?: boolean; className?: string
-}) {
-  const styles: Record<string, CSSProperties> = {
-    filled: { background: ACCENT, color: OFFWHITE },
-    ghost: { background: 'transparent', color: OFFWHITE, boxShadow: `inset 0 0 0 1.5px ${HAIR_ACCENT}` },
-  }
-  return (
-    <a
-      href={href}
-      {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
-      className={`hf-cta font-hanken inline-flex min-h-[48px] items-center justify-center px-7 text-[15px] font-semibold tracking-[0.01em] ${className}`}
-      style={styles[variant]}
-    >
-      {children}
+    <a className={`hf-btn${ghost ? ' hf-btn--ghost' : ''}`} href={href} onClick={onClick}>
+      <span className="hf-btn__roll"><span>{children}</span><span aria-hidden="true">{children}</span></span>
+      <Arrow />
     </a>
   )
 }
 
-function ServiceIcon({ kind }: { kind: 'tattoo' | 'piercing' }) {
-  if (kind === 'piercing') {
-    return (
-      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
-        <circle cx="17" cy="17" r="10" stroke={ACCENT_TINT} strokeWidth="1.6" />
-        <circle cx="17" cy="17" r="2.2" fill={ACCENT_TINT} />
-      </svg>
-    )
-  }
+/* fit one line of type to its container's width: measured at 100px once the fonts are in */
+function useFit(ref: React.RefObject<HTMLElement | null>, prop: string, max = Infinity) {
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const run = () => {
+      const box = el.parentElement!.clientWidth
+      el.style.setProperty(prop, '100px')
+      el.style.display = 'inline-block'
+      el.style.width = 'auto'
+      const natural = el.scrollWidth
+      el.style.display = ''
+      el.style.width = ''
+      if (natural) el.style.setProperty(prop, `${Math.min(max, (100 * box) / natural).toFixed(2)}px`)
+    }
+    run()
+    document.fonts?.ready.then(run)
+    const ro = new ResizeObserver(run)
+    ro.observe(el.parentElement!)
+    return () => ro.disconnect()
+  }, [ref, prop, max])
+}
+
+function useMedia(query: string) {
+  const [on, setOn] = useState(() => window.matchMedia(query).matches)
+  useEffect(() => {
+    const m = window.matchMedia(query)
+    const f = () => setOn(m.matches)
+    m.addEventListener('change', f)
+    return () => m.removeEventListener('change', f)
+  }, [query])
+  return on
+}
+
+function WorkCard({ w, open, onToggle }: { w: Work; open: boolean; onToggle: () => void }) {
   return (
-    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
-      <path d="M6 28 C 10 20, 14 20, 17 14 C 20 8, 24 8, 28 5" stroke={ACCENT_TINT} strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="28" cy="5" r="1.6" fill={ACCENT_TINT} />
-    </svg>
+    <figure
+      className={`hf-work${open ? ' is-open' : ''}`} onClick={onToggle} tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
+    >
+      <img
+        src={work(w.f, 960)} srcSet={workSet(w.f)} sizes="(max-width: 768px) 48vw, 24vw"
+        width={w.w} height={w.h} alt={w.alt} loading="lazy" decoding="async"
+      />
+      <figcaption className="hf-work__veil">
+        <span className="hf-work__line"><span className="hf-work__title">{w.own ? `„${w.title}“` : w.title}</span></span>
+        <span className="hf-work__line"><span className="hf-work__date">{w.date}</span></span>
+      </figcaption>
+    </figure>
   )
 }
 
-/* ═══════════════════════════════════════════════════════════════ the page ═ */
+function Works() {
+  const [tag, setTag] = useState<'allt' | Tag>('allt')
+  const [all, setAll] = useState(false)
+  const [openF, setOpenF] = useState<string | null>(null)
+  const [swapping, setSwapping] = useState(false)
+  const narrow = useMedia('(max-width: 768px)')
+  const cols = narrow ? 2 : 4
+  const picked = useMemo(() => WORKS.filter((w) => tag === 'allt' || w.tag === tag), [tag])
+  const shown = tag === 'allt' && !all ? picked.slice(0, 12) : picked
+  const dealt = useMemo(() => {
+    const c: Work[][] = Array.from({ length: cols }, () => [])
+    shown.forEach((w, i) => c[i % cols].push(w))
+    return c
+  }, [shown, cols])
+  const note = TAGS.find((t) => t.key === tag)!.note
+  const first = useRef(true)
+  useEffect(() => {
+    if (first.current) { first.current = false; return }
+    refreshTriggers()
+  }, [tag, all, cols])
+
+  /* live-up's grid crossfade: fade the old deal out, re-deal, fade the new one in */
+  const pick = (next: 'allt' | Tag) => {
+    if (next === tag) return
+    setOpenF(null)
+    if (reducedMotion()) { setTag(next); return }
+    setSwapping(true)
+    window.setTimeout(() => { setTag(next); setSwapping(false) }, 260)
+  }
+
+  return (
+    <section className="hf-sec hf-works" id="verk" aria-labelledby="verk-t">
+      <div className="hf-works__head">
+        <div><Title id="verk-t" lines={['Verk']} gloss="Af stofunni" /></div>
+        <div className="hf-works__filters">
+          <ul className="hf-tabs" aria-label="Sía verk">
+            {TAGS.map((t) => (
+              <li key={t.key}>
+                <button type="button" className="hf-tab" aria-pressed={tag === t.key} onClick={() => pick(t.key)}>{t.label}</button>
+              </li>
+            ))}
+          </ul>
+          <div className="hf-note" aria-live="polite"><p key={note}>{note}</p></div>
+        </div>
+      </div>
+      <div className={`hf-grid${swapping ? ' is-swapping' : ''}`}>
+        {dealt.map((col, i) => (
+          <div className="hf-col" key={`${tag}-${cols}-${i}`}>
+            {col.map((w) => (
+              <WorkCard key={w.f} w={w} open={openF === w.f} onToggle={() => { if (narrow) setOpenF((o) => (o === w.f ? null : w.f)) }} />
+            ))}
+          </div>
+        ))}
+      </div>
+      {tag === 'allt' && !all && (
+        <div className="hf-works__more">
+          <button type="button" className="hf-btn hf-btn--ghost" onClick={() => setAll(true)}>
+            <span className="hf-btn__roll"><span>Sýna öll {picked.length} verkin</span><span aria-hidden="true">Sýna öll {picked.length} verkin</span></span>
+          </button>
+        </div>
+      )}
+      <p className="hf-works__src">Öll verkin eru af Facebook-síðu stofunnar. Titlar í gæsalöppum eru þeirra eigin.</p>
+    </section>
+  )
+}
+
 export default function HudflurPage() {
-  const reduced = useReducedMotion()
-  const trackRef = useRef<HTMLDivElement>(null)
+  const company = companyEntry
+  const rootRef = useRef<HTMLDivElement>(null)
+  const headRef = useRef<HTMLElement>(null)
+  const nameRef = useRef<HTMLHeadingElement>(null)
+  const footRef = useRef<HTMLSpanElement>(null)
+  const mailRef = useRef<HTMLSpanElement>(null)
+  const css = useMemo(() => hudflurCss(B), [])
+  const [intro, setIntro] = useState<'off' | 'on' | 'lit' | 'leaving'>('off')
+  const [menu, setMenu] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [tip, setTip] = useState<string | null>(null)
+  const tipTimer = useRef(0)
+
+  useFit(nameRef, '--hero-size')
+  useFit(footRef, '--foot-size')
+  useFit(mailRef, '--mail-size', 190)
 
   useEffect(() => {
     document.title = META.title
-    setThemeColor(INK)
-    let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]')
-    if (!meta) {
-      meta = document.createElement('meta')
-      meta.name = 'description'
-      document.head.appendChild(meta)
-    }
-    const prev = meta.content
-    meta.content = META.description
-    return () => { meta.content = prev }
+    setThemeColor('#f4f4f2')
+    return setMetaDescription(META.description)
   }, [])
 
+  /* intro (live-up M2): once per visit, never under reduced motion; everyone else gets the quick entrance */
+  useLayoutEffect(() => {
+    const root = rootRef.current!
+    let seen = false
+    try { seen = sessionStorage.getItem(INTRO_KEY) === '1' } catch { /* private mode */ }
+    if (seen || reducedMotion()) { root.classList.add('is-quick'); return }
+    setIntro('on')
+    document.documentElement.style.overflow = 'hidden'
+    const t: number[] = []
+    t.push(window.setTimeout(() => setIntro('lit'), 30))
+    t.push(window.setTimeout(() => setIntro('leaving'), 700))
+    t.push(window.setTimeout(() => {
+      setIntro('off')
+      document.documentElement.style.overflow = ''
+      /* marked seen only once it has played, so an interrupted mount (StrictMode, fast back) plays it again */
+      try { sessionStorage.setItem(INTRO_KEY, '1') } catch { /* private mode */ }
+    }, 700 + 350 + 1500 + 150))
+    return () => { t.forEach(clearTimeout); setIntro('off'); document.documentElement.style.overflow = '' }
+  }, [])
+
+  /* motion branch */
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root || reducedMotion()) return
+    return initHudflurMotion(root)
+  }, [])
+
+  /* masthead: condensed past 60px, scroll-spy at 42% of the viewport (live-up M3). Structural, both branches. */
+  useEffect(() => {
+    const head = headRef.current!
+    const ids = NAV.map((n) => n.href.slice(1))
+    let raf = 0
+    const update = () => {
+      raf = 0
+      head.classList.toggle('is-condensed', window.scrollY > 60)
+      const line = window.innerHeight * 0.42
+      const cur = ids.findIndex((id) => {
+        const r = document.getElementById(id)?.getBoundingClientRect()
+        return !!r && r.top <= line && r.bottom > line
+      })
+      head.querySelectorAll('.hf-nav a').forEach((a, i) => a.classList.toggle('is-current', i === cur))
+    }
+    const io = new IntersectionObserver(() => { if (!raf) raf = requestAnimationFrame(update) }, { threshold: Array.from({ length: 11 }, (_, i) => i / 10) })
+    ids.forEach((id) => { const el = document.getElementById(id); if (el) io.observe(el) })
+    const hero = document.querySelector('.hf-hero')
+    if (hero) io.observe(hero)
+    update()
+    return () => { io.disconnect(); cancelAnimationFrame(raf) }
+  }, [])
+
+  /* drawer (live-up G8-G11): unhide, then roll the clip open on the next frame; reverse on close */
+  const setMenuOpen = useCallback((open: boolean) => {
+    setMenu(open)
+    document.documentElement.style.overflow = open ? 'hidden' : ''
+    if (open) requestAnimationFrame(() => requestAnimationFrame(() => setDrawerOpen(true)))
+    else setDrawerOpen(false)
+  }, [])
+  useEffect(() => {
+    if (!menu) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menu, setMenuOpen])
+  const [drawerMounted, setDrawerMounted] = useState(false)
+  useEffect(() => {
+    if (menu) { setDrawerMounted(true); return }
+    const t = window.setTimeout(() => setDrawerMounted(false), reducedMotion() ? 0 : 480)
+    return () => clearTimeout(t)
+  }, [menu])
+
+  const onAnchor = (e: RMouseEvent<HTMLElement>) => {
+    const a = (e.target as HTMLElement).closest('a[href^="#"]')
+    const hash = a?.getAttribute('href')
+    if (!hash || hash === '#') return
+    if (menu) setMenuOpen(false)
+    if (scrollToHash(hash)) { e.preventDefault(); history.replaceState(null, '', hash) }
+  }
+
+  /* the e-mail (live-up M11): click copies, the tooltip says so; no clipboard → mail client */
+  const copyMail = async () => {
+    try {
+      await navigator.clipboard.writeText(EMAIL)
+      setTip(CONTACT.copied)
+      window.clearTimeout(tipTimer.current)
+      tipTimer.current = window.setTimeout(() => setTip(null), 1500)
+    } catch { window.location.href = `mailto:${EMAIL}` }
+  }
+
   return (
-    <div
-      lang="is"
-      className="hf-root font-hanken min-h-[100svh] overflow-x-hidden antialiased"
-      style={{ background: INK, color: OFFWHITE }}
-    >
-      <script type="application/ld+json">{JSON.stringify(JSON_LD)}</script>
+    <div ref={rootRef} className="hf-root" lang="is" onClick={onAnchor}>
+      <style>{css}</style>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <PreviewChrome company={company} />
+      <a className="hf-skip" href="#efni">Fara í efni</a>
 
-      <style>{`
-        .hf-hero-copy{opacity:1;transform:translateY(18px);animation:hfHeroIn .9s cubic-bezier(.16,1,.3,1) .1s both}
-        @keyframes hfHeroIn{to{transform:translateY(0)}}
-        .hf-navlink{position:relative;min-height:44px;display:inline-flex;align-items:center;padding:6px 2px}
-        .hf-navlink::after{content:"";position:absolute;left:0;right:100%;bottom:2px;height:1.5px;
-          background:${ACCENT_TINT};transition:right .22s cubic-bezier(.23,1,.32,1)}
-        .hf-navlink:hover::after{right:0}
-        .hf-cta{transition:transform .16s cubic-bezier(.23,1,.32,1),opacity .16s ease}
-        .hf-cta:hover{transform:translateY(-2px)}
-        .hf-cta:active{transform:scale(.98)}
-        .hf-root :focus-visible{outline:3px solid ${ACCENT_TINT};outline-offset:3px}
-        @media (prefers-reduced-motion: reduce){
-          .hf-root *,.hf-root *::before,.hf-root *::after{
-            transition-duration:.01ms!important;animation-duration:.01ms!important}
-          .hf-hero-copy{animation:none;transform:none}
-        }
-      `}</style>
-
-      {/* ── header ────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b" style={{ background: 'rgba(13,13,15,0.85)', borderColor: HAIR, backdropFilter: 'blur(10px)' }}>
-        <div className="mx-auto flex h-[72px] w-full max-w-[1240px] items-center justify-between gap-4 px-5 md:px-8">
-          <a href="#efst" aria-label="Húðflúrstofa Norðurlands, efst á síðu" className="flex min-h-[44px] items-center gap-2.5">
-            <img src={`${import.meta.env.BASE_URL}${LOGO}`} alt="" aria-hidden="true" className="h-8 w-auto md:h-9" width={64} height={90} />
-            <span className="font-grotesk text-[15.5px] font-semibold tracking-tight">
-              Húðflúrstofa <span style={{ color: ACCENT_TINT }}>Norðurlands</span>
-            </span>
-          </a>
-          <nav aria-label="Aðalvalmynd" className="hidden items-center gap-7 lg:flex">
-            {NAV.map((n) => (
-              <a key={n.href} href={n.href} className="hf-navlink font-hanken text-[14.5px] font-medium" style={{ color: MUTED }}>
-                {n.label}
-              </a>
-            ))}
-          </nav>
-          <Cta href={FACEBOOK_HREF} variant="filled" external className="hidden !min-h-[40px] !px-5 !text-[13.5px] sm:inline-flex">
-            Panta tíma
-          </Cta>
+      {intro !== 'off' && (
+        <div className={`hf-intro${intro === 'lit' || intro === 'leaving' ? ' is-lit' : ''}${intro === 'leaving' ? ' is-leaving' : ''}`} aria-hidden="true">
+          <div className="hf-intro__veil" />
+          <div className="hf-intro__shutter" />
+          <div className="hf-intro__mark">
+            <img src={LOGO} alt="" width={120} height={170} />
+            <span>Húðflúrstofa Norðurlands</span>
+          </div>
         </div>
+      )}
+
+      <header ref={headRef} className={`hf-head${menu ? ' is-menu' : ''}`}>
+        <a className="hf-brand" href="#efni" aria-label="Húðflúrstofa Norðurlands, efst á síðu">
+          <span className="hf-brand__black">Húðflúrstofa</span>
+          <span className="hf-brand__sans">Norðurlands</span>
+        </a>
+        <nav className="hf-nav" aria-label="Aðalvalmynd">
+          {NAV.slice(0, 3).map((n) => <a key={n.href} href={n.href}>{n.label}</a>)}
+          <a className="hf-nav__book" href="#samband">{HERO.cta}</a>
+        </nav>
+        <button type="button" className="hf-burger" aria-expanded={menu} aria-controls="hf-drawer" onClick={() => setMenuOpen(!menu)}>
+          <span className="hf-burger__face hf-burger__face--open">Valmynd</span>
+          <span className="hf-burger__face hf-burger__face--close">Loka</span>
+          <span className="hf-sr">{menu ? 'Loka valmynd' : 'Opna valmynd'}</span>
+        </button>
       </header>
+      {drawerMounted && (
+        <div id="hf-drawer" className={`hf-drawer${drawerOpen ? ' is-open' : ''}`} role="dialog" aria-modal="true" aria-label="Valmynd">
+          <nav className="hf-drawer__links" aria-label="Valmynd">
+            {NAV.map((n) => <a key={n.href} href={n.href}>{n.label}</a>)}
+          </nav>
+          <div className="hf-drawer__meta">
+            <a href={PHONE.href}>{PHONE.display}</a>
+            <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+            <span>{HERO.address}</span>
+          </div>
+        </div>
+      )}
 
-      <div ref={trackRef} className="relative">
-        <InkLine trackRef={trackRef} reduced={!!reduced} />
-
-        <main id="efst">
-          {/* ── 1 · hero ──────────────────────────────────────────────────── */}
-          <section aria-label="Kynning" className="relative min-h-[100svh] overflow-hidden">
-            <div aria-hidden className="absolute inset-0">
-              <Img
-                src={IMG.hero.src}
-                srcSet={IMG.hero.srcSet}
-                sizes="100vw"
-                alt=""
-                loading="eager"
-                fetchpriority="high"
-                className="kenburns h-full w-full object-cover"
-              />
-              {/* Scrim: near-solid ink under the headline (left), fading toward
-                  the photo (right) — keeps OFFWHITE text at ~17:1 on INK
-                  regardless of the underlying photo's brightness (see palette
-                  contrast math above). */}
-              <div
-                aria-hidden
-                className="absolute inset-0"
-                style={{ background: 'linear-gradient(105deg, rgba(13,13,15,0.95) 0%, rgba(13,13,15,0.84) 40%, rgba(13,13,15,0.45) 68%, rgba(13,13,15,0.18) 100%)' }}
-              />
+      <main id="efni">
+        {/* the SAINTS poster: their eagle, the name as the wordmark, the trade in blackletter */}
+        <section className="hf-hero" aria-label="Húðflúrstofa Norðurlands">
+          <div className="hf-hero__lockup">
+            <span className="hf-line"><img className="hf-hero__eagle hf-rise" src={LOGO} alt="" width={120} height={170} {...({ fetchpriority: 'high' } as Record<string, string>)} /></span>
+            <h1 className="hf-hero__name" ref={nameRef}>
+              <span className="hf-sr">Húðflúrstofa </span>
+              <span className="hf-line"><span className="hf-rise hf-rise--2">Norðurlands</span></span>
+            </h1>
+            <span className="hf-line hf-hero__black" aria-hidden="true"><span className="hf-rise hf-rise--3">Húðflúrstofa</span></span>
+          </div>
+          <div className="hf-hero__foot hf-fadein">
+            <p className="hf-hero__line">{HERO.line}</p>
+            <div className="hf-hero__ctas">
+              <Btn href="#samband">{HERO.cta}</Btn>
+              <Btn href="#verk" ghost>{HERO.ctaAlt}</Btn>
             </div>
+          </div>
+        </section>
 
-            {/* ghost logo watermark — the real shield, low-opacity, desktop only */}
-            <img
-              src={`${import.meta.env.BASE_URL}${LOGO}`}
-              alt=""
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-16 top-1/2 hidden h-[130%] w-auto -translate-y-1/2 opacity-[0.09] lg:block"
-              width={503}
-              height={712}
-            />
+        {/* the wall: blackletter as skin, one of their pieces on top of it */}
+        <section className="hf-wall" aria-label="Um ókomna tíð">
+          <div className="hf-wall__rows" aria-hidden="true">
+            {WALL.rows.map((r, i) => (
+              <div className="hf-wall__row" key={i}>{[0, 1, 2, 3].map((k) => <span key={k}>{r}</span>)}</div>
+            ))}
+          </div>
+          <figure className="hf-wall__photo">
+            <img src={work(WALL.photo, 960)} srcSet={workSet(WALL.photo)} sizes="(max-width: 768px) 52vw, 24vw" width={1440} height={1800} alt={WALL.alt} loading="lazy" decoding="async" />
+          </figure>
+          <p className="hf-wall__cap">{WALL.caption}</p>
+          <p className="hf-wall__credit">Jo.Helgason Tattoo</p>
+        </section>
 
-            <div className="hf-hero-copy relative z-10 mx-auto flex min-h-[100svh] w-full max-w-[1240px] flex-col justify-center pl-9 pr-5 py-28 md:pl-16 md:pr-8">
-              <Eyebrow>{HERO.eyebrow}</Eyebrow>
-              <h1 className="font-grotesk m-0 mt-5 max-w-[15ch] text-[clamp(2.6rem,8vw,5.2rem)] leading-[1.04]">
-                {HERO.line1}
-                <br />
-                <span style={{ color: ACCENT_TINT }}>{HERO.line2}</span>
-              </h1>
-              <p className="font-hanken mt-6 max-w-[46ch] text-[17px] leading-relaxed" style={{ color: MUTED }}>
-                {HERO.sub}
+        <Works />
+
+        <section className="hf-sec hf-studio" id="stofan" aria-labelledby="stofan-t">
+          <div className="hf-studio__head"><Title id="stofan-t" lines={STUDIO.heading} gloss="Stofan" /></div>
+          <div className="hf-studio__text">
+            <blockquote className="hf-quote">
+              <p style={{ margin: 0 }} data-hf-words="">
+                {`„${STUDIO.quote}“`.split(' ').map((w, i) => <span key={i}>{w} </span>)}
               </p>
-              <div className="mt-9 flex flex-wrap gap-3">
-                <Cta href={FACEBOOK_HREF} variant="filled" external>{HERO.ctaPrimary}</Cta>
-                <Cta href={EMAIL_HREF} variant="ghost">{HERO.ctaSecondary}</Cta>
-              </div>
-            </div>
-          </section>
-
-          {/* ── 2 · trust band — honest counted numbers, no invented meters ── */}
-          <section aria-label="Í hnotskurn" style={{ background: PANEL, borderTop: `1px solid ${HAIR}`, borderBottom: `1px solid ${HAIR}` }}>
-            <h2 className="sr-only">Í hnotskurn</h2>
-            <div className={`${WRAP} grid grid-cols-1 gap-y-8 py-12 sm:grid-cols-3 sm:gap-x-8 md:py-16`}>
-              {TRUST.map((t) => (
-                <Reveal key={t.label}>
-                  <p className="font-grotesk m-0 text-[clamp(2.4rem,4.5vw,3.4rem)]">{t.value}</p>
-                  <p className="font-mono m-0 mt-2 text-[12.5px] uppercase tracking-[0.08em]" style={{ color: MUTED }}>
-                    {t.label}
-                  </p>
-                </Reveal>
-              ))}
-            </div>
-          </section>
-
-          {/* ── 3 · þjónusta ──────────────────────────────────────────────── */}
-          <section id="thjonusta" aria-labelledby="thjonusta-h" className="scroll-mt-24" style={{ background: PANEL, borderTop: `1px solid ${HAIR}` }}>
-            <div className={`${WRAP} py-20 md:py-28`}>
-              <Reveal>
-                <h2 id="thjonusta-h" className="font-grotesk m-0 text-[clamp(2.2rem,5.5vw,3.6rem)]">{SERVICES.heading}</h2>
-                <p className="font-hanken mt-4 max-w-[50ch] text-[16.5px]" style={{ color: MUTED }}>{SERVICES.intro}</p>
-              </Reveal>
-
-              <div className="mt-12 grid gap-10 md:grid-cols-2 md:gap-10">
-                {SERVICES.items.map((s, i) => (
-                  <Reveal key={s.title} delay={i * 0.08}>
-                    <div className="pt-7" style={{ borderTop: `1px solid ${HAIR_ACCENT}` }}>
-                      <ServiceIcon kind={i === 0 ? 'tattoo' : 'piercing'} />
-                      <h3 className="font-grotesk mt-5 text-[1.5rem]">{s.title}</h3>
-                      <p className="font-hanken mt-3 max-w-[46ch] text-[15.5px] leading-relaxed" style={{ color: MUTED }}>{s.body}</p>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-
-              <Reveal delay={0.2} className="mt-14 block">
-                <figure className="m-0">
-                  <div className="aspect-[16/9] overflow-hidden md:aspect-[21/9]">
-                    <Img src={IMG.inkCaps.src} alt={IMG.inkCaps.alt} className="h-full w-full object-cover" />
-                  </div>
-                  <figcaption className="font-mono mt-3 text-[12px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
-                    {SERVICES.caption}
-                  </figcaption>
+              <footer>{STUDIO.quoteBy}</footer>
+            </blockquote>
+            <p data-hf-fade="">{STUDIO.body}</p>
+            <p data-hf-fade="">{STUDIO.guests}</p>
+            <dl className="hf-stats" data-hf-fade="">
+              {STUDIO.stats.map((s) => <div key={s.label}><dt>{s.label}</dt><dd>{s.value}</dd></div>)}
+            </dl>
+          </div>
+          <div className="hf-studio__photos">
+            {STUDIO.photos.map((p) => {
+              const w = WORKS.find((x) => x.f === p)!
+              return (
+                <figure className="hf-frame" key={p}>
+                  <img src={work(p, 960)} srcSet={workSet(p)} sizes="(max-width: 768px) 46vw, 20vw" width={w.w} height={w.h} alt={w.alt} loading="lazy" decoding="async" />
                 </figure>
-              </Reveal>
-            </div>
-          </section>
+              )
+            })}
+          </div>
+        </section>
 
-          {/* ── 4 · ferlið — how a session actually works ────────────────────── */}
-          <section id="ferlid" aria-labelledby="ferlid-h" className="scroll-mt-24">
-            <div className={`${WRAP} py-20 md:py-28`}>
-              <Reveal>
-                <Eyebrow>{PROCESS.eyebrow}</Eyebrow>
-                <h2 id="ferlid-h" className="font-grotesk m-0 mt-3 max-w-[16ch] text-[clamp(2.2rem,5.5vw,3.6rem)]">
-                  {PROCESS.heading}
-                </h2>
-              </Reveal>
+        <section className="hf-sec hf-night" id="ferlid" aria-labelledby="ferlid-t">
+          <Title id="ferlid-t" lines={[PROCESS.heading]} gloss="Frá hugmynd að húð" />
+          <ol className="hf-steps">
+            {PROCESS.steps.map((s, i) => (
+              <li className="hf-step" key={s.title} data-hf-fade="">
+                <span className="hf-step__n" aria-hidden="true">{ROMAN[i]}</span>
+                <h3>{s.title}</h3>
+                <p>{s.body}</p>
+              </li>
+            ))}
+          </ol>
+          <details className="hf-care">
+            <summary>{PROCESS.careTitle}<span className="hf-care__plus" aria-hidden="true" /></summary>
+            <ul>{PROCESS.care.map((c) => <li key={c}>{c}</li>)}</ul>
+          </details>
+        </section>
 
-              <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-                {PROCESS.steps.map((s, i) => (
-                  <Reveal key={s.n} delay={i * 0.07}>
-                    <p className="font-grotesk m-0 text-[2.4rem] leading-none" style={{ color: SILVER, opacity: 0.5 }}>
-                      {s.n}
-                    </p>
-                    <h3 className="font-grotesk mt-3 text-[1.15rem]">{s.title}</h3>
-                    <p className="font-hanken mt-2 max-w-[32ch] text-[14.5px] leading-relaxed" style={{ color: MUTED }}>
-                      {s.body}
-                    </p>
-                  </Reveal>
-                ))}
-              </div>
+        <section className="hf-sec hf-gift" aria-labelledby="gjafabref-t">
+          <div className="hf-gift__photo">
+            <figure className="hf-frame">
+              <img src={work(GIFT.photo, 960)} srcSet={workSet(GIFT.photo)} sizes="(max-width: 768px) 92vw, 40vw" width={1440} height={1440} alt={GIFT.alt} loading="lazy" decoding="async" />
+            </figure>
+          </div>
+          <div className="hf-gift__text">
+            <Title id="gjafabref-t" lines={[GIFT.heading]} gloss="Í jólagjöf eða afmælisgjöf" />
+            <blockquote className="hf-quote" data-hf-fade="">
+              <p style={{ margin: 0 }}>„{GIFT.quote}“</p>
+              <footer>{GIFT.quoteBy}</footer>
+            </blockquote>
+            <Btn href={GIFT.href} ghost>{GIFT.cta}</Btn>
+          </div>
+        </section>
 
-              <Reveal delay={0.2} className="mt-14 block">
-                <figure className="m-0">
-                  <div className="aspect-[16/9] overflow-hidden md:aspect-[21/9]">
-                    <Img src={IMG.sketch.src} srcSet={IMG.sketch.srcSet} sizes="100vw" alt={IMG.sketch.alt} className="h-full w-full object-cover" />
-                  </div>
-                  <figcaption className="font-mono mt-3 text-[12px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
-                    {PROCESS.caption}
-                  </figcaption>
-                </figure>
-              </Reveal>
-            </div>
-          </section>
+        <section className="hf-sec hf-contact" id="samband" aria-labelledby="samband-t">
+          <Title id="samband-t" lines={[CONTACT.heading]} gloss="Hafa samband" />
+          <p className="hf-contact__lead" data-hf-fade="">{CONTACT.lead}</p>
+          <button
+            type="button" className="hf-mail" onClick={copyMail} aria-label={`${CONTACT.copy}: ${EMAIL}`}
+            onMouseEnter={() => setTip((t) => t ?? CONTACT.copy)} onMouseLeave={() => setTip(null)}
+          >
+            <span className="hf-mail__addr" ref={mailRef}>{EMAIL}</span>
+            <span className="hf-mail__rule" aria-hidden="true" />
+            <span className={`hf-mail__tip${tip ? '' : ' is-off'}`} aria-live="polite">{tip ?? CONTACT.copy}</span>
+          </button>
+          <dl className="hf-facts" data-hf-fade="">
+            <div><dt>Sími</dt><dd><a href={PHONE.href}>{PHONE.display}</a></dd></div>
+            <div><dt>Heimilisfang</dt><dd><a href={MAP} target="_blank" rel="noreferrer">{CONTACT.address[0]}<br />{CONTACT.address[1]}</a></dd></div>
+            <div><dt>Opnunartími</dt><dd>{CONTACT.hours}</dd></div>
+            <div><dt>Facebook</dt><dd><a href={FACEBOOK} target="_blank" rel="noreferrer">Senda skilaboð</a></dd></div>
+          </dl>
+          <div style={{ marginTop: 'clamp(32px,3vw,56px)' }}><Btn href={BOOK_HREF}>{HERO.cta}</Btn></div>
+        </section>
+      </main>
 
-          {/* ── 5 · umhirða — genuine, generic aftercare guidance ─────────────── */}
-          <section id="umhirda" aria-labelledby="umhirda-h" className="scroll-mt-24" style={{ background: PANEL, borderTop: `1px solid ${HAIR}` }}>
-            <div className={`${WRAP} grid gap-12 py-20 md:grid-cols-[1fr_1.05fr] md:items-start md:gap-16 md:py-28`}>
-              <Reveal>
-                <Eyebrow>{CARE.eyebrow}</Eyebrow>
-                <h2 id="umhirda-h" className="font-grotesk m-0 mt-3 max-w-[14ch] text-[clamp(2.2rem,5.5vw,3.6rem)] leading-tight">
-                  {CARE.heading}
-                </h2>
-                <p className="font-hanken mt-5 max-w-[42ch] text-[15.5px] leading-relaxed" style={{ color: MUTED }}>
-                  {CARE.intro}
-                </p>
-                <figure className="m-0 mt-8 max-w-[16rem]">
-                  <div className="aspect-[4/5] overflow-hidden">
-                    <Img src={IMG.aftercare.src} alt={IMG.aftercare.alt} className="h-full w-full object-cover" />
-                  </div>
-                  <figcaption className="font-mono mt-3 text-[12px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
-                    {CARE.caption}
-                  </figcaption>
-                </figure>
-              </Reveal>
-              <Reveal delay={0.1}>
-                <ul className="m-0 flex list-none flex-col gap-4 p-0">
-                  {CARE.items.map((item) => (
-                    <li key={item} className="flex gap-3 pt-4" style={{ borderTop: `1px solid ${HAIR}` }}>
-                      <span aria-hidden="true" className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: ACCENT_TINT }} />
-                      <p className="font-hanken m-0 text-[15.5px] leading-relaxed" style={{ color: OFFWHITE }}>{item}</p>
-                    </li>
-                  ))}
-                </ul>
-              </Reveal>
-            </div>
-          </section>
-
-          {/* ── 6 · um stofuna ───────────────────────────────────────────────── */}
-          <section id="um" aria-labelledby="um-h" className="scroll-mt-24">
-            <div className={`${WRAP} grid gap-12 py-20 md:grid-cols-[1.05fr_1fr] md:items-center md:gap-14 md:py-28`}>
-              <Reveal>
-                <h2 id="um-h" className="font-grotesk m-0 max-w-[14ch] text-[clamp(2.2rem,5.5vw,3.6rem)] leading-tight">
-                  {ABOUT.heading}
-                </h2>
-                <p className="font-hanken mt-6 max-w-[52ch] text-[16.5px] leading-relaxed" style={{ color: MUTED }}>
-                  {ABOUT.body1}
-                </p>
-                <p className="font-hanken mt-4 max-w-[52ch] text-[16.5px] leading-relaxed" style={{ color: MUTED }}>
-                  {ABOUT.body2}
-                </p>
-              </Reveal>
-              <Reveal delay={0.1}>
-                <figure className="m-0">
-                  <div className="aspect-[4/5] overflow-hidden md:aspect-[4/3]">
-                    <Img
-                      src={IMG.studio.src}
-                      srcSet={IMG.studio.srcSet}
-                      sizes="(min-width: 768px) 44vw, 100vw"
-                      alt={IMG.studio.alt}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <figcaption className="font-mono mt-3 text-[12px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
-                    {ABOUT.caption}
-                  </figcaption>
-                </figure>
-              </Reveal>
-            </div>
-          </section>
-
-          {/* ── 7 · umsagnir + heimsókn ──────────────────────────────────────── */}
-          <section id="umsagnir" aria-labelledby="umsagnir-h" className="scroll-mt-24">
-            <div className={`${WRAP} py-20 md:py-28`}>
-              <Reveal>
-                <h2 id="umsagnir-h" className="font-grotesk m-0 text-[clamp(2.2rem,5.5vw,3.4rem)]">{REVIEWS.heading}</h2>
-                <p className="font-hanken mt-3 max-w-[62ch] text-[13.5px]" style={{ color: MUTED }}>{REVIEWS.disclaimer}</p>
-              </Reveal>
-
-              <div className="mt-10 grid gap-10 md:grid-cols-2">
-                {REVIEWS.items.map((r, i) => (
-                  <Reveal key={r.quote} delay={i * 0.08}>
-                    <blockquote className="m-0 pt-6" style={{ borderTop: `1px solid ${HAIR_ACCENT}` }}>
-                      <p className="font-grotesk m-0 text-[1.25rem] leading-snug">{r.quote}</p>
-                      <footer className="font-mono mt-4 text-[12.5px] uppercase tracking-[0.06em]" style={{ color: ACCENT_TINT }}>
-                        {r.name}
-                      </footer>
-                    </blockquote>
-                  </Reveal>
-                ))}
-              </div>
-
-              <Reveal delay={0.16} className="mt-12 block">
-                <figure className="m-0">
-                  <div className="aspect-[16/9] overflow-hidden md:aspect-[21/9]">
-                    <Img src={IMG.lounge.src} srcSet={IMG.lounge.srcSet} sizes="100vw" alt={IMG.lounge.alt} className="h-full w-full object-cover" />
-                  </div>
-                  <figcaption className="font-mono mt-3 text-[12px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
-                    {REVIEWS.caption}
-                  </figcaption>
-                </figure>
-              </Reveal>
-
-              <div id="heimsokn" aria-labelledby="heimsokn-h" className="mt-20 scroll-mt-24 md:mt-28">
-                <div className="grid gap-12 md:grid-cols-[1.1fr_1fr] md:gap-14">
-                  <Reveal>
-                    <h2 id="heimsokn-h" className="font-grotesk m-0 text-[clamp(2.2rem,5.5vw,3.4rem)]">{VISIT.heading}</h2>
-                    <h3 className="font-grotesk mt-6 text-[1.4rem]">{VISIT.name}</h3>
-                    <p className="font-hanken mt-2 text-[16px]" style={{ color: MUTED }}>{VISIT.address}</p>
-
-                    <dl className="m-0 mt-7 max-w-[26rem]" style={{ borderTop: `1px solid ${HAIR}` }}>
-                      <div className="flex items-baseline justify-between gap-6 py-3" style={{ borderBottom: `1px solid ${HAIR}` }}>
-                        <dt className="font-hanken text-[14.5px]" style={{ color: MUTED }}>{VISIT.hoursLabel}</dt>
-                        <dd className="m-0 font-hanken text-[14.5px] font-semibold" style={{ color: OFFWHITE }}>{VISIT.hoursValue}</dd>
-                      </div>
-                    </dl>
-                    <p className="font-hanken mt-3 max-w-[46ch] text-[14.5px] leading-relaxed" style={{ color: MUTED }}>{VISIT.hoursNote}</p>
-
-                    <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
-                      <a href={VISIT.mapHref} target="_blank" rel="noreferrer" className="hf-navlink font-hanken text-[14.5px] font-semibold" style={{ color: ACCENT_TINT }}>
-                        Sjá á korti
-                      </a>
-                      <a href={FACEBOOK_HREF} target="_blank" rel="noreferrer" className="hf-navlink font-hanken text-[14.5px] font-semibold" style={{ color: ACCENT_TINT }}>
-                        Facebook
-                      </a>
-                      <a href={VISIT.phoneHref} className="hf-navlink font-hanken text-[14.5px] font-semibold" style={{ color: ACCENT_TINT }}>
-                        Sími {VISIT.phoneDisplay}
-                      </a>
-                      <a href={EMAIL_HREF} className="hf-navlink font-hanken text-[14.5px] font-semibold" style={{ color: ACCENT_TINT }}>
-                        {company.ownerEmail}
-                      </a>
-                    </div>
-
-                    <div className="mt-10 border-t pt-8" style={{ borderColor: HAIR }}>
-                      <p className="font-grotesk m-0 max-w-[18ch] text-[1.6rem]">{VISIT.closing.heading}</p>
-                      <p className="font-hanken mt-2 max-w-[40ch] text-[15px]" style={{ color: MUTED }}>{VISIT.closing.body}</p>
-                      <div className="mt-6">
-                        <Cta href={FACEBOOK_HREF} variant="filled" external>Panta tíma</Cta>
-                      </div>
-                    </div>
-                  </Reveal>
-
-                  <Reveal delay={0.1}>
-                    <figure className="m-0">
-                      <div className="aspect-[4/5] overflow-hidden">
-                        <Img src={IMG.fineLine.src} alt={IMG.fineLine.alt} className="h-full w-full object-cover" />
-                      </div>
-                      <figcaption className="font-mono mt-3 text-[12px] uppercase tracking-[0.06em]" style={{ color: MUTED }}>
-                        {VISIT.caption}
-                      </figcaption>
-                    </figure>
-                  </Reveal>
-                </div>
-              </div>
-            </div>
-          </section>
-        </main>
-      </div>
-
-      <StickyCta
-        label="Ekkert bókunarkerfi — sendu línu"
-        button="Facebook"
-        href={FACEBOOK_HREF}
-        buttonClassName="bg-[#C22A2E] text-[#F1EEE9]"
-        barClassName="bg-[#0D0D0F]/90 text-[#F1EEE9] border-t border-white/10"
-        watchTarget="#heimsokn"
-      />
-
-      <PreviewFooter company={company} />
+      <footer className="hf-foot hf-night">
+        <div style={{ overflow: 'hidden' }}><span className="hf-foot__name" ref={footRef}>Húðflúrstofa Norðurlands</span></div>
+        <div className="hf-foot__row">
+          <img className="hf-foot__logo" src={LOGO} alt="Merki Húðflúrstofu Norðurlands" width={120} height={170} />
+          <span>Gránufélagsgata 4, 600 Akureyri</span>
+          <a href={PHONE.href}>{PHONE.display}</a>
+          <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+          <a href={FACEBOOK} target="_blank" rel="noreferrer">Facebook</a>
+          <span>Opin síðan 2011</span>
+        </div>
+      </footer>
+      <PreviewFooter company={company} verifiedContent />
     </div>
   )
 }
