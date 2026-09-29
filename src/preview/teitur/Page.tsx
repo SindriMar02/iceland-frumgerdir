@@ -160,7 +160,7 @@ function Hero({ lang, trip, setTrip, onReady }: { lang: Lang; trip: Trip; setTri
         <div className="tj-crop">
           {HERO_SLIDES.map((sl, i) => (
             <div key={sl.a} className={`tj-slide${i === cur ? ' is-on' : ''}`} aria-hidden={i === cur ? undefined : true}>
-              <img ref={i === 0 ? ref : undefined} src={img(sl.a)} srcSet={`${img(sl.a)} ${sl.wa}w, ${img(sl.b)} ${sl.w}w`} sizes="100vw"
+              <img ref={i === 0 ? ref : undefined} srcSet={`${img(sl.a)} ${sl.wa}w, ${img(sl.b)} ${sl.w}w`} sizes="100vw" src={img(sl.a)}
                 width={sl.w} height={sl.h} alt={i === cur ? sl.alt[lang] : ''} style={{ objectPosition: sl.pos }} decoding="async"
                 {...(i === 0 ? ({ fetchpriority: 'high' } as Record<string, string>) : ({ fetchpriority: 'low' } as Record<string, string>))} />
             </div>

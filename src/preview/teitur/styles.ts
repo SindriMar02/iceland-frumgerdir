@@ -143,7 +143,7 @@ html{color-scheme:light;scroll-padding-top:80px}
 .tj-slidectl__pause:hover{background:rgba(34,24,18,.8)}
 .tj-slidectl__pause svg{width:18px;height:18px;stroke:currentColor;fill:currentColor;stroke-width:2;stroke-linecap:round}
 .tj-dots{display:flex}
-.tj-dot{width:32px;height:44px;display:grid;place-items:center}
+.tj-dot{width:44px;height:44px;display:grid;place-items:center}
 .tj-dot span{display:block;width:22px;height:3px;border-radius:2px;background:rgba(255,255,255,.5);transition:background-color .3s ease,width .3s var(--ease)}
 .tj-dot.is-on span{background:#fff;width:30px}
 .tj-dot:hover span{background:#fff}
@@ -163,14 +163,15 @@ html{color-scheme:light;scroll-padding-top:80px}
 .tj-card__row{display:grid;grid-template-columns:1.2fr 1fr;gap:1rem}
 .tj-card__fine{font-size:13.5px;line-height:1.4;color:var(--mute)}
 .tj-card__call{font-size:15px;color:var(--ink)}
-.tj-card__call a{color:var(--orange-d);font-weight:600;text-decoration:underline;text-underline-offset:3px;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;min-height:32px}
+.tj-card__call a{color:var(--orange-d);font-weight:600;text-decoration:underline;text-underline-offset:3px;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;min-height:44px;min-width:44px}
 .tj-chipline{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.25rem .75rem;font-size:14px;background:var(--orange-soft);border-radius:6px;padding:.3rem .7rem;color:#5a2606}
 .tj-chipline .tj-link{min-height:36px;font-size:14px;color:#5a2606}
 @media (max-width:960px){
   .tj-hero{min-height:0}
   .tj-hero__in{display:block;width:auto;margin:0;padding:0}
-  .tj-hero{--ph:75vw}
-  .tj-hero__media{position:relative;inset:auto;margin-top:var(--bar);aspect-ratio:4/3;height:auto}
+  .tj-hero{--ph:66.667vw}
+  .tj-hero__media{position:relative;inset:auto;margin-top:var(--bar);aspect-ratio:3/2;height:auto}
+  .tj-slide img,.tj-slide.is-on img{transform:none;transition:none}
   .tj-hero__shade{background:linear-gradient(180deg,rgba(24,14,8,0) 62%,rgba(24,14,8,.55) 100%)}
   .tj-hero__copy{max-width:none;align-self:auto;padding:1.6rem var(--gut) calc(var(--r) + 1.6rem);min-height:0;display:block}
   .tj-hero .tj-h1,.tj-hero__lead{text-shadow:none}
@@ -368,7 +369,7 @@ html{color-scheme:light;scroll-padding-top:80px}
 .tj-foot__in{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:2rem}
 .tj-foot__brand img{height:auto;width:112px;margin-bottom:1rem}
 .tj-foot__brand p{font-size:16px;line-height:1.6}
-.tj-foot__brand a,.tj-foot__col a{display:inline-flex;align-items:center;min-height:44px;color:rgba(255,255,255,.9)}
+.tj-foot__brand a,.tj-foot__col a{display:inline-flex;align-items:center;min-height:44px;min-width:44px;color:rgba(255,255,255,.9)}
 .tj-foot__brand a:hover,.tj-foot__col a:hover{color:var(--orange-hi)}
 .tj-foot__col{display:flex;flex-direction:column;align-items:flex-start}
 .tj-foot__col h2{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.62);margin-bottom:.4rem}
@@ -377,6 +378,8 @@ html{color-scheme:light;scroll-padding-top:80px}
 .tj-pf>footer{background-color:var(--ink)}
 /* Tailwind v4 utilities live in a cascade layer, so this unlayered reset would beat mx-auto in the shared footer */
 .tj-pf p{margin-inline:auto}
+/* the shared footer's small inline links: widen the hit area to 44px without moving the text */
+.tj-pf a{display:inline-block;padding:.8rem .45rem;margin:-.8rem -.45rem}
 .tj-pf p+p{margin-top:.5rem}
 
 /* ---------- forms ---------- */
@@ -450,7 +453,7 @@ html{color-scheme:light;scroll-padding-top:80px}
 .tj-journey{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:clamp(2rem,5vw,4.5rem);align-items:start;padding-bottom:clamp(4rem,8vw,7rem)}
 .tj-journey--ack{display:block}
 .tj-stepper-list{display:flex;flex-wrap:wrap;gap:.1rem 1.6rem;padding-bottom:.75rem;margin-bottom:1.75rem;border-bottom:1px solid var(--line)}
-.tj-stepper-list button{min-height:44px;color:var(--mute);font-size:15px;font-weight:500}
+.tj-stepper-list button{min-height:44px;min-width:44px;color:var(--mute);font-size:15px;font-weight:500}
 .tj-stepper-list button:disabled{cursor:default}
 .tj-stepper-list span{color:var(--numeral);margin-right:.2rem}
 @media (max-width:480px){.tj-stepper-list{gap:.1rem .9rem}.tj-stepper-list button{font-size:14px}.tj-stepper-list span{display:none}}

@@ -126,7 +126,16 @@ function DateField({ lang, trip, set, error, one }: { lang: Lang; trip: Trip; se
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); btn.current?.focus() } }
     document.addEventListener('mousedown', onDown)
     document.addEventListener('keydown', onKey)
-    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
+    /* on phones the calendar is a bottom sheet: lock the page behind it (fixed body, position restored on close), like the menu */
+    const sheet = window.matchMedia('(max-width: 700px)').matches
+    const y = window.scrollY
+    const st = document.body.style
+    const prev = { position: st.position, top: st.top, width: st.width }
+    if (sheet) { st.position = 'fixed'; st.top = `-${y}px`; st.width = '100%' }
+    return () => {
+      document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey)
+      if (sheet) { st.position = prev.position; st.top = prev.top; st.width = prev.width; window.scrollTo(0, y) }
+    }
   }, [open])
   const text = dateText(trip, lang)
   return (
@@ -192,7 +201,11 @@ export function HeroCard({ lang, trip, setTrip }: { lang: Lang; trip: Trip; setT
   function go() {
     const e = tripErrors(trip, lang, 'hero')
     setErrors(e)
-    if (Object.keys(e).length) return
+    if (Object.keys(e).length) {
+      /* move focus to the first invalid field (scroll-padding keeps it clear of the fixed bar) */
+      window.setTimeout(() => document.querySelector<HTMLElement>('#tj-card [aria-invalid="true"]')?.focus(), 30)
+      return
+    }
     nav(PATHS[lang].request)
   }
   return (
@@ -240,6 +253,8 @@ export function RequestJourney({ lang, trip, setTrip, reset }: { lang: Lang; tri
     if (stepRef.current !== step) head.current?.focus({ preventScroll: false })
     stepRef.current = step
   }, [step, sent])
+  /* the acknowledgement replaces the form: send focus to its heading so keyboard and VoiceOver users land on it */
+  useEffect(() => { if (sent) head.current?.focus() }, [sent])
 
   const all = useMemo(() => [...summaryRows(trip, lang), ...needsRows(trip, lang), ...contactRows(trip, lang)], [trip, lang])
   const route = ROUTES.find((r) => r.id === trip.routeId)

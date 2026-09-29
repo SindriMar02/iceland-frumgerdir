@@ -104,7 +104,7 @@ export type Slide = { a: string; wa: number; b: string; w: number; h: number; po
 export const HERO_SLIDES: Slide[] = [
   { a: 'hero-1200', wa: 1200, b: 'hero-2400', w: 2400, h: 1350, pos: '52% 58%', alt: { is: 'Hvítur hópferðabíll frá Teiti á vegi undir dökkum skýjum', en: 'A white Teitur coach on a road beneath dark clouds' } },
   { a: 'slide-jokull-1000', wa: 1000, b: 'slide-jokull-1920', w: 1920, h: 1280, pos: '50% 62%', alt: { is: 'Hópferðabíll frá Teiti með snævi þakin fjöll í bakgrunni', en: 'A Teitur coach with snow-covered mountains behind' } },
-  { a: 'slide-foss-1100', wa: 1100, b: 'slide-foss-2200', w: 2200, h: 1650, pos: '50% 55%', alt: { is: 'Hópferðabíll frá Teiti á malarvegi við foss í grænni hlíð', en: 'A Teitur coach on a gravel road by a waterfall on a green hillside' } },
+  { a: 'slide-foss-1280', wa: 1280, b: 'slide-foss-2200', w: 2200, h: 1650, pos: '50% 55%', alt: { is: 'Hópferðabíll frá Teiti á malarvegi við foss í grænni hlíð', en: 'A Teitur coach on a gravel road by a waterfall on a green hillside' } },
   { a: 'slide-vetur-1200', wa: 1200, b: 'slide-vetur-2400', w: 2400, h: 1350, pos: '58% 55%', alt: { is: 'Hópferðabíll frá Teiti í snjó með íslenska hesta í forgrunni', en: 'A Teitur coach in snow with Icelandic horses in the foreground' } },
 ]
 export const HERO_UI = {
