@@ -36,6 +36,7 @@ export function ContactForm({ compact = false }: { compact?: boolean }) {
       })
       const body = await res.json().catch(() => null)
       // an explicit ok from the relay, nothing less: a 200 with any other body is not a delivery
+      if (body?.reason === 'too-long') { setErr('Textinn er of langur. Styttu hann og reyndu aftur.'); return }
       if (!res.ok || !body || body.ok !== true) throw new Error('form')
       setSent(true); form.reset()
     } catch {
@@ -56,19 +57,19 @@ export function ContactForm({ compact = false }: { compact?: boolean }) {
       <input type="hidden" name="site" value="katrin" />
       <label>
         <span>Nafn</span>
-        <input name="nafn" type="text" required autoComplete="name" />
+        <input name="nafn" type="text" required maxLength={120} autoComplete="name" />
       </label>
       <label>
         <span>Netfang</span>
-        <input name="netfang" type="email" required autoComplete="email" />
+        <input name="netfang" type="email" required maxLength={200} autoComplete="email" />
       </label>
       <label>
         <span>Sími (valfrjálst)</span>
-        <input name="simi" type="tel" autoComplete="tel" />
+        <input name="simi" type="tel" maxLength={40} autoComplete="tel" />
       </label>
       <label className="ki-form-wide">
         <span>Stutt verklýsing</span>
-        <textarea name="verklysing" rows={compact ? 4 : 5} required
+        <textarea name="verklysing" rows={compact ? 4 : 5} required maxLength={4000}
           placeholder="Hvaða rými, hvað stendur til og hvenær." />
       </label>
       <input type="text" name="_honey" tabIndex={-1} autoComplete="off" aria-hidden="true" className="ki-sr" />

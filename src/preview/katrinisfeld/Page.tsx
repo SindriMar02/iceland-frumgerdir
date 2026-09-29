@@ -12,7 +12,7 @@
  * and anything that matches neither falls through to the index rather than
  * rendering an empty page.
  */
-import { Routes, Route, useParams, Navigate } from 'react-router-dom'
+import { Routes, Route, useParams } from 'react-router-dom'
 import { HomeRoute, loadHome } from './home-route'
 import { WorkIndexPage, CategoryPage } from './WorkPage'
 import { ProjectPage } from './ProjectPage'
@@ -23,7 +23,6 @@ import { EnglishPage } from './EnglishPage'
 import { PressPage } from './PressPage'
 import { NotFoundPage } from './NotFoundPage'
 import { CATEGORIES, PROJECTS, hasPage, type CategorySlug } from './projects'
-import { WORK } from './paths'
 
 const CATEGORY_SLUGS = new Set(Object.keys(CATEGORIES))
 const PROJECT_SLUGS = new Set(PROJECTS.filter(hasPage).map((p) => p.slug))
@@ -32,7 +31,8 @@ function WorkChild() {
   const { slug = '' } = useParams()
   if (PROJECT_SLUGS.has(slug)) return <ProjectPage slug={slug} />
   if (CATEGORY_SLUGS.has(slug)) return <CategoryPage slug={slug as CategorySlug} />
-  return <Navigate to={WORK} replace />
+  // an unknown slug is a missing page, not a reason to send the visitor somewhere else
+  return <NotFoundPage />
 }
 
 export { loadHome }

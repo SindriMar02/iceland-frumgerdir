@@ -161,9 +161,14 @@ export const CSS = `
 
 .ki-panel {
   position: fixed; inset: 0; z-index: 39; background: ${CHARCOAL}; color: #EDE7DE;
-  display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * 30);
+  display: flex; flex-direction: column; justify-content: flex-start; gap: calc(var(--u) * 30);
   padding: 96px 24px 32px;
+  /* on a landscape phone or with enlarged text the links do not fit: the panel
+     scrolls (from its top) instead of clipping them, and centres when there is room */
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
 }
+.ki-panel > nav { margin-top: auto; }
+.ki-panel > .ki-panel-foot { margin-bottom: auto; }
 /* IT HAS TO BE ABLE TO MOVE. The hidden attribute is display:none, and nothing
    transitions out of display:none — the panel appeared and vanished on the
    frame the button was pressed. It stays in the layout and fades instead,
@@ -1284,6 +1289,7 @@ a.ki-verk-grid .ki-slide img, .ki-fig-link .ki-slide img, .ki-fig-link .ki-shutt
 /* ── TAP TO SEE IT WHOLE (lightbox.tsx) ─────────────────────────────────
    each gallery photograph is a link to its largest file; with script it opens
    in a charcoal dialog, one at a time, whole, in her order */
+#efni:focus { outline: none; }
 a.ki-gal-cell { display: block; color: inherit; cursor: zoom-in; -webkit-tap-highlight-color: transparent; }
 a.ki-gal-cell:focus-visible { outline: 1px solid ${INK}; outline-offset: 4px; }
 html.ki-lb-lock, html.ki-lb-lock body { overflow: hidden; }

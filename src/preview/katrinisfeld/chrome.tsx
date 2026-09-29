@@ -57,7 +57,8 @@ export function Nav() {
       document.documentElement.style.overflow = ''
       made.forEach((el) => el.removeAttribute('inert'))
       // hand focus back to the button that opened the menu
-      if (document.activeElement === document.body || panel?.contains(document.activeElement)) trigger?.focus()
+      // only while the button is still on the page: a route change unmounts it, and Shell moves focus to the new page instead
+      if (trigger?.isConnected && (document.activeElement === document.body || panel?.contains(document.activeElement))) trigger.focus()
     }
   }, [open])
 

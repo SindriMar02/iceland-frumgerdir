@@ -61,9 +61,18 @@ function useHead({ title, desc, clean, lang = 'is' }: Head) {
   }, [title, desc, clean, lang])
 }
 
+/* Each route renders its own Shell, so the last path lives outside it. When the
+   path CHANGES (a link, the menu, Back) keyboard and screen-reader focus moves to
+   the new page's main region; a first load or a reload leaves focus alone. */
+let lastPath: string | null = null
+
 export function Shell({ head, children }: { head: Head; children: React.ReactNode }) {
   const { pathname } = useLocation()
   useHead(head)
+  useEffect(() => {
+    if (lastPath !== null && lastPath !== pathname) document.getElementById('efni')?.focus({ preventScroll: true })
+    lastPath = pathname
+  }, [pathname])
   // remeasure every cached offset when the route swaps the whole page out
   useKiMotion(true, [pathname])
 
@@ -73,7 +82,7 @@ export function Shell({ head, children }: { head: Head; children: React.ReactNod
       {PreviewTop && <Suspense fallback={null}><PreviewTop /></Suspense>}
       <a className="ki-skip" href="#efni">Beint í meginmál</a>
       <Nav />
-      <main id="efni">{children}</main>
+      <main id="efni" tabIndex={-1}>{children}</main>
       <Foot />
       {PreviewBottom && <Suspense fallback={null}><PreviewBottom /></Suspense>}
     </div>
