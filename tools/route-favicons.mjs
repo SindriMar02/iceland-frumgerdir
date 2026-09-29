@@ -43,6 +43,7 @@ const BRAND = {
   '/preview/nypugardar': 'nypugardar/brand',
   '/preview/treborg': 'treborg/brand',
   '/preview/katla': 'katla/brand',
+  '/preview/malning': 'malning/brand',
   '/preview/benni': 'benni/brand',
   '/preview/dill': 'dill/brand',
 }
