@@ -210,6 +210,13 @@ export default function HudflurPage() {
     const root = rootRef.current!
     let seen = false
     try { seen = sessionStorage.getItem(INTRO_KEY) === '1' } catch { /* private mode */ }
+    /* a link straight to a section skips the intro and lands there (the SPA renders after the browser's own hash jump) */
+    const hash = window.location.hash
+    if (hash && document.querySelector(hash)) {
+      root.classList.add('is-quick')
+      const t = window.setTimeout(() => document.querySelector(hash)?.scrollIntoView({ block: 'start' }), 80)
+      return () => clearTimeout(t)
+    }
     if (seen || reducedMotion()) { root.classList.add('is-quick'); return }
     setIntro('on')
     document.documentElement.style.overflow = 'hidden'
@@ -237,9 +244,24 @@ export default function HudflurPage() {
     const head = headRef.current!
     const ids = NAV.map((n) => n.href.slice(1))
     let raf = 0
+    let lastTone = ''
     const update = () => {
       raf = 0
       head.classList.toggle('is-condensed', window.scrollY > 60)
+      /* the strip under the bar takes the colour of the section at the top edge */
+      const dark = [...document.querySelectorAll('.hf-night')].some((el) => {
+        const r = el.getBoundingClientRect()
+        return r.top <= 40 && r.bottom > 40
+      })
+      const awn = dark ? '#0e0e0e' : '#f4f4f2'
+      if (rootRef.current && awn !== lastTone && document.documentElement.style.overflow !== 'hidden') {
+        lastTone = awn
+        rootRef.current.style.setProperty('--awn', awn)
+        /* Safari 26 paints the status-bar strip from body: switched instantly, never animated (as on Eyvík) */
+        document.body.style.backgroundColor = awn
+        document.documentElement.style.backgroundColor = awn
+        setThemeColor(awn)
+      }
       const line = window.innerHeight * 0.42
       const cur = ids.findIndex((id) => {
         const r = document.getElementById(id)?.getBoundingClientRect()
@@ -249,16 +271,26 @@ export default function HudflurPage() {
     }
     const io = new IntersectionObserver(() => { if (!raf) raf = requestAnimationFrame(update) }, { threshold: Array.from({ length: 11 }, (_, i) => i / 10) })
     ids.forEach((id) => { const el = document.getElementById(id); if (el) io.observe(el) })
+    document.querySelectorAll('.hf-night').forEach((el) => io.observe(el))
     const hero = document.querySelector('.hf-hero')
     if (hero) io.observe(hero)
+    /* one passive, rAF-throttled listener so the strip colour flips exactly at a section edge */
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update) }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    const retone = () => { lastTone = ''; onScroll() }
+    window.addEventListener('hf-retone', retone)
     update()
-    return () => { io.disconnect(); cancelAnimationFrame(raf) }
+    return () => { io.disconnect(); window.removeEventListener('scroll', onScroll); window.removeEventListener('hf-retone', retone); cancelAnimationFrame(raf); document.body.style.backgroundColor = ''; document.documentElement.style.backgroundColor = '' }
   }, [])
 
   /* drawer (live-up G8-G11): unhide, then roll the clip open on the next frame; reverse on close */
+  /* while the black drawer is open the page is locked and the strip and body go ink with it;
+     on close the section under the bar decides again (the scroll-spy update below) */
   const setMenuOpen = useCallback((open: boolean) => {
     setMenu(open)
     document.documentElement.style.overflow = open ? 'hidden' : ''
+    if (open) { document.body.style.backgroundColor = '#0b0b0b'; document.documentElement.style.backgroundColor = '#0b0b0b'; setThemeColor('#0b0b0b') }
+    else window.dispatchEvent(new Event('hf-retone'))
     if (open) requestAnimationFrame(() => requestAnimationFrame(() => setDrawerOpen(true)))
     else setDrawerOpen(false)
   }, [])
@@ -298,7 +330,9 @@ export default function HudflurPage() {
       <style>{css}</style>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <PreviewChrome company={company} />
+      <div className="hf-awning" aria-hidden="true" />
       <a className="hf-skip" href="#efni">Fara í efni</a>
+      <div className="hf-veil" aria-hidden="true" />
 
       {intro !== 'off' && (
         <div className={`hf-intro${intro === 'lit' || intro === 'leaving' ? ' is-lit' : ''}${intro === 'leaving' ? ' is-leaving' : ''}`} aria-hidden="true">

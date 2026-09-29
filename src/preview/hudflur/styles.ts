@@ -51,11 +51,21 @@ html{color-scheme:light;scroll-padding-top:72px}
 .hf-intro__shutter{z-index:2;transition:transform 1.5s var(--ease-io) .35s;will-change:transform}
 .hf-intro__mark{position:fixed;left:50%;top:50%;z-index:3;transform:translate(-50%,-50%);display:grid;justify-items:center;gap:14px;opacity:0;transition:opacity .65s cubic-bezier(.25,.46,.45,.94) .06s}
 .hf-intro__mark img{width:clamp(64px,7vw,104px);height:auto}
-.hf-intro__mark span{font:400 clamp(22px,2.2vw,34px)/1 var(--f-black);color:#e9e9e6}
+.hf-intro__mark span{font:400 clamp(22px,2.2vw,34px)/1 var(--f-black);color:#e9e9e6;white-space:nowrap;text-align:center}
 .hf-intro.is-lit .hf-intro__mark{opacity:1}
 .hf-intro.is-leaving .hf-intro__veil{opacity:0}
 .hf-intro.is-leaving .hf-intro__shutter{transform:translate3d(0,-100%,0)}
 .hf-intro.is-leaving .hf-intro__mark{opacity:0;transition:opacity 1.2s var(--ease-io) .2s}
+
+/* ---------- iOS chrome (mobile-chrome-standard, section-tinted) ----------
+   the awning: sticky, so it paints in the status-bar strip (fixed elements paint nothing there);
+   the veil: a sibling strip under the bar, tinted in the colour of the section beneath (--awn, set by
+   Page.tsx) and fading down, so text passes under it instead of colliding; the bar keeps its blend. */
+.hf-awning{position:sticky;top:-100px;height:106px;margin-top:-42px;margin-bottom:-64px;z-index:198;pointer-events:none;background:var(--awn,#f4f4f2)}
+.hf-veil{position:fixed;inset:0 -24px auto -24px;height:calc(env(safe-area-inset-top) + 84px);z-index:199;pointer-events:none;
+  background-color:var(--awn,#f4f4f2);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 58%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 58%,transparent 100%)}
+@media (max-width:768px){.hf-veil{height:calc(env(safe-area-inset-top) + 96px);-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 66%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 66%,transparent 100%)}}
 
 /* ---------- masthead: fixed, difference blend so it reads on paper, ink and photos (live-up M3) ---------- */
 .hf-head{position:fixed;inset:0 0 auto 0;z-index:200;display:flex;align-items:center;justify-content:space-between;gap:24px;
@@ -112,7 +122,8 @@ html{color-scheme:light;scroll-padding-top:72px}
 .hf-btn{position:relative;display:inline-flex;align-items:center;gap:12px;min-height:48px;padding:0 22px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);
   font:800 var(--fs-ui)/1 var(--f-sans);letter-spacing:.09em;text-transform:uppercase;text-decoration:none;white-space:nowrap;cursor:pointer;transition:background .2s var(--ease-expo),color .2s var(--ease-expo),transform .12s ease-out}
 .hf-btn--ghost{background:transparent;color:var(--ink)}
-.hf-btn__roll{display:block;overflow:hidden;height:1.1em;line-height:1.1}
+.hf-btn__roll{display:block;overflow:hidden;height:1.4em;line-height:1.4}
+.hf-btn__roll span{height:1.4em}
 .hf-btn__roll span{display:block;transition:transform .3s var(--ease-expo)}
 .hf-btn:active{transform:scale(.97)}
 .hf-btn__arrow{width:16px;height:16px;flex:none;transition:transform .3s var(--ease-expo)}
