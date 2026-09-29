@@ -57,7 +57,7 @@ export function StudioPage() {
           <Slide id="f-stofa" alt="Stofa með hörgardínum og leðurstól úr verkefni Katrínar" sizes="(max-width: 860px) 92vw, 42vw" className="ki-split-fig" variant="shutter" />
           <div>
             <p className="ki-body ki-rv">
-              Katrín lauk {CV.degree} frá {CV.school} í Flórída.
+              Katrín lauk BSc-prófi í innanhússarkitektúr frá {CV.school} í Flórída.
               Hún útskrifaðist með láði og hlaut annað sæti í alþjóðlegri hönnunarsamkeppni
               í Bandaríkjunum.
             </p>

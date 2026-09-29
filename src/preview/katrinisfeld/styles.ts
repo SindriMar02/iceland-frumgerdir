@@ -1278,4 +1278,52 @@ a.ki-verk-grid .ki-slide img, .ki-fig-link .ki-slide img, .ki-fig-link .ki-shutt
   .ki-show-n, .ki-door-no, .ki-door-count, .ki-press-meta, .ki-proj-credit { font-size: 12px; }
   .ki-cluster-rest > span:first-child { font-size: 12px; }
 }
+
+/* ── TAP TO SEE IT WHOLE (lightbox.tsx) ─────────────────────────────────
+   each gallery photograph is a link to its largest file; with script it opens
+   in a charcoal dialog, one at a time, whole, in her order */
+a.ki-gal-cell { display: block; color: inherit; cursor: zoom-in; -webkit-tap-highlight-color: transparent; }
+a.ki-gal-cell:focus-visible { outline: 1px solid ${INK}; outline-offset: 4px; }
+html.ki-lb-lock, html.ki-lb-lock body { overflow: hidden; }
+.ki-lb {
+  position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none;
+  margin: 0; padding: 0; border: 0; background: ${CHARCOAL}; color: #EDE7DE; overflow: hidden;
+}
+.ki-lb::backdrop { background: ${CHARCOAL}; }
+.ki-lb:focus { outline: none; }
+.ki-lb[open] { animation: ki-lb-in .28s ${OUT}; }
+@keyframes ki-lb-in { from { opacity: 0; } }
+.ki-lb-stage {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  padding: max(64px, env(safe-area-inset-top)) max(72px, env(safe-area-inset-right)) max(64px, env(safe-area-inset-bottom)) max(72px, env(safe-area-inset-left));
+}
+.ki-lb-stage picture { display: contents; }
+.ki-root .ki-lb-stage img, .ki-lb-stage img {
+  display: block; width: auto; height: auto; max-width: 100%; max-height: 100%; min-width: 0; min-height: 0; flex: 0 1 auto;
+  object-fit: contain; animation: ki-lb-in .35s ${OUT};
+}
+.ki-lb-count {
+  position: absolute; left: max(24px, env(safe-area-inset-left)); top: max(20px, env(safe-area-inset-top));
+  margin: 0; font-family: ${MONO}; font-size: 12.5px; letter-spacing: .14em; padding: 12px 0;
+}
+.ki-lb button {
+  position: absolute; background: none; border: 0; color: inherit; cursor: pointer;
+  font-family: ${MONO}; font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase;
+  min-width: 44px; min-height: 44px; transition: opacity .25s ${OUT};
+}
+.ki-lb-close { right: max(16px, env(safe-area-inset-right)); top: max(12px, env(safe-area-inset-top)); padding: 12px 8px; }
+.ki-lb-nav { top: 50%; transform: translateY(-50%); font-size: 26px; padding: 12px 14px; }
+.ki-lb-nav--prev { left: max(8px, env(safe-area-inset-left)); }
+.ki-lb-nav--next { right: max(8px, env(safe-area-inset-right)); }
+@media (hover: hover) and (pointer: fine) { .ki-lb button:hover { opacity: .6; } }
+.ki-lb button:focus-visible { outline: 1px solid #EDE7DE; outline-offset: 2px; }
+/* on a phone the photograph takes the width; the arrows move under it and a
+   swipe does the same job */
+@media (max-width: 640px) {
+  .ki-lb-stage { padding: 64px 0 88px; }
+  .ki-lb-nav { top: auto; bottom: max(16px, env(safe-area-inset-bottom)); transform: none; }
+  .ki-lb-nav--prev { left: 16px; }
+  .ki-lb-nav--next { right: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .ki-lb[open], .ki-lb-stage img { animation: none; } }
 `

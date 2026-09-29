@@ -410,15 +410,18 @@ function headFor(page) {
   const desc = clip(page.desc)
   const isEn = page.lang === 'en'
   const alt = isEn ? urlFor('/') : urlFor('/en')
+  /* only the two home pages translate each other; a project page has no
+     English twin, and pointing it at /en/ tells search engines a false pair */
+  const pair = page.kind === 'home' || page.kind === 'en'
   return `
     <title>${esc(fullTitle(page))}</title>
     <meta name="description" content="${esc(desc)}" />
     <link rel="canonical" href="${url}" />
     <meta name="robots" content="${LIVE ? 'index, follow, max-image-preview:large, max-snippet:-1' : 'noindex, nofollow'}" />
-    <link rel="alternate" hreflang="${isEn ? 'en' : 'is'}" href="${url}" />
+${pair ? `    <link rel="alternate" hreflang="${isEn ? 'en' : 'is'}" href="${url}" />
     <link rel="alternate" hreflang="${isEn ? 'is' : 'en'}" href="${alt}" />
     <link rel="alternate" hreflang="x-default" href="${urlFor('/')}" />
-    <meta property="og:type" content="${page.kind === 'project' ? 'article' : 'website'}" />
+` : ''}    <meta property="og:type" content="${page.kind === 'project' ? 'article' : 'website'}" />
     <meta property="og:site_name" content="${esc(STUDIO.name)}" />
     <meta property="og:locale" content="${isEn ? 'en_GB' : 'is_IS'}" />
     <meta property="og:locale:alternate" content="${isEn ? 'is_IS' : 'en_GB'}" />

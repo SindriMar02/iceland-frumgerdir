@@ -11,7 +11,8 @@
 import { Link } from './link'
 import { RollText } from './flair'
 import { Shell, type Head } from './Shell'
-import { Headline, Photo, Slide, aspectOf, isLandscape, landscapeFirst } from './kit'
+import { Headline, Photo, Slide, aspectOf, isLandscape, landscapeFirst, largestSrc } from './kit'
+import { useLightbox } from './lightbox'
 import { PHOTO_DIMS } from './photo-dims'
 import { CATEGORIES, PROJECTS, hasPage, type Project } from './projects'
 import { category as catPath, project as projPath, WORK, CONTACT_PATH } from './paths'
@@ -77,7 +78,11 @@ export function ProjectPage({ slug }: { slug: string }) {
   const c = CATEGORIES[p.category]
   const { prev, next } = neighbours(p)
   const hero = p.photos[0]
-  const rest = p.photos.slice(1)
+  /* the hero crops its photograph to fill the screen (as little as a third of
+     a portrait shot shows), so the gallery starts with that same photograph,
+     whole: every photograph she chose is seen uncropped at least once */
+  const rest = p.photos
+  const lb = useLightbox(rest)
 
   const head: Head = {
     title: `${p.title} | ${c.nav} | Katrín Ísfeld innanhússarkitekt`,
@@ -137,7 +142,14 @@ export function ProjectPage({ slug }: { slug: string }) {
               return (
                 <div key={r.cells[0].photo.id} className={`ki-gal-row${r.open ? ' ki-gal-row--open' : ''}`}>
                   {r.cells.map((c, ci) => (
-                    <div key={c.photo.id} className="ki-gal-cell" style={{ ['--a' as string]: c.a.toFixed(4) }}>
+                    <a
+                      key={c.photo.id}
+                      href={largestSrc(c.photo.id)}
+                      className="ki-gal-cell"
+                      style={{ ['--a' as string]: c.a.toFixed(4) }}
+                      aria-label={`Stækka mynd: ${c.photo.alt}`}
+                      onClick={lb.open(rest.indexOf(c.photo))}
+                    >
                       <Slide
                         id={c.photo.id}
                         alt={c.photo.alt}
@@ -146,12 +158,13 @@ export function ProjectPage({ slug }: { slug: string }) {
                         sizes={`(max-width: 640px) 92vw, ${Math.max(20, Math.round((92 * c.a) / Math.max(total, ROW)))}vw`}
                         variant={ri === 0 && ci === 0 ? 'shutter' : 'slide'}
                       />
-                    </div>
+                    </a>
                   ))}
                 </div>
               )
             })}
           </div>
+          {lb.box}
           {p.credit && (
             <p className="ki-proj-credit ki-rv">{p.creditLabel ?? 'Ljósmyndari'}: {p.credit}</p>
           )}

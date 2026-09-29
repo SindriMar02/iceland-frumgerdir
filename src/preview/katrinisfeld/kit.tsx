@@ -85,6 +85,12 @@ export function portraitFirst<T extends { id: string }>(photos: ReadonlyArray<T>
 const srcset = (id: string, ext: 'avif' | 'webp') =>
   PHOTO_DIMS[id].v.map(([w]) => `${DIR}/rs/${id}-${w}.${ext} ${w}w`).join(', ')
 
+/** The largest encoded file of a photograph, for a link that opens it whole. */
+export const largestSrc = (id: string) => {
+  const v = PHOTO_DIMS[id].v
+  return `${DIR}/rs/${id}-${v[v.length - 1][0]}.webp`
+}
+
 /**
  * One photograph.
  *

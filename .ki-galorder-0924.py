@@ -11,18 +11,18 @@ for b in blocks:
     if not m: continue
     ids = re.findall(r"P\('([^']+)'", m.group(1))
     page = f'dist-katrin/verkefni/{slug}/index.html'
-    if not os.path.exists(page) or len(ids) < 2: continue
+    if not os.path.exists(page) or len(ids) < 1: continue
     h = open(page).read()
     i = h.find('class="ki-proj-gallery"')
     if i < 0: continue
     g = h[i:h.find('ki-proj-adj', i)]
     shown = []
-    for part in re.split(r'<div class="ki-gal-', g)[1:]:
+    for part in re.split(r'<(?:div|a)\b[^>]*?class="ki-gal-', g)[1:]:
         f = re.findall(r'/rs/([a-zA-Z0-9-]+?)-\d+\.(?:avif|webp)', part)
         if f: shown.append(f[0])
     checked += 1
-    if shown != ids[1:]:
+    if shown != ids:
         bad += 1
-        print(f'OUT OF ORDER  {slug}\n   hers : {ids[1:]}\n   shown: {shown}')
+        print(f'OUT OF ORDER  {slug}\n   hers : {ids}\n   shown: {shown}')
 print(f'{checked} project galleries checked, {bad} out of her order')
 sys.exit(1 if bad else 0)

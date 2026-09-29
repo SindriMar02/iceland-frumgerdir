@@ -19,7 +19,7 @@ import { PROJECTS } from './projects'
 export const SERVICES = [
   {
     name: 'Heildræn hönnun',
-    desc: 'Skipulag, innréttingar, efnisval og lýsing fyrir heil hús og íbúðir, hannað sem ein heild.',
+    desc: 'Skipulag, innréttingar, efnisval og lýsing fyrir heil hús og íbúðir, hönnuð sem ein heild.',
   },
   {
     name: 'Eldhús og baðherbergi',

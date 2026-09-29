@@ -18,7 +18,9 @@ const PREFIX = STANDALONE ? '' : '/preview/katrinisfeld'
 
 export const HOME = STANDALONE ? '/' : '/preview/katrinisfeld'
 export const WORK = `${PREFIX}/verkefni`
-export const category = (c: CategorySlug) => `${PREFIX}/verkefni/${c}`
+/* Ýmislegt holds one project and has no page of its own (ROUTES below), so
+   its links go to the full list rather than to a page that does not exist */
+export const category = (c: CategorySlug) => (c === 'ymislegt' ? WORK : `${PREFIX}/verkefni/${c}`)
 export const project = (slug: string) => `${PREFIX}/verkefni/${slug}`
 export const BRANDS_PATH = `${PREFIX}/italskar-innrettingar`
 export const STUDIO_PATH = `${PREFIX}/studioid`
