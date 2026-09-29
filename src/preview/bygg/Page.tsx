@@ -23,6 +23,17 @@ function keyFromPath(pathname: string, lang: Lang): string {
   return rest || '/'
 }
 
+/* Organisation facts as bygg.is and the company registry publish them */
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'GeneralContractor',
+  name: 'Byggingarfélag Gylfa og Gunnars hf. (BYGG)',
+  url: 'https://www.bygg.is/',
+  telephone: '+354 562 2991',
+  foundingDate: '1984',
+  address: { '@type': 'PostalAddress', streetAddress: 'Borgartún 31', postalCode: '105', addressLocality: 'Reykjavík', addressCountry: 'IS' },
+}
+
 export default function ByggPage() {
   /* window.location, not the router's: the router's pathname is relative to the deploy base */
   const pathname = window.location.pathname
@@ -101,6 +112,7 @@ export default function ByggPage() {
   return (
     <>
       <style>{css}</style>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <PreviewChrome company={companyEntry} />
       <div ref={rootRef} className="bg-root" lang={T[lang].htmlLang} />
     </>

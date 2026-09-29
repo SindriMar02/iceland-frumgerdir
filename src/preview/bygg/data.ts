@@ -535,7 +535,7 @@ export const companyEntry: PreviewCompany = {
   ownerEmail: '',
   concept: 'Ein skráning fyrir níu söluaðila',
   conceptTagline:
-    'BYGG selur íbúðir í gegnum söluaðila og sér hvorki verð né áhuga á eigin vef. Frumgerðin bætir við lagi ofan á söluvefina: verð þar sem þau eru birt, skráning á áhuga sem lendir hjá BYGG og söluaðila, og yfirlit sem sýnir hvar áhuginn stöðvast.',
+    'BYGG selur íbúðir í gegnum söluaðila og tekur ekki við áhuga á eigin vef. Frumgerðin bætir við lagi ofan á söluvefina: verð og söluaðilar hvers verkefnis á einum stað, skráning á áhuga sem lendir hjá BYGG og söluaðila, og yfirlit sem sýnir hvar áhuginn stöðvast.',
   accent: '#244244',
   dark: false,
   status: 'Concept ready',
@@ -546,10 +546,10 @@ export const companyEntry: PreviewCompany = {
     strengths: [
       'Yfir 4.000 íbúðir og 40 ára saga, skráð á vef félagsins sjálfs (stofnað 1984)',
       'Eigin tölvumyndir og ljósmyndir í góðri upplausn, meðal annars innimyndir af Ásvöllum',
-      'Rekstur upp á 7,0 ma.kr. veltu og 694 m.kr. hagnað árið 2025 (vb.is, 13.9.2026)',
+      'Hagnaður upp á 694 m.kr. árið 2025 (vb.is, 8.9.2026)',
     ],
     weaknesses: [
-      'Hvorki bygg.is né söluvefir ONNO sýna verð, en söluaðilar birta þau: Ásvellir eru skráðir frá 65,9 m.kr.',
+      'Verð eru ekki á bygg.is og ekki á eldri söluvefjum (Bolholt); nýi söluvefurinn á Ásvöllum sýnir þau, frá 65,9 m.kr., og söluaðilar birta þau líka',
       'Enginn möguleiki á að skrá áhuga eða bóka skoðun á vefnum: aðeins netföng fyrir bókhald, mannauð, leigu og þjónustu',
       'Níu söluaðilar á sjö verkefnum, þrír til sex á hverju verkefni; á Ásvöllum eru fimm með sína eigin opnu daga á sömu síðunni',
       'Sumir textar eru úreltir: síðan um Bolholt 7-9 segir enn að afhending sé áætluð í febrúar 2026',
@@ -561,7 +561,7 @@ export const companyEntry: PreviewCompany = {
     ],
   },
   positioning:
-    'BYGG smíðar mikið og selur í gegnum aðra. Vefurinn er glugginn þar sem kaupandinn sér verkefnið fyrst, en hann tekur ekki við neinu: engin skráning, ekkert verð, engin skoðun. ' +
+    'BYGG smíðar mikið og selur í gegnum aðra. Vefurinn er glugginn þar sem kaupandinn sér verkefnið fyrst, en hann tekur ekki við neinu: engin skráning og engin skoðun, og verð sjást aðeins á nýjasta söluvefnum (Ásvellir). ' +
     'Frumgerðin lætur vefinn taka við áhuga, vísa honum á réttan söluaðila og skila BYGG yfirliti, ofan á söluvefina en ekki í staðinn fyrir þá.',
   /* No outreach drafted: Sindri has authorized the build only. BYGG publishes no sales or marketing contact. */
   outreach: { subject: '', body: '' },
