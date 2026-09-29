@@ -500,6 +500,19 @@ export const QUEUE = {
   },
 } as const
 
+/* Structured data: only facts from their own site and the registry (name, address, phone, founded 1963). */
+export const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: 'Teitur Jónasson ehf.',
+  alternateName: 'Teitur Hópferðir',
+  url: 'https://www.teitur.is',
+  telephone: '+3545152700',
+  foundingDate: '1963',
+  address: { '@type': 'PostalAddress', streetAddress: 'Dalvegi 22', postalCode: '201', addressLocality: 'Kópavogur', addressCountry: 'IS' },
+  description: 'Fjölskyldufyrirtæki í Kópavogi frá 1963: hópferðabílar með bílstjóra, ferðahópar og sérhæfð akstursþjónusta.',
+} as const
+
 /* ------------------------------------------------------------------ dashboard record */
 export const companyEntry: PreviewCompany = {
   slug: 'teitur',

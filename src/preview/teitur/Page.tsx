@@ -10,7 +10,7 @@ import { HeroCard, RequestJourney, emptyTrip } from './Request'
 import type { Trip } from './Request'
 import { AgentsView, DashboardView } from './Views'
 import {
-  AGENTS, FLEET, HERO_SLIDES, HERO_UI, ICELAND_D, PATHS, PLACES, REQ, ROUTES, SERVICE_IMG, T, URLS, brand, companyEntry, img, parseRoute, sizeOf,
+  AGENTS, FLEET, HERO_SLIDES, HERO_UI, ICELAND_D, JSON_LD, PATHS, PLACES, REQ, ROUTES, SERVICE_IMG, T, URLS, brand, companyEntry, img, parseRoute, sizeOf,
   type Bus, type Lang, type RouteDef, type SizeFilter, type View,
 } from './data'
 
@@ -578,6 +578,7 @@ export default function TeiturPage() {
   return (
     <div ref={rootRef} className="tj" lang={t.htmlLang}>
       <style>{css}</style>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <link rel="preload" as="font" type="font/woff2" href={`${B}fonts/teitur/Switzer-Regular.woff2`} crossOrigin="" />
       <link rel="preload" as="font" type="font/woff2" href={`${B}fonts/teitur/Switzer-Medium.woff2`} crossOrigin="" />
       <PreviewChrome company={company} />
