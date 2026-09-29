@@ -43,6 +43,7 @@ const BRAND = {
   '/preview/nypugardar': 'nypugardar/brand',
   '/preview/treborg': 'treborg/brand',
   '/preview/katla': 'katla/brand',
+  '/preview/dill': 'dill/brand',
 }
 /* Deployed previews with no companies.ts entry: name + accent from their own page. */
 const EXTRA = {
