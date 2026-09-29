@@ -46,6 +46,7 @@ const BRAND = {
   '/preview/malning': 'malning/brand',
   '/preview/benni': 'benni/brand',
   '/preview/dill': 'dill/brand',
+  '/preview/teitur': 'teitur/brand',
 }
 /* Deployed previews with no companies.ts entry: name + accent from their own page. */
 const EXTRA = {
