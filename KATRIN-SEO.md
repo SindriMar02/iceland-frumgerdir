@@ -50,7 +50,7 @@ staðbundinni leit og kostar ekkert.
 
 1. **Google Business Profile**: stofna eða ná stjórn á færslunni. Flokkur
    „Innanhússarkitekt" (Interior architect), heimilisfang Katrínartún 4,
-   opnunartími 11–17 alla daga, sími 663 3414, tengill á vefinn. Setja inn 10–15
+   opnunartími 11–17 virka daga (eftir samkomulagi, eins og á vefnum), sími 663 3414, tengill á vefinn. Setja inn 10–15
    af verkefnamyndunum. Þetta eitt og sér skilar mestu.
 2. **Miðstöð hönnunar og arkitektúrs** (honnunarmidstod.is): þar er
    hönnuðaskrá með eigin síðu fyrir hvern og einn, með mynd, æviágripi,

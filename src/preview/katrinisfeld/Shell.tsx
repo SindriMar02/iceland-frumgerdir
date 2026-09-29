@@ -46,7 +46,9 @@ function useHead({ title, desc, clean, lang = 'is' }: Head) {
       const c = set('link[rel="canonical"]', () => {
         const e = document.createElement('link'); e.setAttribute('rel', 'canonical'); return e
       }) as HTMLLinkElement
-      c.href = SITE.replace(/\/$/, '') + (clean === '/' ? '/' : clean)
+      /* the prerendered canonical carries the trailing slash the host serves, so the
+         client update must too or the head flips after hydration */
+      c.href = SITE.replace(/\/$/, '') + (clean === '/' ? '/' : clean.replace(/\/$/, '') + '/')
     }
     /* The catalogue shell ships lang="en" for a hundred prototypes, so an
        Icelandic page served from it tells Google and every screen reader the

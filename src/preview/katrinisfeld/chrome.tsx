@@ -13,7 +13,7 @@
  * blur is what makes a nav feel broken on touch: a tap fires hover, focus and
  * click in sequence and they cancel each other out.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { RollText } from './flair'
 import { useLocation } from 'react-router-dom'
 import { Link } from './link'
@@ -32,14 +32,32 @@ export function Nav() {
   const { pathname } = useLocation()
 
   useEffect(() => { setOpen(false) }, [pathname])
+  const burger = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
     document.addEventListener('keydown', onKey)
     document.documentElement.style.overflow = 'hidden'
+    /* the panel covers the page, so the page must not be reachable by keyboard
+       or screen reader behind it: everything that shares a parent with the
+       header and the panel goes inert, and comes back when it closes */
+    const head = burger.current?.closest('header')
+    const panel = document.getElementById('ki-panel')
+    const parent = head?.parentElement
+    const made: Element[] = []
+    parent?.querySelectorAll(':scope > *').forEach((el) => {
+      if (el === head || el === panel || el.tagName === 'STYLE' || el.hasAttribute('inert')) return
+      el.setAttribute('inert', '')
+      made.push(el)
+    })
+    panel?.querySelector<HTMLElement>('a')?.focus()
+    const trigger = burger.current
     return () => {
       document.removeEventListener('keydown', onKey)
       document.documentElement.style.overflow = ''
+      made.forEach((el) => el.removeAttribute('inert'))
+      // hand focus back to the button that opened the menu
+      if (document.activeElement === document.body || panel?.contains(document.activeElement)) trigger?.focus()
     }
   }, [open])
 
@@ -56,6 +74,7 @@ export function Nav() {
         </nav>
         <Link className="ki-nav-cta" data-ki-chrome to={CONTACT_PATH}><RollText text="Hafa samband" /></Link>
         <button
+          ref={burger}
           type="button"
           className="ki-burger"
           data-ki-chrome

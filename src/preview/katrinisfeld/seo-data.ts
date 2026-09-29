@@ -13,6 +13,7 @@ import { FAQ, FAQ_CONTACT, FAQ_CATEGORY, SERVICES, PROCESS, EN } from './content
 
 export { STUDIO, CV, ADDRESS_LINE, BRANDS, CATEGORIES, PROJECTS, FAQ, FAQ_CONTACT, FAQ_CATEGORY, SERVICES, PROCESS, EN }
 export { PRESS, PRESS_LEAD } from './press'
+export { PHOTO_DIMS } from './photo-dims'
 export const PHOTOGRAPHED = PROJECTS.filter(hasPage)
 
 /** Old WordPress URL → new clean path. Every one of her published pages. */

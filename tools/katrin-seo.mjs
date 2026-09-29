@@ -45,7 +45,7 @@ await build({
   define: { 'import.meta.env.BASE_URL': '"/"', 'import.meta.env.VITE_KATRIN_STANDALONE': '"1"' },
 })
 const D = await import(tmp + '?t=' + process.hrtime.bigint())
-const { STUDIO, CV, ADDRESS_LINE, BRANDS, CATEGORIES, PROJECTS, PHOTOGRAPHED, FAQ, FAQ_CONTACT, FAQ_CATEGORY, SERVICES, PROCESS, PRESS, REDIRECTS } = D
+const { STUDIO, CV, ADDRESS_LINE, BRANDS, CATEGORIES, PROJECTS, PHOTOGRAPHED, FAQ, FAQ_CONTACT, FAQ_CATEGORY, SERVICES, PROCESS, PRESS, REDIRECTS, PHOTO_DIMS } = D
 
 /** Where a page lives, in both homes. */
 const CAT_ORDER = ['innanhusshonnun', 'gistiheimili-og-hotel', 'atvinnuhusnaedi']
@@ -53,7 +53,14 @@ const dirFor = (clean) =>
   STANDALONE ? (clean === '/' ? '' : clean.slice(1)) : `preview/katrinisfeld${clean === '/' ? '' : clean}`
 const urlFor = (clean) => `${origin}${prefix}/${dirFor(clean) ? dirFor(clean) + '/' : ''}`
 const img = (p) => `${origin}${prefix}/katrinisfeld/${p}`
-const photo = (id, w = 1500) => `${origin}${prefix}/katrinisfeld/rs/${id}-${w}.webp`
+/* a URL for a file that exists: the widest encoded variant up to `w`, or the
+   narrowest one above it when the photograph was never encoded that small */
+const photo = (id, w = 1500) => {
+  const widths = PHOTO_DIMS[id]?.v.map(([vw]) => vw).sort((a, b) => a - b)
+  if (!widths?.length) throw new Error(`katrin-seo: no encoded variants for photograph ${id}`)
+  const fit = widths.filter((vw) => vw <= w)
+  return `${origin}${prefix}/katrinisfeld/rs/${id}-${fit.length ? fit[fit.length - 1] : widths[0]}.webp`
+}
 
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -527,7 +534,7 @@ function writeRedirects() {
   if (loops.length) throw new Error(`katrin-seo: redirect loops:\n${loops.join('\n')}`)
   writeFileSync(
     join(dist, '_redirects'),
-    `# Her old WordPress URLs, kept alive.\n${[...lines, ...withSlash].join('\n')}\n\n# SPA fallback, last.\n/* /index.html 200\n`,
+    `# Her old WordPress URLs, kept alive.\n${[...lines, ...withSlash].join('\n')}\n\n# No catch-all rewrite: every route is prerendered, so an unknown URL must\n# fall through to 404.html with a real 404 status, not the homepage with a 200.\n`,
   )
   return lines.length + withSlash.length
 }

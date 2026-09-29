@@ -66,6 +66,13 @@ function Lightbox({ photos, at, setAt }: { photos: ReadonlyArray<LbPhoto>; at: n
     }
   }, [at])
 
+  /* leaving the project while a photograph is open (browser Back, a route
+     change) unmounts the dialog without at ever becoming null: release the
+     lock here or the next page cannot scroll */
+  useEffect(() => () => {
+    document.documentElement.classList.remove('ki-lb-lock')
+  }, [])
+
   useEffect(() => {
     if (at === null) return
     const key = (e: KeyboardEvent) => {

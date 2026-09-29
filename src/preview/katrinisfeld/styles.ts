@@ -298,6 +298,8 @@ export const CSS = `
 .ki-form .ki-fill { font-family: ${MONO}; cursor: pointer; appearance: none; -webkit-appearance: none; }
 .ki-form-send { margin-top: calc(var(--u) * 8); }
 .ki-form-err { color: #8C3A34; }
+.ki-form-flash { display: none; }
+.ki-form-flash:target { display: block; }
 [data-ki-band='dark'] .ki-form-err { color: #E8A58F; }
 /* two fields a row when the form shares a section with its heading */
 .ki-form--pair { grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 22) calc(var(--u) * 28); max-width: none; }
