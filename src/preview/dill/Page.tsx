@@ -128,6 +128,7 @@ type Pic = (typeof REEL_RETTIR)[number]
 
 function Reel({ items, lang, variant, next, visible = false }: { items: readonly Pic[]; lang: Lang; variant: 'courses' | 'land'; next: string; visible?: boolean }) {
   const track = useRef<HTMLDivElement>(null)
+  const frame = useRef<HTMLDivElement>(null)
   const run = useRef<{ on: boolean; timer: number }>({ on: false, timer: 0 })
   /* With visible overflow (the chef's reel on the reference) the previous item peeks in at the left edge:
      the track keeps its previous item first and rests one item-width to the left. */
@@ -185,8 +186,21 @@ function Reel({ items, lang, variant, next, visible = false }: { items: readonly
     window.addEventListener('resize', onResize)
     return () => { window.removeEventListener('resize', onResize); window.clearTimeout(state.timer) }
   }, [settle, visible])
+  /* Only the pictures inside the clip are near enough to lazy-load, so a click would slide an empty frame in.
+     Once the reel approaches the viewport, every picture in it loads. */
+  useEffect(() => {
+    const el = frame.current
+    if (!el || !('IntersectionObserver' in window)) return
+    const io = new IntersectionObserver((entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return
+      el.querySelectorAll('img').forEach((i) => { i.loading = 'eager' })
+      io.disconnect()
+    }, { rootMargin: '900px 0px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
   return (
-    <div className={`dl-reel-frame dl-reel-frame--${variant}`} data-cursor="arrow">
+    <div ref={frame} className={`dl-reel-frame dl-reel-frame--${variant}`} data-cursor="arrow">
       <button className="dl-disc dl-disc--corner" type="button" aria-label={next} onClick={(e) => { e.stopPropagation(); advance() }}><Arrow /></button>
       <div className={`dl-reel-viewport${visible ? ' dl-reel-viewport--visible' : ''}`}>
         <div className={`dl-reel dl-reel--${variant}`} ref={track} onClick={advance}>
