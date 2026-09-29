@@ -4472,6 +4472,8 @@ import { companyEntry as TREBORG_ENTRY } from './treborg/data'
 PREVIEW_COMPANIES.push(TREBORG_ENTRY)
 import { companyEntry as KATLA_ENTRY } from './katla/data'
 PREVIEW_COMPANIES.push(KATLA_ENTRY)
+import { companyEntry as BENNI_ENTRY } from './benni/data'
+PREVIEW_COMPANIES.push(BENNI_ENTRY)
 import { companyEntry as DILL_ENTRY } from './dill/data'
 PREVIEW_COMPANIES.push(DILL_ENTRY)
 import { companyEntry as GOA_ENTRY } from './goa/data'
