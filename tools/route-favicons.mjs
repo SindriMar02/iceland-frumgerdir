@@ -46,6 +46,7 @@ const BRAND = {
   '/preview/malning': 'malning/brand',
   '/preview/benni': 'benni/brand',
   '/preview/dill': 'dill/brand',
+  '/preview/set': 'set/brand',
   '/preview/teitur': 'teitur/brand',
   '/preview/bygg': 'bygg/brand',
 }

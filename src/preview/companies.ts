@@ -4744,3 +4744,5 @@ PREVIEW_COMPANIES.push(ELFA_ENTRY)
 PREVIEW_COMPANIES.push(MYNDO_ENTRY)
 import { companyEntry as BYGG_ENTRY } from './bygg/data'
 PREVIEW_COMPANIES.push(BYGG_ENTRY)
+import { companyEntry as SET_ENTRY } from './set/data'
+PREVIEW_COMPANIES.push(SET_ENTRY)
