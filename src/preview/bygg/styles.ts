@@ -742,7 +742,7 @@ body.is-sliding, body.is-sliding .shell { background: var(--swap-bg); color: var
 @media (max-width: 650px) and (orientation: portrait) {
   [data-view="category"], body[data-page="category"] { --grow: 1.2; }
   :is([data-view="category"], [data-view="about"]) .dock, body:is([data-page="category"], [data-page="about"]) .shell > .dock { bottom: calc(4vw + env(safe-area-inset-bottom, 0px)) !important; }
-  body:is([data-page="category"], [data-page="about"]).past-hero .shell > .dock { bottom: var(--pad) !important; }
+  body:is([data-page="category"], [data-page="about"]).past-hero .shell > .dock { bottom: calc(4vw + env(safe-area-inset-bottom, 0px)) !important; }
   .intro__title, .cta__title, .wellness__title { max-width: 88vw; }
   .intro__text, .wellness__text, .next__text { max-width: 82vw; }
   .intro__title .line, .cta__title .line, .wellness__title .line, .quote__text .line, .fact__stat .line, .pullquote__text .line, .next__title .line { padding-bottom: calc(0.5vw * 2.25); margin-bottom: calc(-0.5vw * 2.25); }
@@ -979,7 +979,7 @@ body:not(.is-ready) .chip-note { visibility: hidden; }
 /* BYGG: touch targets of at least 44px where the reference sets links in body-size type */
 @media (pointer: coarse) {
   .ledger__go a, .cta__underline, .channel__value, .enquiry__tab, .thanks__more button, .film__link a, .ledger__note a, .enquiry__hint a { min-height: 44px; display: inline-flex; align-items: center; }
-  .ledger__note a, .enquiry__hint a { min-height: 32px; }
+  .ledger__note a { min-height: 32px; }
   .ledger__note, .ledger__sellers { line-height: 1.8; }
 }
 /* BYGG: hover states only where a pointer can hover; the reference leaves them stuck after a tap on touch screens */
@@ -1168,6 +1168,8 @@ body:not(.is-ready) .home-hero__copy, body:not(.is-ready) .home-facts { visibili
   .channel__value { font-size: max(15px, calc(var(--field) * 1.05)); }
   .people__item span { font-size: max(12px, 1em); }
   .sellers__row { row-gap: 0.7em; }
+  .fact__index { font-size: max(12px, 80%); }
+  .dock__picker, .dock__burger { min-height: 44px; }
   .board__notice b { font-size: max(12px, 1em); }
   .sellers__num[data-l]::before { content: attr(data-l); display: block; margin-bottom: 0.15em; color: var(--muted); font-size: max(12px, calc(var(--t-p) * 0.8)); line-height: 1.2; }  /* IOS-08: the stacked numbers keep their column labels */
 }
@@ -1176,7 +1178,7 @@ body:not(.is-ready) .home-hero__copy, body:not(.is-ready) .home-facts { visibili
   .enquiry input:not([type="checkbox"]):not([type="file"]), .enquiry select, .enquiry__send, .consent__policy { min-height: 44px; }
   .consent__policy { display: inline-flex; align-items: center; }
   .ledger__note a { min-height: 44px; }
-  .ledger__sellers a { padding: 0.75em 0.2em; margin: -0.75em -0.2em; text-decoration: underline; text-underline-offset: 0.2em; }   /* the hit area grows, the line does not */
+  .ledger__sellers a { white-space: nowrap; padding: 0.9em 0.2em; margin: -0.9em -0.2em; text-decoration: underline; text-underline-offset: 0.2em; }   /* the hit area grows, the line does not */
   .credit .sndr { min-height: 44px; align-items: center; }
 }
 `

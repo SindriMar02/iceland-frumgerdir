@@ -312,7 +312,7 @@ export function mountBygg(cfg: EngineConfig): () => void {
       gsap.set(this.root(), { autoAlpha: 0 });
       docOn("click", (e) => { const b = e.target.closest("[data-picker-toggle]"); if (!b) return; e.preventDefault(); e.stopPropagation(); this.open ? this.hide() : this.show(); });
       docOn("click", (e) => { // clicking the shrunk page closes it
-        if (!this.open || this.busy || !e.target.closest(".page") || e.target.closest(".dock")) return; e.preventDefault(); e.stopPropagation(); this.hide();
+        if (!this.open || this.busy || !e.target.closest(".page") || e.target.closest(".dock, [data-drawer-toggle]")) return; e.preventDefault(); e.stopPropagation(); this.hide();
       }, true);
       $$(".tile", this.root()).forEach((t) => {
         t.addEventListener("pointerenter", () => Router.prefetch(t.dataset.route));
@@ -349,7 +349,7 @@ export function mountBygg(cfg: EngineConfig): () => void {
     },
     origin() { // BYGG: the rect the panel grows from. On phones the panel always drops from the header button's place, even when the dock's button opened it after a scroll
       const b = this.button(); if (!b) return null;
-      const rb = b.getBoundingClientRect(); if (!mobile() || b.classList.contains("menu-top")) return rb;
+      const rb = b.getBoundingClientRect(); if (!mobile() || (b.classList.contains("menu-top") && rb.top >= 0 && rb.bottom <= innerHeight)) return rb;
       const t = $(".menu-top"), pad = Probe.px("var(--pad)", "width"), w = t?.offsetWidth || 119, h = t?.offsetHeight || 44;
       return { top: pad, bottom: pad + h, left: vw() - pad - w, right: vw() - pad, width: w, height: h };
     },
@@ -366,11 +366,11 @@ export function mountBygg(cfg: EngineConfig): () => void {
       if (this.isOpen || this.busy) return;
       if (Picker.open) { Picker.hide(() => this.open()); return; }
       const { scrim, panel, close, links, contact } = this.parts(), b = this.button(), D = V.drawer; if (!b) return;
-      this.colours(); this.isOpen = this.busy = true; body.classList.add("drawer-open"); this.root().setAttribute("aria-hidden", "false");
+      this.colours(); this.isOpen = this.busy = true; Dock.hide("drawer", true); body.classList.add("drawer-open"); this.root().setAttribute("aria-hidden", "false");
       $$("[data-drawer-toggle]").forEach((x) => { x.setAttribute("aria-expanded", "true"); x.setAttribute("aria-label", T.menuClose); });
       panel.style.visibility = "visible"; gsap.set(panel, { clearProps: "clipPath" }); this.place();
       this.bar($(".bar-short", b), D.bar); this.bar($(".bar-short", close), D.bar, false);
-      gsap.set(scrim, { opacity: 0 }); gsap.set(panel, { clipPath: this.clipTo(panel, this.origin()) });
+      gsap.set(scrim, { opacity: 0 }); this.org = this.origin(); gsap.set(panel, { clipPath: this.clipTo(panel, this.org) });
       gsap.set($(".bar-long", close), { clipPath: "inset(0px 0px 0px 0px)" });
       const L = { ...V.line, dur: D.links, ease: easeDrawer };
       links.forEach((a) => { a._blk = a.classList.contains("rolls") ? a.firstElementChild : a; a._twin = a.classList.contains("rolls") ? a.lastElementChild : null; if (a._twin) gsap.set(a._twin, { autoAlpha: 0 }); gsap.set(a._blk, { display: "block", overflow: "hidden", transformOrigin: "50% 100%" }); Lines.hide([a._blk], L); });
@@ -385,18 +385,18 @@ export function mountBygg(cfg: EngineConfig): () => void {
     close(then) {
       if (!this.isOpen) { then?.(); return; }
       const { scrim, panel, close, links, contact } = this.parts(), b = this.button(), D = V.drawer;
-      this.busy = true; this.tl?.kill(); this.place();
+      this.busy = true; this.tl?.kill(); // the panel keeps the place it opened at (re-placing after a scroll behind it made it jump)
       const done = () => {
         body.classList.remove("drawer-open"); this.root().setAttribute("aria-hidden", "true");
         $$("[data-drawer-toggle]").forEach((x) => { x.setAttribute("aria-expanded", "false"); x.setAttribute("aria-label", T.menuOpen); });
         close.hidden = true; panel.style.visibility = "hidden"; gsap.set(panel, { clearProps: "clipPath" }); gsap.set([...links, contact], { clearProps: "opacity" });
         gsap.set($(".bar-long", close), { clipPath: "inset(0px 0px 0px 0px)" }); this.bar($(".bar-short", close), 0, false); this.bar($(".bar-short", b), 0, false);
-        this.isOpen = this.busy = false; b?.focus({ preventScroll: true }); then?.();
+        this.isOpen = this.busy = false; Dock.hide("drawer", false); b?.focus({ preventScroll: true }); then?.();
       };
       const tl = (this.tl = gsap.timeline({ onComplete: done }));
       tl.to([contact, ...links.slice().reverse()], { opacity: 0, duration: D.closeLinks, stagger: D.closeStagger, ease: "power2.in" }, 0);
       tl.to(scrim, { opacity: 0, duration: D.closeRest, ease: easeDrawer }, D.closeDelay);
-      tl.to(panel, { clipPath: this.clipTo(panel, this.origin()), duration: D.closeRest, ease: easeDrawer }, D.closeDelay);
+      tl.to(panel, { clipPath: this.clipTo(panel, this.org || this.origin()), duration: D.closeRest, ease: easeDrawer }, D.closeDelay);
       tl.to($(".bar-long", close), { clipPath: "inset(0px 0px 0px 0px)", duration: D.closeRest, ease: easeDrawer }, D.closeDelay);
       this.bar($(".bar-short", close), 0);
     },
@@ -725,7 +725,7 @@ export function mountBygg(cfg: EngineConfig): () => void {
         tl.clear();
         tl.fromTo(photo, { width: g.w0, height: g.h0, y: "0vw" }, { width: "100vw", height: g.endH + "vw", y: g.y + "vw", ease: "none", duration: 1, immediateRender: true }, 0);
         const copy = $(".hero--category .hero__copy", root); // BYGG: the headline and price step aside as the photo starts to grow instead of sitting under it
-        if (copy) tl.fromTo(copy, { opacity: 1 }, { opacity: 0, duration: 0.14, ease: "none", immediateRender: false }, 0); // fromTo: a refresh mid-scroll must not record 0 as the start
+        if (copy) tl.fromTo(copy, { opacity: 1 }, { opacity: 0, duration: 0.04, ease: "none", immediateRender: false }, 0); // fromTo: a refresh mid-scroll must not record 0 as the start
         if (g.hold > 0) tl.to({}, { duration: g.hold / g.sa, ease: "none" }, ">");
       };
       const pastAt = (p) => this.past(p / (g.sa / (g.sa + g.hold)) >= 1);
@@ -940,11 +940,11 @@ export function mountBygg(cfg: EngineConfig): () => void {
         + '<p class="thanks__note">' + esc(info.note || T.thanksNote) + '</p><h4 class="thanks__more"><button type="button" data-thanks-close>' + esc(T.thanksMore) + ' <img src="' + cfg.arrow + '" alt="" width="17" height="15"></button></h4></div></div>';
       e.addEventListener("click", (ev) => { if (ev.target.closest("[data-thanks-close]")) { ev.preventDefault(); this.close(); } });
       body.appendChild(e); this.el = e; void e.offsetWidth;
-      document.activeElement?.blur?.(); e.classList.add("is-open"); e.setAttribute("aria-hidden", "false"); Smooth.hold("thanks", true);
+      document.activeElement?.blur?.(); Dock.hide("thanks", true); e.classList.add("is-open"); e.setAttribute("aria-hidden", "false"); Smooth.hold("thanks", true);
       const focusClose = () => $("button", e)?.focus({ preventScroll: true }); requestAnimationFrame(focusClose); setTimeout(focusClose, 160); // BYGG: focus lands once the card is visible (Safari ignores it while visibility is still hidden)
     },
-    close() { const e = this.el; if (!e?.classList.contains("is-open")) return; e.classList.remove("is-open"); e.setAttribute("aria-hidden", "true"); Smooth.hold("thanks", false); this.t = setTimeout(() => { e.remove(); if (this.el === e) this.el = null; }, 800); },
-    drop() { clearTimeout(this.t); this.el?.remove(); this.el = null; Smooth.hold("thanks", false); },
+    close() { const e = this.el; if (!e?.classList.contains("is-open")) return; Dock.hide("thanks", false); e.classList.remove("is-open"); e.setAttribute("aria-hidden", "true"); Smooth.hold("thanks", false); this.t = setTimeout(() => { e.remove(); if (this.el === e) this.el = null; }, 800); },
+    drop() { clearTimeout(this.t); this.el?.remove(); this.el = null; Smooth.hold("thanks", false); Dock.hide("thanks", false); },
   };
   addEventListener("keydown", (e) => { if (e.key !== "Escape") return; if (Thanks.el?.classList.contains("is-open")) Thanks.close(); else if (Panel.el?.classList.contains("is-open")) Panel.close(); });
 
@@ -1216,7 +1216,8 @@ export function mountBygg(cfg: EngineConfig): () => void {
     Smooth.init(); Picker.bind(); Drawer.bind(); Router.bind(); Continue.bind(); Scrollbar.mount();
     // BYGG: on phones the dock slides away while scrolling down and comes back on scroll up, so it never sits over what is being read
     let lastY = scrollY, dockT = 0;
-    addEventListener("scroll", () => { if (!mobile() || Picker.open || Drawer.isOpen || Router.busy) { lastY = scrollY; return; } const y = scrollY, d = y - lastY; if (Math.abs(d) < 12) return; lastY = y; Dock.hide("scroll", d > 0 && y > 120); clearTimeout(dockT); dockT = setTimeout(() => Dock.hide("scroll", false), 700); }, { passive: true }); // and it returns when the scrolling stops
+    const blocked = () => { const d = Dock.el(); if (!d) return false; const r = d.getBoundingClientRect(); return [0.15, 0.5, 0.85].some((fx) => [0.3, 0.7].some((fy) => document.elementsFromPoint(r.left + r.width * fx, r.top + r.height * fy).some((e) => !e.closest(".dock, .drawer, .picker, .thanks, .ring, .scrollbar") && e.matches("a[href], button, input, select, textarea, [role=tab]")))); };
+    addEventListener("scroll", () => { if (!mobile() || Picker.open || Drawer.isOpen || Router.busy) { lastY = scrollY; return; } const y = scrollY, d = y - lastY; if (Math.abs(d) < 12) return; lastY = y; Dock.hide("scroll", d > 0 && y > 120); clearTimeout(dockT); dockT = setTimeout(() => Dock.hide("scroll", blocked()), 700); }, { passive: true }); // it returns when the scrolling stops, unless it would sit on a control (scrolling up brings it back)
     let rt = null;
     addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => Ticker.rebuild(), 150); });
     const root = $(".page");
