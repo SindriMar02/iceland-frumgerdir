@@ -150,7 +150,7 @@ body.is-picking .page * { cursor: inherit; }
 .navlink:focus-visible::after { transform: scaleX(1); transform-origin: 0% 50%; }
 
 /* ── dock: Our Selection + menu (Module 2, 14, gap 17.2) ────── */
-.dock { --fill: var(--navy); --ink: var(--white); --bg: transparent;
+.dock { --fill: var(--navy); --ink: var(--white); --bg: var(--white); /* BYGG: solid, never see-through */
   position: fixed; z-index: 100; right: var(--pad); bottom: var(--pad); display: inline-flex; align-items: center; gap: 0.45em; will-change: transform; }
 .dock__picker { display: inline-flex; align-items: center; justify-content: center; gap: 0.8em; height: var(--action-h); padding: 0 1.5em;
   font-size: var(--t-nav); line-height: 1; white-space: nowrap; color: var(--fill); border: calc(1px * 0.82) solid var(--fill);
@@ -331,7 +331,7 @@ body[data-page="about"] .shell { height: auto; min-height: 100svh; overflow: vis
 .page[data-view="about"] { height: auto; min-height: 100svh; overflow: visible; background: var(--white); color: var(--navy); }
 body.is-picking .page:is([data-view="category"], [data-view="about"]) { height: 100svh; min-height: 0; overflow: clip; }
 :is([data-view="category"], [data-view="about"]) .frame { overflow: visible; }
-:is([data-view="category"], [data-view="about"]) .dock, body:is([data-page="category"], [data-page="about"]) .shell > .dock { --fill: var(--white); --ink: var(--cat); bottom: 5vw; transition: bottom 0.4s ease; } /* C3, C22, A3 */
+:is([data-view="category"], [data-view="about"]) .dock, body:is([data-page="category"], [data-page="about"]) .shell > .dock { --fill: var(--white); --ink: var(--cat); --bg: var(--cat); bottom: 5vw; transition: bottom 0.4s ease; } /* C3, C22, A3 */
 body:is([data-page="category"], [data-page="about"]).past-hero .shell > .dock { --fill: var(--cat); --ink: var(--white); --bg: var(--white); bottom: var(--pad); }
 
 /* hero stage: 100svh frame + grow runway + hold (C4) */

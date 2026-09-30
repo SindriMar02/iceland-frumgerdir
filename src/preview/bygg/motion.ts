@@ -1215,8 +1215,8 @@ export function mountBygg(cfg: EngineConfig): () => void {
   function boot() {
     Smooth.init(); Picker.bind(); Drawer.bind(); Router.bind(); Continue.bind(); Scrollbar.mount();
     // BYGG: on phones the dock slides away while scrolling down and comes back on scroll up, so it never sits over what is being read
-    let lastY = scrollY;
-    addEventListener("scroll", () => { if (!mobile() || Picker.open || Drawer.isOpen || Router.busy) { lastY = scrollY; return; } const y = scrollY, d = y - lastY; if (Math.abs(d) < 12) return; lastY = y; Dock.hide("scroll", d > 0 && y > 120); }, { passive: true });
+    let lastY = scrollY, dockT = 0;
+    addEventListener("scroll", () => { if (!mobile() || Picker.open || Drawer.isOpen || Router.busy) { lastY = scrollY; return; } const y = scrollY, d = y - lastY; if (Math.abs(d) < 12) return; lastY = y; Dock.hide("scroll", d > 0 && y > 120); clearTimeout(dockT); dockT = setTimeout(() => Dock.hide("scroll", false), 700); }, { passive: true }); // and it returns when the scrolling stops
     let rt = null;
     addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => Ticker.rebuild(), 150); });
     const root = $(".page");
