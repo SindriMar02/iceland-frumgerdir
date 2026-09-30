@@ -398,7 +398,7 @@ html:has(.set),body:has(.set){background-color:#FFFFFF}
 
 /* ---------- drawer + modal: the video's blur backdrop, panel resolves from blur ---------- */
 .set .set-scrim{position:fixed;inset:0;z-index:300;visibility:hidden;transition:visibility 0s .2s}
-.set .set-scrim::before{content:"";position:absolute;inset:0;background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transition:opacity .2s var(--ease)}
+.set .set-scrim::before{content:"";position:absolute;inset:0 0 -140px 0;background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transition:opacity .2s var(--ease)}
 .set .set-scrim.is-open{visibility:visible;transition:visibility 0s}
 .set .set-scrim.is-open::before{opacity:1;transition-duration:.25s}
 .set .set-panel{opacity:0;filter:blur(12px);transform:translate3d(0,8px,0);transition:opacity .2s var(--ease),filter .2s var(--ease),transform .2s var(--ease)}
@@ -406,6 +406,8 @@ html:has(.set),body:has(.set){background-color:#FFFFFF}
 .set .set-scrim.is-open .set-panel{transition-duration:.3s}
 .set .set-scrim.is-open .set-panel{opacity:1;filter:none;transform:none}
 .set .set-drawer{z-index:1;position:absolute;top:0;right:0;bottom:0;width:min(480px,100%);background:var(--paper);border-left:1px solid var(--rule);display:flex;flex-direction:column}
+/* iOS 26 Safari shows page under its minimised toolbar, below a fixed bottom:0 edge: the drawer's paper runs on under it */
+.set .set-drawer::after{content:"";position:absolute;left:-1px;right:0;top:100%;height:140px;background:var(--paper);border-left:1px solid var(--rule)}
 .set .set-drawer__head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 8px 0 20px;min-height:var(--bar);background:var(--petrol);color:#fff}
 .set .set-drawer__head h2{font-family:var(--d);font-stretch:125%;font-weight:620;text-transform:uppercase;font-size:20px}
 .set .set-x{width:44px;height:44px;display:grid;place-items:center}
