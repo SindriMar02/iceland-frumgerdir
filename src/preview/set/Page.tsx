@@ -117,12 +117,13 @@ export default function SetPage() {
     try { return sessionStorage.getItem(LOADER_KEY) ? 'off' : 'on' } catch { return 'off' }
   })
   const loaderEnd = useRef(loader === 'on' ? performance.now() + LOADER_MS + 350 : 0)
+  /* one timer per stage: a single effect with both timers cancelled its own removal when the state flipped to
+     'leaving', leaving the petrol field fixed above the viewport, which iOS Safari then sampled to tint its chrome */
   useEffect(() => {
-    if (loader !== 'on') return
-    try { sessionStorage.setItem(LOADER_KEY, '1') } catch { /* private mode */ }
-    const a = window.setTimeout(() => setLoader('leaving'), LOADER_MS)
-    const b = window.setTimeout(() => setLoader('off'), LOADER_MS + 1250)
-    return () => { window.clearTimeout(a); window.clearTimeout(b) }
+    if (loader === 'off') return
+    if (loader === 'on') { try { sessionStorage.setItem(LOADER_KEY, '1') } catch { /* private mode */ } }
+    const id = window.setTimeout(() => setLoader(loader === 'on' ? 'leaving' : 'off'), loader === 'on' ? LOADER_MS : 1250)
+    return () => window.clearTimeout(id)
   }, [loader])
   const [ringOn, setRingOn] = useState(false)
   useEffect(() => {
