@@ -741,7 +741,7 @@ body.is-sliding, body.is-sliding .shell { background: var(--swap-bg); color: var
 }
 @media (max-width: 650px) and (orientation: portrait) {
   [data-view="category"], body[data-page="category"] { --grow: 1.2; }
-  :is([data-view="category"], [data-view="about"]) .dock, body:is([data-page="category"], [data-page="about"]) .shell > .dock { bottom: 20vw !important; }
+  :is([data-view="category"], [data-view="about"]) .dock, body:is([data-page="category"], [data-page="about"]) .shell > .dock { bottom: calc(4vw + env(safe-area-inset-bottom, 0px)) !important; }
   body:is([data-page="category"], [data-page="about"]).past-hero .shell > .dock { bottom: var(--pad) !important; }
   .intro__title, .cta__title, .wellness__title { max-width: 88vw; }
   .intro__text, .wellness__text, .next__text { max-width: 82vw; }
@@ -777,7 +777,7 @@ body.is-sliding, body.is-sliding .shell { background: var(--swap-bg); color: var
   .brand { margin-top: 2vw; }
   .navlink { display: none; }
   .colophon { grid-column: 1 / -1; justify-self: center; text-align: center; margin: auto; }
-  .dock { --k: calc(1.7 * 0.85); left: 0; right: 0; bottom: 20vw; width: fit-content; margin-inline: auto; gap: calc(0.45em * var(--k)); }
+  .dock { --k: calc(1.7 * 0.85); left: 0; right: 0; bottom: calc(4vw + env(safe-area-inset-bottom, 0px)); width: fit-content; margin-inline: auto; gap: calc(0.45em * var(--k)); }
   .dock__picker { height: calc(var(--action-h) * var(--k)); padding: 0 1.2em; gap: 0.7em; font-size: calc(var(--t-nav) * var(--k)); }
   .dock__burger { width: calc(var(--burger-w) * var(--k)); height: calc(var(--action-h) * var(--k)); }
   .dock__burger svg { width: calc(100% * 23 / 65); }
@@ -1148,5 +1148,36 @@ body:not(.is-ready) .home-hero__copy, body:not(.is-ready) .home-facts { visibili
 .drawer__close.is-labelled { gap: 0.65em; font-size: max(15px, var(--t-nav)); line-height: 1; }
 .drawer__close.is-labelled .drawer__close-label { display: inline; }
 .drawer__close.is-labelled svg { width: 20px; }
+
+/* ── BYGG: fixes from the iOS Safari audit (_docs/bygg-ios-audit-2026-09-30/REPORT.md) ── */
+.thanks__card { max-height: calc(var(--vh1, 1svh) * 100 - var(--pad) * 2); overflow-y: auto; overscroll-behavior: contain; }        /* IOS-05: never taller than the visual viewport */
+@media (max-width: 650px) and (orientation: portrait) {
+  .tile__name { font-size: min(var(--tile-name), calc(41vw / var(--nw, 8))); }                                                         /* IOS-04: the long names fit the tile text column */
+  .drawer__links a { display: flex; align-items: center; min-height: 44px; }                                                         /* IOS-07 */
+  .drawer__links a.drawer__links--minor { min-height: 44px; }
+  .drawer__contact a { min-height: 44px; }
+  .chip { font-size: max(12px, calc(var(--t-hero) * 0.55)); }                                                                          /* IOS-06: no useful text under 12 px on a phone */
+  .chip-note, .ledger__tag, .tag-sample, .enquiry__hint, .enquiry__sample, .thanks__note, .consent__label, .people__item span { font-size: max(12px, 1em); }
+  .chip-note { font-size: max(12px, calc(var(--t-hero) * 0.5)); }
+  .ledger__tag { font-size: max(12px, calc(var(--t-nav) * 0.72)); }
+  .tag-sample { font-size: max(12px, calc(var(--t-p) * 0.62)); }
+  .enquiry__hint, .enquiry__sample { font-size: max(12px, calc(var(--field) * 0.92)); }
+  .thanks__note { font-size: max(12px, calc(var(--field) * 0.95)); }
+  .consent__label { font-size: max(12px, var(--tick)); }
+  .credit { font-size: max(12px, calc(var(--t-nav) * 0.62)); }
+  .channel__value { font-size: max(15px, calc(var(--field) * 1.05)); }
+  .people__item span { font-size: max(12px, 1em); }
+  .sellers__row { row-gap: 0.7em; }
+  .board__notice b { font-size: max(12px, 1em); }
+  .sellers__num[data-l]::before { content: attr(data-l); display: block; margin-bottom: 0.15em; color: var(--muted); font-size: max(12px, calc(var(--t-p) * 0.8)); line-height: 1.2; }  /* IOS-08: the stacked numbers keep their column labels */
+}
+@media (pointer: coarse) {                                                                                                          /* IOS-07: 44 px targets */
+  .brand { display: inline-flex; align-items: center; min-height: 44px; }
+  .enquiry input:not([type="checkbox"]):not([type="file"]), .enquiry select, .enquiry__send, .consent__policy { min-height: 44px; }
+  .consent__policy { display: inline-flex; align-items: center; }
+  .ledger__note a { min-height: 44px; }
+  .ledger__sellers a { padding: 0.75em 0.2em; margin: -0.75em -0.2em; text-decoration: underline; text-underline-offset: 0.2em; }   /* the hit area grows, the line does not */
+  .credit .sndr { min-height: 44px; align-items: center; }
+}
 `
 }

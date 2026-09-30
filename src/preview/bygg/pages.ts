@@ -331,7 +331,7 @@ function ledger(c: Collection, lang: Lang) {
           <div class="ledger__table">
             <div class="ledger__head" aria-hidden="true"><span>${esc(t.ledgerHeadSize)}</span><span>${esc(t.ledgerHeadPrice)}</span><span>${esc(t.ledgerHeadStat)}</span><span></span></div>
 ${rows}
-            <p class="ledger__sellers"><b>${esc(t.sellersLabel)}:</b> <span>${sellers.sellers.map((k) => `${esc(AGENCY[k].name)} ${esc(AGENCY[k].phone)}`).join(', ')}. ${esc(t.sellersTail)}</span></p>
+            <p class="ledger__sellers"><b>${esc(t.sellersLabel)}:</b> <span>${sellers.sellers.map((k) => `${esc(AGENCY[k].name)} <a href="tel:+354${AGENCY[k].phone.replace(/\s/g, '')}">${esc(AGENCY[k].phone)}</a>`).join(', ')}. ${esc(t.sellersTail)}</span></p>
             <p class="ledger__note"><a href="${sellers.url}" target="_blank" rel="noopener noreferrer">${esc(sellers.label)} ${lang === 'is' ? 'á bygg.is' : 'on bygg.is'}</a><br><a href="https://www.bygg.is/verkefni/" target="_blank" rel="noopener noreferrer">${esc(t.ledgerLinkMore)}</a><br><a href="${HMS_URL}" target="_blank" rel="noopener noreferrer">${esc(t.ledgerLinkHms)}</a></p>
           </div>
         </section>`
@@ -363,7 +363,7 @@ function collection(c: Collection, lang: Lang) {
 
             <div class="hero hero--category">
               <div class="hero__stack">
-                <figure class="hero__photo"><img ${src(c.hero, '20vw', ` alt="${alt(c.heroAlt)}" fetchpriority="high" decoding="sync"`)}></figure>
+                <figure class="hero__photo"><img ${src(c.hero, '100vw', ` alt="${alt(c.heroAlt)}" fetchpriority="high" decoding="sync"`)}></figure>
                 ${ticker(pick(c.marquee, lang))}
               </div>
               <div class="hero__copy">
@@ -728,7 +728,7 @@ function overview(lang: Lang) {
               </div>`
   }).join('\n')
   const funnel = SAMPLE.funnel.map((f, n) => `              <div class="funnel__step${n === SAMPLE.stall ? ' funnel__step--stall' : ''}"><span class="funnel__n">${f.n}</span><span class="funnel__l">${esc(pick(f.l, lang))}</span><span class="funnel__d">${esc(pick(f.d, lang))}</span></div>`).join('\n')
-  const sellers = SAMPLE.sellers.map((s) => `              <div class="sellers__row${s.hours > 24 ? ' sellers__row--slow' : ''}"><span class="sellers__name">${esc(pick(s.name, lang))}</span><span class="sellers__num">${s.sent}</span><span class="sellers__num sellers__num--slow">${String(s.hours).replace('.', lang === 'is' ? ',' : '.')}${NB}${esc(t.hoursShort)}</span><span class="sellers__num">${s.viewings}%</span></div>`).join('\n')
+  const sellers = SAMPLE.sellers.map((s) => `              <div class="sellers__row${s.hours > 24 ? ' sellers__row--slow' : ''}"><span class="sellers__name">${esc(pick(s.name, lang))}</span><span class="sellers__num" data-l="${esc(t.ovSellerCol2)}">${s.sent}</span><span class="sellers__num sellers__num--slow" data-l="${esc(t.ovSellerCol3)}">${String(s.hours).replace('.', lang === 'is' ? ',' : '.')}${NB}${esc(t.hoursShort)}</span><span class="sellers__num" data-l="${esc(t.ovSellerCol4)}">${s.viewings}%</span></div>`).join('\n')
   return `<div class="page" data-view="about" data-slug="overview">
       <main class="page__main" id="main" tabindex="-1">
         <div class="scene scene--about">

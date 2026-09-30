@@ -347,14 +347,20 @@ export function mountBygg(cfg: EngineConfig): () => void {
       const c = "var(--cat)"; // C3
       r.setProperty("--d-bg", past ? c : "var(--white)"); r.setProperty("--d-ink", past ? "var(--white)" : c); r.setProperty("--d-scrim", `color-mix(in srgb, ${c} 36%, transparent)`);
     },
+    origin() { // BYGG: the rect the panel grows from. On phones the panel always drops from the header button's place, even when the dock's button opened it after a scroll
+      const b = this.button(); if (!b) return null;
+      const rb = b.getBoundingClientRect(); if (!mobile() || b.classList.contains("menu-top")) return rb;
+      const t = $(".menu-top"), pad = Probe.px("var(--pad)", "width"), w = t?.offsetWidth || 119, h = t?.offsetHeight || 44;
+      return { top: pad, bottom: pad + h, left: vw() - pad - w, right: vw() - pad, width: w, height: h };
+    },
     place() {
       const { panel, close } = this.parts(), b = this.button(); if (!b) return;
-      const r = b.getBoundingClientRect(), dock = b.closest(".dock");
-      if (dock) { const d = dock.getBoundingClientRect(); Object.assign(panel.style, { top: "auto", bottom: this.inVw(innerHeight - d.bottom), right: this.inVw(vw() - d.right), width: mobile() ? this.inVw(d.width) : "" }); }
-      else Object.assign(panel.style, { top: this.inVw(r.top), bottom: "auto", right: this.inVw(vw() - r.right), width: mobile() ? this.inVw(2 * r.right - vw()) : "" }); // header button: the panel opens downward from it
-      Object.assign(close.style, { top: this.inVw(r.top), left: this.inVw(r.left), width: this.inVw(r.width), height: this.inVw(r.height) }); close.hidden = false; close.classList.toggle("is-labelled", !dock);
+      const r = this.origin(), dock = b.closest(".dock");
+      if (dock && !mobile()) { const d = dock.getBoundingClientRect(); Object.assign(panel.style, { top: "auto", bottom: this.inVw(innerHeight - d.bottom), right: this.inVw(vw() - d.right), width: "" }); }
+      else Object.assign(panel.style, { top: this.inVw(r.top), bottom: "auto", right: this.inVw(vw() - r.right), width: mobile() ? this.inVw(2 * r.right - vw()) : "" }); // the panel opens downward from the header button
+      Object.assign(close.style, { top: this.inVw(r.top), left: this.inVw(r.left), width: this.inVw(r.width), height: this.inVw(r.height) }); close.hidden = false; close.classList.toggle("is-labelled", mobile() || !dock);
     },
-    clipTo(panel, el) { const p = panel.getBoundingClientRect(), o = el.getBoundingClientRect(); return `inset(${Math.max(o.top - p.top, 0)}px ${Math.max(p.right - o.right, 0)}px ${Math.max(p.bottom - o.bottom, 0)}px ${Math.max(o.left - p.left, 0)}px)`; },
+    clipTo(panel, el) { const p = panel.getBoundingClientRect(), o = el.getBoundingClientRect ? el.getBoundingClientRect() : el; return `inset(${Math.max(o.top - p.top, 0)}px ${Math.max(p.right - o.right, 0)}px ${Math.max(p.bottom - o.bottom, 0)}px ${Math.max(o.left - p.left, 0)}px)`; },
     bar(el, x, animate = true) { if (!el) return; gsap.killTweensOf(el); animate ? gsap.to(el, { attr: { x }, duration: V.drawer.barDur, ease: "power2.inOut" }) : gsap.set(el, { attr: { x } }); },
     open() {
       if (this.isOpen || this.busy) return;
@@ -364,7 +370,7 @@ export function mountBygg(cfg: EngineConfig): () => void {
       $$("[data-drawer-toggle]").forEach((x) => { x.setAttribute("aria-expanded", "true"); x.setAttribute("aria-label", T.menuClose); });
       panel.style.visibility = "visible"; gsap.set(panel, { clearProps: "clipPath" }); this.place();
       this.bar($(".bar-short", b), D.bar); this.bar($(".bar-short", close), D.bar, false);
-      gsap.set(scrim, { opacity: 0 }); gsap.set(panel, { clipPath: this.clipTo(panel, b) });
+      gsap.set(scrim, { opacity: 0 }); gsap.set(panel, { clipPath: this.clipTo(panel, this.origin()) });
       gsap.set($(".bar-long", close), { clipPath: "inset(0px 0px 0px 0px)" });
       const L = { ...V.line, dur: D.links, ease: easeDrawer };
       links.forEach((a) => { a._blk = a.classList.contains("rolls") ? a.firstElementChild : a; a._twin = a.classList.contains("rolls") ? a.lastElementChild : null; if (a._twin) gsap.set(a._twin, { autoAlpha: 0 }); gsap.set(a._blk, { display: "block", overflow: "hidden", transformOrigin: "50% 100%" }); Lines.hide([a._blk], L); });
@@ -390,7 +396,7 @@ export function mountBygg(cfg: EngineConfig): () => void {
       const tl = (this.tl = gsap.timeline({ onComplete: done }));
       tl.to([contact, ...links.slice().reverse()], { opacity: 0, duration: D.closeLinks, stagger: D.closeStagger, ease: "power2.in" }, 0);
       tl.to(scrim, { opacity: 0, duration: D.closeRest, ease: easeDrawer }, D.closeDelay);
-      tl.to(panel, { clipPath: this.clipTo(panel, b), duration: D.closeRest, ease: easeDrawer }, D.closeDelay);
+      tl.to(panel, { clipPath: this.clipTo(panel, this.origin()), duration: D.closeRest, ease: easeDrawer }, D.closeDelay);
       tl.to($(".bar-long", close), { clipPath: "inset(0px 0px 0px 0px)", duration: D.closeRest, ease: easeDrawer }, D.closeDelay);
       this.bar($(".bar-short", close), 0);
     },
@@ -718,6 +724,8 @@ export function mountBygg(cfg: EngineConfig): () => void {
       const fill = () => {
         tl.clear();
         tl.fromTo(photo, { width: g.w0, height: g.h0, y: "0vw" }, { width: "100vw", height: g.endH + "vw", y: g.y + "vw", ease: "none", duration: 1, immediateRender: true }, 0);
+        const copy = $(".hero--category .hero__copy", root); // BYGG: the headline and price step aside as the photo starts to grow instead of sitting under it
+        if (copy) tl.fromTo(copy, { opacity: 1 }, { opacity: 0, duration: 0.14, ease: "none", immediateRender: false }, 0); // fromTo: a refresh mid-scroll must not record 0 as the start
         if (g.hold > 0) tl.to({}, { duration: g.hold / g.sa, ease: "none" }, ">");
       };
       const pastAt = (p) => this.past(p / (g.sa / (g.sa + g.hold)) >= 1);
@@ -932,7 +940,8 @@ export function mountBygg(cfg: EngineConfig): () => void {
         + '<p class="thanks__note">' + esc(info.note || T.thanksNote) + '</p><h4 class="thanks__more"><button type="button" data-thanks-close>' + esc(T.thanksMore) + ' <img src="' + cfg.arrow + '" alt="" width="17" height="15"></button></h4></div></div>';
       e.addEventListener("click", (ev) => { if (ev.target.closest("[data-thanks-close]")) { ev.preventDefault(); this.close(); } });
       body.appendChild(e); this.el = e; void e.offsetWidth;
-      e.classList.add("is-open"); e.setAttribute("aria-hidden", "false"); Smooth.hold("thanks", true); $("button", e).focus({ preventScroll: true });
+      document.activeElement?.blur?.(); e.classList.add("is-open"); e.setAttribute("aria-hidden", "false"); Smooth.hold("thanks", true);
+      const focusClose = () => $("button", e)?.focus({ preventScroll: true }); requestAnimationFrame(focusClose); setTimeout(focusClose, 160); // BYGG: focus lands once the card is visible (Safari ignores it while visibility is still hidden)
     },
     close() { const e = this.el; if (!e?.classList.contains("is-open")) return; e.classList.remove("is-open"); e.setAttribute("aria-hidden", "true"); Smooth.hold("thanks", false); this.t = setTimeout(() => { e.remove(); if (this.el === e) this.el = null; }, 800); },
     drop() { clearTimeout(this.t); this.el?.remove(); this.el = null; Smooth.hold("thanks", false); },
@@ -1044,7 +1053,7 @@ export function mountBygg(cfg: EngineConfig): () => void {
   const BUILT = new Set(cfg.routes.map((r) => r.key));
   const hrefOf = (key) => cfg.base + (key === "/" ? "/" : key + "/");
   const Router = {
-    busy: false, cache: new Map(), current: null,
+    busy: false, cache: new Map(), current: null, pos: new Map(), restore: null, // BYGG: pos remembers each route's scroll for Back
     path(href) {
       try { const u = new URL(href, location.href); if (u.origin !== location.origin) return null;
         if (u.pathname !== cfg.base && !u.pathname.startsWith(cfg.base + "/")) return null;
@@ -1075,10 +1084,15 @@ export function mountBygg(cfg: EngineConfig): () => void {
       body.dataset.page = d.view; if (d.category) body.dataset.category = d.category; else delete body.dataset.category;
       body.classList.remove("past-hero", "is-routing", "is-sliding", "is-swapping", "is-nexting"); document.title = d.title; cfg.onCommit?.(d);
       Dock.use($(".dock", inc)); Page.mount(inc);
+      // BYGG: iOS Safari kept the old page's scroll offset across the swap (a card link opened the project 1100 px down). Commit the intended position after layout settles.
+      const y = this.restore ?? 0; this.restore = null;
+      const settle = () => { if (Smooth.on) Scroll.to(y, true); else { scrollTo(0, y); if (document.scrollingElement) document.scrollingElement.scrollTop = y; } };
+      settle(); requestAnimationFrame(() => { settle(); requestAnimationFrame(() => { ScrollTrigger.refresh(); settle(); }); });
       if (Intro.pending) requestAnimationFrame(() => Intro.pending?.()); // deferred home lines start one frame after the commit (Sw() A:7533)
     },
     async go(href, kind = "auto", from = null, { replace = false, history: push = true } = {}) {
       const p = this.path(href); if (!p) { location.assign(href); return; }
+      if (push) this.restore = null;
       if (this.busy) return;
       const here = this.current ?? this.path(location.href);
       if (p === here && kind !== "logo") { if (Picker.open && !Picker.busy) Picker.hide(); return; }
@@ -1088,6 +1102,7 @@ export function mountBygg(cfg: EngineConfig): () => void {
       if (kind === "auto") kind = ROUTES[p] === "category" ? "cut" : "slide";
       if (kind === "logo") kind = "slide";
       if (reduced()) kind = "cut";
+      this.pos.set(here, Scroll.y());
       this.busy = true;
       try {
         const d = await this.load(p);
@@ -1191,7 +1206,7 @@ export function mountBygg(cfg: EngineConfig): () => void {
       });
       const warm = (e) => { const a = e.target.closest?.("a[href]"); if (a) this.prefetch(a.getAttribute("href")); };
       ["pointerover", "focusin", "pointerdown"].forEach((t) => docOn(t, warm, { passive: true }));
-      addEventListener("popstate", () => { if (!this.path(location.href)) return; this.go(location.href, "slide", null, { history: false }); }); // BYGG: a step out of the preview belongs to the app router
+      addEventListener("popstate", () => { const to = this.path(location.href); if (!to) return; this.restore = this.pos.get(to) ?? 0; this.go(location.href, "slide", null, { history: false }); }); // BYGG: a step out of the preview belongs to the app router
       const c = navigator.connection; if (!c?.saveData && (!c?.effectiveType || c.effectiveType === "4g")) (window.requestIdleCallback || ((f) => setTimeout(f, 2000)))(() => BUILT.forEach((p) => this.prefetch(hrefOf(p)))); // idle prefetch (M10)
     },
   };
@@ -1199,6 +1214,9 @@ export function mountBygg(cfg: EngineConfig): () => void {
   /* ── boot ──────────────────────────────────────────────────── */
   function boot() {
     Smooth.init(); Picker.bind(); Drawer.bind(); Router.bind(); Continue.bind(); Scrollbar.mount();
+    // BYGG: on phones the dock slides away while scrolling down and comes back on scroll up, so it never sits over what is being read
+    let lastY = scrollY;
+    addEventListener("scroll", () => { if (!mobile() || Picker.open || Drawer.isOpen || Router.busy) { lastY = scrollY; return; } const y = scrollY, d = y - lastY; if (Math.abs(d) < 12) return; lastY = y; Dock.hide("scroll", d > 0 && y > 120); }, { passive: true });
     let rt = null;
     addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => Ticker.rebuild(), 150); });
     const root = $(".page");
