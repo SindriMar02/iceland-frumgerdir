@@ -73,6 +73,13 @@ jobs:
           # clicking an element inside Presentation is sent to a studio that
           # only exists on the developer's machine.
           VITE_SANITY_STUDIO_URL: https://polarhestar.sanity.studio
+      # Separate HTML/CSS scope keeps the dealership's themes isolated from the
+      # shared SPA. This route is rebuilt and verified on every Pages deployment.
+      - name: Build and stage Bílagallerí outreach preview
+        run: |
+          node tools/bilagalleri/check-data.mjs
+          npx vite build --config vite.bilagalleri.config.ts
+          node tools/bilagalleri/stage-pages.mjs dist
       # Gate the artifact on the favicon check. This site is a GitHub Pages
       # *project* site sharing an origin with the ARTIX site at the root, so a
       # page without a usable icon shows a defence contractor's helm in a
