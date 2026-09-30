@@ -41,8 +41,8 @@ html:has(.set),body:has(.set){background-color:#FFFFFF}
 .set .set-lede{font-size:clamp(17px,1.35vw,20px);line-height:1.5;color:var(--muted);max-width:40ch}
 /* the mask is taller than the .86 line box: Icelandic accents (Ö Á Í Ð) sit above the cap height and must not be cut */
 .set .set-lm{display:block;overflow:hidden;padding:.24em 0 .1em;margin:-.24em 0 -.1em}
-.set .set-ll{display:block;will-change:transform}
-.set .set-w{display:inline-block;will-change:filter,transform,opacity}
+.set .set-ll{display:block}
+.set .set-w{display:inline-block}
 .set .set-label{font-size:13px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .set .set-dots{height:2px;background-image:radial-gradient(circle,var(--ink) .8px,transparent 1.05px);background-size:5px 2px;background-repeat:repeat-x;opacity:.8}
 
@@ -74,8 +74,10 @@ html:has(.set),body:has(.set){background-color:#FFFFFF}
 .set .set-awning{position:sticky;top:-100px;height:106px;margin-top:-42px;margin-bottom:-64px;z-index:140;background:var(--paper);pointer-events:none}
 .set .set-bar{position:fixed;inset:0 0 auto 0;z-index:150;height:calc(var(--bar) + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px);background-color:rgba(255,255,255,.9);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule)}
 .set .set-bar__in{height:100%;display:flex;align-items:center;gap:24px;padding:0 var(--gut)}
-.set .set-bar__logo{display:inline-flex;align-items:center;min-height:44px;margin-right:auto}
-.set .set-bar__logo svg{height:28px;width:auto}
+.set .set-bar__logo{display:inline-flex;align-items:center;min-height:44px;margin-right:auto;overflow:hidden;padding-block:6px;visibility:hidden;transition:visibility 0s .5s}
+.set .set-bar__logo svg{height:28px;width:auto;transform:translate3d(0,120%,0);opacity:0;transition:transform .5s var(--ease),opacity .3s var(--ease)}
+.set .set-bar__logo.is-in{visibility:visible;transition:visibility 0s}
+.set .set-bar__logo.is-in svg{transform:none;opacity:1;transition:transform .7s var(--ease),opacity .45s var(--ease)}
 .set .set-nav{display:flex;gap:4px}
 .set .set-nav a{position:relative;display:inline-flex;align-items:center;min-height:44px;padding:0 12px;font-size:15px;font-weight:500}
 .set .set-nav a::after{content:"";position:absolute;left:12px;right:12px;bottom:10px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:right;transition:transform .6s var(--ease)}
@@ -137,7 +139,7 @@ html:has(.set),body:has(.set){background-color:#FFFFFF}
 .set .set-filter{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding:16px var(--gut)}
 .set .set-filter label{display:inline-flex;align-items:center;gap:10px;font-size:15px}
 .set .set-filter label>span{font-weight:500}
-.set .set-select{appearance:none;-webkit-appearance:none;min-height:44px;padding:0 40px 0 12px;border:1px solid rgba(17,17,17,.3);background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m2.5 4.5 3.5 3.5 3.5-3.5' fill='none' stroke='%23111' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 12px center/12px;border-radius:0;font-size:15px;max-width:100%}
+.set .set-select{appearance:none;-webkit-appearance:none;min-height:44px;padding:0 40px 0 12px;border:1px solid rgba(17,17,17,.3);background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m2.5 4.5 3.5 3.5 3.5-3.5' fill='none' stroke='%23111' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 12px center/12px;border-radius:0;font-size:16px;max-width:100%}
 .set .set-search{display:flex;align-items:center;flex:1 1 240px;max-width:420px;min-height:44px;border-bottom:1px solid var(--ink)}
 .set .set-search svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6}
 .set .set-search input{flex:1;min-width:0;min-height:44px;border:0;background:transparent;padding:0 10px;font-size:16px;outline:none}
@@ -471,6 +473,7 @@ html:has(.set),body:has(.set){background-color:#FFFFFF}
 
 /* reduced motion: nothing moves on its own; the engine is never started */
 @media (prefers-reduced-motion:reduce){
+  .set .set-bar__logo svg{transform:none!important}
   .set *,.set *::before,.set *::after{transition-duration:.2s!important;animation-duration:.01ms!important;animation-delay:0s!important}
   .set .set-logo__path{stroke-dashoffset:0;fill-opacity:1}
   .set .set-panel{filter:none!important;transform:none!important}

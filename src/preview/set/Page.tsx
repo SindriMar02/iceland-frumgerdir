@@ -22,7 +22,7 @@ function otherLangPath(r: Route): string {
 }
 
 /* ------------------------------------------------------------------ header: constant bar + awning (mobile-chrome standard) */
-function Header({ route, onList, menu, setMenu, spy }: { route: Route; onList: () => void; menu: boolean; setMenu: (v: boolean) => void; spy: string }) {
+function Header({ route, onList, menu, setMenu, spy, logoIn }: { route: Route; onList: () => void; menu: boolean; setMenu: (v: boolean) => void; spy: string; logoIn: boolean }) {
   const t = T[route.lang].nav
   const { list } = useList()
   const home = path(route.lang, 'home')
@@ -37,7 +37,7 @@ function Header({ route, onList, menu, setMenu, spy }: { route: Route; onList: (
       <div className="set-awning" aria-hidden="true" />
       <header className="set-bar">
         <div className="set-bar__in">
-          <Link className="set-bar__logo" to={home} aria-label={route.lang === 'is' ? 'Set, forsíða' : 'Set, home'} onClick={() => setMenu(false)}><SetLogo /></Link>
+          <Link className={`set-bar__logo${logoIn || menu ? ' is-in' : ''}`} to={home} aria-label={route.lang === 'is' ? 'Set, forsíða' : 'Set, home'} onClick={() => setMenu(false)}><SetLogo /></Link>
           <nav className="set-nav" aria-label={route.lang === 'is' ? 'Aðalvalmynd' : 'Main'}>
             {links.map(([id, l, h]) => <Link key={id} to={h} aria-current={route.view === 'home' && spy === id ? 'true' : undefined}>{l}</Link>)}
           </nav>
@@ -214,6 +214,18 @@ export default function SetPage() {
     return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(raf) }
   }, [view])
 
+  /* the bar's logo waits while the hero's big wordmark is on screen, then slides into the bar as the wordmark passes
+     under it (Sindri 2026-09-30). One observer on the wordmark; other pages and phones (wordmark hidden) show it at once. */
+  const [logoIn, setLogoIn] = useState(view !== 'home')
+  useEffect(() => {
+    if (view !== 'home') { setLogoIn(true); return }
+    const mark = document.querySelector('.set-hero__mark')
+    if (!mark || !('IntersectionObserver' in window)) { setLogoIn(true); return }
+    const io = new IntersectionObserver(([e]) => setLogoIn(!e.isIntersecting), { rootMargin: '-64px 0px 0px 0px', threshold: 0 })
+    io.observe(mark)
+    return () => io.disconnect()
+  }, [view, pathname])
+
   const chromeCompany = useMemo(() => ({ ...companyEntry, english: lang === 'en' }), [lang])
 
   return (
@@ -230,7 +242,7 @@ export default function SetPage() {
           <div className="set-load__mark"><SetLogo draw /></div>
         </div>
       )}
-      <Header route={route} onList={() => setDrawer(true)} menu={menu} setMenu={setMenu} spy={spy} />
+      <Header route={route} onList={() => setDrawer(true)} menu={menu} setMenu={setMenu} spy={spy} logoIn={logoIn} />
       <div ref={rootRef} key={pathname}>
         <main id="set-main" tabIndex={-1}>
           {view === 'home' && <Home lang={lang} ringOn={ringOn} />}

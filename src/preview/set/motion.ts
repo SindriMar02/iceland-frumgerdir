@@ -118,9 +118,15 @@ function splitWords(el: HTMLElement): HTMLElement[] {
   return parts
 }
 
+/* compositor hints live only while a part is moving (Codex iOS audit 2026-09-30: 32 settled spans kept them) */
 function paint(part: HTMLElement, kind: Kind, e: number) {
-  if (kind === 'mask') { part.style.transform = e >= 1 ? '' : `translate3d(0,${((1 - e) * 108).toFixed(2)}%,0)`; return }
-  if (e >= 1) { part.style.filter = ''; part.style.opacity = ''; part.style.transform = ''; return }
+  if (kind === 'mask') {
+    part.style.transform = e >= 1 ? '' : `translate3d(0,${((1 - e) * 108).toFixed(2)}%,0)`
+    part.style.willChange = e >= 1 ? '' : 'transform'
+    return
+  }
+  if (e >= 1) { part.style.filter = ''; part.style.opacity = ''; part.style.transform = ''; part.style.willChange = ''; return }
+  part.style.willChange = 'filter,transform,opacity'
   const blur = kind === 'words' ? 10 : 8, rise = kind === 'words' ? 12 : 16
   part.style.filter = `blur(${((1 - e) * blur).toFixed(2)}px)`
   part.style.opacity = e.toFixed(3)
