@@ -6,7 +6,7 @@ import { setThemeColor } from '../../lib/preview'
 import {
   Bendill, C, CSS, Cas, Haus, Merki, Ord, Reveal, faraA, isCompact, isPhone, lenisOf, reduced, step, useMjukSkrun, useWatchdog,
 } from './ui'
-import { Poki, POKA_CSS } from './poki'
+import { Poki, POKA_CSS, poki } from './poki'
 import { Hledsla, HLEDSLA_CSS } from './hledsla'
 import { Diskaregn, REGN_CSS } from './regn'
 import { Popup, POP_CSS, pop } from './popup'
