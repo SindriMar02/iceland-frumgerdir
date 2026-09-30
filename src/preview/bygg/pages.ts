@@ -41,9 +41,12 @@ const WIDTHS: Record<string, [number, number] | null> = {
   'ab-sjaland': [2400, 1200], 'ab-lundur': [2400, 1200], 'ab-founders': [1600, 800], 'ab-timi': [1600, 800], 'ab-workers': null, 'ab-team': null,
   hero: [1080, 540], 'ap-2': [1200, 600], 'ap-3': [1200, 600],
 }
+/* a middle rendition where the full file is heavy: a DPR 3 phone takes the 1440 px file (about 220 KB) instead of the 1920 px one (493 KB) */
+const MID: Record<string, number> = { 'ab-stilla': 1440 }
 const src = (f: string, sizes: string, extra = '') => {
   const w = f in WIDTHS ? WIDTHS[f] : [1920, 960]
-  return w ? `src="${img(f)}" srcset="${img(`${f}-s`)} ${w[1]}w, ${img(f)} ${w[0]}w" sizes="${sizes}"${extra}` : `src="${img(f)}"${extra}`
+  const mid = f in MID ? `${img(`${f}-m`)} ${MID[f]}w, ` : ''
+  return w ? `src="${img(f)}" srcset="${img(`${f}-s`)} ${w[1]}w, ${mid}${img(f)} ${w[0]}w" sizes="${sizes}"${extra}` : `src="${img(f)}"${extra}`
 }
 
 /* ---------------------------------------------------------------- shared partials */
