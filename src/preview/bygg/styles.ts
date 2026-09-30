@@ -162,7 +162,7 @@ body.is-picking .page * { cursor: inherit; }
   margin: 0; padding: 0; border: 0; background: var(--fill); color: var(--ink); cursor: pointer; line-height: 0; }
 .dock__burger:focus:not(:focus-visible) { outline: none; }
 .dock__burger svg, .drawer__close svg { width: calc(var(--burger-w) * 23 / 65); height: auto; fill: currentColor; }
-body.drawer-open .dock__burger { visibility: hidden; }
+body.drawer-open .dock__burger, body.drawer-open .menu-top { visibility: hidden; }
 
 /* ── home hero (Module 7, gap 17.3-17.4) ────────────────────── */
 .hero { grid-column: 1 / -1; grid-row: 2; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 0; }
@@ -188,7 +188,7 @@ body.drawer-open .dock__burger { visibility: hidden; }
     linear-gradient(currentColor, currentColor) bottom left / 1px calc(var(--b-left) * 100%) no-repeat; }
 
 /* before the intro starts: nothing that the intro reveals is visible */
-body:not(.is-ready) .brand, body:not(.is-ready) .navlink, body:not(.is-ready) .dock, body:not(.is-ready) .hero__copy,
+body:not(.is-ready) .brand, body:not(.is-ready) .navlink, body:not(.is-ready) .menu-top, body:not(.is-ready) .dock, body:not(.is-ready) .hero__copy,
 body:not(.is-ready) .colophon, body:not(.is-ready) .ticker__mask { visibility: hidden; }
 body:not(.is-ready) .hero__photo { clip-path: inset(50% 50% 50% 50%); }
 
@@ -1134,5 +1134,19 @@ body:not(.is-ready) .home-hero__copy, body:not(.is-ready) .home-facts { visibili
 }
 .fact__stat--long { font-size: min(var(--t-h3), calc(3.4vw * var(--s))); }
 @media (min-width: 651px) and (max-width: 1024px) and (min-height: 950px) { .fact__stat--long { font-size: min(var(--t-h3), calc(2.9vw * var(--s))); } }
+
+/* ── BYGG: a labelled menu button in the header on phones (the bottom dock's square icon was easy to miss) ── */
+.menu-top { display: none; }
+@media (max-width: 650px) and (orientation: portrait) {
+  .brand { justify-self: start; }
+  .menu-top { grid-column: 1 / -1; grid-row: 1; justify-self: end; align-self: center; display: inline-flex; align-items: center; gap: 0.65em; min-height: 44px; margin: 0; padding: 0 0.95em;
+    border: 1px solid currentColor; background: transparent; color: inherit; font: inherit; font-size: max(15px, var(--t-nav)); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .menu-top svg { width: 20px; height: auto; fill: currentColor; flex-shrink: 0; }
+  .menu-top:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+}
+.drawer__close-label { display: none; }
+.drawer__close.is-labelled { gap: 0.65em; font-size: max(15px, var(--t-nav)); line-height: 1; }
+.drawer__close.is-labelled .drawer__close-label { display: inline; }
+.drawer__close.is-labelled svg { width: 20px; }
 `
 }

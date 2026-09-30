@@ -334,7 +334,10 @@ export function mountBygg(cfg: EngineConfig): () => void {
     isOpen: false, busy: false, tl: null,
     root: () => $(".drawer"),
     parts() { const r = this.root(); return { scrim: $(".drawer__scrim", r), panel: $(".drawer__panel", r), close: $(".drawer__close", r), links: $$(".drawer__links a", r), contact: $(".drawer__contact", r) }; },
-    button: () => $(".dock__burger"),
+    button() { // BYGG: the labelled header button while it is on screen (phones), otherwise the dock's
+      const t = $(".menu-top"); if (t && t.offsetParent) { const r = t.getBoundingClientRect(); if (r.bottom > 0 && r.top < innerHeight) return t; }
+      return $(".dock__burger");
+    },
     inVw: (px) => (px / vw()) * 100 + "vw",
     colours() { // M9 colours per page
       const r = this.root()?.style; if (!r) return;
@@ -346,9 +349,10 @@ export function mountBygg(cfg: EngineConfig): () => void {
     },
     place() {
       const { panel, close } = this.parts(), b = this.button(); if (!b) return;
-      const r = b.getBoundingClientRect(), d = b.closest(".dock").getBoundingClientRect();
-      Object.assign(panel.style, { bottom: this.inVw(innerHeight - d.bottom), right: this.inVw(vw() - d.right), width: mobile() ? this.inVw(d.width) : "" });
-      Object.assign(close.style, { top: this.inVw(r.top), left: this.inVw(r.left), width: this.inVw(r.width), height: this.inVw(r.height) }); close.hidden = false;
+      const r = b.getBoundingClientRect(), dock = b.closest(".dock");
+      if (dock) { const d = dock.getBoundingClientRect(); Object.assign(panel.style, { top: "auto", bottom: this.inVw(innerHeight - d.bottom), right: this.inVw(vw() - d.right), width: mobile() ? this.inVw(d.width) : "" }); }
+      else Object.assign(panel.style, { top: this.inVw(r.top), bottom: "auto", right: this.inVw(vw() - r.right), width: mobile() ? this.inVw(2 * r.right - vw()) : "" }); // header button: the panel opens downward from it
+      Object.assign(close.style, { top: this.inVw(r.top), left: this.inVw(r.left), width: this.inVw(r.width), height: this.inVw(r.height) }); close.hidden = false; close.classList.toggle("is-labelled", !dock);
     },
     clipTo(panel, el) { const p = panel.getBoundingClientRect(), o = el.getBoundingClientRect(); return `inset(${Math.max(o.top - p.top, 0)}px ${Math.max(p.right - o.right, 0)}px ${Math.max(p.bottom - o.bottom, 0)}px ${Math.max(o.left - p.left, 0)}px)`; },
     bar(el, x, animate = true) { if (!el) return; gsap.killTweensOf(el); animate ? gsap.to(el, { attr: { x }, duration: V.drawer.barDur, ease: "power2.inOut" }) : gsap.set(el, { attr: { x } }); },

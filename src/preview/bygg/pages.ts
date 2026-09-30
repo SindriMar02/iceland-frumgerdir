@@ -64,6 +64,7 @@ const masthead = (lang: Lang, t: Record<string, string>, logo: 'white' | 'ink', 
           <a class="brand" href="${hrefOf('home', lang)}" aria-label="${esc(t.brand)}"><img src="${brand(`bygg-wordmark-${logo}.svg`)}" alt="${esc(t.logoAlt)}" width="137" height="55"></a>
           <a class="navlink navlink--start" href="${hrefOf('about', lang)}"${current === 'about' ? ' aria-current="page"' : ''}>${esc(t.about)}</a>
           <a class="navlink navlink--end" href="${hrefOf('contact', lang)}"${current === 'contact' ? ' aria-current="page"' : ''}>${esc(t.contact)}</a>
+          <button class="menu-top" type="button" aria-label="${esc(t.menuOpen)}" aria-expanded="false" data-drawer-toggle data-intro-fade><span>${esc(t.menuLabel)}</span><svg viewBox="0 0 23 12" aria-hidden="true"><rect width="23" height="3"/><rect class="bar-short" y="9" width="10" height="3"/></svg></button>
           ${withDock ? dock(t) : ''}
         </header>`
 
@@ -115,6 +116,7 @@ const drawer = (lang: Lang, t: Record<string, string>) => {
   return `<div class="drawer" aria-hidden="true">
     <div class="drawer__scrim"></div>
     <button class="drawer__close" type="button" aria-label="${esc(t.menuClose)}" hidden>
+      <span class="drawer__close-label">${esc(t.menuCloseLabel)}</span>
       <svg viewBox="0 0 23 12" aria-hidden="true"><rect class="bar-long" width="23" height="3"/><rect class="bar-short" y="9" width="10" height="3"/></svg>
     </button>
     <div class="drawer__panel" role="dialog" aria-modal="true" aria-label="${esc(t.nav)}">
