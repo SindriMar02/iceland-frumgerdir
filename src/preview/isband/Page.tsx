@@ -300,7 +300,12 @@ export default function IsbandPage() {
       gsap.ticker.lagSmoothing(0)
     }
 
-    const ctx = gsap.context(() => {
+    /* SplitText measures lines when it runs. Before Host Grotesk has loaded it
+       measures the narrower fallback, and the stored lines rewrap into orphans once
+       the real font arrives. So the scroll motion is built after the fonts. */
+    let ctx: gsap.Context | null = null
+    let alive = true
+    const build = () => { if (!alive) return; ctx = gsap.context(() => {
       if (reduce) return
       const desk = window.matchMedia('(min-width: 900px)').matches
 
@@ -387,14 +392,17 @@ export default function IsbandPage() {
       })
       const mm = desk ? 72 : 28
       gsap.fromTo(her.querySelector('.hcopy'), { y: 0.35 * mm }, { y: -mm, ease: 'none', scrollTrigger: { trigger: her, start: 'top bottom', end: 'bottom top', scrub: 0.55 } })
-    }, el)
+    }, el); ScrollTrigger.refresh() }
+    if (!document.fonts || document.fonts.status === 'loaded') build()
+    else document.fonts.ready.then(build)
 
     const refresh = () => ScrollTrigger.refresh()
     document.fonts?.ready.then(refresh)
     window.addEventListener('load', refresh)
     return () => {
       window.removeEventListener('load', refresh)
-      ctx.revert()
+      alive = false
+      ctx?.revert()
       gsap.ticker.remove(onTick)
       lenis?.destroy()
       pageLenis = null
@@ -408,12 +416,11 @@ export default function IsbandPage() {
     if (still()) return
     const h1 = hero.querySelector<HTMLElement>('[data-chars]')!
     const split = new SplitText(h1, { type: 'chars,words', charsClass: 'ch', wordsClass: 'wd', mask: 'chars' })
-    const lede = new SplitText(hero.querySelector<HTMLElement>('.lede')!, { type: 'lines', linesClass: 'ln' })
     const tl = gsap.timeline({ paused: true, defaults: { ease: 'ib' } })
     tl.fromTo(hero.querySelector('.hpic'), { scale: 1.12 }, { scale: 1, duration: 1.6 }, 0)
       .fromTo(hero.querySelectorAll('[data-fade]'), { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.08 }, 0.1)
       .fromTo(split.chars, { yPercent: 100 }, { yPercent: 0, duration: 0.8, stagger: 0.018 }, 0.15)
-      .fromTo(lede.lines, { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.05 }, 0.55)
+      .fromTo(hero.querySelector('.lede'), { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.8 }, 0.55)
       .fromTo(hero.querySelectorAll('[data-btn]'), { clipPath: 'inset(0 50% 0 50%)' }, { clipPath: 'inset(0 0% 0 0%)', duration: 0.7, stagger: 0.08 }, 0.75)
       .fromTo(hero.querySelector('.hmeta'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6 }, 1)
 
@@ -427,7 +434,7 @@ export default function IsbandPage() {
         .to(ld, { yPercent: -100, duration: 0.8 }, 1.15)
         .add(() => { tl.play() }, 1.3)
     } else tl.play()
-    return () => { tl.kill(); split.revert(); lede.revert() }
+    return () => { tl.kill(); split.revert() }
   }, [])
 
   /* ── carousels: arrows + mouse drag with a click guard ── */
