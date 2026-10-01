@@ -15,7 +15,7 @@ export function useShowroomMotion(root:RefObject<HTMLElement|null>,route:string,
   const animations:Animation[]=[]
   if(changed&&!media.matches&&input!=='keyboard'&&input!=='history'){
    const nodes=el.querySelectorAll<HTMLElement>('.bm-hero-copy > *, .bm-hero-showroom, .bm-detail-summary > h1, .bm-gallery, .bm-service-page h1, .bm-about > h1, .bm-comparison > h1, .bm-section-head')
-   Array.from(nodes).slice(0,8).forEach((node,i)=>animations.push(node.animate([{opacity:.65,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:240,delay:Math.min(i,4)*35,easing:'cubic-bezier(.23,1,.32,1)'})))
+   Array.from(nodes).filter(node=>typeof node.animate==='function').slice(0,8).forEach((node,i)=>animations.push(node.animate([{opacity:.65,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:240,delay:Math.min(i,4)*35,easing:'cubic-bezier(.23,1,.32,1)'})))
   }
   const pending=new Set<HTMLElement>();let frame=0
   const offsets=new WeakMap<HTMLElement,number>()
