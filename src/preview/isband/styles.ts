@@ -147,7 +147,7 @@ html.ib-menu,html.ib-menu body{overflow:hidden}
 .ib-hero h1 span{display:block}
 .ib-hero .lede{max-width:420px;margin-top:22px;font-size:17px;line-height:1.55;color:rgba(255,255,255,.82)}
 .ib-hero .ctas{display:flex;gap:10px;margin-top:32px;flex-wrap:wrap}
-.ib-hero .hmeta{position:absolute;right:var(--pad);bottom:clamp(24px,4vh,40px);font-size:12.5px;color:rgba(255,255,255,.6)}
+.ib-hero .hmeta{position:absolute;left:var(--pad);bottom:clamp(24px,4vh,40px);font-size:12.5px;color:rgba(255,255,255,.6)}
 @media (max-width:899px){
   .ib-hero .hpar{inset:0 0 30% 0}
   .ib-hero .hpic{object-position:74% 58%}
