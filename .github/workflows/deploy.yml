@@ -80,6 +80,12 @@ jobs:
           node tools/bilagalleri/check-data.mjs
           npx vite build --config vite.bilagalleri.config.ts
           node tools/bilagalleri/stage-pages.mjs dist
+      - name: Build and stage Bílamiðstöðin outreach preview
+        run: |
+          node tools/bilamidstodin/check-data.mjs
+          node tools/bilamidstodin/check-motion.mjs
+          npx vite build --config vite.bilamidstodin.config.ts
+          node tools/bilamidstodin/stage-pages.mjs dist
       # Gate the artifact on the favicon check. This site is a GitHub Pages
       # *project* site sharing an origin with the ARTIX site at the root, so a
       # page without a usable icon shows a defence contractor's helm in a
