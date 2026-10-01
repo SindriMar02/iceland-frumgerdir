@@ -43,7 +43,7 @@ html,body{background-color:var(--bm-ground);color:var(--bm-ink);font-family:BMSp
 
 @media(prefers-reduced-motion:reduce){.bm-car-photo img,.bm-button:active,.bm-icon:active{transform:none!important}}
 
-/* Short, real loading state. No fake percentage or mandatory waiting period. */
+/* White standalone loader: minimum 1100ms requested, then data readiness. */
 .bm-opening{position:fixed;inset:0;z-index:100;min-height:100dvh;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:40px 24px;gap:24px;background:#fff;color:#171b20}
 .bm-opening-mark .bm-wordmark{width:244px;height:auto;filter:brightness(0)}
 .bm-opening-track{height:2px;width:120px;overflow:hidden;background:#cdd2d8}.bm-opening-track span{display:block;height:100%;width:45%;background:#171b20}
