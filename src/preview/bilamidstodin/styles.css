@@ -42,3 +42,22 @@ html,body{background-color:var(--bm-ground);color:var(--bm-ink);font-family:BMSp
 .bm-steps h2,.bm-fee h2{font-size:16px;line-height:1.35;margin-bottom:6px}
 
 @media(prefers-reduced-motion:reduce){.bm-car-photo img,.bm-button:active,.bm-icon:active{transform:none!important}}
+
+/* Short, real loading state. No fake percentage or mandatory waiting period. */
+.bm-opening{min-height:calc(78svh - 80px);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:40px 24px;gap:24px;background:var(--bm-ground)}
+.bm-opening-mark .bm-wordmark{width:244px;height:auto;filter:brightness(0)}[data-theme=dark] .bm-opening-mark .bm-wordmark{filter:brightness(0) invert(1)}
+.bm-opening p{font-size:11px;letter-spacing:.02em;color:var(--bm-muted);margin:0}.bm-opening-track{height:2px;width:120px;overflow:hidden;background:var(--bm-line)}.bm-opening-track span{display:block;height:100%;width:45%;background:var(--bm-ink)}
+@media(prefers-reduced-motion:no-preference){.bm-opening-track span{animation:bm-loading-pass 800ms linear infinite alternate}@keyframes bm-loading-pass{from{transform:translateX(-100%)}to{transform:translateX(225%)}}}
+/* Hover feedback follows the action; no movement on touch or keyboard focus. */
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .bm-text-button>svg:last-child,.bm-needs button>svg,.bm-sell-options a>svg{transition:transform 180ms cubic-bezier(.23,1,.32,1)}
+ .bm-text-button:hover>svg:last-child,.bm-needs button:hover>svg,.bm-sell-options a:hover>svg{transform:translateX(3px)}
+ .bm-desktop-nav a{position:relative}.bm-desktop-nav a::after{content:'';position:absolute;inset:auto 0 7px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform 180ms cubic-bezier(.23,1,.32,1)}
+ .bm-desktop-nav a:hover::after,.bm-desktop-nav a[aria-current=page]::after{transform:scaleX(1)}
+ .bm-text-button:focus-visible>svg,.bm-needs button:focus-visible>svg,.bm-sell-options a:focus-visible>svg{transform:none;transition:none}
+}
+
+@media(prefers-reduced-motion:no-preference){.bm-button,.bm-icon{transition:transform 100ms cubic-bezier(.23,1,.32,1)}.bm-button:active,.bm-icon:active{transition-duration:140ms}}
+[data-bm-input=keyboard] .bm-button:active,[data-bm-input=keyboard] .bm-icon:active{transform:none}
+
+[data-bm-input=keyboard] .bm-dialog[open] .bm-dialog-inner{transition:none}

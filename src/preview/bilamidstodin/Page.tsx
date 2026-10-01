@@ -3,6 +3,8 @@ import type { FormEvent, ReactNode } from 'react'
 import { Search, SlidersHorizontal, X, Sun, Moon, Monitor, Heart, Phone, MapPin, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, Check, Plus, Share2, Maximize2, Scale, Mail, Clock, Menu, CarFront, Fuel, Gauge, CalendarDays, CircleHelp } from 'lucide-react'
 import Lenis from 'lenis'
 import { Wordmark } from './Wordmark'
+import { LoadingScreen } from './Motion'
+import { useShowroomMotion } from './useShowroomMotion'
 import { asset, carTitle, cashURL, driveLabel, filterCars, filterNames, fuelLabel, keys, mileage, price, sellURL } from './data'
 import type { Car, FilterKey } from './data'
 
@@ -49,7 +51,7 @@ export default function Page(){
  const view=params.get('view')||'home';const car=cars.find(c=>c.id===params.get('car'))
  const notify=useCallback((message:string)=>setNotice(message),[])
  useEffect(()=>{if(!notice)return;const id=setTimeout(()=>setNotice(''),4000);return()=>clearTimeout(id)},[notice])
- useEffect(()=>{const abort=new AbortController();setLoading(true);setError(false);fetch(asset('./inventory.json'),{signal:abort.signal}).then(r=>{if(!r.ok)throw Error('inventory');return r.json()}).then(data=>{if(!Array.isArray(data)||!data.length)throw Error('inventory');setCars(data);setLoading(false)}).catch(e=>{if(e.name!=='AbortError'){setError(true);setLoading(false)}});return()=>abort.abort()},[attempt])
+ useEffect(()=>{const abort=new AbortController();const timeout=setTimeout(()=>abort.abort('timeout'),15000);setLoading(true);setError(false);fetch(asset('./inventory.json'),{signal:abort.signal}).then(r=>{if(!r.ok)throw Error('inventory');return r.json()}).then(data=>{if(!Array.isArray(data)||!data.length)throw Error('inventory');setCars(data);setLoading(false)}).catch(e=>{if(e.name!=='AbortError'){setError(true);setLoading(false)}}).finally(()=>clearTimeout(timeout));return()=>{clearTimeout(timeout);abort.abort()}},[attempt])
  useEffect(()=>{const prev=history.scrollRestoration;history.scrollRestoration='manual';const onPop=()=>{restoration.current=history.state?.bmScroll||0;setParams(readParams());setModal(null)};window.addEventListener('popstate',onPop);return()=>{history.scrollRestoration=prev;window.removeEventListener('popstate',onPop)}},[])
  useLayoutEffect(()=>{if(restoration.current!==null&&!loading){const y=restoration.current;const id=requestAnimationFrame(()=>{lenisRef.current?.scrollTo(y,{immediate:true});window.scrollTo({top:y,behavior:'instant'});restoration.current=null});return()=>cancelAnimationFrame(id)}},[params,loading])
  useEffect(()=>{
@@ -80,6 +82,7 @@ export default function Page(){
  const heroCars=cars.filter(c=>['153689','407501','371481'].includes(c.id));const hero=heroCars[heroIndex%Math.max(1,heroCars.length)]
  const invalidRange=(params.get('min')&&params.get('max')&&Number(params.get('min'))>Number(params.get('max')))||(params.get('yearMin')&&params.get('yearMax')&&Number(params.get('yearMin'))>Number(params.get('yearMax')))
  const jumpInventory=()=>{const el=document.getElementById('bilar');if(el){if(lenisRef.current)lenisRef.current.scrollTo(el,{offset:-88});else el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}else go('cars')}
+ useShowroomMotion(rootRef,`${view}:${car?.id||''}`,results.slice(0,limit).map(c=>c.id).join(','),!loading)
  const InventoryHeading=view==='home'?'h2':'h1'
  const filters=(advanced=false)=> <Filters cars={cars} params={params} update={update} advanced={advanced}/>
  return <div className="bm-app" ref={rootRef}>
@@ -90,7 +93,7 @@ export default function Page(){
    <div className="bm-header-actions"><button className="bm-icon bm-saved-nav" onClick={()=>go('saved')} aria-label={`Valdir bílar, ${saved.length}`}><Heart aria-hidden="true"/>{saved.length>0&&<b>{saved.length}</b>}</button><button className="bm-theme-switch" role="switch" aria-checked={theme==='dark'} aria-label="Dökkt útlit" title={theme==='dark'?'Skipta í ljóst útlit':'Skipta í dökkt útlit'} onClick={()=>choose(theme==='dark'?'light':'dark')}><span className="bm-theme-track"><Sun aria-hidden="true"/><Moon aria-hidden="true"/><span className="bm-theme-thumb"/></span></button><a className="bm-header-phone" href="tel:+3545174500"><Phone aria-hidden="true" size={16}/>517 4500</a><button className="bm-icon bm-menu-trigger" aria-label="Opna valmynd" onClick={()=>setModal('menu')}><Menu aria-hidden="true"/></button></div>
   </div></header>
   <main id="bm-main">
-  {loading?<div className="bm-loading bm-container" aria-busy="true"><p>Sæki söluskrá…</p><div/><div/></div>:error?<section className="bm-empty bm-container"><h1>Söluskráin hlóðst ekki.</h1><p>Athugaðu nettenginguna og reyndu aftur.</p><button className="bm-button primary" onClick={()=>setAttempt(x=>x+1)}>Reyna aftur</button><a href="https://www.bilamidstodin.is/">Opna söluskrá Bílamiðstöðvarinnar</a></section>:car?<>
+  {loading?<LoadingScreen/>:error?<section className="bm-empty bm-container"><h1>Söluskráin hlóðst ekki.</h1><p>Athugaðu nettenginguna og reyndu aftur.</p><button className="bm-button primary" onClick={()=>setAttempt(x=>x+1)}>Reyna aftur</button><a href="https://www.bilamidstodin.is/">Opna söluskrá Bílamiðstöðvarinnar</a></section>:car?<>
    <div className="bm-container bm-detail-top"><button className="bm-text-button" onClick={backToCars}><ArrowLeft aria-hidden="true"/>Til baka í leit</button><button className="bm-text-button" onClick={share}><Share2 aria-hidden="true"/>Deila bíl</button></div>
    <section className="bm-container bm-detail">
     <div className="bm-gallery"><div className="bm-gallery-main"><button className="bm-gallery-expand" aria-label="Stækka mynd" onClick={()=>setModal('gallery')}><VehicleImage src={car.photos[galleryIndex]} alt={`${carTitle(car)}, mynd ${galleryIndex+1}`} eager/></button><div className="bm-photo-tools"><button className="bm-icon" aria-label="Fyrri mynd" onClick={()=>setGalleryIndex(i=>(i-1+car.photos.length)%car.photos.length)}><ChevronLeft aria-hidden="true"/></button><span>{galleryIndex+1} / {car.photos.length}</span><button className="bm-icon" aria-label="Næsta mynd" onClick={()=>setGalleryIndex(i=>(i+1)%car.photos.length)}><ChevronRight aria-hidden="true"/></button><button className="bm-icon" aria-label="Stækka myndasafn" onClick={()=>setModal('gallery')}><Maximize2 aria-hidden="true"/></button></div></div><div className="bm-thumbnails" aria-label="Myndir bíls">{car.photos.slice(0,6).map((src,i)=><button key={src} aria-label={`Sýna mynd ${i+1}`} aria-pressed={galleryIndex===i} onClick={()=>setGalleryIndex(i)}><VehicleImage src={src} alt=""/></button>)}{car.photos.length>6&&<button onClick={()=>setModal('gallery')}>Allar {car.photos.length}</button>}</div></div>
