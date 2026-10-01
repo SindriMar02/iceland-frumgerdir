@@ -44,9 +44,9 @@ html,body{background-color:var(--bm-ground);color:var(--bm-ink);font-family:BMSp
 @media(prefers-reduced-motion:reduce){.bm-car-photo img,.bm-button:active,.bm-icon:active{transform:none!important}}
 
 /* Short, real loading state. No fake percentage or mandatory waiting period. */
-.bm-opening{min-height:calc(78svh - 80px);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:40px 24px;gap:24px;background:var(--bm-ground)}
-.bm-opening-mark .bm-wordmark{width:244px;height:auto;filter:brightness(0)}[data-theme=dark] .bm-opening-mark .bm-wordmark{filter:brightness(0) invert(1)}
-.bm-opening p{font-size:11px;letter-spacing:.02em;color:var(--bm-muted);margin:0}.bm-opening-track{height:2px;width:120px;overflow:hidden;background:var(--bm-line)}.bm-opening-track span{display:block;height:100%;width:45%;background:var(--bm-ink)}
+.bm-opening{position:fixed;inset:0;z-index:100;min-height:100dvh;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:40px 24px;gap:24px;background:#fff;color:#171b20}
+.bm-opening-mark .bm-wordmark{width:244px;height:auto;filter:brightness(0)}
+.bm-opening-track{height:2px;width:120px;overflow:hidden;background:#cdd2d8}.bm-opening-track span{display:block;height:100%;width:45%;background:#171b20}
 @media(prefers-reduced-motion:no-preference){.bm-opening-track span{animation:bm-loading-pass 800ms linear infinite alternate}@keyframes bm-loading-pass{from{transform:translateX(-100%)}to{transform:translateX(225%)}}}
 /* Hover feedback follows the action; no movement on touch or keyboard focus. */
 @media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){

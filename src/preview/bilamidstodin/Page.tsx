@@ -44,6 +44,8 @@ function Price({car,large=false}:{car:Car;large?:boolean}){return <div className
 export default function Page(){
  const [params,setParams]=useState(readParams)
  const [cars,setCars]=useState<Car[]>([]);const [loading,setLoading]=useState(true);const [error,setError]=useState(false);const [attempt,setAttempt]=useState(0)
+ const [openingReady,setOpeningReady]=useState(false)
+ useEffect(()=>{setOpeningReady(false);const timer=setTimeout(()=>setOpeningReady(true),1100);return()=>clearTimeout(timer)},[attempt])
  const [saved,setSaved]=usePersistentList('bm-saved');const [compare,setCompare]=usePersistentList('bm-compare')
  const {theme,preference,choose}=useTheme();const [modal,setModal]=useState<'menu'|'filters'|'theme'|'enquiry'|'gallery'|null>(null)
  const [notice,setNotice]=useState('');const [galleryIndex,setGalleryIndex]=useState(0);const [heroIndex,setHeroIndex]=useState(0)
@@ -82,9 +84,10 @@ export default function Page(){
  const heroCars=cars.filter(c=>['153689','407501','371481'].includes(c.id));const hero=heroCars[heroIndex%Math.max(1,heroCars.length)]
  const invalidRange=(params.get('min')&&params.get('max')&&Number(params.get('min'))>Number(params.get('max')))||(params.get('yearMin')&&params.get('yearMax')&&Number(params.get('yearMin'))>Number(params.get('yearMax')))
  const jumpInventory=()=>{const el=document.getElementById('bilar');if(el){if(lenisRef.current)lenisRef.current.scrollTo(el,{offset:-88});else el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}else go('cars')}
- useShowroomMotion(rootRef,`${view}:${car?.id||''}`,results.slice(0,limit).map(c=>c.id).join(','),!loading)
+ useShowroomMotion(rootRef,`${view}:${car?.id||''}`,results.slice(0,limit).map(c=>c.id).join(','),!loading&&openingReady)
  const InventoryHeading=view==='home'?'h2':'h1'
  const filters=(advanced=false)=> <Filters cars={cars} params={params} update={update} advanced={advanced}/>
+ if(loading||!openingReady)return <LoadingScreen/>
  return <div className="bm-app" ref={rootRef}>
   <a className="bm-skip" href="#bm-main">Fara í efni</a><div className="bm-awning" aria-hidden="true"/>
   <header className="bm-header"><div className="bm-header-inner">
@@ -93,7 +96,7 @@ export default function Page(){
    <div className="bm-header-actions"><button className="bm-icon bm-saved-nav" onClick={()=>go('saved')} aria-label={`Valdir bílar, ${saved.length}`}><Heart aria-hidden="true"/>{saved.length>0&&<b>{saved.length}</b>}</button><button className="bm-theme-switch" role="switch" aria-checked={theme==='dark'} aria-label="Dökkt útlit" title={theme==='dark'?'Skipta í ljóst útlit':'Skipta í dökkt útlit'} onClick={()=>choose(theme==='dark'?'light':'dark')}><span className="bm-theme-track"><Sun aria-hidden="true"/><Moon aria-hidden="true"/><span className="bm-theme-thumb"/></span></button><a className="bm-header-phone" href="tel:+3545174500"><Phone aria-hidden="true" size={16}/>517 4500</a><button className="bm-icon bm-menu-trigger" aria-label="Opna valmynd" onClick={()=>setModal('menu')}><Menu aria-hidden="true"/></button></div>
   </div></header>
   <main id="bm-main">
-  {loading?<LoadingScreen/>:error?<section className="bm-empty bm-container"><h1>Söluskráin hlóðst ekki.</h1><p>Athugaðu nettenginguna og reyndu aftur.</p><button className="bm-button primary" onClick={()=>setAttempt(x=>x+1)}>Reyna aftur</button><a href="https://www.bilamidstodin.is/">Opna söluskrá Bílamiðstöðvarinnar</a></section>:car?<>
+  {error?<section className="bm-empty bm-container"><h1>Söluskráin hlóðst ekki.</h1><p>Athugaðu nettenginguna og reyndu aftur.</p><button className="bm-button primary" onClick={()=>setAttempt(x=>x+1)}>Reyna aftur</button><a href="https://www.bilamidstodin.is/">Opna söluskrá Bílamiðstöðvarinnar</a></section>:car?<>
    <div className="bm-container bm-detail-top"><button className="bm-text-button" onClick={backToCars}><ArrowLeft aria-hidden="true"/>Til baka í leit</button><button className="bm-text-button" onClick={share}><Share2 aria-hidden="true"/>Deila bíl</button></div>
    <section className="bm-container bm-detail">
     <div className="bm-gallery"><div className="bm-gallery-main"><button className="bm-gallery-expand" aria-label="Stækka mynd" onClick={()=>setModal('gallery')}><VehicleImage src={car.photos[galleryIndex]} alt={`${carTitle(car)}, mynd ${galleryIndex+1}`} eager/></button><div className="bm-photo-tools"><button className="bm-icon" aria-label="Fyrri mynd" onClick={()=>setGalleryIndex(i=>(i-1+car.photos.length)%car.photos.length)}><ChevronLeft aria-hidden="true"/></button><span>{galleryIndex+1} / {car.photos.length}</span><button className="bm-icon" aria-label="Næsta mynd" onClick={()=>setGalleryIndex(i=>(i+1)%car.photos.length)}><ChevronRight aria-hidden="true"/></button><button className="bm-icon" aria-label="Stækka myndasafn" onClick={()=>setModal('gallery')}><Maximize2 aria-hidden="true"/></button></div></div><div className="bm-thumbnails" aria-label="Myndir bíls">{car.photos.slice(0,6).map((src,i)=><button key={src} aria-label={`Sýna mynd ${i+1}`} aria-pressed={galleryIndex===i} onClick={()=>setGalleryIndex(i)}><VehicleImage src={src} alt=""/></button>)}{car.photos.length>6&&<button onClick={()=>setModal('gallery')}>Allar {car.photos.length}</button>}</div></div>
