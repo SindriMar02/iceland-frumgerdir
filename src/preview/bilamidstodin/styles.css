@@ -59,4 +59,4 @@ html,body{background-color:var(--bm-ground);color:var(--bm-ink);font-family:'Cab
 
 [data-bm-input=keyboard] .bm-dialog[open] .bm-dialog-inner{transition:none}
 
-html[data-bm-fonts=fallback] body,html[data-bm-fonts=fallback] h1,html[data-bm-fonts=fallback] .bm-inventory-title{font-family:system-ui,sans-serif}
+html[data-bm-fonts=fallback] body,html[data-bm-fonts=fallback] h1,html[data-bm-fonts=fallback] .bm-inventory-title,html[data-bm-fonts=fallback] .bm-sell-band h2{font-family:system-ui,sans-serif}
