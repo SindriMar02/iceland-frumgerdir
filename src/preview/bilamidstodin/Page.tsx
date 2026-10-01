@@ -5,6 +5,7 @@ import Lenis from 'lenis'
 import { Wordmark } from './Wordmark'
 import { LoadingScreen } from './Motion'
 import { useShowroomMotion } from './useShowroomMotion'
+import { useOpeningReady } from './useOpeningReady'
 import { asset, carTitle, cashURL, driveLabel, filterCars, filterNames, fuelLabel, keys, mileage, price, sellURL } from './data'
 import type { Car, FilterKey } from './data'
 
@@ -44,8 +45,6 @@ function Price({car,large=false}:{car:Car;large?:boolean}){return <div className
 export default function Page(){
  const [params,setParams]=useState(readParams)
  const [cars,setCars]=useState<Car[]>([]);const [loading,setLoading]=useState(true);const [error,setError]=useState(false);const [attempt,setAttempt]=useState(0)
- const [openingReady,setOpeningReady]=useState(false)
- useEffect(()=>{setOpeningReady(false);const timer=setTimeout(()=>setOpeningReady(true),1100);return()=>clearTimeout(timer)},[attempt])
  const [saved,setSaved]=usePersistentList('bm-saved');const [compare,setCompare]=usePersistentList('bm-compare')
  const {theme,preference,choose}=useTheme();const [modal,setModal]=useState<'menu'|'filters'|'theme'|'enquiry'|'gallery'|null>(null)
  const [notice,setNotice]=useState('');const [galleryIndex,setGalleryIndex]=useState(0);const [heroIndex,setHeroIndex]=useState(0)
@@ -84,6 +83,8 @@ export default function Page(){
  const heroCars=cars.filter(c=>['153689','407501','371481'].includes(c.id));const hero=heroCars[heroIndex%Math.max(1,heroCars.length)]
  const invalidRange=(params.get('min')&&params.get('max')&&Number(params.get('min'))>Number(params.get('max')))||(params.get('yearMin')&&params.get('yearMax')&&Number(params.get('yearMin'))>Number(params.get('yearMax')))
  const jumpInventory=()=>{const el=document.getElementById('bilar');if(el){if(lenisRef.current)lenisRef.current.scrollTo(el,{offset:-88});else el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}else go('cars')}
+ const openingImages=[asset('./logo.png'),...(car?[asset(car.photos[0])]:['home','cars','saved'].includes(view)?[...(view==='home'&&hero&&matchMedia('(min-width:641px)').matches?[asset(hero.photos[0])]:[]),...results.slice(0,2).map(c=>asset(c.photos[0]))]:[])]
+ const openingReady=useOpeningReady(attempt,loading,openingImages)
  useShowroomMotion(rootRef,`${view}:${car?.id||''}`,results.slice(0,limit).map(c=>c.id).join(','),!loading&&openingReady)
  const InventoryHeading=view==='home'?'h2':'h1'
  const filters=(advanced=false)=> <Filters cars={cars} params={params} update={update} advanced={advanced}/>

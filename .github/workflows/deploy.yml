@@ -84,6 +84,7 @@ jobs:
         run: |
           node tools/bilamidstodin/check-data.mjs
           node tools/bilamidstodin/check-motion.mjs
+          node tools/bilamidstodin/check-opening.mjs
           npx vite build --config vite.bilamidstodin.config.ts
           node tools/bilamidstodin/stage-pages.mjs dist
       # Gate the artifact on the favicon check. This site is a GitHub Pages

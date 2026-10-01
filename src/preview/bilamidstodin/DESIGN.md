@@ -1,7 +1,10 @@
 # Bílamiðstöðin: a clear choice
 
 ## Ground and scene
-A buyer on a phone in daylight choosing between actual vehicles at Krókháls7. Pure white starts every fresh visit; dark is optional and remembered. Preserve Anton short display headings and Space Grotesk facts/controls from the existing design. Self-hosted files already verified for Icelandic glyphs.
+A buyer on a phone in daylight choosing between actual vehicles at Krókháls7. Pure white starts every fresh visit; dark is optional and remembered. Cabinet Grotesk Variable from the studio font library unifies strong 900-weight headings, 600-weight controls and readable 450-weight facts. Its 41,860-byte WOFF2 covers the full Icelandic alphabet; preserve the complete kit and relative CSS paths.
+
+## Opening readiness
+Preload the exact variable font URL used by its stylesheet. The white logo/streak screen lasts at least 1100ms while inventory and actual font faces load in parallel. Reveal after fonts plus logo and opening photos are loaded/decoded. Keep offscreen photos lazy. Bound font waits at 6 seconds and image waits at 4 seconds; a failed font selects a stable system font for this visit. Navigation and filtering never replay the loader. Only mount the page when ready so its existing staggered portions start with final typography.
 
 ## Source
 Use existing Bílagallerí Page/data/CSS as the engineering source and measured Bílás reference in `_docs/bilagalleri-build-2026-09-30/REFERENCE-DESIGN.md`. Motion probes and reference analysis already exist; no repeat capture or new inspired direction needed. Current prospect logo and page inventory harvested in `_docs/bilamidstodin-build-2026-10-01`.
