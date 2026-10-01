@@ -45,11 +45,11 @@ const BRAND = {
   '/preview/katla': 'katla/brand',
   '/preview/isfugl': 'isfugl/brand',
   '/preview/malning': 'malning/brand',
-  '/preview/benni': 'benni/brand',
   '/preview/dill': 'dill/brand',
   '/preview/set': 'set/brand',
   '/preview/teitur': 'teitur/brand',
   '/preview/bygg': 'bygg/brand',
+  '/preview/benni': 'benni/brand',
 }
 /* Deployed previews with no companies.ts entry: name + accent from their own page. */
 const EXTRA = {

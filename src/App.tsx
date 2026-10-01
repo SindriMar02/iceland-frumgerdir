@@ -187,16 +187,17 @@ const TreborgProject = lazy(() => import('./preview/treborg/Project'))
 const KatlaPage = lazy(() => import('./preview/katla/Page'))
 const IsfuglPage = lazy(() => import('./preview/isfugl/Page'))
 const MalningPage = lazy(() => import('./preview/malning/Page'))
-const BenniPage = lazy(() => import('./preview/benni/Page'))
 const DillPage = lazy(() => import('./preview/dill/Page'))
 const TeiturPage = lazy(() => import('./preview/teitur/Page'))
 const ByggPage = lazy(() => import('./preview/bygg/Page'))
-const SetPage = lazy(() => import('./preview/set/Page'))
+const BenniPage = lazy(() => import('./preview/benni/Page'))
 const GoaPage = lazy(() => import('./preview/goa/Page'))
 const FagravikPage = lazy(() => import('./preview/fagravik/Page'))
 const EyvikPage = lazy(() => import('./preview/eyvik/Page'))
 const FjarfestingPage = lazy(() => import('./preview/fjarfesting/Page'))
 const HaborgPage = lazy(() => import('./preview/haborg/Page'))
+const InstaprentPage = lazy(() => import('./preview/instaprent/Page'))
+const SetPage = lazy(() => import('./preview/set/Page'))
 const ChrisLundPage = lazy(() => import('./preview/chrislund/Page'))
 const ChrisLundSafnPage = lazy(() => import('./preview/chrislund/Safn'))
 const ChrisLundServicePage = lazy(() => import('./preview/chrislund/Thjonusta'))
@@ -467,16 +468,17 @@ export default function App() {
             <Route path="/preview/katla" element={<KatlaPage />} />
             <Route path="/preview/isfugl" element={<IsfuglPage />} />
             <Route path="/preview/malning" element={<MalningPage />} />
-            <Route path="/preview/benni" element={<BenniPage />} />
             <Route path="/preview/dill/*" element={<DillPage />} />
             <Route path="/preview/teitur/*" element={<TeiturPage />} />
             <Route path="/preview/bygg/*" element={<ByggPage />} />
-            <Route path="/preview/set/*" element={<SetPage />} />
+            <Route path="/preview/benni" element={<BenniPage />} />
             <Route path="/preview/goa" element={<GoaPage />} />
             <Route path="/preview/fagravik" element={<FagravikPage />} />
             <Route path="/preview/eyvik" element={<EyvikPage />} />
             <Route path="/preview/fjarfesting" element={<FjarfestingPage />} />
             <Route path="/preview/haborg" element={<HaborgPage />} />
+            <Route path="/preview/instaprent/*" element={<InstaprentPage />} />
+            <Route path="/preview/set/*" element={<SetPage />} />
             <Route path="/preview/chrislund" element={<ChrisLundPage />} />
             <Route path="/preview/chrislund/safn" element={<ChrisLundSafnPage />} />
             <Route path="/preview/chrislund/prentun" element={<ChrisLundServicePage slug="prentun" />} />

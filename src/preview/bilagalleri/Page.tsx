@@ -11,11 +11,11 @@ function readParams(){const p=new URLSearchParams(location.search);for(const k o
 function readList(key:string):string[]{try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?[...new Set(v.filter(x=>typeof x==='string'))].slice(0,key==='bg-compare'?3:100):[]}catch{return []}}
 function usePersistentList(key:string){const [list,setList]=useState(()=>readList(key));useEffect(()=>{try{localStorage.setItem(key,JSON.stringify(list))}catch{/* Storage is optional. */}},[key,list]);return [list,setList] as const}
 function useTheme(){
- const [preference,setPreference]=useState(()=>{try{const p=localStorage.getItem('bg-theme');return p==='light'||p==='dark'?p:'system'}catch{return 'system'}})
+ const [preference,setPreference]=useState(()=>{try{const p=localStorage.getItem('bg-theme');return p==='light'||p==='dark'||p==='system'?p:'light'}catch{return 'light'}})
  const [darkSystem,setDarkSystem]=useState(()=>matchMedia('(prefers-color-scheme: dark)').matches)
  const theme=preference==='system'?(darkSystem?'dark':'light'):preference
- useEffect(()=>{const m=matchMedia('(prefers-color-scheme: dark)');const fn=()=>setDarkSystem(m.matches);m.addEventListener('change',fn);const sync=(e:StorageEvent)=>{if(e.key==='bg-theme')setPreference(e.newValue==='dark'||e.newValue==='light'?e.newValue:'system')};window.addEventListener('storage',sync);return()=>{m.removeEventListener('change',fn);window.removeEventListener('storage',sync)}},[])
- useLayoutEffect(()=>{document.documentElement.dataset.theme=theme;document.documentElement.style.colorScheme=theme;document.querySelector('meta[name="theme-color"]')?.setAttribute('content',theme==='dark'?'#0A0C10':'#F5F6F7')},[theme])
+ useEffect(()=>{const m=matchMedia('(prefers-color-scheme: dark)');const fn=()=>setDarkSystem(m.matches);m.addEventListener('change',fn);const sync=(e:StorageEvent)=>{if(e.key==='bg-theme'||e.key===null)setPreference(e.newValue==='dark'||e.newValue==='light'||e.newValue==='system'?e.newValue:'light')};window.addEventListener('storage',sync);return()=>{m.removeEventListener('change',fn);window.removeEventListener('storage',sync)}},[])
+ useLayoutEffect(()=>{document.documentElement.dataset.theme=theme;document.documentElement.style.colorScheme=theme;document.querySelector('meta[name="theme-color"]')?.setAttribute('content',theme==='dark'?'#0A0C10':'#FFFFFF')},[theme])
  function choose(p:string){setPreference(p);try{localStorage.setItem('bg-theme',p)}catch{/* Keep working without storage. */}}
  return {theme,preference,choose}
 }

@@ -4476,12 +4476,12 @@ import { companyEntry as ISFUGL_ENTRY } from './isfugl/data'
 PREVIEW_COMPANIES.push(ISFUGL_ENTRY)
 import { companyEntry as MALNING_ENTRY } from './malning/data'
 PREVIEW_COMPANIES.push(MALNING_ENTRY)
-import { companyEntry as BENNI_ENTRY } from './benni/data'
-PREVIEW_COMPANIES.push(BENNI_ENTRY)
 import { companyEntry as DILL_ENTRY } from './dill/data'
 PREVIEW_COMPANIES.push(DILL_ENTRY)
 import { companyEntry as TEITUR_ENTRY } from './teitur/data'
 PREVIEW_COMPANIES.push(TEITUR_ENTRY)
+import { companyEntry as BENNI_ENTRY } from './benni/data'
+PREVIEW_COMPANIES.push(BENNI_ENTRY)
 import { companyEntry as GOA_ENTRY } from './goa/data'
 PREVIEW_COMPANIES.push(GOA_ENTRY)
 import { companyEntry as FAGRAVIK_ENTRY } from './fagravik/data'
@@ -4492,6 +4492,8 @@ import { companyEntry as FJARFESTING_ENTRY } from './fjarfesting/data'
 PREVIEW_COMPANIES.push(FJARFESTING_ENTRY)
 import { companyEntry as HABORG_ENTRY } from './haborg/data'
 PREVIEW_COMPANIES.push(HABORG_ENTRY)
+import { companyEntry as INSTAPRENT_ENTRY } from './instaprent/company'
+PREVIEW_COMPANIES.push(INSTAPRENT_ENTRY)
 PREVIEW_COMPANIES.push(ICEHERBS_ENTRY)
 import { companyEntry as CHRISLUND_ENTRY } from './chrislund/data'
 PREVIEW_COMPANIES.push(CHRISLUND_ENTRY)
