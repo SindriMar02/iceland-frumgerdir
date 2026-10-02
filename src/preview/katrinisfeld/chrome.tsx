@@ -16,7 +16,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { RollText } from './flair'
 import { useLocation } from 'react-router-dom'
-import { Link } from './link'
+import { Link, samePath } from './link'
 import { STUDIO } from './facts'
 import { CATEGORIES } from './projects'
 import { HOME, WORK, BRANDS_PATH, STUDIO_PATH, PRESS_PATH, CONTACT_PATH, EN_PATH, category } from './paths'
@@ -68,7 +68,7 @@ export function Nav() {
         <Link className="ki-nav-mark" data-ki-chrome to={HOME}>KATRÍN&nbsp;ÍSFELD</Link>
         <nav className="ki-nav-links" aria-label="Aðalvalmynd">
           {NAV.map((n) => (
-            <Link key={n.to} data-ki-chrome to={n.to} aria-current={pathname === n.to ? 'page' : undefined}>
+            <Link key={n.to} data-ki-chrome to={n.to} aria-current={samePath(pathname, n.to) ? 'page' : undefined}>
               <RollText text={n.label} />
             </Link>
           ))}

@@ -26,8 +26,28 @@
 import { flushSync } from 'react-dom'
 import { Link as RouterLink, useNavigate, type LinkProps } from 'react-router-dom'
 
-export function Link({ onClick, to, ...rest }: LinkProps) {
+/** Every route is prerendered as <route>/index.html, which Cloudflare Pages
+ *  serves at /route/ and 308-redirects /route to. The canonicals and the
+ *  sitemap already say /route/, so the links have to as well, or every
+ *  internal link is a redirect hop and Google sees two URLs per page.
+ *  Root, files and anything already ending in a slash are left alone; a
+ *  query or hash stays after the slash. */
+export function slash(to: string): string {
+  const cut = to.search(/[?#]/)
+  const path = cut === -1 ? to : to.slice(0, cut)
+  const tail = cut === -1 ? '' : to.slice(cut)
+  if (path === '' || path.endsWith('/') || /\.[a-z0-9]+$/i.test(path)) return to
+  return `${path}/${tail}`
+}
+
+/** Same page whatever the slash form, for aria-current and the like. */
+export function samePath(a: string, b: string): boolean {
+  return a.replace(/\/+$/, '') === b.replace(/\/+$/, '')
+}
+
+export function Link({ onClick, to: rawTo, ...rest }: LinkProps) {
   const navigate = useNavigate()
+  const to = typeof rawTo === 'string' && rawTo.startsWith('/') ? slash(rawTo) : rawTo
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     onClick?.(e)

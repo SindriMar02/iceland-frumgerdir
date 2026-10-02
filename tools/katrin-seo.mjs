@@ -71,7 +71,7 @@ const clip = (s, n = 155) => (s.length <= n ? s : s.slice(0, s.lastIndexOf(' ', 
 const PAGES = [
   {
     clean: '/',
-    title: 'Katrín Ísfeld innanhússarkitekt í Reykjavík',
+    title: 'Katrín Ísfeld | Innanhússarkitekt í Reykjavík',
     desc: `Innanhússarkitekt í Reykjavík sem hannar innanhús frá grunni: heimili, gistiheimili, hótel og atvinnurými. ${PROJECTS.length} verk í skránni. ${ADDRESS_LINE}.`,
     image: photo('s-eldhus-vitt'),
     kind: 'home',
@@ -523,8 +523,16 @@ function writeRedirects() {
      outright. So slash normalisation is left to the host in both directions,
      and only paths that actually MOVED are written here. */
   const moved = REDIRECTS.filter(([from, to]) => from !== to)
-  const lines = moved.map(([from, to]) => `${from} ${to} 301`)
-  const withSlash = moved.map(([from, to]) => `${from}/ ${to} 301`)
+  /* the TARGET is written in the form the host serves (/route/), or every old
+     URL is a 301 to a 308: two hops where Google wants one */
+  const served = (to) => {
+    const cut = to.search(/[?#]/)
+    const path = cut === -1 ? to : to.slice(0, cut)
+    const tail = cut === -1 ? '' : to.slice(cut)
+    return path.endsWith('/') || /\.[a-z0-9]+$/i.test(path) ? to : `${path}/${tail}`
+  }
+  const lines = moved.map(([from, to]) => `${from} ${served(to)} 301`)
+  const withSlash = moved.map(([from, to]) => `${from}/ ${served(to)} 301`)
   /* and a rule that only adds or removes a slash is that loop by another
      name, whatever produced it */
   const loops = [...lines, ...withSlash].filter((l) => {
