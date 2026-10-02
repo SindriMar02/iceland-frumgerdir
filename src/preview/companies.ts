@@ -4756,3 +4756,5 @@ import { companyEntry as SET_ENTRY } from './set/data'
 PREVIEW_COMPANIES.push(SET_ENTRY)
 import { companyEntry as MATVELAR_ENTRY } from './matvelar/data'
 PREVIEW_COMPANIES.push(MATVELAR_ENTRY)
+import { companyEntry as SAMBO_ENTRY } from './sambo/data'
+PREVIEW_COMPANIES.push(SAMBO_ENTRY)
