@@ -251,6 +251,10 @@ export function heroStreams(canvas: HTMLCanvasElement, still = false): () => voi
     const taken = new Set(lit.map((b) => `${b.l}:${b.k}`))
     const half = dash / 2
     ctx.clearRect(0, 0, W, H)
+    /* a faint steel haze where the lanes meet: the page is never a bare black field behind the headline */
+    const haze = ctx.createRadialGradient(W / 2, H * 0.6, 0, W / 2, H * 0.6, Math.max(W, H) * 0.6)
+    haze.addColorStop(0, 'rgb(40,56,72)'); haze.addColorStop(1, 'rgb(0,0,0)')
+    ctx.fillStyle = haze; ctx.fillRect(0, 0, W, H)
     ctx.lineWidth = width; ctx.lineCap = 'butt'
     ctx.strokeStyle = '#6a7681'; ctx.beginPath()
     for (let l = 0; l < LANES; l++) {
