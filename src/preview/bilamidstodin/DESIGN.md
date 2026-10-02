@@ -1,7 +1,7 @@
 # Bílamiðstöðin: a clear choice
 
 ## Ground and scene
-A buyer on a phone in daylight choosing between actual vehicles at Krókháls7. Pure white starts every fresh visit; dark is optional and remembered. Cabinet Grotesk Variable from the studio font library unifies strong 900-weight headings, 600-weight controls and readable 450-weight facts. Its 41,860-byte WOFF2 covers the full Icelandic alphabet; preserve the complete kit and relative CSS paths.
+A buyer on a phone in daylight choosing between actual vehicles at Krókháls7. Pure white starts every fresh visit; dark is optional and remembered. Clash Display Variable700 headlines with neutral letter spacing keep punctuation distinct. Cabinet Grotesk Variable600 controls and450 facts maintain small-text clarity. Both fonts come from the studio library and load before reveal. Its 41,860-byte WOFF2 covers the full Icelandic alphabet; preserve the complete kit and relative CSS paths.
 
 ## Opening readiness
 Preload the exact variable font URL used by its stylesheet. The white logo/streak screen lasts at least 1100ms while inventory and actual font faces load in parallel. Reveal after fonts plus logo and opening photos are loaded/decoded. Keep offscreen photos lazy. Bound font waits at 6 seconds and image waits at 4 seconds; a failed font selects a stable system font for this visit. Navigation and filtering never replay the loader. Only mount the page when ready so its existing staggered portions start with final typography.

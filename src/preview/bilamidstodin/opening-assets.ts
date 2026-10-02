@@ -1,6 +1,6 @@
 export const openingFont='CabinetGrotesk-Variable'
 export const openingSample='Bílamiðstöðin · ÞÍN LEIÐ. ÞINN BÍLL. ÁáÉéÍíÓóÚúÝýÐðÞþÆæÖö 0123456789'
-export const openingWeights=[450,600,900]
+export const openingWeights=[450,600]
 
 /** Bound resource failures and remove every timer/listener on completion or cancellation. */
 export function within(task:Promise<boolean>,milliseconds:number,signal:AbortSignal):Promise<boolean>{
@@ -25,7 +25,7 @@ export function minimumOpening(milliseconds:number,signal:AbortSignal):Promise<b
 }
 export function prepareFonts(fonts:Pick<FontFaceSet,'load'|'check'>|undefined,signal:AbortSignal,deadline=6000):Promise<boolean>{
  if(!fonts||signal.aborted)return Promise.resolve(false)
- const specs=openingWeights.map(weight=>`${weight} 16px "${openingFont}"`)
+ const specs=[...openingWeights.map(weight=>`${weight} 16px "${openingFont}"`),'700 16px "ClashDisplay-Variable"']
  const task=Promise.resolve().then(()=>Promise.all(specs.map(spec=>fonts.load(spec,openingSample)))).then(faces=>faces.every(f=>f.length>0)&&specs.every(spec=>fonts.check(spec,openingSample)))
  return within(task,deadline,signal)
 }
