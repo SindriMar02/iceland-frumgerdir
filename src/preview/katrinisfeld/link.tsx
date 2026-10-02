@@ -47,24 +47,30 @@ export function samePath(a: string, b: string): boolean {
 
 export function Link({ onClick, to: rawTo, ...rest }: LinkProps) {
   const navigate = useNavigate()
-  const to = typeof rawTo === 'string' && rawTo.startsWith('/') ? slash(rawTo) : rawTo
+  /* "//host/path" is another site, not a path on this one */
+  const local = typeof rawTo === 'string' && rawTo.startsWith('/') && !rawTo.startsWith('//')
+  const to = local ? slash(rawTo as string) : rawTo
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     onClick?.(e)
     if (e.defaultPrevented) return
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-    if (typeof to !== 'string' || !to.startsWith('/')) return
+    if (!local || typeof to !== 'string') return
     if (typeof document === 'undefined' || !document.startViewTransition) return
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
     e.preventDefault()
     const t = document.startViewTransition(() => { flushSync(() => { navigate(to) }) })
-    /* the browser aborts the cross-fade (a hidden tab, a second click mid-fade)
-       but still runs the callback, so the page always changes; only the
-       animation is skipped, and that is not an error worth an uncaught rejection */
-    const quiet = () => {}
-    t.ready.catch(quiet)
-    t.finished.catch(quiet)
-    t.updateCallbackDone.catch(quiet)
+    /* `ready` rejects when the browser skips the cross-fade (a hidden tab, a
+       second click mid-fade); the callback still runs and the page still
+       changes, so that one is quiet. `finished` repeats whatever the callback
+       did. `updateCallbackDone` rejecting means the route change itself threw:
+       report it and fall back to a plain page load, so the click still lands. */
+    t.ready.catch(() => {})
+    t.finished.catch(() => {})
+    t.updateCallbackDone.catch((err) => {
+      console.error('katrin: in-app navigation failed, loading the page instead', err)
+      window.location.assign(to)
+    })
   }
 
   return <RouterLink to={to} onClick={handleClick} {...rest} />

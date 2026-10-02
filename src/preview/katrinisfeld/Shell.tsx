@@ -51,6 +51,15 @@ function useHead({ title, desc, clean, lang = 'is' }: Head) {
       const e = document.createElement('meta'); e.setAttribute('name', 'description'); return e
     }) as HTMLMetaElement
     if (!keep) m.content = desc
+    /* the robots line follows the page too: a click from the 404 (noindex) to a
+       real page must not carry the noindex with it. Same values katrin-seo.mjs writes. */
+    if (!keep) {
+      const r = set('meta[name="robots"]', () => {
+        const e = document.createElement('meta'); e.setAttribute('name', 'robots'); return e
+      }) as HTMLMetaElement
+      r.content = clean === '/404' ? 'noindex, follow'
+        : SITE ? 'index, follow, max-image-preview:large, max-snippet:-1' : 'noindex, nofollow'
+    }
     if (SITE) {
       const c = set('link[rel="canonical"]', () => {
         const e = document.createElement('link'); e.setAttribute('rel', 'canonical'); return e
