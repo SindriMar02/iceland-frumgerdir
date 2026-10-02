@@ -182,6 +182,8 @@ const IceherbsPage = lazy(() => import('./preview/iceherbs/Page'))
 const HbhProject = lazy(() => import('./preview/hbh/Project'))
 const RobertsPage = lazy(() => import('./preview/roberts/Page'))
 const RobertsProject = lazy(() => import('./preview/roberts/Project'))
+const AegirPage = lazy(() => import('./preview/aegir/Page'))
+const AegirProject = lazy(() => import('./preview/aegir/Project'))
 const TreborgPage = lazy(() => import('./preview/treborg/Page'))
 const TreborgProject = lazy(() => import('./preview/treborg/Project'))
 const KatlaPage = lazy(() => import('./preview/katla/Page'))
@@ -464,6 +466,8 @@ export default function App() {
             <Route path="/preview/hbh/verk/:slug" element={<HbhProject />} />
             <Route path="/preview/roberts" element={<RobertsPage />} />
             <Route path="/preview/roberts/verk/:slug" element={<RobertsProject />} />
+            <Route path="/preview/aegir" element={<AegirPage />} />
+            <Route path="/preview/aegir/verk/:slug" element={<AegirProject />} />
             <Route path="/preview/treborg" element={<TreborgPage />} />
             <Route path="/preview/treborg/verk/:slug" element={<TreborgProject />} />
             <Route path="/preview/katla" element={<KatlaPage />} />
