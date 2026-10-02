@@ -30,9 +30,18 @@ export interface Head {
 
 export const SITE = (import.meta.env.VITE_KATRIN_SITE_URL as string) || ''
 
+/* On her own domain every page arrives with its head already written by
+   tools/katrin-seo.mjs, and those titles and descriptions are the SEO-tuned
+   ones. Google renders the JavaScript, so overwriting them on hydration would
+   show it a second, different title for the same URL. The first load keeps
+   what the prerender wrote; in-app navigation still updates the head. */
+let prerenderedHead = STANDALONE
+
 function useHead({ title, desc, clean, lang = 'is' }: Head) {
   useEffect(() => {
-    document.title = title
+    const keep = prerenderedHead
+    prerenderedHead = false
+    if (!keep) document.title = title
     const set = (sel: string, make: () => HTMLElement) => {
       let el = document.head.querySelector<HTMLElement>(sel)
       if (!el) { el = make(); document.head.appendChild(el) }
@@ -41,7 +50,7 @@ function useHead({ title, desc, clean, lang = 'is' }: Head) {
     const m = set('meta[name="description"]', () => {
       const e = document.createElement('meta'); e.setAttribute('name', 'description'); return e
     }) as HTMLMetaElement
-    m.content = desc
+    if (!keep) m.content = desc
     if (SITE) {
       const c = set('link[rel="canonical"]', () => {
         const e = document.createElement('link'); e.setAttribute('rel', 'canonical'); return e

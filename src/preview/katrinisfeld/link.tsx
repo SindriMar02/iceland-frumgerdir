@@ -57,7 +57,14 @@ export function Link({ onClick, to: rawTo, ...rest }: LinkProps) {
     if (typeof document === 'undefined' || !document.startViewTransition) return
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
     e.preventDefault()
-    document.startViewTransition(() => { flushSync(() => { navigate(to) }) })
+    const t = document.startViewTransition(() => { flushSync(() => { navigate(to) }) })
+    /* the browser aborts the cross-fade (a hidden tab, a second click mid-fade)
+       but still runs the callback, so the page always changes; only the
+       animation is skipped, and that is not an error worth an uncaught rejection */
+    const quiet = () => {}
+    t.ready.catch(quiet)
+    t.finished.catch(quiet)
+    t.updateCallbackDone.catch(quiet)
   }
 
   return <RouterLink to={to} onClick={handleClick} {...rest} />
