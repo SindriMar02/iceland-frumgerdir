@@ -11,7 +11,7 @@
  *      build on a hit. This is the step that turns "the catalogue should be
  *      unreachable" into a failed build rather than a silent leak.
  */
-import { readdirSync, rmSync, statSync, readFileSync, renameSync, existsSync } from 'node:fs'
+import { readdirSync, rmSync, statSync, readFileSync, renameSync, existsSync, copyFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
@@ -138,6 +138,12 @@ if (existsSync(plateDir)) {
 const env = { ...process.env, KATRIN_STANDALONE: '1' }
 execFileSync('node', ['tools/katrin-prerender.mjs', dist], { stdio: 'inherit', env })
 execFileSync('node', ['tools/katrin-seo.mjs', dist], { stdio: 'inherit', env })
+
+/* 3b ── /favicon.ico at the domain root. Google's favicon crawler and older
+   browsers ask for it before reading any <link rel="icon">; it used to 404
+   (HQ health check 2026-10-02, same fix as Reynir 2026-09-28). */
+copyFileSync(join(dist, 'katrinisfeld/brand/favicon.ico'), join(dist, 'favicon.ico'))
+console.log('katrin-post: /favicon.ico')
 
 /* 4 ── the separation gate */
 const OTHER_SLUGS = [

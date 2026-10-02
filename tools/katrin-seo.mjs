@@ -450,6 +450,8 @@ ${pair ? `    <link rel="alternate" hreflang="${isEn ? 'en' : 'is'}" href="${url
     <link rel="icon" href="${prefix}/katrinisfeld/brand/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="${prefix}/katrinisfeld/brand/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="icon" href="${prefix}/katrinisfeld/brand/favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="icon" href="${prefix}/katrinisfeld/brand/favicon-96.png" type="image/png" sizes="96x96" />
+    <link rel="icon" href="${prefix}/katrinisfeld/brand/favicon-192.png" type="image/png" sizes="192x192" />
     <link rel="apple-touch-icon" href="${prefix}/katrinisfeld/brand/apple-touch-icon.png" />
     <meta name="theme-color" content="#1D1B19" />
     <script type="application/ld+json">${JSON.stringify(graphFor(page))}</script>
