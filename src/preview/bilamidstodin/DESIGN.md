@@ -20,3 +20,8 @@ Use existing500ms bounded hero entrance,140ms press feedback,180ms toggle,220ms 
 
 ## Verification
 Scoped lint/typecheck/build; sourced inventory integrity and tax/price conditions; correct staff/contact/dates; actual mobile selection/filter/detail/compare/enquiry/back; both themes; widths320/390/768/1440 sequentially. Dedicated native Safari remains gated by memory pressure/other resource ownership. Never call the prototype live-integrated or production-ready until those gates are satisfied.
+
+## Mobile selling and browsing — 2026-10-02
+Sale/cash pages stack introduction → full-width form → steps and fees at 900px and below; desktop keeps the form beside the introduction/details. Phone and email receive separate rows on smaller screens. Comparison selection persists but its tray is absent from service pages.
+Mobile stock cards place photo beside identity/price, with visible year, mileage, fuel and transmission below; 44px save/compare/open targets remain. Use a 260px intrinsic placeholder to match compact cards during lazy rendering. Below 360px, facts use two columns and the header wordmark shrinks to preserve the menu.
+Mobile filters pair minimum/maximum price, give fuel a full row, and group secondary criteria in an expandable section. Existing advanced criteria reopen that section; the result count/action remains sticky.
