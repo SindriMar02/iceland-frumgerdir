@@ -52,6 +52,7 @@ const BRAND = {
   '/preview/benni': 'benni/brand',
   '/preview/isband': 'isband/brand',
   '/preview/aegir': 'aegir/brand',
+  '/preview/matvelar': 'matvelar/brand',
 }
 /* Deployed previews with no companies.ts entry: name + accent from their own page. */
 const EXTRA = {
