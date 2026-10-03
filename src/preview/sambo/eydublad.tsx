@@ -98,6 +98,19 @@ export function Eydublad({ cfg, lina, krefstLina = false, formId, felaTakka = fa
     return e
   }
 
+  /* a shown error clears as soon as its field is corrected; errors are only ever added on submit */
+  useEffect(() => {
+    setVillur((cur) => {
+      const ks = Object.keys(cur)
+      if (!ks.length) return cur
+      const nu = athuga()
+      const n: Record<string, string> = {}
+      for (const k of ks) if (nu[k]) n[k] = nu[k]
+      return Object.keys(n).length === ks.length ? cur : n
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [v, lina])
+
   const skoda = (ev: FormEvent) => {
     ev.preventDefault()
     const e = athuga()

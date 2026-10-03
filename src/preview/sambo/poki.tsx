@@ -220,8 +220,7 @@ export function Poki() {
                       <span>{x.p!.name.is}<small>{x.p!.desc.is}</small></span>
                       <span className="sb-magn">
                         <button type="button" onClick={() => poki.set(x.slug, x.magn - 1)} aria-label={`Færri ${x.p!.name.is}`}>−</button>
-                        <input className="sb-magnN" aria-label={`Magn ${x.p!.name.is}`} inputMode="numeric" pattern="[0-9]*" value={x.magn}
-                          onChange={(e) => poki.set(x.slug, Number(e.target.value.replace(/\D/g, '')) || 1)} />
+                        <MagnReitur slug={x.slug} nafn={x.p!.name.is} magn={x.magn} />
                         <button type="button" onClick={() => poki.set(x.slug, x.magn + 1)} aria-label={`Fleiri ${x.p!.name.is}`}>+</button>
                       </span>
                     </li>
@@ -249,5 +248,20 @@ export function Poki() {
         )}
       </div>
     </>
+  )
+}
+
+/* typed quantity: edit freely, commit on blur; 0 removes the line, empty keeps it */
+function MagnReitur({ slug, nafn, magn }: { slug: string; nafn: string; magn: number }) {
+  const [txt, setTxt] = useState<string | null>(null)
+  return (
+    <input className="sb-magnN" aria-label={`Magn ${nafn}`} inputMode="numeric" pattern="[0-9]*" value={txt ?? String(magn)}
+      onFocus={(e) => e.currentTarget.select()}
+      onChange={(e) => {
+        const s = e.target.value.replace(/\D/g, '').slice(0, 3)
+        setTxt(s)
+        if (s !== '' && Number(s) > 0) poki.set(slug, Number(s))
+      }}
+      onBlur={() => { if (txt !== null && txt !== '' && Number(txt) === 0) poki.set(slug, 0); setTxt(null) }} />
   )
 }

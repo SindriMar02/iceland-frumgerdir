@@ -105,6 +105,8 @@ export const POP_CSS = `
 .sb-matrix table{width:100%;min-width:36rem;border-collapse:collapse;font-size:.9rem}
 .sb-matrix th,.sb-matrix td{padding:.5rem .6rem;text-align:center;white-space:nowrap;box-shadow:inset 0 -1px 0 var(--c-lina)}
 .sb-matrix thead th{font-size:.74rem;letter-spacing:.06em;text-transform:capitalize;color:var(--c-ink-med);font-weight:500}
+.sb-matrix thead th:first-child{position:sticky;left:0;z-index:2;background:var(--c-bg);box-shadow:inset 0 -1px 0 var(--c-lina),1px 0 0 var(--c-lina)}
+.sb-matrix tbody th{z-index:1}
 .sb-matrix tbody th{text-align:left;font-weight:500;position:sticky;left:0;background:var(--c-bg);box-shadow:inset 0 -1px 0 var(--c-lina),1px 0 0 var(--c-lina)}
 .sb-matrix td.hef{font-weight:700;color:var(--c-rautt);background:color-mix(in srgb,var(--c-rautt) 7%,transparent)}
 .sb-matrix td.oljost{color:var(--c-ink-max)}
@@ -131,6 +133,10 @@ export function Popup() {
   const c = p ?? sidast.current
 
   useEffect(() => { setMerki(null) }, [c && c.k === 'vara' ? c.slug : null])
+
+  /* a new subject inside an open panel (overview row -> product) starts at its top, the body lock stays */
+  const efni = p ? JSON.stringify(p) : ''
+  useEffect(() => { if (efni) panel.current?.querySelector('.sb-popS')?.scrollTo(0, 0) }, [efni])
 
   useEffect(() => {
     const el = panel.current
