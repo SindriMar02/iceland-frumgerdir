@@ -555,7 +555,7 @@ export const companyEntry: PreviewCompany = {
   ownerEmail: '',
   concept: 'Ein beiðni sem segir hvað verkið þarf',
   conceptTagline:
-    'STOÐ birtir verð á ellefu undirsíðum og tekur við beiðnum í almennu formi með nafni, titli og skilaboðum. Frumgerðin setur verðskrána á einn stað og skiptir beiðninni í leigu og verk: tæki, vinnuhæð og dagsetningar fyrir leigu, heimilisfang, lengd og hæð hússins, uppsetningu og myndir fyrir verk, svo að starfsfólk fær allt sem þarf í tilboð í fyrstu beiðni.',
+    'STOÐ birtir verð á átta vörusíðum og tekur við beiðnum í almennu formi með nafni, titli og skilaboðum. Frumgerðin setur verðskrána á einn stað og skiptir beiðninni í leigu og verk: tæki, vinnuhæð og dagsetningar fyrir leigu, heimilisfang, lengd og hæð hússins, uppsetningu og myndir fyrir verk, svo að starfsfólk fær allt sem þarf í tilboð í fyrstu beiðni.',
   accent: '#005C9C',
   dark: false,
   status: 'Concept ready',
@@ -569,8 +569,8 @@ export const companyEntry: PreviewCompany = {
       'Eigin myndir af pöllum á verkstöðum, meðal annars hús HB Granda klætt pöllum',
     ],
     weaknesses: [
-      'Verðin eru dreifð á ellefu undirsíður; enginn staður sýnir verðskrána í heild',
-      'Formið á Hafðu samband biður um nafn, netfang, síma, titil og skilaboð: engin dagsetning, heimilisfang, tæki, hæð eða myndir',
+      'Verðin eru dreifð á átta vörusíður; enginn staður sýnir verðskrána í heild',
+      'Formið á Hafðu samband biður um nafn, netfang, síma, titil og skilaboð, með öryggiskóða: engin dagsetning, heimilisfang, tæki, hæð eða myndir',
       'Fréttasíðan sýnir hrátt sniðmát, {News1}Frettir{/News1}, líka í lýsingu síðunnar',
       'Á Sala-síðunni vísar hlekkur Amadio á vef ASC, og engin síða er með lýsingu (meta description) fyrir leitarvélar',
     ],
