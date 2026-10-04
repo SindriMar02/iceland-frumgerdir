@@ -488,7 +488,7 @@ export function initStack({ track, svg }: StackParts): () => void {
     }
     const setState = (lit: number | null, form: number) => {
       groups.forEach((g) => g.setAttribute('data-on', String(Number(g.dataset.i) === lit ? 1 : 0)))
-      forms.forEach((f, k) => { f.style.opacity = k === form ? '1' : '0' })
+      forms.forEach((f, k) => { f.style.opacity = k === form ? '1' : '0'; f.dataset.on = k === form ? '1' : '0' })
     }
 
     /* before the pin: the whole line, then in on the first machine, the product arriving and being ground */

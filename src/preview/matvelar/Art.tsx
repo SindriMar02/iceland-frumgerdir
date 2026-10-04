@@ -1,5 +1,5 @@
 import { memo, type Ref } from 'react'
-import { BELT, ITEM_FORMS, ITEM_X, STATIONS, beltPoint, box, camera, iso, overview, rod, type Shape } from './iso'
+import { BELT, ITEM_FORMS, ITEM_X, LUG, OUTPUT, STATIONS, beltPoint, box, camera, iso, overview, rod, type Shape } from './iso'
 
 /* The isometric artwork. Our own drawing, built from iso.ts: no path here is
    traced from anything. Roles are coloured by the stylesheet (.mv-iso .t, .l …),
@@ -50,7 +50,7 @@ export const LineSvg = memo(function LineSvg({ active, view, form = 1, svgRef, l
       <g className="belt"><Paths shapes={BELT} /></g>
       <g className="item" data-item transform={`translate(${ix.toFixed(2)} ${iy.toFixed(2)})`}>
         {ITEM_FORMS.map((f, k) => (
-          <g key={k} data-form={k} style={{ opacity: k === form ? 1 : 0 }}><Paths shapes={f} /></g>
+          <g key={k} data-form={k} data-on={k === form ? 1 : 0} style={{ opacity: k === form ? 1 : 0 }}><Paths shapes={f} /></g>
         ))}
       </g>
       {STATIONS.map((s, i) => (
@@ -58,19 +58,15 @@ export const LineSvg = memo(function LineSvg({ active, view, form = 1, svgRef, l
           <Paths shapes={s.front} />
         </g>
       ))}
+      <g className="out"><Paths shapes={OUTPUT} /></g>
     </svg>
   )
 })
 
-/* ── the crate that drops onto the belt (the "who we serve" section) ───── */
+/* ── the lug of cuts that drops onto the slab (the "who we serve" section) ── */
 const slab: Shape[] = [
   ...box(0, 0, 0, 84, 84, 6),
   ...[14, 28, 42, 56, 70].flatMap((n) => [rod([n, 0, 6], [n, 84, 6], 'roll'), rod([0, n, 6], [84, n, 6], 'roll')]),
-]
-const crate: Shape[] = [
-  ...box(14, 14, 6, 56, 56, 38, ['o', 'o', 'o']),
-  ...[0, 1, 2].map((i) => rod([14, 70, 6 + 10 + i * 10], [70, 70, 6 + 10 + i * 10], 'slat')),
-  ...[0, 1, 2].map((i) => rod([70, 14, 6 + 10 + i * 10], [70, 70, 6 + 10 + i * 10], 'slat')),
 ]
 
 export const CUBE_LIFT = 130
@@ -86,7 +82,7 @@ export const CubeDrop = memo(function CubeDrop() {
           <line key={i} data-guide x1={p[0]} x2={p[0]} y1={p[1] - CUBE_LIFT} y2={p[1]} />
         ))}
       </g>
-      <g data-crate transform={`translate(0 ${-CUBE_LIFT})`}><Paths shapes={crate} /></g>
+      <g data-crate transform={`translate(0 ${-CUBE_LIFT})`}><Paths shapes={LUG} /></g>
     </svg>
   )
 })

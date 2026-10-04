@@ -14,7 +14,7 @@ export const C = {
 
 /* The Deepbook system, re-aimed at Matvélar og umbúðir. Same fluid em root (the whole page scales
    as one object), same floating bar, line reveals, stack, counters and line field; the colour layer
-   is their own: the slate of their logo carries the panels, and one signal orange marks what moves
+   is their own: the slate of their logo carries the panels, and one signal yellow marks what moves
    and what to press. Fonts are Hubot Sans and Martian Mono (open licence), in place of the
    reference's paid faces. */
 export const CSS = `
@@ -221,21 +221,30 @@ html:has(.mv), body:has(.mv){background-color:${C.black}}
 .mv-stack--static .mv-stack__panel{justify-content:center;gap:1.4em}
 .mv-stack--static .mv-stack__line{font-size:2em}
 
-/* the isometric drawing: roles are coloured here, nowhere else */
+/* the isometric drawing: roles are coloured here, nowhere else.
+   Machines are white and steel; everything edible is the signal yellow, fresh (p) or cooked (c). */
 .mv-iso{width:100%;height:100%;overflow:hidden}
 .mv-iso path{stroke:#0b0d0f;stroke-width:1.2;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
 .mv-iso .t{fill:#fff}.mv-iso .l{fill:#e4e8eb}.mv-iso .r{fill:#c7ced3}.mv-iso .k{fill:#15181b}
-.mv-iso .o{fill:var(--signal)}.mv-iso .n{fill:none}.mv-iso .w{fill:#fff;fill-opacity:.82}
-.mv-iso .roll,.mv-iso .rod,.mv-iso .needle,.mv-iso .slat,.mv-iso .speck{fill:none}
+.mv-iso .p{fill:var(--signal)}.mv-iso .pl{fill:#efc900}.mv-iso .pr{fill:#c9a500}
+.mv-iso .c{fill:#f0a800}.mv-iso .cl{fill:#d18b00}.mv-iso .cr{fill:#a96d00}
+.mv-iso .s{fill:#6b4400;stroke:none}
+.mv-iso .n{fill:none}.mv-iso .w{fill:#fff;fill-opacity:.82}.mv-iso .f{fill:#fff;fill-opacity:.5}
+.mv-iso .roll,.mv-iso .rod,.mv-iso .needle,.mv-iso .rack,.mv-iso .grain,.mv-iso .steam,.mv-iso .shine,.mv-iso .glare{fill:none}
 .mv-iso path.roll{stroke:#a3adb5}
+.mv-iso path.rack{stroke:#6a7681}
+.mv-iso path.grain{stroke:#9a7f00;stroke-width:1}
+.mv-iso path.steam{stroke:#9aa5ae;stroke-width:1.4}
+.mv-iso path.shine{stroke:#fff;stroke-width:1.6}
+.mv-iso path.glare{stroke:#fff;stroke-width:1.6;stroke-opacity:.9}
 .mv-iso .st .t,.mv-iso .st .l,.mv-iso .st .r{transition:fill .5s var(--ease)}
 .mv-iso .st[data-on="1"] .t{fill:#9fb0bf}.mv-iso .st[data-on="1"] .l{fill:#576a7c}.mv-iso .st[data-on="1"] .r{fill:#3f4e5b}
-.mv-iso [data-form]{transition:opacity .35s}
+.mv-iso [data-form]{transition:opacity .35s,visibility 0s}
+.mv-iso [data-form][data-on="0"]{visibility:hidden;transition:opacity .35s,visibility 0s .35s}
 .mv-iso--dark path{stroke:#6a7681}
 .mv-iso--dark .t{fill:#1f1f1f}.mv-iso--dark .l{fill:#161616}.mv-iso--dark .r{fill:#101010}
-.mv-iso--dark .o{stroke:#000}
+.mv-iso--dark .p,.mv-iso--dark .pl,.mv-iso--dark .pr{stroke:#000}
 .mv-iso--dark path.roll{stroke:#2a2f34}
-.mv-iso--dark path.slat{stroke:#8a7400}
 .mv-iso--dark .guides line{stroke:#6a7681;stroke-width:1;stroke-dasharray:2 3;vector-effect:non-scaling-stroke}
 
 /* ── who we serve ────────────────────────────────────────────── */

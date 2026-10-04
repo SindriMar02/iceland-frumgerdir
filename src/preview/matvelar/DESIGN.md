@@ -15,8 +15,10 @@ press, the service banner. Black ground `#000`, bar `#1b1b1b`, hairline `#2a2f34
 checked on the shipped woff2 files. Floors: body 15px, mono labels 12px, inputs 16px, tap targets 44px.
 
 **Artwork (ours):** isometric drawing kit `iso.ts`: a production line of five machines on one belt (grinder, brine
-injector and tumbler, former, oven, packer) and a crate on a slab. Roles are coloured by CSS; the active machine is
-lit slate, the product is yellow and changes form (raw, ground, brined, formed, breaded, packed).
+injector and tumbler, former, oven, packer) and a lug of cuts on a slab. Machines are white and steel (lit slate when
+active). Everything edible is the one signal yellow, fresh or cooked, and drawn as a recognisable food (chicken legs,
+mince, wet cuts, sausages, golden cutlets, a packed tray), never as discs or cubes: a yellow disc reads as a coin.
+Roles are coloured by CSS only.
 
 **Content rule:** their words. No prices, capacities or specs exist on their site, so none are shown. Each family page
 carries the supplier paragraph as Matvélar wrote it. Stages are their own sentence ("frá forvinnslu með farsvélum,
