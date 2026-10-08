@@ -55,6 +55,7 @@ const BRAND = {
   '/preview/matvelar': 'matvelar/brand',
   '/preview/sambo': 'sambo/brand',
   '/preview/stod': 'stod/brand',
+  '/preview/vatt': 'vatt/brand',
 }
 /* Deployed previews with no companies.ts entry: name + accent from their own page. */
 const EXTRA = {
