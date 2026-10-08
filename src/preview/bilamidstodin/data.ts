@@ -11,7 +11,7 @@ export const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u
 export const asset = (s: string) => s.startsWith('http') ? s : `${import.meta.env.BASE_URL}${s.replace(/^\.\//,'')}`
 export const keys = ['q','make','model','type','fuel','min','max','yearMin','yearMax','kmMax','gear','drive','seats','offer','tow','site'] as const
 export type FilterKey = typeof keys[number]
-export const filterNames: Record<FilterKey,string> = {q:'Leit',make:'Tegund',model:'Gerð',type:'Flokkur',fuel:'Orkugjafi',min:'Verð frá',max:'Verð að',yearMin:'Árgerð frá',yearMax:'Árgerð til',kmMax:'Akstur að',gear:'Skipting',drive:'Drif',seats:'Sæti',offer:'Tilboð',tow:'Dráttarkrókur',site:'Á staðnum'}
+export const filterNames: Record<FilterKey,string> = {q:'Leit',make:'Tegund',model:'Gerð',type:'Flokkur',fuel:'Orkugjafi',min:'Verð frá',max:'Verð að',yearMin:'Árgerð frá',yearMax:'Árgerð til',kmMax:'Akstur að',gear:'Skipting',drive:'Drif',seats:'Sæti',offer:'Tilboðsverð',tow:'Dráttarkrókur',site:'Á staðnum'}
 export function queryMatches(car: Car, raw: string) {
  let q = fold(raw).trim()
  const conditions: boolean[] = []

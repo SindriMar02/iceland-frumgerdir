@@ -106,7 +106,8 @@ html[data-bm-fonts=fallback] body,html[data-bm-fonts=fallback] h1,html[data-bm-f
  .bm-car-body>.bm-facts dd{font-size:12px;overflow-wrap:anywhere}
  .bm-car-body>.bm-card-extra{grid-column:1/-1;font-size:11px;padding-bottom:8px;gap:4px 8px}
  .bm-car-body>.bm-card-foot{grid-column:1/-1;min-width:0;padding-block:0;gap:8px}
- .bm-car-photo .bm-save{top:2px;right:2px;width:44px;height:44px;background:var(--bm-surface);border:0}
+ .bm-car-photo .bm-save{top:0;right:0;width:44px;height:44px;display:grid;place-items:start end;padding:5px;background:none;border:0}
+ .bm-car-photo .bm-save svg{width:26px;height:26px;padding:6px;border-radius:50%;background:var(--bm-surface);box-shadow:0 1px 3px rgba(0,0,0,.18)}
  .bm-car-photo .bm-offer{left:4px;top:auto;bottom:4px;font-size:10px;padding:3px 6px}
  .bm-car-photo .bm-photo-count{right:4px;bottom:4px;font-size:9px;padding:3px 5px}
  .bm-card-foot .bm-text-button{min-height:44px}
@@ -134,3 +135,22 @@ html[data-bm-fonts=fallback] body,html[data-bm-fonts=fallback] h1,html[data-bm-f
 @media(max-width:359px){.bm-header .bm-logo .bm-wordmark{width:134px}}
 
 @media(max-width:640px){.bm-about>h1{font-size:clamp(30px,9.5vw,42px);overflow-wrap:anywhere}}
+
+/* Tilboðsverð: a windshield-sticker tag, the struck old price and the real saving from the dealer's own "Verð áður". */
+.bm-offer{display:inline-flex;align-items:baseline;position:relative;overflow:hidden;background:#ffd426;color:#14161a;font-size:16px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;padding:6px 10px 5px;border-radius:3px;transform:rotate(-4deg);box-shadow:0 2px 0 rgba(0,0,0,.18),0 6px 14px rgba(0,0,0,.18)}
+.bm-car-photo .bm-offer{top:14px;left:14px}
+.bm-price-offer s{display:block;font-size:13px;color:var(--bm-muted);text-decoration-thickness:1.5px;margin-bottom:2px;font-variant-numeric:tabular-nums}
+.bm-price-offer strong{display:block;color:var(--bm-ink)}
+.bm-price-offer em{display:inline-block;font-style:normal;font-size:11px;font-weight:600;color:#14161a;background:#ffd426;border-radius:3px;padding:3px 7px;margin-top:6px}
+.bm-price-large.bm-price-offer s{font-size:16px}
+.bm-price-large.bm-price-offer em{font-size:13px}
+.bm-car.is-offer{border-color:color-mix(in srgb,#ffd426 70%,var(--bm-line))}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .bm-offer::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.75) 50%,transparent 65%);transform:translateX(-120%)}
+ .bm-car:hover .bm-offer::after{transform:translateX(120%);transition:transform 650ms cubic-bezier(.2,.7,.2,1)}
+}
+@media(max-width:640px){
+ .bm-car-photo .bm-offer{top:6px;left:6px;bottom:auto;font-size:12px;padding:4px 7px 3px;transform:rotate(-5deg)}
+ .bm-car-body>.bm-price.bm-price-offer s{font-size:11px;margin-bottom:0}
+ .bm-car-body>.bm-price.bm-price-offer em{font-size:10px;padding:2px 6px;margin-top:4px}
+}
