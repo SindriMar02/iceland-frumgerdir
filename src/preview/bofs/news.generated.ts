@@ -6,12 +6,12 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-10-07T13:23:00.453Z
+ * Last synced: 2026-10-08T13:28:42.704Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 7. október 2026', en: 'Updated 7 October 2026' }
+export const SYNCED_AT = { is: 'Uppfært 8. október 2026', en: 'Updated 8 October 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
   {
@@ -27,22 +27,6 @@ export const SYNCED_NEWS: NewsItem[] = [
     "summary": {
       "is": "Umboðsmaður barna birtir nú í tíunda sinn upplýsingar um bið barna eftir þjónustu.",
       "en": "Umboðsmaður barna birtir nú í tíunda sinn upplýsingar um bið barna eftir þjónustu."
-    },
-    "summaryUntranslated": true
-  },
-  {
-    "date": "21.09.2026",
-    "source": "Stjórnarráðið",
-    "topic": "samstarf",
-    "title": {
-      "is": "Styrkir til sveitarfélaga í þágu farsældar barna",
-      "en": "Styrkir til sveitarfélaga í þágu farsældar barna"
-    },
-    "href": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/styrkir-til-sveitarfelaga-i-thagu-farsaeldar-barna",
-    "untranslated": true,
-    "summary": {
-      "is": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240; augl&#253;sir eftir ums&#243;knum sveitarf&#233;laga um styrki til verkefna sem mi&#240;a a&#240; &#254;v&#237; a&#240; efla fars&#230;ld barna. Styrkirnir eru hluti af a&#240;ger&#240;um stj&#243;rnvalda...",
-      "en": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240; augl&#253;sir eftir ums&#243;knum sveitarf&#233;laga um styrki til verkefna sem mi&#240;a a&#240; &#254;v&#237; a&#240; efla fars&#230;ld barna. Styrkirnir eru hluti af a&#240;ger&#240;um stj&#243;rnvalda..."
     },
     "summaryUntranslated": true
   },
