@@ -4762,6 +4762,8 @@ import { companyEntry as STOD_ENTRY } from './stod/data'
 PREVIEW_COMPANIES.push(STOD_ENTRY)
 import { companyEntry as VATT_ENTRY } from './vatt/data'
 PREVIEW_COMPANIES.push(VATT_ENTRY)
+import { companyEntry as HEGAS_ENTRY } from './hegas/data'
+PREVIEW_COMPANIES.push(HEGAS_ENTRY)
 import { companyEntry as PRENTMIDLUN_ENTRY } from './prentmidlun/data'
 PREVIEW_COMPANIES.push(PRENTMIDLUN_ENTRY)
 import { companyEntry as VELFANG_ENTRY } from './velfang/data'

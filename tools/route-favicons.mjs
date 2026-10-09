@@ -56,6 +56,7 @@ const BRAND = {
   '/preview/sambo': 'sambo/brand',
   '/preview/stod': 'stod/brand',
   '/preview/vatt': 'vatt/brand',
+  '/preview/hegas': 'hegas/brand',
   '/preview/prentmidlun': 'prentmidlun/brand',
   '/preview/velfang': 'velfang/brand',
 }
