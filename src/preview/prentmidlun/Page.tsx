@@ -825,8 +825,17 @@ export default function PrentmidlunPage() {
     if (!isHome || seen || reducedMotion() || window.location.hash) { root.classList.add('is-quick'); return }
     setIntro('on')
     document.documentElement.style.overflow = 'hidden'
+    /* iOS Safari paints its status strip and the band above the bottom toolbar from html/body:
+       ink while the loader covers the page, paper again the moment the shutter starts lifting */
+    const ink = (on: boolean) => {
+      document.body.style.backgroundColor = on ? '#15191c' : ''
+      document.documentElement.style.backgroundColor = on ? '#15191c' : ''
+      setThemeColor(on ? '#15191c' : '#f4f3f1')
+    }
+    ink(true)
     const t: number[] = []
     t.push(window.setTimeout(() => setIntro('lit'), 30))
+    t.push(window.setTimeout(() => ink(false), 700 + 350))
     t.push(window.setTimeout(() => setIntro('leaving'), 700))
     t.push(window.setTimeout(() => {
       setIntro('off')
@@ -834,7 +843,7 @@ export default function PrentmidlunPage() {
       try { sessionStorage.setItem(INTRO_KEY, '1') } catch { /* private mode */ }
       root.classList.add('is-quick')
     }, 700 + 350 + 1500 + 150))
-    return () => { t.forEach(clearTimeout); setIntro('off'); document.documentElement.style.overflow = '' }
+    return () => { t.forEach(clearTimeout); setIntro('off'); document.documentElement.style.overflow = ''; ink(false) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
