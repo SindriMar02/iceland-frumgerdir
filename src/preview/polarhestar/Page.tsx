@@ -25,7 +25,7 @@ import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { COPY, INSTAGRAM, TRIPADVISOR, type Lang } from './data'
 import { stegaClean } from '@sanity/client/stega'
-import { SiteContentProvider, useHashLanding, useSiteContent, type Pic, type TourX } from './sanity'
+import { SiteContentProvider, useHashLanding, useSiteContent, altIs, type Pic, type TourX } from './sanity'
 import { departuresLine, metaLine, requirementsLine } from './schedule'
 import { Link } from 'react-router-dom'
 
@@ -227,7 +227,7 @@ function NavDropdown({
           aria-hidden="true"
         />
       </a>
-      <div className="invisible absolute left-0 top-full z-50 translate-y-1 pt-3 opacity-0 transition-all duration-300 ease-[cubic-bezier(.2,.7,.2,1)] group-data-[open=true]:visible group-data-[open=true]:translate-y-0 group-data-[open=true]:opacity-100">
+      <div className="invisible absolute left-0 top-full z-50 origin-top-left translate-y-1 scale-[.98] pt-3 opacity-0 transition-[opacity,transform,visibility] duration-200 ease-[cubic-bezier(.2,.7,.2,1)] group-data-[open=true]:visible group-data-[open=true]:translate-y-0 group-data-[open=true]:scale-100 group-data-[open=true]:opacity-100">
         <div
           className="min-w-[13rem] rounded-2xl p-1.5 shadow-[0_2px_8px_-3px_rgba(18,23,56,0.15),0_24px_48px_-24px_rgba(18,23,56,0.55)] ring-1 ring-[#161B3C14] backdrop-blur-xl"
           style={{ background: 'rgba(247,250,252,0.85)' }}
@@ -892,7 +892,7 @@ function Booking({
             srcSet={PICS.booking.srcSet}
             sizes="(max-width: 768px) 100vw, 520px"
             alt={
-              PICS.booking.alt ??
+              altIs(lang, PICS.booking.alt) ??
               tri(lang, 'Tveir íslenskir hestar að kljást', 'Two Icelandic horses nuzzling', 'Zwei sich beschnuppernde Islandpferde')
             }
             className="absolute inset-0 h-full w-full object-cover"
@@ -1254,7 +1254,7 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
             srcSet={s.pic.srcSet}
             sizes="(max-width: 1100px) 100vw, 1100px"
             alt={
-              s.pic.alt ??
+              altIs(lang, s.pic.alt) ??
               tri(
                 lang,
                 `Íslenskir hestar (${s.name.is.toLowerCase()})`,
@@ -1510,12 +1510,12 @@ function PolarHestarPageInner() {
         @keyframes phHeroRise{from{transform:translateY(18px)}to{transform:none}}
 
         /* hero line masks — the two H1 lines climb out on load */
-        .ph-line{display:block;overflow:hidden;padding:.03em .12em .16em .05em;margin:0 -.12em -.16em -.05em}
+        .ph-line{display:block;overflow:hidden;padding:.24em .12em .16em .05em;margin:-.24em -.12em -.16em -.05em}
         .ph-line-i{display:inline-block;transform:translateY(115%);animation:phLineUp 1.1s cubic-bezier(.2,.7,.2,1) forwards}
         @keyframes phLineUp{to{transform:none}}
 
         /* word masks — driven by the ancestor reveal */
-        .ph-w{display:inline-block;overflow:hidden;vertical-align:bottom;padding:.02em .1em .15em .04em;margin:0 -.1em -.15em -.04em}
+        .ph-w{display:inline-block;overflow:hidden;vertical-align:bottom;padding:.24em .1em .15em .04em;margin:-.24em -.1em -.15em -.04em}
         .ph-wi{display:inline-block;transform:translateY(112%);transition:transform .85s cubic-bezier(.2,.7,.2,1)}
         .ph-reveal[data-show="true"] .ph-wi{transform:none}
 
@@ -1524,7 +1524,6 @@ function PolarHestarPageInner() {
         .ph-reveal[data-show="true"] .ph-live{transform:scale(1)}
         .ph-reveal .ph-card-img{transform:scale(1.08)}
         .ph-reveal[data-show="true"] .ph-card-img{transform:scale(1)}
-        .ph-reveal[data-show="true"] .ph-card:hover .ph-card-img{transform:scale(1.05)}
         .ph-card-img{transition:transform .9s cubic-bezier(.2,.7,.2,1)}
 
         /* slow ambient drift for full-bleed band images */
@@ -1535,11 +1534,11 @@ function PolarHestarPageInner() {
         .ph-season-img{transition:opacity .7s ease-out,transform 1.6s cubic-bezier(.2,.7,.2,1)}
 
         /* trust stars pop in, staggered */
-        .ph-star{opacity:0;transform:scale(.3);transition:opacity .45s ease,transform .6s cubic-bezier(.34,1.56,.64,1)}
+        .ph-star{opacity:0;transform:scale(.6);transition:opacity .45s ease,transform .6s cubic-bezier(.34,1.56,.64,1)}
         .ph-reveal[data-show="true"] .ph-star{opacity:1;transform:scale(1)}
 
         /* live total ticks when the price changes */
-        .ph-tick{display:inline-block;animation:phTick .45s cubic-bezier(.2,.7,.2,1)}
+        .ph-tick{display:inline-block;animation:phTick .3s cubic-bezier(.2,.7,.2,1)}
         @keyframes phTick{0%{transform:scale(1.07)}100%{transform:none}}
 
         /* keyboard users need the same stop that hover gives; a moving target
@@ -1554,14 +1553,19 @@ function PolarHestarPageInner() {
         @keyframes phHerd{from{transform:translateX(0)}to{transform:translateX(-50%)}}
         .ph-track{animation:phHerd 48s linear infinite}
         .ph-horse img{transition:filter .7s ease}
-        .ph-horse:hover img{filter:saturate(1) contrast(1.03) brightness(1.01)}
-        .ph-card:hover .ph-card-img{transform:scale(1.05)}
 
         /* glacier grade — one cool world for every CMS photo; touch returns warmth */
         .ph-root img{filter:saturate(.9) contrast(1.03) brightness(1.01)}
         .ph-root .ph-logo{filter:none}
-        .ph-card:hover .ph-card-img{filter:saturate(1) contrast(1.03) brightness(1.01)}
 
+        /* hover zooms only where a pointer can hover: a tap must not leave a card stuck zoomed */
+        @media (hover:hover) and (pointer:fine){
+          .ph-reveal[data-show="true"] .ph-card:hover .ph-card-img{transform:scale(1.05)}
+          .ph-horse:hover img{filter:saturate(1) contrast(1.03) brightness(1.01)}
+          .ph-card:hover .ph-card-img{transform:scale(1.05)}
+          .ph-card:hover .ph-card-img{filter:saturate(1) contrast(1.03) brightness(1.01)}
+          .ph-tile:hover .ph-tile-img{transform:scale(1.06)}
+        }
         /* micro-craft: selection, underlines, focus (no border-radius — outlines follow the pill) */
         .ph-root ::selection{background:#9BD8F3;color:#161B3C}
         .ph-root a{text-underline-offset:4px;text-decoration-thickness:1px}
@@ -1580,25 +1584,23 @@ function PolarHestarPageInner() {
         .ph-dd-item:hover .ph-dd-arrow{opacity:1;transform:none}
 
         /* hamburger — two bars that fold into an X as the panel opens */
-        .ph-burger-bar{position:absolute;left:0;height:2px;width:100%;border-radius:2px;background:currentColor;transition:transform .38s cubic-bezier(.2,.7,.2,1),width .38s cubic-bezier(.2,.7,.2,1)}
+        .ph-burger-bar{position:absolute;left:0;height:2px;width:100%;border-radius:2px;background:currentColor;transition:transform .38s cubic-bezier(.2,.7,.2,1)}
         .ph-burger-bar:nth-child(1){top:2px}
         .ph-burger-bar:nth-child(2){bottom:2px}
-        .ph-burger:hover .ph-burger-bar:nth-child(2){width:62%}
         .ph-burger[data-open="true"] .ph-burger-bar:nth-child(1){transform:translateY(3px) rotate(45deg)}
-        .ph-burger[data-open="true"] .ph-burger-bar:nth-child(2){transform:translateY(-3px) rotate(-45deg);width:100%}
+        .ph-burger[data-open="true"] .ph-burger-bar:nth-child(2){transform:translateY(-3px) rotate(-45deg)}
 
         /* language pill glides between the three languages */
         .ph-langpill{transition:transform .42s cubic-bezier(.2,.7,.2,1),background-color .3s ease}
 
         /* mobile panel fades up, its links follow in sequence */
         .ph-menu{animation:phMenuIn .3s cubic-bezier(.2,.7,.2,1) both}
-        @keyframes phMenuIn{from{opacity:0}to{opacity:1}}
+        @keyframes phMenuIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
         .ph-menu-item{opacity:0;transform:translateY(14px);animation:phMenuItem .45s cubic-bezier(.2,.7,.2,1) forwards}
         @keyframes phMenuItem{to{opacity:1;transform:none}}
 
         /* gallery tiles + lightbox */
         .ph-tile-img{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
-        .ph-tile:hover .ph-tile-img{transform:scale(1.06)}
         .ph-lb{animation:phLbIn .22s ease-out both}
         @keyframes phLbIn{from{opacity:0}to{opacity:1}}
         .ph-lb-img{animation:phLbImg .3s cubic-bezier(.2,.7,.2,1) both}
@@ -1614,7 +1616,7 @@ function PolarHestarPageInner() {
         @keyframes phCap{to{opacity:1;transform:none}}
 
         /* booking success choreography */
-        .ph-pop{opacity:0;transform:scale(.5);animation:phPop .45s cubic-bezier(.34,1.56,.64,1) forwards}
+        .ph-pop{opacity:0;transform:scale(.7);animation:phPop .45s cubic-bezier(.34,1.56,.64,1) forwards}
         @keyframes phPop{to{opacity:1;transform:scale(1)}}
         .ph-up{opacity:0;transform:translateY(10px);animation:phUp .35s cubic-bezier(.2,.7,.2,1) forwards}
         @keyframes phUp{to{opacity:1;transform:none}}
@@ -1668,7 +1670,7 @@ function PolarHestarPageInner() {
 
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
       <header
-        className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 ${scrolled ? '' : 'ph-dark'}`}
+        className={`fixed inset-x-0 top-0 z-40 transition-[background-color,color,box-shadow] duration-300 ${scrolled ? '' : 'ph-dark'}`}
         style={{
           background: scrolled ? `${MIST}fa` : 'transparent',
           boxShadow: scrolled ? '0 1px 0 rgba(22,27,60,0.08)' : 'none',
@@ -1686,9 +1688,10 @@ function PolarHestarPageInner() {
             <img
               src={LOGO}
               alt="Pólar Hestar"
-              className="w-auto transition-all duration-300"
+              className="h-[3.25rem] w-auto origin-left transition-[transform,filter] duration-300"
               style={{
-                height: scrolled ? '2.6rem' : '3.25rem',
+                // scale, not height: the header keeps one height and nothing reflows while it shrinks
+                transform: scrolled ? 'scale(.8)' : 'none',
                 filter: scrolled ? 'none' : 'drop-shadow(0 3px 10px rgba(10,14,40,0.35))',
               }}
             />
@@ -1785,7 +1788,7 @@ function PolarHestarPageInner() {
               aria-expanded={menuOpen}
               aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}
               data-open={menuOpen}
-              className="ph-burger grid h-11 w-11 place-items-center rounded-full border transition-all duration-300 active:scale-90 md:hidden"
+              className="ph-burger grid h-11 w-11 place-items-center rounded-full border transition-[transform,background-color,border-color,color] duration-300 active:scale-90 md:hidden"
               style={{
                 borderColor: scrolled ? '#1a205226' : '#ffffff59',
                 background: scrolled ? '#1a20520a' : '#ffffff1f',
@@ -1885,7 +1888,7 @@ function PolarHestarPageInner() {
           fetchpriority="high"
           loading="eager"
           alt={
-            PICS.hero.alt ??
+            altIs(lang, PICS.hero.alt) ??
             tri(
               lang,
               'Íslensk hross á vetrarhaga fyrir framan snæviþakið fjall og fjörð',
@@ -1973,7 +1976,7 @@ function PolarHestarPageInner() {
                   srcSet={PICS.story.srcSet}
                   sizes="(max-width: 768px) 100vw, 540px"
                   alt={
-                    PICS.story.alt ??
+                    altIs(lang, PICS.story.alt) ??
                     tri(lang, 'Hvítur íslenskur hestur í þoku', 'A white Icelandic horse in the mist', 'Ein weißes Islandpferd im Nebel')
                   }
                   className="ph-live aspect-[4/5] w-full object-cover"
@@ -2147,7 +2150,7 @@ function PolarHestarPageInner() {
                       srcSet={tour.pic.srcSet}
                       sizes="(max-width: 768px) 100vw, 460px"
                       alt={
-                        tour.pic.alt ??
+                        altIs(lang, tour.pic.alt) ??
                         tri(
                           lang,
                           `Íslenskt landslag (${tour.name.is})`,
@@ -2461,7 +2464,7 @@ function PolarHestarPageInner() {
                   srcSet={PICS.family.srcSet}
                   sizes="(max-width: 768px) 100vw, 540px"
                   alt={
-                    PICS.family.alt ??
+                    altIs(lang, PICS.family.alt) ??
                     tri(
                       lang,
                       'Tveir knapar á íslenskum hestum í norðlensku landslagi',
@@ -2600,7 +2603,7 @@ function PolarHestarPageInner() {
                 srcSet={PICS.location.srcSet}
                 sizes="(max-width: 768px) 100vw, 540px"
                 alt={
-                  PICS.location.alt ??
+                  altIs(lang, PICS.location.alt) ??
                   tri(lang, 'Vegur meðfram firði á Norðurlandi', 'A road along a fjord in North Iceland', 'Eine Straße am Fjord in Nordisland')
                 }
                 className="ph-live h-full w-full object-cover"
@@ -2618,7 +2621,7 @@ function PolarHestarPageInner() {
           srcSet={PICS.ctaBand.srcSet}
           sizes="100vw"
           alt={
-            PICS.ctaBand.alt ??
+            altIs(lang, PICS.ctaBand.alt) ??
             tri(lang, 'Hross undir þrumuveðurshimni á hraunlendi', 'Horses under a stormy sky on a lava field', 'Pferde unter Gewitterhimmel auf Lavafeldern')
           }
           className="ph-drift absolute inset-0 h-full w-full object-cover"
@@ -2731,7 +2734,7 @@ function TourCard({ tour, lang, t, onBook }: { tour: TourX; lang: Lang; t: typeo
           srcSet={tour.pic.srcSet}
           sizes="(max-width: 640px) 100vw, 360px"
           alt={
-            tour.pic.alt ??
+            altIs(lang, tour.pic.alt) ??
             tri(lang, `${tour.name.is} (íslenskir hestar)`, `${tour.name.en} (Icelandic horses)`, `${tour.name.de} (Islandpferde)`)
           }
           loading="lazy"

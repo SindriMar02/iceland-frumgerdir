@@ -17,7 +17,7 @@ import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
-import { SiteContentProvider, useHashLanding, useSiteContent, type LongTourX, type TourX } from './sanity'
+import { SiteContentProvider, useHashLanding, useSiteContent, altIs, type LongTourX, type TourX } from './sanity'
 import {
   BEDS, LEVEL, NO_DATES, STATUS_LABEL, allDepartures, bookable, formatRange, herdLine, monthShort, monthsLabel,
   nightsLine, priceEur, runsIn, todayIso, upcoming, weekday, type DepartureRow, type Lang,
@@ -240,7 +240,7 @@ function LongTourBlock({ tour, lang, email, today }: { tour: LongTourX; lang: La
             sizes="(max-width: 768px) 100vw, 380px"
             width={760}
             height={570}
-            alt={tour.pic.alt ?? ''}
+            alt={altIs(lang, tour.pic.alt) ?? ''}
             loading="lazy"
             decoding="async"
             className="aspect-[4/3] w-full rounded-[16px] object-cover"

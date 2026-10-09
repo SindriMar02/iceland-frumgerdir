@@ -141,7 +141,7 @@ export const SHORT_TOURS: Tour[] = [
   {
     id: 'sumarsaela',
     name: { is: 'Sumarsæla', en: 'Riding & Minigolf', de: 'Reiten & Minigolf' },
-    meta: { is: 'Reiðtúr og mínígolf', en: 'Ride & minigolf', de: 'Reiten & Minigolf' },
+    meta: { is: '1½ klst. reiðtúr + mínígolf', en: '1½ h ride + minigolf', de: '1½ Std. Ritt + Minigolf' },
     minAge: 6,
     minRiders: 2,
     price: 13500,
@@ -190,7 +190,7 @@ export const LONG_TOURS: LongTour[] = [
     herdDays: 5.5, beds: 'made',
     departures: [
       { start: '2027-06-26', status: 'open' },
-      { start: '2027-07-07', status: 'open' },
+      { start: '2027-07-07', status: 'full' },
       { start: '2027-07-18', status: 'full' },
       { start: '2027-07-29', status: 'full' },
     ],
@@ -207,7 +207,7 @@ export const LONG_TOURS: LongTour[] = [
     priceEur: 2800, days: 9, ridingDays: 7, level: 'experienced', minAge: 14, maxRiders: 12, kmMin: 20, kmMax: 35,
     herdDays: 4, beds: 'sleepingBag',
     departures: [
-      { start: '2027-08-08', status: 'open' },
+      { start: '2027-08-08', status: 'full' },
       { start: '2027-08-20', status: 'open' },
     ],
     image: 'photo-1569077016386-8a8a27da502f',
@@ -255,7 +255,7 @@ export const SCHEDULE_COPY = {
   eyebrow: { is: 'Dagskrá', en: 'Schedule', de: 'Termine' } as L3,
   title: { is: 'Ferðir og dagsetningar', en: 'Tours and dates', de: 'Touren und Termine' } as L3,
   intro: {
-    is: 'Allar lengri ferðirnar með brottförum, og stuttu ferðirnar eftir árstíma. Dagsetningarnar koma beint frá okkur á bænum.',
+    is: 'Allar lengri ferðirnar með brottförum og stuttu ferðirnar eftir árstíma. Dagsetningarnar koma beint frá okkur á bænum.',
     en: 'Every long ride with its departures, and the short rides by season. The dates come straight from us at the farm.',
     de: 'Alle langen Reittouren mit ihren Terminen und die kurzen Ritte nach Jahreszeit. Die Termine kommen direkt von uns vom Hof.',
   } as L3,
@@ -479,7 +479,7 @@ export const FARM: GoodToKnowData = {
       body: {
         is: 'Auk hrossanna 160 búa hér um 270 kindur, kettir eins og Kasper Valentínus, kanínurnar Peterson og Findus og hænurnar Berta og Hildegard. Á vorin fæðast lömbin og á haustin er réttað.',
         en: 'Besides the 160 horses, the farm is home to about 270 sheep, cats like Kasper Valentínus, the rabbits Peterson and Findus, and the hens Berta and Hildegard. Lambs arrive in spring and the sheep round-up is the highlight of autumn.',
-        de: 'Neben den 160 Pferden leben hier rund 270 Schafe, Katzen wie Kasper Valentínus, die Kaninchen Peterson und Findus und die Hühner Berta und Hildegard. Im Frühjahr kommen die Lämmer, im Herbst ist der Schafabtrieb der Höhepunkt.',
+        de: 'Neben den 160 Pferden leben hier rund 270 Schafe, Katzen wie Kasper Valentínus, die Hasen Peterson und Findus und die Hühner Berta und Hildegard. Im Frühjahr kommen die Lämmer, im Herbst ist der Schafabtrieb der Höhepunkt.',
       },
     },
     {
@@ -644,7 +644,7 @@ export const COPY = {
 
     procH2: 'Around 160 horses at Grýtubakki',
     procBody:
-      'Our horses are well trained, sure footed and reliable. We learn about each guest’s experience and wishes so we can find a suitable ride and horse.',
+      'Our horses are well trained, sure-footed and reliable. We learn about each guest’s experience and wishes so we can find a suitable ride and horse.',
 
     toursZoneEyebrow: 'Our rides',
     toursZoneIntro:

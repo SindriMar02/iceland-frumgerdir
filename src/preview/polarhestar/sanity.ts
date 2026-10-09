@@ -91,7 +91,9 @@ export interface Pic {
   srcSet: string
   /** CSS object-position honoring the editor's hotspot at any crop ratio */
   pos?: string
-  /** CMS alt text (one string, used for every language when present) */
+  /** CMS alt text — the owners write it in Icelandic, so it is used on the
+      Icelandic view only; the other languages keep the page's own wording
+      (see `altIs`). */
   alt?: string
 }
 
@@ -500,6 +502,9 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
 }
 
 export const useSiteContent = () => useContext(Ctx)
+
+/** The CMS alt for the Icelandic view, nothing for the others (callers `??` their own translation). */
+export const altIs = (lang: Lang, alt: string | undefined) => (lang === 'is' ? alt : undefined)
 
 /** Land on #anchor after this lazy route mounts. The app-wide handler fires
     before the chunk exists, so links like …/dagskra#hidden-pearls or
