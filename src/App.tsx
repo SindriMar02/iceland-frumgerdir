@@ -197,6 +197,7 @@ const TeiturPage = lazy(() => import('./preview/teitur/Page'))
 const ByggPage = lazy(() => import('./preview/bygg/Page'))
 const StodPage = lazy(() => import('./preview/stod/Page'))
 const VattPage = lazy(() => import('./preview/vatt/Page'))
+const SteingardurPage = lazy(() => import('./preview/steingardur/Page'))
 const HegasPage = lazy(() => import('./preview/hegas/Page'))
 const PrentmidlunPage = lazy(() => import('./preview/prentmidlun/Page'))
 const VelfangPage = lazy(() => import('./preview/velfang/Page'))
@@ -493,6 +494,7 @@ export default function App() {
             <Route path="/preview/bygg/*" element={<ByggPage />} />
             <Route path="/preview/stod/*" element={<StodPage />} />
             <Route path="/preview/vatt/*" element={<VattPage />} />
+            <Route path="/preview/steingardur" element={<SteingardurPage />} />
             <Route path="/preview/hegas/*" element={<HegasPage />} />
             <Route path="/preview/prentmidlun/*" element={<PrentmidlunPage />} />
             <Route path="/preview/velfang/*" element={<VelfangPage />} />
