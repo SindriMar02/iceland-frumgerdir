@@ -42,6 +42,7 @@ import {
   type Tour,
 } from './data'
 import { isIsoDay, monthsLabel, shortLevel, type Beds, type Departure, type DepartureStatus, type Lang, type RiderLevel } from './schedule'
+import { ITINERARIES, type Itinerary, type ItineraryDay } from './itineraries'
 
 /* ── Preview detection ──────────────────────────────────────────────────── */
 const viewerToken = import.meta.env.VITE_SANITY_VIEWER_TOKEN as string | undefined
@@ -119,7 +120,7 @@ function mkPic(img: RawImg, fallbackId: string): Pic {
 /* ── Merged content shapes (data.ts shapes + resolved pictures) ─────────── */
 /** `level` and the month window in `meta` are derived, so they can never disagree with minAge/months. */
 export type TourX = Tour & { pic: Pic; level: L3 }
-export type LongTourX = LongTour & { pic: Pic }
+export type LongTourX = LongTour & { pic: Pic; itinerary?: Itinerary }
 export type SeasonX = Season & { pic: Pic }
 
 export interface SiteContent {
@@ -200,7 +201,7 @@ export const QUERY = `{
   "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, bookingEmail, facebook, address, mapsUrl, childDiscount, stats},
   "tours": *[_type=="tour"]|order(order asc){_id, active, name, duration, minAge, minRiders, price, months, times, blurb, image ${IMG_PRJ}},
   "seasons": *[_type=="season"]|order(order asc){_id, key, name, kicker, line, tourLabel, glow, image ${IMG_PRJ}},
-  "longTours": *[_type=="longTour"]|order(order asc){_id, active, name, blurb, priceEur, days, ridingDays, level, minAge, maxRiders, kmMin, kmMax, herdDays, beds, departures[]{start, status, note}, datesNote, image ${IMG_PRJ}},
+  "longTours": *[_type=="longTour"]|order(order asc){_id, active, name, blurb, priceEur, days, ridingDays, level, minAge, maxRiders, kmMin, kmMax, herdDays, beds, departures[]{start, status, note}, datesNote, itinerary[]{kind, body, places}, image ${IMG_PRJ}},
   "schedule": *[_type=="schedulePage"][0]{eyebrow, title, intro, longTerms, shortTerms},
   "reviews": *[_type=="review"]|order(coalesce(order, 100) asc, name asc){_id, quote, name, origin},
   "shop": *[_type=="shopItem"]|order(order asc){_id, name, price, from},
@@ -310,6 +311,18 @@ export function merge(raw: any): SiteContent {
                   }))
               : (fb?.departures ?? []),
             datesNote: optL3(d.datesNote),
+            // day by day: the CMS list when the owners have filled it, else the seeded text
+            itinerary:
+              Array.isArray(d.itinerary) && d.itinerary.length
+                ? {
+                    days: d.itinerary.map((x: any, i: number): ItineraryDay => ({
+                      n: i + 1,
+                      kind: x?.kind === 'arrival' || x?.kind === 'departure' ? x.kind : undefined,
+                      body: l3self(x?.body),
+                      places: Array.isArray(x?.places) ? x.places.filter((q: unknown): q is string => typeof q === 'string') : [],
+                    })),
+                  }
+                : ITINERARIES[fb?.id ?? ''],
             image: fb?.image ?? IMG.procession[0],
             pic: mkPic(d.image, fb?.image ?? IMG.procession[0]),
           }
@@ -524,11 +537,52 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       cleanupVE?.()
     }
   }, [])
-  // Loading: a glacier-white shell the height of the viewport, so nothing
-  // (and no wrong photo) is painted before the real content mounts.
-  if (!content) return createElement('div', { 'aria-busy': 'true', style: { minHeight: '100vh', background: '#EDF1F7' } })
-  return createElement(Ctx.Provider, { value: content }, children)
+  // Loading: the logo loader (Hópbílar/Heilsustofnun pattern) stands in for
+  // the page until the CMS content and the hero photo are in, then lifts
+  // while the hero opens underneath and is removed from the DOM: a fixed
+  // full-screen layer left behind tints iOS Safari's toolbar.
+  const [lifting, setLifting] = useState(false)
+  const [gone, setGone] = useState(false)
+  const loaded = !!content
+  useEffect(() => {
+    if (!loaded) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const t = window.setTimeout(() => setLifting(true), reduce ? 0 : 120)
+    const t2 = window.setTimeout(() => setGone(true), reduce ? 350 : 1600)
+    return () => { window.clearTimeout(t); window.clearTimeout(t2) }
+  }, [loaded])
+  const loader = gone
+    ? null
+    : createElement(
+        'div',
+        { className: 'ph-loader', 'data-lift': lifting, 'aria-busy': !content, 'aria-hidden': !!content },
+        createElement('style', null, LOADER_CSS),
+        createElement('img', { className: 'ph-loader-logo', src: `${import.meta.env.BASE_URL}polarhestar/logo.png`, alt: 'Pólar Hestar', width: 160, height: 72 }),
+        createElement('span', { className: 'ph-loader-line', 'aria-hidden': 'true' }, createElement('span')),
+      )
+  if (!content) return loader
+  return createElement(Ctx.Provider, { value: content }, children, loader)
 }
+
+const LOADER_CSS = `
+.ph-loader{position:fixed;inset:0;z-index:80;display:grid;place-items:center;align-content:center;gap:22px;background:#111530;will-change:clip-path}
+.ph-loader-logo{height:72px;width:auto;filter:drop-shadow(0 6px 18px rgba(10,14,40,.45));animation:phLoaderIn .7s cubic-bezier(.2,.7,.2,1) both}
+.ph-loader-line{display:block;width:120px;height:2px;border-radius:2px;background:rgba(155,216,243,.22);overflow:hidden}
+.ph-loader-line span{display:block;height:100%;width:100%;background:#9BD8F3;transform-origin:left;transform:scaleX(.08);animation:phLoaderFill 2.2s cubic-bezier(.2,.7,.2,1) forwards}
+.ph-loader[data-lift="true"]{animation:phLoaderLift 1s cubic-bezier(.76,0,.24,1) .35s forwards}
+.ph-loader[data-lift="true"] .ph-loader-logo,.ph-loader[data-lift="true"] .ph-loader-line{animation:phLoaderOut .45s cubic-bezier(.4,0,1,1) forwards}
+.ph-loader[data-lift="true"] .ph-loader-line span{animation:phLoaderDone .3s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes phLoaderIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes phLoaderFill{to{transform:scaleX(.86)}}
+@keyframes phLoaderDone{to{transform:scaleX(1)}}
+@keyframes phLoaderOut{to{opacity:0;transform:translateY(-14px)}}
+@keyframes phLoaderLift{to{clip-path:inset(0 0 100% 0)}}
+@media (prefers-reduced-motion: reduce){
+  .ph-loader-logo,.ph-loader-line span{animation:none;transform:none;opacity:1}
+  .ph-loader[data-lift="true"]{animation:phLoaderFade .3s ease-out forwards}
+  @keyframes phLoaderFade{to{opacity:0}}
+}
+`
 
 export const useSiteContent = () => useContext(Ctx)
 

@@ -26,8 +26,9 @@ import { setThemeColor } from '../../lib/preview'
 import { COPY, INSTAGRAM, TRIPADVISOR, type Lang } from './data'
 import { stegaClean } from '@sanity/client/stega'
 import { SiteContentProvider, useHashLanding, useSiteContent, altIs, type Pic, type TourX } from './sanity'
-import { departuresLine, metaLine, requirementsLine } from './schedule'
-import { Link } from 'react-router-dom'
+import { useHeroParallax, useSmoothScroll } from './motion'
+import { FarmMap } from './FarmMap'
+import { LongTourSlider } from './LongTourSlider'
 
 const company = companyEntry
 
@@ -1395,6 +1396,20 @@ function PolarHestarPageInner() {
   const minPrice = Math.min(...SHORT_TOURS.map((x) => x.price))
   const bookingRef = useRef<HTMLDivElement>(null)
   useHashLanding()
+  // Suðurverk motion layer (desktop, fine pointer only): Lenis + scrubbed hero parallax
+  const heroRef = useRef<HTMLElement>(null)
+  useSmoothScroll()
+  useHeroParallax(heroRef, '.ph-hero-media', '.ph-hero-copy')
+  // the ride picked on the farm map; the cards follow it
+  const [mapPick, setMapPick] = useState<string | undefined>(undefined)
+  const pickRide = (id: string) => {
+    setMapPick(id)
+    const el = document.getElementById(`ferd-${id}`)
+    if (el) {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' })
+    }
+  }
 
   /** Þokan — the language changes behind a breath of glacier mist. */
   const switchLang = (code: Lang) => {
@@ -1526,6 +1541,12 @@ function PolarHestarPageInner() {
       <style>{`
         .ph-reveal{opacity:0;transform:translateY(16px);filter:blur(6px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1),filter .9s ease}
         .ph-reveal[data-show="true"]{opacity:1;transform:none;filter:none}
+        /* first paint: the hero photo opens out from a centred frame while the loader lifts (Hópbílar) */
+        .ph-hero-mask{animation:phHeroMask 1.3s cubic-bezier(.76,0,.24,1) .15s both}
+        @keyframes phHeroMask{from{clip-path:inset(18% 14% 18% 14%)}to{clip-path:inset(0 0 0 0)}}
+        .ph-ride{transition:box-shadow .4s ease,outline-color .4s ease;outline:2px solid transparent;outline-offset:3px}
+        .ph-ride[data-picked="true"]{outline-color:#2160A6}
+        .ph-pin:focus-visible circle{stroke:#202070;stroke-width:4}
         .ph-hero-rise{animation:phHeroRise .9s cubic-bezier(.2,.7,.2,1) both}
         @keyframes phHeroRise{from{transform:translateY(18px)}to{transform:none}}
 
@@ -1658,7 +1679,7 @@ function PolarHestarPageInner() {
         .ph-bar[data-on="true"]{transform:none}
         @media (prefers-reduced-motion: reduce){
           .ph-reveal{opacity:1;transform:none;filter:none;transition:none}
-          .ph-hero-rise,.ph-line-i,.ph-drift,.ph-tick{animation:none}
+          .ph-hero-rise,.ph-line-i,.ph-drift,.ph-tick,.ph-hero-mask{animation:none}
           .ph-line-i{transform:none}
           .ph-wi{transform:none;transition:none}
           .ph-reveal .ph-live,.ph-reveal .ph-card-img{transform:none;transition:none}
@@ -1900,7 +1921,9 @@ function PolarHestarPageInner() {
 
       {/* ── HERO ────────────────────────────────────────────────────────── */}
       <main id="efni">
-      <section id="top" className="ph-dark grain relative flex min-h-[100svh] items-end overflow-hidden">
+      <section id="top" ref={heroRef} className="ph-dark grain relative flex min-h-[100svh] items-end overflow-hidden">
+        <div className="ph-hero-media absolute inset-0">
+        <div className="ph-hero-mask absolute inset-0 overflow-hidden">
         <Img
           src={PICS.hero.src}
           srcSet={PICS.hero.srcSet}
@@ -1919,11 +1942,13 @@ function PolarHestarPageInner() {
           className="kenburns absolute inset-0 h-full w-full object-cover"
           style={{ objectPosition: PICS.hero.pos }}
         />
+        </div>
         <div
           className="absolute inset-0"
           style={{ background: `linear-gradient(180deg, rgba(13,16,40,0.5) 0%, rgba(13,16,40,0.35) 32%, rgba(13,16,40,0.5) 62%, rgba(13,16,40,0.85) 100%)` }}
         />
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 md:px-8 md:pb-24">
+        </div>
+        <div className="ph-hero-copy relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 md:px-8 md:pb-24">
           <p className="ph-hero-rise font-hanken text-xs font-semibold tracking-[0.24em] text-white/80 uppercase" style={{ animationDelay: '0ms' }}>
             {t.heroEyebrow}
           </p>
@@ -2113,10 +2138,16 @@ function PolarHestarPageInner() {
             {t.toursBody}
           </p>
 
+          <Reveal className="mt-7">
+            <div className="rounded-[24px] p-3 md:p-4" style={{ background: PAPER, boxShadow: '0 1px 2px rgba(22,27,60,0.05), 0 18px 40px -28px rgba(22,27,60,0.35)' }}>
+              <FarmMap tours={SHORT_TOURS} lang={lang} selected={mapPick} onPick={pickRide} />
+            </div>
+          </Reveal>
+
           <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {SHORT_TOURS.map((tour, i) => (
               <Reveal key={tour.id} delay={i * 70}>
-                <TourCard tour={tour} lang={lang} t={t} onBook={() => goBook(tour.id)} />
+                <TourCard tour={tour} lang={lang} t={t} onBook={() => goBook(tour.id)} picked={tour.id === mapPick} />
               </Reveal>
             ))}
           </div>
@@ -2155,92 +2186,9 @@ function PolarHestarPageInner() {
             {t.longBody}
           </p>
 
-          <div className="mt-7 flex flex-col gap-5">
-            {LONG_TOURS.map((tour, i) => (
-              <Reveal key={tour.id} delay={i * 50}>
-                <article
-                  className={`ph-card group flex flex-col overflow-hidden rounded-[24px] shadow-[0_1px_2px_rgba(22,27,60,0.05),0_10px_22px_-14px_rgba(22,27,60,0.22),0_28px_56px_-32px_rgba(32,32,112,0.35)] ring-1 ring-[#161B3C0f] md:min-h-[16rem] ${
-                    i % 2 === 1 ? 'md:flex-row-reverse' : 'md:flex-row'
-                  }`}
-                  style={{ background: PAPER }}
-                >
-                  <div className="relative overflow-hidden md:w-[42%]">
-                    <img
-                      src={tour.pic.src}
-                      srcSet={tour.pic.srcSet}
-                      sizes="(max-width: 768px) 100vw, 460px"
-                      alt={
-                        altIs(lang, tour.pic.alt) ??
-                        tri(
-                          lang,
-                          `Íslenskt landslag (${tour.name.is})`,
-                          `Icelandic landscape (${tour.name.en})`,
-                          `Isländische Landschaft (${tour.name.de})`,
-                        )
-                      }
-                      loading="lazy"
-                      decoding="async"
-                      className="ph-card-img h-56 w-full object-cover md:absolute md:inset-0 md:h-full"
-                      style={{ objectPosition: tour.pic.pos }}
-                    />
-                  </div>
-                  <div className="flex flex-1 flex-col justify-center gap-3 p-6 md:p-8">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {metaLine(tour, lang).split(' · ').map((part, j) => (
-                        <span
-                          key={j}
-                          className="rounded-full px-2.5 py-1 font-hanken text-[0.72rem] font-semibold"
-                          style={
-                            part.includes('€')
-                              ? { background: `${CLAY}1f`, color: CLAY_TX }
-                              : { background: `${INK}0d`, color: SLATE }
-                          }
-                        >
-                          {part}
-                        </span>
-                      ))}
-                    </div>
-                    <h3 className="font-spectral text-2xl leading-snug" style={{ color: INK }}>
-                      {tour.name[lang]}
-                    </h3>
-                    <p className="max-w-2xl font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
-                      {tour.blurb[lang]}
-                    </p>
-                    <div className="flex flex-col gap-1 border-t pt-3" style={{ borderColor: '#161B3C12' }}>
-                      <p className="font-hanken text-xs leading-relaxed" style={{ color: SLATE }}>
-                        {requirementsLine(tour, lang)}
-                      </p>
-                      <p className="font-hanken text-xs leading-relaxed font-medium" style={{ color: CLAY_TX }}>
-                        {departuresLine(tour, lang)}
-                      </p>
-                    </div>
-                    <a
-                      href={`mailto:${EMAIL}?subject=${encodeURIComponent(stegaClean(tour.name[lang]))}&body=${encodeURIComponent(
-                        tri(
-                          lang,
-                          `Ferð: ${stegaClean(tour.name.is)}\nÓskatímabil:\nFjöldi knapa:\nReynsla af hestamennsku:\n`,
-                          `Tour: ${stegaClean(tour.name.en)}\nPreferred dates:\nNumber of riders:\nRiding experience:\n`,
-                          `Tour: ${stegaClean(tour.name.de)}\nWunschzeitraum:\nAnzahl Reiter:\nReiterfahrung:\n`,
-                        ),
-                      )}`}
-                      className="mt-1 inline-flex items-center gap-1 self-start font-hanken text-sm font-semibold transition-colors"
-                      style={{ color: CLAY_TX }}
-                    >
-                      {t.enquireBtn}
-                      <ChevronRight className="h-4 w-4" />
-                    </a>
-                    <Link
-                      to={`/preview/polarhestar/dagskra#${tour.id}`}
-                      className="-mt-1 inline-flex items-center gap-1 self-start font-hanken text-xs font-semibold underline decoration-1 underline-offset-4"
-                      style={{ color: SLATE }}
-                    >
-                      {tri(lang, 'Allar dagsetningar og kröfur', 'All dates and requirements', 'Alle Termine und Anforderungen')}
-                    </Link>
-                  </div>
-                </article>
-              </Reveal>
-            ))}
-          </div>
+          <Reveal className="mt-7">
+            <LongTourSlider tours={LONG_TOURS} lang={lang} />
+          </Reveal>
         </div>
       </section>
 
@@ -2745,9 +2693,9 @@ function Stat({ value, label }: { value: ReactNode; label: string }) {
   )
 }
 
-function TourCard({ tour, lang, t, onBook }: { tour: TourX; lang: Lang; t: typeof COPY['is']; onBook: () => void }) {
+function TourCard({ tour, lang, t, onBook, picked = false }: { tour: TourX; lang: Lang; t: typeof COPY['is']; onBook: () => void; picked?: boolean }) {
   return (
-    <article className="ph-card flex h-full flex-col overflow-hidden rounded-[22px] shadow-[0_1px_2px_rgba(22,27,60,0.05),0_10px_22px_-14px_rgba(22,27,60,0.22),0_28px_56px_-32px_rgba(32,32,112,0.35)] ring-1 ring-[#161B3C0f]" style={{ background: PAPER }}>
+    <article id={`ferd-${tour.id}`} data-picked={picked} className="ph-card ph-ride flex h-full scroll-mt-28 flex-col overflow-hidden rounded-[22px] shadow-[0_1px_2px_rgba(22,27,60,0.05),0_10px_22px_-14px_rgba(22,27,60,0.22),0_28px_56px_-32px_rgba(32,32,112,0.35)] ring-1 ring-[#161B3C0f]" style={{ background: PAPER }}>
       <div className="aspect-[4/3] overflow-hidden">
         <img
           src={tour.pic.src}
