@@ -465,18 +465,44 @@ const LISTEN = `*[_type in ["tour","season","heroSection","storySection","siteSe
 
 const Ctx = createContext<SiteContent>(FALLBACK)
 
+/** Resolve once the hero photo is decoded, or after `ms` — a swap must never wait on a slow image. */
+const preload = (src: string | undefined, ms: number) =>
+  new Promise<void>((done) => {
+    if (!src) return done()
+    const img = new Image()
+    img.onload = img.onerror = () => done()
+    img.src = src
+    window.setTimeout(done, ms)
+  })
+
 export function SiteContentProvider({ children }: { children: ReactNode }) {
-  const [content, setContent] = useState<SiteContent>(FALLBACK)
+  // null = still loading. The page used to mount with the bundled fallback
+  // and re-render when the CMS answered, so a different hero flashed for a
+  // split second; now it mounts once, with the CMS photos already decoded.
+  // The fallback only shows if the CMS fails or stalls (3 s).
+  const [content, setContent] = useState<SiteContent | null>(null)
   useEffect(() => {
     let live = true
+    let first = true
     const load = () =>
       client
         .fetch(QUERY)
-        .then((raw) => { if (live && raw) setContent(merge(raw)) })
-        .catch((e) => console.warn('[polarhestar] CMS fetch failed, using bundled content:', e?.message))
+        .then(async (raw) => {
+          if (!live || !raw) return
+          const next = merge(raw)
+          if (first) await preload(next.PICS.hero.src, 1500)
+          first = false
+          if (live) setContent(next)
+        })
+        .catch((e) => {
+          console.warn('[polarhestar] CMS fetch failed, using bundled content:', e?.message)
+          if (live) setContent((c) => c ?? FALLBACK)
+        })
     load()
+    const stall = window.setTimeout(() => { if (live) setContent((c) => c ?? FALLBACK) }, 3000)
+    const stop = () => { live = false; window.clearTimeout(stall) }
 
-    if (!isPreview) return () => { live = false }
+    if (!isPreview) return stop
 
     if (!viewerToken) {
       console.warn('[polarhestar] preview mode but VITE_SANITY_VIEWER_TOKEN is missing — drafts will not load.')
@@ -493,11 +519,14 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       .catch(() => {})
 
     return () => {
-      live = false
+      stop()
       sub.unsubscribe()
       cleanupVE?.()
     }
   }, [])
+  // Loading: a glacier-white shell the height of the viewport, so nothing
+  // (and no wrong photo) is painted before the real content mounts.
+  if (!content) return createElement('div', { 'aria-busy': 'true', style: { minHeight: '100vh', background: '#EDF1F7' } })
   return createElement(Ctx.Provider, { value: content }, children)
 }
 

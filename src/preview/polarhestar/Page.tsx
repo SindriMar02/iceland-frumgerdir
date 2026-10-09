@@ -458,7 +458,16 @@ function nextValidDay(from: Date, months: number[] | undefined): Date {
   return from
 }
 
-function SeasonCalendar({
+/* ── Day strip — the dates lie across the card as one row of days, not a
+      month square: a fortnight scans at a glance, arrows step a week or a
+      month, ← → move the selection. Same contract as the old calendar. ── */
+const STRIP_DAYS = 14
+const weekStart = (d: Date) => {
+  const w = new Date(d)
+  w.setDate(w.getDate() - ((w.getDay() + 6) % 7)) // Monday-first
+  return w
+}
+function DayStrip({
   value,
   onChange,
   months,
@@ -473,37 +482,46 @@ function SeasonCalendar({
   min: string
   max: string
 }) {
-  const [view, setView] = useState(() => {
-    const d = new Date(value + 'T00:00:00')
-    return new Date(d.getFullYear(), d.getMonth(), 1)
-  })
-  const gridRef = useRef<HTMLDivElement>(null)
+  const [start, setStart] = useState(() => isoDay(weekStart(new Date(value + 'T00:00:00'))))
+  const stripRef = useRef<HTMLDivElement>(null)
   const moved = useRef(false)
-  // follow the selection when it jumps to another month (e.g. after a tour switch)
+  // follow the selection when it leaves the window (tour switch, keyboard)
   useEffect(() => {
     const d = new Date(value + 'T00:00:00')
     if (Number.isNaN(d.getTime())) return
-    setView((v) => (v.getFullYear() === d.getFullYear() && v.getMonth() === d.getMonth() ? v : new Date(d.getFullYear(), d.getMonth(), 1)))
-  }, [value])
-  // keep keyboard focus on the day the arrows landed on
+    const first = new Date(start + 'T00:00:00')
+    const last = new Date(first)
+    last.setDate(last.getDate() + STRIP_DAYS - 1)
+    if (d < first || d > last) setStart(isoDay(weekStart(d)))
+  }, [value, start])
+  // keep keyboard focus on the day the arrows landed on; on phones the strip
+  // scrolls, so the selected day is also centred (the strip only, never the page)
   useEffect(() => {
-    if (!moved.current) return
-    moved.current = false
-    gridRef.current?.querySelector<HTMLButtonElement>('button[tabindex="0"]')?.focus()
-  }, [value])
+    const el = stripRef.current
+    const btn = el?.querySelector<HTMLButtonElement>('button[tabindex="0"]')
+    if (!el || !btn) return
+    if (moved.current) {
+      moved.current = false
+      btn.focus({ preventScroll: true })
+    }
+    if (el.scrollWidth > el.clientWidth) {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      el.scrollTo({ left: btn.offsetLeft - (el.clientWidth - btn.offsetWidth) / 2, behavior: reduce ? 'auto' : 'smooth' })
+    }
+  }, [value, start])
 
-  const y = view.getFullYear()
-  const m = view.getMonth()
-  const startDow = (new Date(y, m, 1).getDay() + 6) % 7 // Monday-first
-  const dayCount = new Date(y, m + 1, 0).getDate()
+  const days = Array.from({ length: STRIP_DAYS }, (_, i) => {
+    const d = new Date(start + 'T00:00:00')
+    d.setDate(d.getDate() + i)
+    return d
+  })
   const todayIso = isoDay(new Date())
-
-  const state = (day: number) => {
-    const iso = isoDay(new Date(y, m, day))
-    const offSeason = !!months?.length && !months.includes(m + 1)
+  const stateOf = (d: Date) => {
+    const iso = isoDay(d)
+    const offSeason = !!months?.length && !months.includes(d.getMonth() + 1)
     return { iso, offSeason, disabled: offSeason || iso < min || iso > max }
   }
-  /** Step by `delta` days, skipping anything unpickable. */
+  /** Step the selection by `delta` days, skipping anything unpickable. */
   const step = (delta: number) => {
     const d = new Date(value + 'T00:00:00')
     for (let i = 0; i < 400; i++) {
@@ -517,81 +535,87 @@ function SeasonCalendar({
       }
     }
   }
-  const shiftMonth = (delta: number) => setView(new Date(y, m + delta, 1))
-  const prevBlocked = isoDay(new Date(y, m, 0)) < min
-  const nextBlocked = isoDay(new Date(y, m + 1, 1)) > max
+  const shiftDays = (n: number) => {
+    const d = new Date(start + 'T00:00:00')
+    d.setDate(d.getDate() + n)
+    setStart(isoDay(d))
+  }
+  const shiftMonth = (n: number) => {
+    const d = new Date(start + 'T00:00:00')
+    setStart(isoDay(weekStart(new Date(d.getFullYear(), d.getMonth() + n, 1))))
+  }
+  const first = days[0]
+  const last = days[STRIP_DAYS - 1]
+  const label =
+    first.getMonth() === last.getMonth() ? monthLabel(first, lang) : `${monthLabel(first, lang)} – ${monthLabel(last, lang)}`
+  const prevBlocked = isoDay(first) <= min
+  const nextBlocked = isoDay(last) >= max
   const navBtn = 'grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-black/5 disabled:opacity-30 disabled:hover:bg-transparent'
+  const Nav = ({ onClick, blocked, label, dbl, flip }: { onClick: () => void; blocked: boolean; label: string; dbl?: boolean; flip?: boolean }) => (
+    <button type="button" onClick={onClick} disabled={blocked} className={navBtn} style={{ color: INK }} aria-label={label}>
+      <span className={`flex ${flip ? 'rotate-180' : ''}`} aria-hidden="true">
+        <ChevronRight className="h-4 w-4" />
+        {dbl && <ChevronRight className="-ml-2.5 h-4 w-4" />}
+      </span>
+    </button>
+  )
 
   return (
     <div className="rounded-2xl border p-3" style={{ borderColor: '#0000001f', background: MIST }}>
-      <div className="mb-1 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => shiftMonth(-1)}
-          disabled={prevBlocked}
-          className={navBtn}
-          style={{ color: INK }}
-          aria-label={tri(lang, 'Fyrri mánuður', 'Previous month', 'Voriger Monat')}
-        >
-          <ChevronRight className="h-4 w-4 rotate-180" aria-hidden="true" />
-        </button>
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center">
+          <Nav onClick={() => shiftMonth(-1)} blocked={prevBlocked} dbl flip label={tri(lang, 'Fyrri mánuður', 'Previous month', 'Voriger Monat')} />
+          <Nav onClick={() => shiftDays(-7)} blocked={prevBlocked} flip label={tri(lang, 'Fyrri vika', 'Previous week', 'Vorige Woche')} />
+        </div>
         <span aria-live="polite" className="font-hanken text-sm font-semibold" style={{ color: INK }}>
-          {monthLabel(view, lang)}
+          {label}
         </span>
-        <button
-          type="button"
-          onClick={() => shiftMonth(1)}
-          disabled={nextBlocked}
-          className={navBtn}
-          style={{ color: INK }}
-          aria-label={tri(lang, 'Næsti mánuður', 'Next month', 'Nächster Monat')}
-        >
-          <ChevronRight className="h-4 w-4" aria-hidden="true" />
-        </button>
+        <div className="flex items-center">
+          <Nav onClick={() => shiftDays(7)} blocked={nextBlocked} label={tri(lang, 'Næsta vika', 'Next week', 'Nächste Woche')} />
+          <Nav onClick={() => shiftMonth(1)} blocked={nextBlocked} dbl label={tri(lang, 'Næsti mánuður', 'Next month', 'Nächster Monat')} />
+        </div>
       </div>
       <div
-        ref={gridRef}
-        role="grid"
+        ref={stripRef}
+        role="listbox"
         aria-label={tri(lang, 'Veldu dagsetningu', 'Choose a date', 'Datum wählen')}
-        className="grid grid-cols-7 gap-1"
+        className="-mx-1 flex snap-x gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-[repeat(14,minmax(0,1fr))] md:overflow-visible md:px-0 md:pb-0"
         onKeyDown={(e) => {
-          const map: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }
+          const map: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1 }
           if (!(e.key in map)) return
           e.preventDefault()
           step(map[e.key])
         }}
       >
-        {WEEKDAYS[lang].map((w) => (
-          <span key={w} aria-hidden="true" className="pb-1 text-center font-hanken text-[0.62rem] tracking-wide uppercase" style={{ color: SLATE }}>
-            {w}
-          </span>
-        ))}
-        {Array.from({ length: startDow }, (_, i) => (
-          <span key={`pad${i}`} />
-        ))}
-        {Array.from({ length: dayCount }, (_, i) => i + 1).map((day) => {
-          const { iso, offSeason, disabled } = state(day)
+        {days.map((d) => {
+          const { iso, offSeason, disabled } = stateOf(d)
           const selected = iso === value
+          const monthStart = d.getDate() === 1
           return (
             <button
-              key={day}
+              key={iso}
               type="button"
-              role="gridcell"
+              role="option"
               aria-selected={selected}
               aria-label={fmtDate(iso, lang)}
               tabIndex={selected ? 0 : -1}
               disabled={disabled}
               onClick={() => onChange(iso)}
-              className="relative h-9 rounded-lg font-hanken text-sm tabular-nums transition-colors disabled:cursor-not-allowed enabled:hover:bg-black/5"
+              className="relative flex h-16 min-w-[3.4rem] shrink-0 snap-start flex-col items-center justify-center rounded-xl font-hanken transition-colors disabled:cursor-not-allowed enabled:hover:bg-black/5 md:min-w-0"
               style={{
                 background: selected ? INK : 'transparent',
                 color: selected ? MIST : disabled ? '#161B3C7a' : BODY,
-                textDecoration: offSeason ? 'line-through' : 'none',
+                boxShadow: monthStart && !selected ? `inset 2px 0 0 ${CLAY_TX}33` : undefined,
               }}
             >
-              {day}
+              <span className="text-[0.62rem] tracking-wide uppercase" style={{ color: selected ? `${MIST}cc` : SLATE }}>
+                {WEEKDAYS[lang][(d.getDay() + 6) % 7]}
+              </span>
+              <span className="text-base tabular-nums" style={{ textDecoration: offSeason ? 'line-through' : 'none' }}>
+                {d.getDate()}
+              </span>
               {iso === todayIso && !selected && (
-                <span aria-hidden="true" className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full" style={{ background: CLAY_TX }} />
+                <span aria-hidden="true" className="absolute bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full" style={{ background: CLAY_TX }} />
               )}
             </button>
           )
@@ -875,41 +899,33 @@ function Booking({
     }
   }
 
-  // Shadow and ring live on the outer wrapper: the grid clips with clip-path
-  // instead of overflow-hidden, because overflow-hidden would cancel the
-  // sticky photo panel (and clip-path would eat the shadow).
   return (
-    <div className="rounded-[28px] shadow-[0_2px_4px_rgba(9,12,36,0.2),0_16px_32px_-16px_rgba(9,12,36,0.35),0_48px_96px_-40px_rgba(9,12,36,0.55)] ring-1 ring-white/10">
-    <div className="grid gap-0 rounded-[28px] md:grid-cols-2" style={{ background: PAPER, clipPath: 'inset(0 round 28px)' }}>
-      {/* image side — the cell spans the whole form height, but the photo is a
-          portrait panel (~70vh) that sticks under the header and rides along
-          while the form is filled. Before, the photo covered the full ~1400px
-          column, so a landscape shot became a magnified smear of mane. */}
-      <div className="relative min-h-[240px] md:min-h-full">
-        <div className="relative h-full overflow-hidden md:sticky md:top-20 md:h-[min(70vh,640px)] md:min-h-[420px]">
-          <Img
-            src={PICS.booking.src}
-            srcSet={PICS.booking.srcSet}
-            sizes="(max-width: 768px) 100vw, 520px"
-            alt={
-              altIs(lang, PICS.booking.alt) ??
-              tri(lang, 'Tveir íslenskir hestar að kljást', 'Two Icelandic horses nuzzling', 'Zwei sich beschnuppernde Islandpferde')
-            }
-            className="absolute inset-0 h-full w-full object-cover"
-            style={{ objectPosition: PICS.booking.pos ?? '50% 40%' }}
-          />
-          <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${TWILIGHT}e6, ${TWILIGHT}b3 55%, ${TWILIGHT}80 100%)` }} />
-          <div className="relative p-6 md:p-8">
-            <p className="max-w-[15rem] font-spectral text-2xl leading-snug text-white md:text-3xl">{t.bookPanelLine}</p>
-            <p className="mt-2 max-w-[15rem] font-hanken text-sm text-white/85">{t.bookBody}</p>
-          </div>
+    <div className="overflow-hidden rounded-[28px] shadow-[0_2px_4px_rgba(9,12,36,0.2),0_16px_32px_-16px_rgba(9,12,36,0.35),0_48px_96px_-40px_rgba(9,12,36,0.55)] ring-1 ring-white/10" style={{ background: PAPER }}>
+      {/* banner — the CMS booking photo is 1920×600, a banner; it runs across the
+          top of the card, the quote sits on it, and the steps get the full width */}
+      <div className="relative h-44 overflow-hidden md:h-56">
+        <Img
+          src={PICS.booking.src}
+          srcSet={PICS.booking.srcSet}
+          sizes="(max-width: 768px) 100vw, 1152px"
+          alt={
+            altIs(lang, PICS.booking.alt) ??
+            tri(lang, 'Tveir íslenskir hestar að kljást', 'Two Icelandic horses nuzzling', 'Zwei sich beschnuppernde Islandpferde')
+          }
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition: PICS.booking.pos ?? '50% 45%' }}
+        />
+        <div className="absolute inset-0" style={{ background: `linear-gradient(100deg, ${TWILIGHT}e6 0%, ${TWILIGHT}99 45%, ${TWILIGHT}40 100%)` }} />
+        <div className="relative flex h-full flex-col justify-end p-6 md:p-8">
+          <p className="max-w-md font-spectral text-2xl leading-snug text-white md:text-[1.75rem]">{t.bookPanelLine}</p>
+          <p className="mt-1.5 max-w-md font-hanken text-sm text-white/85">{t.bookBody}</p>
         </div>
       </div>
 
-      {/* form side */}
+      {/* steps */}
       <div className="p-6 md:p-8">
         {done ? (
-          <div role="status" className="flex h-full flex-col items-start justify-center">
+          <div role="status" className="mx-auto flex max-w-xl flex-col items-start justify-center py-6">
             <span className="ph-pop grid h-12 w-12 place-items-center rounded-full" style={{ background: CLAY_FILL }}>
               <Check className="h-6 w-6 text-white" />
             </span>
@@ -985,8 +1001,8 @@ function Booking({
             </p>
 
             <Step n={2} label={t.stepDate} />
-            <div className={tour.times?.length ? 'mb-3' : 'mb-5'}>
-              <SeasonCalendar
+            <div className="mb-5">
+              <DayStrip
                 value={date}
                 onChange={setDate}
                 months={tour.months}
@@ -994,12 +1010,41 @@ function Booking({
                 min={minIso}
                 max={maxIso}
               />
-              <p className="mt-2 flex items-center gap-1.5 font-hanken text-xs" style={{ color: SLATE }}>
-                <Calendar className="h-3.5 w-3.5 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
-                <span style={{ color: INK }}>{fmtDate(date, lang)}</span>
-              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
+                <p className="flex items-center gap-1.5 font-hanken text-sm" style={{ color: SLATE }}>
+                  <Calendar className="h-3.5 w-3.5 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
+                  <span className="font-medium" style={{ color: INK }}>{fmtDate(date, lang)}</span>
+                </p>
+                {!!tour.times?.length && (
+                  <fieldset className="flex flex-wrap items-center gap-2">
+                    <legend className="sr-only">{t.timeLabel}</legend>
+                    <span aria-hidden="true" className="mr-1 font-hanken text-xs tracking-wide uppercase" style={{ color: SLATE }}>
+                      {t.timeLabel}
+                    </span>
+                    {tour.times.map((slot) => {
+                      const active = slot === time
+                      return (
+                        <button
+                          key={slot}
+                          type="button"
+                          onClick={() => setTime(slot)}
+                          aria-pressed={active}
+                          className="rounded-full border px-3.5 py-2 font-hanken text-sm font-medium tabular-nums transition-colors"
+                          style={
+                            active
+                              ? { background: INK, color: MIST, borderColor: INK }
+                              : { background: 'transparent', color: BODY, borderColor: '#0000001f' }
+                          }
+                        >
+                          {slot}
+                        </button>
+                      )
+                    })}
+                  </fieldset>
+                )}
+              </div>
               {!!tour.months?.length && (
-                <p className="mt-1 font-hanken text-xs leading-relaxed" style={{ color: CLAY_TX }}>
+                <p className="mt-2 font-hanken text-xs leading-relaxed" style={{ color: CLAY_TX }}>
                   {tri(
                     lang,
                     `Árstíðabundin ferð: ${stegaClean(tour.meta.is)}. Dagar utan tímabils eru yfirstrikaðir.`,
@@ -1009,35 +1054,9 @@ function Booking({
                 </p>
               )}
             </div>
-            {!!tour.times?.length && (
-              <fieldset className="mb-5">
-                <legend className="mb-1.5 font-hanken text-xs tracking-wide uppercase" style={{ color: SLATE }}>
-                  {t.timeLabel}
-                </legend>
-                <div className="flex flex-wrap gap-2">
-                  {tour.times.map((slot) => {
-                    const active = slot === time
-                    return (
-                      <button
-                        key={slot}
-                        type="button"
-                        onClick={() => setTime(slot)}
-                        aria-pressed={active}
-                        className="rounded-full border px-3.5 py-2 font-hanken text-sm font-medium tabular-nums transition-all"
-                        style={
-                          active
-                            ? { background: INK, color: MIST, borderColor: INK }
-                            : { background: 'transparent', color: BODY, borderColor: '#0000001f' }
-                        }
-                      >
-                        {slot}
-                      </button>
-                    )
-                  })}
-                </div>
-              </fieldset>
-            )}
 
+            <div className="grid gap-8 md:grid-cols-2 md:gap-10">
+            <div>
             <Step n={3} label={t.stepRiders} />
             <div className="divide-y" style={{ borderColor: '#0000000f' }}>
               <Stepper label={t.adults} value={adults} set={setAdults} min={1} lang={lang} />
@@ -1099,7 +1118,8 @@ function Booking({
                 )}
               </p>
             </fieldset>
-            <div className="mt-5">
+            </div>
+            <div>
               <Step n={4} label={t.stepContact} />
               <div className="space-y-2.5">
                 <label className="block">
@@ -1160,6 +1180,7 @@ function Booking({
                 </label>
               </div>
             </div>
+            </div>
 
             {status === 'error' && (
               <p role="alert" className="mt-3 rounded-xl px-3.5 py-2.5 font-hanken text-xs leading-relaxed" style={{ background: '#FBE9E9', color: '#8C2B2B' }}>
@@ -1204,7 +1225,6 @@ function Booking({
           </form>
         )}
       </div>
-    </div>
     </div>
   )
 }
@@ -2234,7 +2254,7 @@ function PolarHestarPageInner() {
           boxShadow: `inset 0 1px 0 ${CLAY_HI}2b`,
         }}
       >
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <Reveal className="mb-8 text-center">
             <Eyebrow on="dark">{t.bookEyebrow}</Eyebrow>
             <h2 className="mt-3 font-spectral text-[clamp(1.9rem,1rem+3.4vw,3.1rem)] leading-tight text-white">
