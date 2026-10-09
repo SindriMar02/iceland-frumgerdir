@@ -84,7 +84,7 @@ const u = (k: string, n: number, alt: string) => Array.from({ length: n }, (_, i
 
 export const UNITS: Unit[] = [
   { slug: 'adria-aviva-360-dk', brand: 'Adria', brandKey: 'adria', model: 'Aviva 360 DK', kind: 'hjolhysi', cond: 'ny', price: 3990000,
-    sleeps: '4', sleepsN: 4, weight: 750, length: 415, width: 209, height: 258, heating: 'Truma',
+    sleeps: '4', sleepsN: 4, weight: 750, maxWeight: 1000, length: 415, width: 209, height: 258, heating: 'Truma',
     plan: photo('u-aviva-360-dk-0', 'Grunnmynd Adria Aviva 360 DK'), imgs: u('aviva-360-dk', 5, 'Adria Aviva 360 DK').slice(1),
     specs: [['Heildarlengd með beisli', '548 cm'], ['Lengd húss', '415 cm'], ['Breidd', '209 cm'], ['Eigin þyngd', '750 kg'], ['Svefnpláss', '4'], ['Rúm', '194 x 126 cm'], ['Miðstöð', 'Truma'], ['Vatnstankur', '50 L']],
     text: ['Léttasta hjólhýsið í úrtakinu: 750 kg eigin þyngd og 209 cm á breidd.', 'Truma miðstöð og Truma Therme vatnshitari, 230 V, 12 V og USB tengi.'],
@@ -309,7 +309,7 @@ export const companyEntry: PreviewCompany = {
   accent: '#01483A',
   dark: false,
   status: 'In build',
-  thumb: A('hero-640.webp'),
+  thumb: A('ad-awning-800.webp'),
   ownPhotography: true,
   photoCredit: 'Myndir af vikurverk.is og notadir.vikurverk.is, október 2026 (framleiðendamyndir þar sem Víkurverk notar þær). Merki af vikurverk.is.',
   audit: {
