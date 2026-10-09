@@ -875,25 +875,34 @@ function Booking({
     }
   }
 
+  // Shadow and ring live on the outer wrapper: the grid clips with clip-path
+  // instead of overflow-hidden, because overflow-hidden would cancel the
+  // sticky photo panel (and clip-path would eat the shadow).
   return (
-    <div className="grid gap-0 overflow-hidden rounded-[28px] shadow-[0_2px_4px_rgba(9,12,36,0.2),0_16px_32px_-16px_rgba(9,12,36,0.35),0_48px_96px_-40px_rgba(9,12,36,0.55)] ring-1 ring-white/10 md:grid-cols-2" style={{ background: PAPER }}>
-      {/* image side */}
-      <div className="relative min-h-[240px] overflow-hidden md:min-h-full">
-        <Img
-          src={PICS.booking.src}
-          srcSet={PICS.booking.srcSet}
-          sizes="(max-width: 768px) 100vw, 520px"
-          alt={
-            PICS.booking.alt ??
-            tri(lang, 'Tveir íslenskir hestar að kljást', 'Two Icelandic horses nuzzling', 'Zwei sich beschnuppernde Islandpferde')
-          }
-          className="ph-drift absolute inset-0 h-full w-full object-cover"
-          style={{ objectPosition: PICS.booking.pos }}
-        />
-        <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${TWILIGHT}e6, ${TWILIGHT}b3 55%, ${TWILIGHT}80 100%)` }} />
-        <div className="relative p-6 md:p-8">
-          <p className="max-w-[15rem] font-spectral text-2xl leading-snug text-white md:text-3xl">{t.bookPanelLine}</p>
-          <p className="mt-2 max-w-[15rem] font-hanken text-sm text-white/85">{t.bookBody}</p>
+    <div className="rounded-[28px] shadow-[0_2px_4px_rgba(9,12,36,0.2),0_16px_32px_-16px_rgba(9,12,36,0.35),0_48px_96px_-40px_rgba(9,12,36,0.55)] ring-1 ring-white/10">
+    <div className="grid gap-0 rounded-[28px] md:grid-cols-2" style={{ background: PAPER, clipPath: 'inset(0 round 28px)' }}>
+      {/* image side — the cell spans the whole form height, but the photo is a
+          portrait panel (~70vh) that sticks under the header and rides along
+          while the form is filled. Before, the photo covered the full ~1400px
+          column, so a landscape shot became a magnified smear of mane. */}
+      <div className="relative min-h-[240px] md:min-h-full">
+        <div className="relative h-full overflow-hidden md:sticky md:top-20 md:h-[min(70vh,640px)] md:min-h-[420px]">
+          <Img
+            src={PICS.booking.src}
+            srcSet={PICS.booking.srcSet}
+            sizes="(max-width: 768px) 100vw, 520px"
+            alt={
+              PICS.booking.alt ??
+              tri(lang, 'Tveir íslenskir hestar að kljást', 'Two Icelandic horses nuzzling', 'Zwei sich beschnuppernde Islandpferde')
+            }
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ objectPosition: PICS.booking.pos ?? '50% 40%' }}
+          />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${TWILIGHT}e6, ${TWILIGHT}b3 55%, ${TWILIGHT}80 100%)` }} />
+          <div className="relative p-6 md:p-8">
+            <p className="max-w-[15rem] font-spectral text-2xl leading-snug text-white md:text-3xl">{t.bookPanelLine}</p>
+            <p className="mt-2 max-w-[15rem] font-hanken text-sm text-white/85">{t.bookBody}</p>
+          </div>
         </div>
       </div>
 
@@ -1196,6 +1205,7 @@ function Booking({
         )}
       </div>
     </div>
+    </div>
   )
 }
 
@@ -1491,7 +1501,7 @@ function PolarHestarPageInner() {
   const navLink = 'font-hanken text-sm font-medium transition-colors'
 
   return (
-    <div lang={lang} style={{ background: MIST, color: BODY }} className="ph-root min-h-screen overflow-x-hidden font-hanken antialiased">
+    <div lang={lang} style={{ background: MIST, color: BODY }} className="ph-root min-h-screen overflow-x-clip font-hanken antialiased">
       {/* scoped motion + theme */}
       <style>{`
         .ph-reveal{opacity:0;transform:translateY(16px);filter:blur(6px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1),filter .9s ease}
