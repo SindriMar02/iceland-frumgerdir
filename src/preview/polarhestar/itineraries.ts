@@ -7,9 +7,9 @@
  * these are the seed and the offline fallback. "Back to the Roots" has no
  * itinerary published, so it has none here either.
  *
- * The map is SCHEMATIC: places are projected from their real latitude and
- * longitude onto one flat frame (no coastline survey), enough to show where a
- * day goes, never a hiking map. Coordinates: viewBox 0 0 1000 700.
+ * The map draws real OpenStreetMap geometry (geo.ts); places are stored as
+ * latitude/longitude and projected onto the same frame, so a pin sits where
+ * the place is. It shows where a day goes; it is not a hiking map.
  */
 import type { L3 } from './schedule'
 
@@ -30,46 +30,47 @@ export const DAY_TITLE: Record<NonNullable<ItineraryDay['kind']>, L3> = {
   departure: { is: 'Brottför', en: 'Departure', de: 'Abreise' },
 }
 
-export interface MapPlace { id: string; x: number; y: number; label: string }
+export interface MapPlace { id: string; lat: number; lon: number; label: string }
+/** Verified 2026-10-09 against Nominatim / OSM where a feature exists (farms,
+    waterfalls, peaks, lakes, bays); valleys and coasts are their mid-points. */
 export const MAP_PLACES: MapPlace[] = [
-  { id: "akureyri", x: 229, y: 444, label: "Akureyri" },
-  { id: "grytubakki", x: 196, y: 246, label: "Grýtubakki" },
-  { id: "grenivik", x: 174, y: 228, label: "Grenivík" },
-  { id: "laufas", x: 229, y: 270, label: "Laufás" },
-  { id: "hofdi", x: 157, y: 190, label: "Höfði" },
-  { id: "latrastrond", x: 130, y: 150, label: "Látraströnd" },
-  { id: "svinarnes", x: 124, y: 126, label: "Svínárnes" },
-  { id: "hrisey", x: 63, y: 190, label: "Hrísey" },
-  { id: "gljufura", x: 218, y: 234, label: "Gljúfurá" },
-  { id: "fnjoskadalur", x: 295, y: 334, label: "Fnjóskadalur" },
-  { id: "thvera", x: 318, y: 294, label: "Þverá" },
-  { id: "fjordur", x: 240, y: 94, label: "Fjörður" },
-  { id: "leirdalsheidi", x: 224, y: 158, label: "Leirdalsheiði" },
-  { id: "trolladalur", x: 262, y: 134, label: "Trölladalur" },
-  { id: "gil", x: 279, y: 118, label: "Gil" },
-  { id: "thorgeirsfjordur", x: 290, y: 86, label: "Þorgeirsfjörður" },
-  { id: "thonglabakki", x: 304, y: 90, label: "Þönglabakki" },
-  { id: "thorgeirshofdi", x: 318, y: 62, label: "Þorgeirshöfði" },
-  { id: "flateyjardalur", x: 356, y: 166, label: "Flateyjardalur" },
-  { id: "hof", x: 362, y: 126, label: "Hof" },
-  { id: "godafoss", x: 528, y: 444, label: "Goðafoss" },
-  { id: "fremstafell", x: 544, y: 414, label: "Fremstafell" },
-  { id: "sandur", x: 533, y: 270, label: "Sandur" },
-  { id: "nattfaravikur", x: 434, y: 174, label: "Náttfaravíkur" },
-  { id: "heidarbot", x: 600, y: 286, label: "Heiðarbót" },
-  { id: "laxa", x: 611, y: 318, label: "Laxá" },
-  { id: "reykjadalur", x: 633, y: 382, label: "Reykjadalur" },
-  { id: "vestmannsvatn", x: 600, y: 390, label: "Vestmannsvatn" },
-  { id: "akrar", x: 644, y: 414, label: "Akrar" },
-  { id: "masvatn", x: 710, y: 470, label: "Másvatn" },
-  { id: "myvatn", x: 832, y: 510, label: "Mývatn" },
-  { id: "skutustadir", x: 815, y: 534, label: "Skútustaðir" },
-  { id: "dimmuborgir", x: 882, y: 518, label: "Dimmuborgir" },
-  { id: "namaskard", x: 931, y: 478, label: "Námaskarð" },
-  { id: "stong", x: 765, y: 486, label: "Stöng" },
-  { id: "engidalur", x: 677, y: 574, label: "Engidalur" },
-  { id: "odadahraun", x: 694, y: 654, label: "Ódáðahraun" },
-  { id: "bardardalur", x: 566, y: 542, label: "Bárðardalur" },
+  { id: "akureyri", lat: 65.683, lon: -18.09, label: "Akureyri" },
+  { id: "grytubakki", lat: 65.934, lon: -18.115, label: "Grýtubakki" },
+  { id: "grenivik", lat: 65.9475, lon: -18.18, label: "Grenivík" },
+  { id: "laufas", lat: 65.895, lon: -18.071, label: "Laufás" },
+  { id: "hofdi", lat: 65.936, lon: -18.176, label: "Höfði" },
+  { id: "latrastrond", lat: 66.05, lon: -18.26, label: "Látraströnd" },
+  { id: "svinarnes", lat: 66.09, lon: -18.28, label: "Svínárnes" },
+  { id: "gljufura", lat: 65.942, lon: -18.1, label: "Gljúfurá" },
+  { id: "fnjoskadalur", lat: 65.8, lon: -17.93, label: "Fnjóskadalur" },
+  { id: "thvera", lat: 65.86, lon: -17.95, label: "Þverá" },
+  { id: "fjordur", lat: 66.14, lon: -18.17, label: "Fjörður" },
+  { id: "leirdalsheidi", lat: 66.04, lon: -18.13, label: "Leirdalsheiði" },
+  { id: "trolladalur", lat: 66.09, lon: -18.16, label: "Trölladalur" },
+  { id: "gil", lat: 66.1, lon: -18.15, label: "Gil" },
+  { id: "thorgeirsfjordur", lat: 66.159, lon: -18.135, label: "Þorgeirsfjörður" },
+  { id: "thonglabakki", lat: 66.153, lon: -18.123, label: "Þönglabakki" },
+  { id: "thorgeirshofdi", lat: 66.19, lon: -18.11, label: "Þorgeirshöfði" },
+  { id: "flateyjardalur", lat: 66.0, lon: -17.86, label: "Flateyjardalur" },
+  { id: "hof", lat: 66.08, lon: -17.85, label: "Hof" },
+  { id: "godafoss", lat: 65.683, lon: -17.551, label: "Goðafoss" },
+  { id: "fremstafell", lat: 65.722, lon: -17.556, label: "Fremstafell" },
+  { id: "sandur", lat: 65.93, lon: -17.5, label: "Sandur" },
+  { id: "nattfaravikur", lat: 66.02, lon: -17.76, label: "Náttfaravíkur" },
+  { id: "heidarbot", lat: 65.924, lon: -17.289, label: "Heiðarbót" },
+  { id: "laxa", lat: 65.87, lon: -17.35, label: "Laxá" },
+  { id: "reykjadalur", lat: 65.76, lon: -17.37, label: "Reykjadalur" },
+  { id: "vestmannsvatn", lat: 65.795, lon: -17.417, label: "Vestmannsvatn" },
+  { id: "akrar", lat: 65.73, lon: -17.36, label: "Akrar" },
+  { id: "masvatn", lat: 65.636, lon: -17.238, label: "Másvatn" },
+  { id: "myvatn", lat: 65.6, lon: -16.987, label: "Mývatn" },
+  { id: "skutustadir", lat: 65.567, lon: -17.037, label: "Skútustaðir" },
+  { id: "dimmuborgir", lat: 65.588, lon: -16.908, label: "Dimmuborgir" },
+  { id: "namaskard", lat: 65.647, lon: -16.825, label: "Námaskarð" },
+  { id: "stong", lat: 65.562, lon: -17.239, label: "Stöng" },
+  { id: "engidalur", lat: 65.5, lon: -17.32, label: "Engidalur" },
+  { id: "odadahraun", lat: 65.44, lon: -17.25, label: "Ódáðahraun" },
+  { id: "bardardalur", lat: 65.525, lon: -17.453, label: "Bárðardalur" },
 ]
 export const MAP_PLACE = Object.fromEntries(MAP_PLACES.map((p) => [p.id, p])) as Record<string, MapPlace>
 

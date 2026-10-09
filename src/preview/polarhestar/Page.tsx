@@ -2138,7 +2138,7 @@ function PolarHestarPageInner() {
             {t.toursBody}
           </p>
 
-          <Reveal className="mt-7">
+          <Reveal className="mx-auto mt-7 max-w-3xl">
             <div className="rounded-[24px] p-3 md:p-4" style={{ background: PAPER, boxShadow: '0 1px 2px rgba(22,27,60,0.05), 0 18px 40px -28px rgba(22,27,60,0.35)' }}>
               <FarmMap tours={SHORT_TOURS} lang={lang} selected={mapPick} onPick={pickRide} />
             </div>

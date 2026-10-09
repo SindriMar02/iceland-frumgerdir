@@ -110,7 +110,8 @@ function TourPageInner() {
       (es) => {
         for (const e of es) if (e.isIntersecting) setActiveDay(Number((e.target as HTMLElement).dataset.day))
       },
-      { rootMargin: '-35% 0px -50% 0px' },
+      // reading band: under the sticky map on narrow screens, mid-viewport beside it on wide ones
+      { rootMargin: window.matchMedia('(min-width: 1024px)').matches ? '-35% 0px -50% 0px' : '-52% 0px -33% 0px' },
     )
     els.forEach((el) => io.observe(el))
     return () => io.disconnect()
@@ -119,8 +120,12 @@ function TourPageInner() {
   useEffect(() => {
     setThemeColor(MIST)
     if (tour) document.title = `${stegaClean(tour.name[lang])} · Pólar Hestar`
-    window.scrollTo(0, 0)
   }, [lang, tour])
+  // top of the page per tour, never per content refresh (a CMS live-edit
+  // re-merges the content and must not throw the reader back to the top)
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [id])
 
   const goDay = (n: number) => {
     const el = document.getElementById(`dagur-${n}`)
@@ -156,6 +161,7 @@ function TourPageInner() {
     <div lang={lang} style={{ background: MIST, color: BODY }} className="min-h-screen overflow-x-clip font-hanken antialiased">
       <style>{`
         .ph-tour-frame{clip-path:inset(0 round 0)}
+        @media (max-width: 1023px){.ph-map-card svg{max-height:38vh}.ph-map-card figcaption{display:none}}
         .ph-day{opacity:.55;transition:opacity .5s ease}
         .ph-day[data-on="true"]{opacity:1}
         .ph-day-rise{animation:phDayRise .7s cubic-bezier(.2,.7,.2,1) both}
@@ -261,8 +267,10 @@ function TourPageInner() {
             </div>
 
             <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-12">
-              <div className="lg:sticky lg:top-24 lg:self-start">
-                <div className="rounded-[24px] p-3 md:p-4" style={{ background: PAPER, boxShadow: '0 1px 2px rgba(22,27,60,0.05), 0 18px 40px -28px rgba(22,27,60,0.35)' }}>
+              {/* the map sticks on every width: on a phone it is height-capped so
+                  the day being read still scrolls under a map that lights it */}
+              <div className="sticky top-[4.25rem] z-10 self-start lg:top-24">
+                <div className="ph-map-card rounded-[24px] p-2 md:p-4" style={{ background: PAPER, boxShadow: '0 1px 2px rgba(22,27,60,0.05), 0 18px 40px -28px rgba(22,27,60,0.35)' }}>
                   <RegionMap tourId={tour.id} activeDay={activeDay} lang={lang} onPick={goDay} />
                 </div>
               </div>
