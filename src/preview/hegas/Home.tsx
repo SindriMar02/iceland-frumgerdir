@@ -29,11 +29,8 @@ function Hero({ lang, ringOn }: { lang: Lang; ringOn: boolean }) {
         <div className="hg-hero__frame">
           <img src={img('magic-light', 1600)} srcSet={srcset('magic-light')} sizes="(max-width: 900px) 100vw, 42vw"
             alt={t.alt} width={1536} height={1086} {...{ fetchpriority: 'high' }} data-hg-drift="" />
-          {/* the logo's square: a blue frame with its white inner line draws round the photo once */}
-          <svg className={`hg-hero__ring${ringOn ? ' is-on' : ''}`} viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <rect x="3.5" y="3" width="93" height="94" pathLength={1} />
-            <rect x="5" y="4.2" width="90" height="91.6" pathLength={1} />
-          </svg>
+          {/* the logo's square: a blue frame with its white inner line reveals round the photo once */}
+          <span className={`hg-hero__ring${ringOn ? ' is-on' : ''}`} aria-hidden="true"><i /><i /></span>
         </div>
         <figcaption className="hg-cap">{t.cap}</figcaption>
       </figure>

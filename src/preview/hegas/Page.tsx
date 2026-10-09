@@ -62,7 +62,7 @@ function Header({ route, onList, menu, setMenu, spy, logoIn }: { route: Route; o
         {[[t.products, `${home}#vorur`], [t.brands, `${home}#merki`], [t.machines, `${home}#velar`], [t.news, `${home}#frettir`], [t.staff, `${home}#starfsfolk`], [t.contact, `${home}#hafa-samband`], [t.list, path(route.lang, 'list')]].map(([l, h], i) => (
           <Link key={h} to={h} onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}><small className="hg-tnum">{pad2(i + 1)}</small>{l}</Link>
         ))}
-        <a href={CONTACT.shop} target="_blank" rel="noopener" tabIndex={menu ? 0 : -1}><small>↗</small>{t.shop}</a>
+        <a href={CONTACT.shop} target="_blank" rel="noopener" tabIndex={menu ? 0 : -1}><small><svg className="hg-menu__ext" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 12 12 4M5.5 4H12v6.5" /></svg></small>{t.shop}</a>
         <p className="hg-menu__c"><a href={`tel:${CONTACT.tel}`} tabIndex={menu ? 0 : -1}>{CONTACT.phone}</a><a href={`mailto:${CONTACT.sales}`} tabIndex={menu ? 0 : -1}>{CONTACT.sales}</a></p>
       </nav>
     </>
