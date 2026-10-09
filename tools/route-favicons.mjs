@@ -60,6 +60,7 @@ const BRAND = {
   '/preview/hegas': 'hegas/brand',
   '/preview/prentmidlun': 'prentmidlun/brand',
   '/preview/velfang': 'velfang/brand',
+  '/preview/vikurverk': 'vikurverk/brand',
 }
 /* Deployed previews with no companies.ts entry: name + accent from their own page. */
 const EXTRA = {

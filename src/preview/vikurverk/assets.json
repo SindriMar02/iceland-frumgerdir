@@ -1,0 +1,765 @@
+{
+"hero": {
+"widths": [
+640,
+936
+],
+"w": 936,
+"h": 1171,
+"src": "photos/units/leiga-minkur/02.jpg"
+},
+"showroom": {
+"widths": [
+800,
+1400,
+2000
+],
+"w": 2160,
+"h": 1440,
+"src": "photos/units/randger-r560/03.jpg"
+},
+"ad-awning": {
+"widths": [
+800,
+1400,
+1920
+],
+"w": 1920,
+"h": 1080,
+"src": "photos/site/ad-frames/f95.jpg"
+},
+"workshop": {
+"widths": [
+640,
+921
+],
+"w": 921,
+"h": 576,
+"src": "photos/site/received_347437352781083-1-1024x576-1.jpeg"
+},
+"workshop-2": {
+"widths": [
+640,
+921
+],
+"w": 921,
+"h": 576,
+"src": "photos/site/received_706955256366627-1024x576-1.jpeg"
+},
+"building": {
+"widths": [
+1024
+],
+"w": 1024,
+"h": 364,
+"src": "photos/site/Vikurverk-1.jpg"
+},
+"camplet-life": {
+"widths": [
+640,
+1040
+],
+"w": 1042,
+"h": 584,
+"src": "photos/units/camplet-north/03.png"
+},
+"mink-life": {
+"widths": [
+640,
+1170
+],
+"w": 1170,
+"h": 878,
+"src": "photos/units/leiga-minkur/00.jpg"
+},
+"u-aviva-360-dk-0": {
+"widths": [
+480,
+960,
+1217
+],
+"w": 1217,
+"h": 537,
+"src": "photos/units/adria-aviva-360-dk/00.png"
+},
+"u-aviva-360-dk-1": {
+"widths": [
+480,
+960,
+1365
+],
+"w": 1365,
+"h": 1024,
+"src": "photos/units/adria-aviva-360-dk/01.jpeg"
+},
+"u-aviva-360-dk-2": {
+"widths": [
+480,
+960,
+1365
+],
+"w": 1365,
+"h": 1024,
+"src": "photos/units/adria-aviva-360-dk/02.jpeg"
+},
+"u-aviva-360-dk-3": {
+"widths": [
+480,
+960,
+1365
+],
+"w": 1365,
+"h": 1024,
+"src": "photos/units/adria-aviva-360-dk/04.jpeg"
+},
+"u-aviva-360-dk-4": {
+"widths": [
+480,
+960,
+1365
+],
+"w": 1365,
+"h": 1024,
+"src": "photos/units/adria-aviva-360-dk/05.jpeg"
+},
+"u-deluxe-460-ufe-0": {
+"widths": [
+480,
+960,
+1217
+],
+"w": 1217,
+"h": 525,
+"src": "photos/units/hobby-de-luxe-460-ufe/00.png"
+},
+"u-deluxe-460-ufe-1": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/units/hobby-de-luxe-460-ufe/01.jpg"
+},
+"u-deluxe-460-ufe-2": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/units/hobby-de-luxe-460-ufe/02.jpg"
+},
+"u-deluxe-460-ufe-3": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/units/hobby-de-luxe-460-ufe/03.jpg"
+},
+"u-deluxe-460-ufe-4": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/units/hobby-de-luxe-460-ufe/04.jpg"
+},
+"u-bianco-445-sfb-0": {
+"widths": [
+310
+],
+"w": 310,
+"h": 163,
+"src": "photos/units/fendt-bianco-activ-445-sfb/00.jpg"
+},
+"u-bianco-445-sfb-1": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/units/fendt-bianco-activ-445-sfb/01.jpg"
+},
+"u-bianco-445-sfb-2": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/units/fendt-bianco-activ-445-sfb/02.jpg"
+},
+"u-bianco-445-sfb-3": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/units/fendt-bianco-activ-445-sfb/03.jpg"
+},
+"u-bianco-445-sfb-4": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/units/fendt-bianco-activ-445-sfb/05.jpg"
+},
+"u-prestige-620-cl-0": {
+"widths": [
+480,
+548
+],
+"w": 548,
+"h": 221,
+"src": "photos/units/hobby-prestige-620-cl/00.png"
+},
+"u-prestige-620-cl-1": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2016,
+"h": 1134,
+"src": "photos/units/hobby-prestige-620-cl/01.jpg"
+},
+"u-prestige-620-cl-2": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2048,
+"h": 1536,
+"src": "photos/units/hobby-prestige-620-cl/03.jpeg"
+},
+"u-prestige-620-cl-3": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2048,
+"h": 1536,
+"src": "photos/units/hobby-prestige-620-cl/04.jpeg"
+},
+"u-prestige-620-cl-4": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2048,
+"h": 1536,
+"src": "photos/units/hobby-prestige-620-cl/05.jpeg"
+},
+"u-mink-s-0": {
+"widths": [
+480,
+640
+],
+"w": 640,
+"h": 480,
+"src": "photos/units/mink-s/00.jpg"
+},
+"u-mink-s-1": {
+"widths": [
+419
+],
+"w": 419,
+"h": 401,
+"src": "photos/units/mink-s/04.jpg"
+},
+"u-mink-s-2": {
+"widths": [
+414
+],
+"w": 414,
+"h": 399,
+"src": "photos/units/mink-s/05.jpg"
+},
+"u-mink-s-3": {
+"widths": [
+284
+],
+"w": 284,
+"h": 263,
+"src": "photos/units/mink-s/01.jpg"
+},
+"u-mink-s-4": {
+"widths": [
+305
+],
+"w": 305,
+"h": 286,
+"src": "photos/units/mink-s/03.jpg"
+},
+"u-camplet-north-0": {
+"widths": [
+368
+],
+"w": 368,
+"h": 218,
+"src": "photos/units/camplet-north/01.png"
+},
+"u-camplet-north-1": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 1600,
+"h": 1200,
+"src": "photos/units/camplet-north/00.jpg"
+},
+"u-camplet-north-2": {
+"widths": [
+480,
+960,
+974
+],
+"w": 974,
+"h": 546,
+"src": "photos/units/camplet-north/02.png"
+},
+"u-camplet-north-3": {
+"widths": [
+480,
+960,
+1042
+],
+"w": 1042,
+"h": 584,
+"src": "photos/units/camplet-north/03.png"
+},
+"u-camplet-north-4": {
+"widths": [
+480,
+907
+],
+"w": 907,
+"h": 680,
+"src": "photos/units/camplet-north/05.png"
+},
+"u-randger-r560-0": {
+"widths": [
+480,
+960,
+1024
+],
+"w": 1024,
+"h": 376,
+"src": "photos/units/randger-r560/00.png"
+},
+"u-randger-r560-1": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2560,
+"h": 1440,
+"src": "photos/units/randger-r560/03.jpg"
+},
+"u-randger-r560-2": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2560,
+"h": 1440,
+"src": "photos/units/randger-r560/04.jpg"
+},
+"u-randger-r560-3": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2560,
+"h": 1440,
+"src": "photos/units/randger-r560/02.jpg"
+},
+"u-randger-r560-4": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2560,
+"h": 1440,
+"src": "photos/units/randger-r560/05.jpg"
+},
+"u-leiga-593-0": {
+"widths": [
+480,
+960,
+1000
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/units/leiga-adora-593-uk/00.png"
+},
+"u-leiga-593-1": {
+"widths": [
+480,
+537
+],
+"w": 537,
+"h": 403,
+"src": "photos/units/leiga-adora-593-uk/01.jpg"
+},
+"u-leiga-593-2": {
+"widths": [
+480,
+537
+],
+"w": 537,
+"h": 403,
+"src": "photos/units/leiga-adora-593-uk/02.jpg"
+},
+"u-leiga-593-3": {
+"widths": [
+480,
+537
+],
+"w": 537,
+"h": 403,
+"src": "photos/units/leiga-adora-593-uk/03.jpg"
+},
+"u-leiga-593-4": {
+"widths": [
+480,
+537
+],
+"w": 537,
+"h": 403,
+"src": "photos/units/leiga-adora-593-uk/04.jpg"
+},
+"u-leiga-522-0": {
+"widths": [
+300
+],
+"w": 300,
+"h": 300,
+"src": "photos/units/leiga-adora-522-up/00.png"
+},
+"u-leiga-522-1": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2016,
+"h": 1512,
+"src": "photos/units/leiga-adora-522-up/01.jpg"
+},
+"u-leiga-522-2": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2016,
+"h": 1512,
+"src": "photos/units/leiga-adora-522-up/02.jpg"
+},
+"u-leiga-522-3": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2016,
+"h": 1512,
+"src": "photos/units/leiga-adora-522-up/03.jpg"
+},
+"u-leiga-522-4": {
+"widths": [
+480,
+960,
+1400
+],
+"w": 2016,
+"h": 1512,
+"src": "photos/units/leiga-adora-522-up/04.jpg"
+},
+"u-leiga-mink-0": {
+"widths": [
+480,
+960,
+1170
+],
+"w": 1170,
+"h": 878,
+"src": "photos/units/leiga-minkur/00.jpg"
+},
+"u-leiga-mink-1": {
+"widths": [
+480,
+960,
+1170
+],
+"w": 1170,
+"h": 878,
+"src": "photos/units/leiga-minkur/01.jpg"
+},
+"u-leiga-mink-2": {
+"widths": [
+480,
+960,
+1170
+],
+"w": 1170,
+"h": 1171,
+"src": "photos/units/leiga-minkur/02.jpg"
+},
+"used-weinsberg-w51-2019": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/used/weinsberg-w51-2019.jpg"
+},
+"used-mink-camper-2-2024": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/used/mink-camper-2-2024.jpg"
+},
+"used-eriba-feeling-430-2007": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/used/eriba-feeling-430-2007.jpg"
+},
+"used-hobby-650-kmfe-2008": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/used/hobby-650-kmfe-2008.jpg"
+},
+"used-dethleffs-495-2021": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/used/dethleffs-495-2021.jpg"
+},
+"used-caravelair-alba-390-2024": {
+"widths": [
+480,
+960,
+1280
+],
+"w": 1280,
+"h": 1024,
+"src": "photos/used/caravelair-alba-390-2024.jpg"
+},
+"p-dometic-rear-upright-pole-s-m": {
+"widths": [
+400,
+500
+],
+"w": 500,
+"h": 500,
+"src": "photos/shop/dometic-rear-upright-pole-s-m.png"
+},
+"p-thrystijafnari-29mb-m-2-slongu": {
+"widths": [
+400,
+500
+],
+"w": 500,
+"h": 500,
+"src": "photos/shop/thrystijafnari-29mb-m-2-slongu.png"
+},
+"p-bordstandur-fyrir-o-grill": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/bordstandur-fyrir-o-grill.jpeg"
+},
+"p-taska-fyrir-o-grill": {
+"widths": [
+400,
+500
+],
+"w": 500,
+"h": 500,
+"src": "photos/shop/taska-fyrir-o-grill.png"
+},
+"p-raptor-jackofall-nyr-2025-brunner": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/raptor-jackofall-nyr-2025-brunner.jpeg"
+},
+"p-stoll-aravel-3d-m-svartur-brunner": {
+"widths": [
+400,
+500
+],
+"w": 500,
+"h": 500,
+"src": "photos/shop/stoll-aravel-3d-m-svartur-brunner.jpg"
+},
+"p-stoll-kollur-aravel-svartur-brunner": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/stoll-kollur-aravel-svartur-brunner.png"
+},
+"p-thermo-kaelibox-28l": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/thermo-kaelibox-28l.jpg"
+},
+"p-thermo-kaelibox": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/thermo-kaelibox.jpg"
+},
+"p-kaelibox-polarys-freeze-sz-30l-brunner": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/kaelibox-polarys-freeze-sz-30l-brunner.png"
+},
+"p-gashitari-42-kw-fmt": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/gashitari-42-kw-fmt.png"
+},
+"p-hitari-brunner": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/hitari-brunner.jpg"
+},
+"p-neysluvatns-frostlogur-2": {
+"widths": [
+400,
+500
+],
+"w": 500,
+"h": 500,
+"src": "photos/shop/neysluvatns-frostlogur-2.png"
+},
+"p-wc-pappir": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/wc-pappir.jpg"
+},
+"p-rakataeki-yachticon": {
+"widths": [
+400,
+500
+],
+"w": 500,
+"h": 500,
+"src": "photos/shop/rakataeki-yachticon.png"
+},
+"p-troppur-king": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/troppur-king.jpg"
+},
+"p-level-up-kit-m-tosku": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/level-up-kit-m-tosku.jpg"
+},
+"p-fortjald-club-air-pro-260s-kampa-dometic": {
+"widths": [
+400,
+800
+],
+"w": 1000,
+"h": 1000,
+"src": "photos/shop/fortjald-club-air-pro-260s-kampa-dometic.png"
+},
+"p-o-grill-3500-rautt": {
+"widths": [
+400,
+500
+],
+"w": 500,
+"h": 500,
+"src": "photos/shop/o-grill-800t-rautt.png"
+}
+}

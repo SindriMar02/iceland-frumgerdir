@@ -4770,3 +4770,5 @@ import { companyEntry as PRENTMIDLUN_ENTRY } from './prentmidlun/data'
 PREVIEW_COMPANIES.push(PRENTMIDLUN_ENTRY)
 import { companyEntry as VELFANG_ENTRY } from './velfang/data'
 PREVIEW_COMPANIES.push(VELFANG_ENTRY)
+import { companyEntry as VIKURVERK_ENTRY } from './vikurverk/data'
+PREVIEW_COMPANIES.push(VIKURVERK_ENTRY)
