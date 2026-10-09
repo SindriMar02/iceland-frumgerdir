@@ -21,7 +21,8 @@ export const CSS = `
 @font-face{font-family:'VfD';src:url('${B}fonts/velfang/archivo-narrow-v35-latin_latin-ext-600.woff2') format('woff2');font-weight:600;font-display:swap}
 @font-face{font-family:'VfD';src:url('${B}fonts/velfang/archivo-narrow-v35-latin_latin-ext-700.woff2') format('woff2');font-weight:700;font-display:swap}
 
-html,body{background-color:#fff}
+/* the canvas Safari shows above and below the page (status strip, strip under the minimised toolbar) is the contact bar's graphite, not white */
+html,body{background-color:${GRAPHITE}}
 html.vf-menu,html.vf-menu body{overflow:hidden}
 
 .vf{--ink:${INK};--paper:#FFFFFF;--con:#ECEDEA;--con2:#E2E4E0;--line:#D9DCD7;--mute:#596067;--red:${RED};--red2:#C20018;--field:${FIELD};--gr:${GRAPHITE};--ease:${EASE};
@@ -132,7 +133,7 @@ html.vf-menu,html.vf-menu body{overflow:hidden}
 
 /* ── menu ── */
 .vf-menu-panel{position:fixed;inset:0;z-index:120;overscroll-behavior:contain;background:var(--gr);color:#fff;display:flex;flex-direction:column;
-  padding:calc(10px + env(safe-area-inset-top)) var(--pad) calc(24px + env(safe-area-inset-bottom));overflow-y:auto}
+  padding:calc(10px + env(safe-area-inset-top)) var(--pad) calc(110px + env(safe-area-inset-bottom));overflow-y:auto}
 .vf-menu-panel .mtop{display:flex;justify-content:space-between;align-items:center;min-height:56px}
 .vf-menu-panel .mtop img{height:26px;width:auto}
 .vf-menu-panel .mx{width:48px;height:48px;display:grid;place-items:center;margin-right:-8px}
@@ -211,6 +212,7 @@ html.vf-menu,html.vf-menu body{overflow:hidden}
 .vf .ix .cnt b{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;background:var(--red);color:#fff;font-weight:600;margin-right:6px}
 .vf .ix .lg{width:96px;height:44px;background:#fff;display:grid;place-items:center;padding:6px;opacity:0;transform:translateX(8px);transition:opacity .35s var(--ease),transform .45s var(--ease)}
 .vf .ix .lg img{max-width:100%;max-height:100%;object-fit:contain}
+.vf .ix .lg .lgw{font-family:'VfD',sans-serif;font-weight:700;font-size:13px;letter-spacing:.02em;text-transform:uppercase;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (hover:hover){
   .vf .ix a:hover .bn{color:var(--red);transform:translateX(6px)}
   .vf .ix a:hover .lg,.vf .ix a:focus-visible .lg{opacity:1;transform:none}
@@ -331,6 +333,16 @@ html.vf-menu,html.vf-menu body{overflow:hidden}
 /* catalogue */
 .vf .filters{display:grid;gap:14px;margin:0 0 36px;padding:20px 0;border-top:2px solid var(--ink);border-bottom:1px solid var(--line)}
 .vf .fgroup{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.vf .fgroups{display:grid;gap:14px}
+.vf .ftoggle{display:none;align-items:center;gap:10px;min-height:48px;padding:0 16px;box-shadow:inset 0 0 0 2px var(--ink);font-family:'VfD',sans-serif;font-weight:700;font-size:17px;letter-spacing:.03em;text-transform:uppercase;width:100%}
+.vf .ftoggle b{display:inline-grid;place-items:center;min-width:24px;height:24px;background:var(--red);color:#fff;font-family:'VfT',sans-serif;font-size:13px}
+.vf .ftoggle .chev{margin-left:auto;transition:transform .2s cubic-bezier(.23,1,.32,1)}
+.vf .filters[data-open="1"] .ftoggle .chev{transform:rotate(180deg)}
+@media (max-width:899px){
+  .vf .ftoggle{display:flex}
+  .vf .filters:not([data-open="1"]) .fgroups{display:none}
+  .vf .filters{border-top:0;padding-top:0}
+}
 .vf .fgroup > span{font-size:13px;font-weight:600;color:var(--mute);min-width:92px}
 .vf .chip{min-height:44px;padding:0 14px;font-size:14.5px;font-weight:500;box-shadow:inset 0 0 0 1px rgba(21,24,27,.28);transition:background-color .2s,box-shadow .2s,color .2s}
 .vf .chip[aria-pressed="true"]{background:var(--ink);color:#fff;box-shadow:none}

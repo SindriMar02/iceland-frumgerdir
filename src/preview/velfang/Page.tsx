@@ -6,7 +6,7 @@ import { SplitText } from 'gsap/SplitText'
 import { CustomEase } from 'gsap/CustomEase'
 import Lenis from 'lenis'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, ChevronDown, Mail, MapPin, Menu, MessageCircle, Phone, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ChevronDown, Mail, MapPin, Menu, MessageCircle, Phone, SlidersHorizontal, X } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { SndrBadge } from '../SndrBadge'
@@ -269,7 +269,7 @@ function BrandIndex({ full = false }: { full?: boolean }) {
                   <span className="bl">{b.line ?? b.site.replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*$/, '')}{b.since ? `. Umboð síðan ${b.since}` : ''}</span>
                   <span className="bs">
                     {n > 0 && <span className="cnt"><b>{n}</b>á lager</span>}
-                    <span className="lg" aria-hidden="true">{b.logo ? <img src={A(`logos/${b.logo}`)} alt="" loading="lazy" /> : <span style={{ fontFamily: 'VfD', fontWeight: 700, fontSize: 15, textTransform: 'uppercase' }}>{b.name}</span>}</span>
+                    <span className="lg" aria-hidden="true">{b.logo ? <img src={A(`logos/${b.logo}`)} alt="" loading="lazy" /> : <span className="lgw">{b.name}</span>}</span>
                   </span>
                 </Link>
               </li>
@@ -518,6 +518,7 @@ function StockPage() {
   const f: F = { merki: sp.get('merki') ?? '', flokkur: sp.get('flokkur') ?? '', astand: sp.get('astand') ?? '', svid: sp.get('svid') ?? '', stadur: sp.get('stadur') ?? '' }
   const sort = sp.get('rod') ?? 'verd-nidur'
   const [vat, setVat] = useVat()
+  const [fopen, setFopen] = useState(false)
   const set = (k: string, v: string) => {
     const p = new URLSearchParams(loc.search)
     if (p.get(k) === v || !v) p.delete(k); else p.set(k, v)
@@ -538,12 +539,17 @@ function StockPage() {
     <div className="vf-page">
       <div className="wrap">
         <Intro kick="Söluskrá Vélfangs" title={['Vélar á lager']} lede="Nýjar og notaðar vélar með verði, árgerð, notkun og hvar þær standa. Síaðu, berðu saman og bókaðu skoðun." />
-        <div className="filters" role="group" aria-label="Sía vélar">
+        <div className="filters" role="group" aria-label="Sía vélar" data-open={fopen ? '1' : '0'}>
+          <button type="button" className="ftoggle" aria-expanded={fopen} aria-controls="vf-fgroups" onClick={() => setFopen(!fopen)}>
+            <SlidersHorizontal size={18} aria-hidden="true" />Sía vélar{active > 0 && <b className="num">{active}</b>}<ChevronDown size={18} aria-hidden="true" className="chev" />
+          </button>
+          <div className="fgroups" id="vf-fgroups">
           {groups.map((g) => (
             <div key={g.k} className="fgroup"><span>{g.label}</span>
               {g.opts.map(([v, l]) => <button key={v} type="button" className="chip" aria-pressed={f[g.k] === v} onClick={() => set(g.k, v)}>{l}</button>)}
             </div>
           ))}
+          </div>
           <div className="fbar">
             <p className="fcount num" role="status">{shown.length} {shown.length === 1 ? 'vél' : 'vélar'}{active > 0 && <button type="button" onClick={clear}>Hreinsa síur</button>}</p>
             <div className="ftools">
@@ -697,7 +703,7 @@ function Field({ label, name, type = 'text', required, auto, mode, error, placeh
   return (
     <label>
       <span>{label}{!required && <span className="sr"> (valfrjálst)</span>}</span>
-      <input name={name} type={type} required={required} autoComplete={auto} inputMode={mode} spellCheck={type === 'email' || type === 'tel' ? false : undefined} aria-invalid={error ? 'true' : undefined} placeholder={placeholder} defaultValue={defaultValue} />
+      <input name={name} type={type} required={required} autoComplete={auto} inputMode={mode} spellCheck={false} autoCorrect={auto === 'name' ? undefined : 'off'} autoCapitalize={auto === 'name' || auto === 'organization' ? 'words' : 'off'} aria-invalid={error ? 'true' : undefined} placeholder={placeholder} defaultValue={defaultValue} />
       {hint && <span className="hint">{hint}</span>}
       {error && <p className="err" role="alert">{error}</p>}
     </label>
@@ -1383,7 +1389,8 @@ export default function VelfangPage() {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false) }
     document.addEventListener('keydown', onKey)
     const panel = menuRef.current
-    panel?.querySelector<HTMLElement>('a,button')?.focus()
+    /* keyboard users land inside the menu; a tap does not get a focus ring on the close button */
+    if (!isTouch()) panel?.querySelector<HTMLElement>('a,button')?.focus()
     if (panel && !still()) {
       gsap.fromTo(panel, { clipPath: PEAK_WIDE }, { clipPath: PEAK_FULL, duration: 0.45, ease: 'vf' })
       gsap.fromTo(panel.querySelectorAll('[data-mi]'), { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.3, stagger: 0.04, delay: 0.15, ease: 'vf' })
