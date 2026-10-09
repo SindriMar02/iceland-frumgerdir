@@ -56,6 +56,7 @@ const BRAND = {
   '/preview/sambo': 'sambo/brand',
   '/preview/stod': 'stod/brand',
   '/preview/vatt': 'vatt/brand',
+  '/preview/velfang': 'velfang/brand',
 }
 /* Deployed previews with no companies.ts entry: name + accent from their own page. */
 const EXTRA = {

@@ -1,0 +1,3 @@
+# Vélfang prototype
+
+Register: brand (a dealer site; the design is the pitch). Spec prototype for Vélfang ehf, the Icelandic dealer and service network for JCB, Fendt, CLAAS, Kuhn, Kverneland, Strautmann and 15 more brands. Audience: farmers, contractors and municipal/golf-course buyers in Iceland, reading on a phone first. Job of the site: put the stock list on velfang.is itself with prices and filters, and let a visitor book a viewing, a workshop slot at the nearest of three branches, a parts request or a quote without calling. Facts only from `_docs/VELFANG-FACTCHECK-2026-10-09.md`. Design system: `DESIGN.md`.
