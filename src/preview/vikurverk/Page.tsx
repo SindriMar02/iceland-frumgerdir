@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
@@ -12,12 +12,12 @@ import { PreviewChrome } from '../PreviewChrome'
 import { SndrBadge } from '../SndrBadge'
 import { setMetaDescription, setNoindex, setThemeColor } from '../../lib/preview'
 import {
-  A, CONTACT, EXTRAS, FREE_SHIPPING, HOURS, JSON_LD, KINDS, PEOPLE, PLATES, PRODUCTS, RENTALS, RENTAL_TERMS, REQ_LABEL, ROUTE, SAMPLE_BOOKED, SAMPLE_NOTE,
+  A, CONTACT, EXTRAS, FREE_SHIPPING, HOURS, JSON_LD, KINDS, PEOPLE, PRODUCTS, RENTALS, RENTAL_TERMS, REQ_LABEL, ROUTE, SAMPLE_BOOKED, SAMPLE_NOTE,
   SAMPLE_REQUESTS, SEASON, SERVICES, SHOP_CATS, SHOP_NOTE, TRIPS, UNITS, WORKSHOP_FACTS,
   fmtDay, kindLabel, kr, loadRequests, openState, photo, productBySlug, routeTo, saveRequest, unitBySlug, unitName,
   type Kind, type Photo, type Product, type Rental, type ReqKind, type Request, type Unit,
 } from './data'
-import { clearList, listCount, listTotal, loadTrip, setQty, toggle, tripTotal, useList } from './store'
+import { clearList, listCount, listTotal, loadTrip, setQty, toggle, useList } from './store'
 import { answer, CHIPS, GREETING } from './chat'
 import { CSS, PINE_INK } from './styles'
 
@@ -98,8 +98,6 @@ function Lines({ lines }: { lines: ReactNode[] }) {
   return <>{lines.map((l, i) => <span key={i} className="lm"><span data-line="">{l}</span></span>)}</>
 }
 
-/* the swoosh: thin at the left, full through the middle, thin again at the tip (the mark) */
-const SWOOSH = 'M0 24 C 28 22 62 11 100 0 L100 -1.2 C 64 2.4 30 15.5 0 23.2 Z'
 
 /* ── navigation: three groups with dropdowns ────────────────────────────── */
 
@@ -240,70 +238,243 @@ function freeWeeks(key: string, n = 3) {
 
 /* ── home ───────────────────────────────────────────────────────────────── */
 
-/* the four doors: what people come for, with the real numbers from vikurverk.is */
-const DOORS = [
-  { to: 'vagnar?astand=ny', k: 'Kaupa nýtt', n: '46 hjólhýsi · 6 húsbílar' },
-  { to: 'vagnar?astand=notad', k: 'Kaupa notað', n: '24 vagnar á söluskrá' },
-  { to: 'leiga', k: 'Leigja', n: 'Sumarið 2027 er opið' },
-  { to: 'verkstaedi', k: 'Verkstæði', n: 'Opið allt árið' },
-]
+/*
+ * The home page: the Suðurverk landing's order (03-prototypes/sudurverk/src/pages.js home():
+ * hero with a captioned photo, intro statement, featured 2 x 2, numbered rows of what
+ * the company does, image + copy split, people, next-step questions) dressed in Set's
+ * design (src/preview/set): white paper, ink, square grey cards, display capitals for
+ * section titles, the dark uppercase button, ring links, the numbered accordion and
+ * the dotted dimension rule. Suðurverk's pinned chapter is left out (no pinned scroll).
+ */
+
+const ARROW = <ArrowRight size={18} strokeWidth={1.8} aria-hidden="true" />
+function Ring({ dir = 'right' }: { dir?: 'right' | 'left' }) {
+  return (
+    <span className="vring" aria-hidden="true">
+      <svg viewBox="0 0 44 44"><circle className="r-wall" cx="22" cy="22" r="20" /><circle className="r-draw" cx="22" cy="22" r="20" pathLength={1} transform="rotate(-90 22 22)" /></svg>
+      <ArrowRight size={15} strokeWidth={1.8} style={dir === 'left' ? { transform: 'rotate(180deg)' } : undefined} />
+    </span>
+  )
+}
+const pad2 = (n: number) => String(n).padStart(2, '0')
 
 function Hero() {
   return (
-    <section className="vv-hero" aria-labelledby="h-hero">
-      <div className="wrap hgrid">
-        <h1 id="h-hero"><Lines lines={['Allt í', 'ferðalagið.']} /></h1>
-        <nav className="doors" aria-label="Hvað viltu gera?">
-          {DOORS.map((d) => (
-            <Link key={d.k} className="door" to={to(d.to)} data-open="">
-              <b>{d.k}</b>
-              <span className="sign">{d.n}</span>
-              <ArrowRight className="ar" size={22} strokeWidth={1.8} aria-hidden="true" />
-            </Link>
-          ))}
-        </nav>
-      </div>
-      <figure className="hfig">
-        <div className="hbox">
-          <div className="hmask" data-hmask="">
-            <div className="hp" data-hp=""><Pic p={photo('ad-awning', 'Fjórir menn spjalla í fortjaldi við hjólhýsi, kerti og skál á borði; úr auglýsingu Víkurverks')} sizes="100vw" eager pos="50% 46%" /></div>
+    <section className="ss-hero" aria-labelledby="h-hero">
+      <div className="wrap ss-inner">
+        <div className="ss-copy">
+          <p className="kick" data-open="">Víkurverk · Kópavogi · frá 2006</p>
+          <h1 id="h-hero"><Lines lines={['Allt í', 'ferðalagið.']} /></h1>
+          <p className="lede" data-open="">Ný og notuð hjólhýsi, húsbílar og sporthýsi. Leiga, verkstæði og verslun í Víkurhvarfi.</p>
+          <div className="cta" data-open="">
+            <Link className="sbtn" to={to('vagnar')}>Skoða vagnana{ARROW}</Link>
+            <Link className="ringlink" to={to('leiga')}><Ring />Leiga sumarið 2027</Link>
           </div>
-          <svg className="hsw" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <path d={SWOOSH} data-swoosh="" />
-          </svg>
         </div>
-        <figcaption className="wrap" data-open="">Úr auglýsingu Víkurverks. Sýningarsalurinn er í Víkurhvarfi 6, Kópavogi.</figcaption>
-      </figure>
+        <figure className="ss-photo">
+          <div className="mask" data-hmask=""><div className="hp" data-hp=""><Pic p={photo('showroom', 'Sýningarsalur Víkurverks með Randger húsbíl og hjólhýsum')} sizes="(max-width: 900px) 100vw, 50vw" eager /></div></div>
+          <figcaption data-open=""><span>Sýningarsalurinn í Víkurhvarfi</span><span>Randger R560 4x4</span></figcaption>
+        </figure>
+      </div>
+      <div className="wrap"><div className="ss-dots" aria-hidden="true" /></div>
     </section>
   )
 }
 
-function Plates() {
+function HomeIntro() {
   return (
-    <section className="vv-plates" id="merki" aria-labelledby="h-plates">
-      <div className="wrap">
-        <div className="shead">
-          <h2 id="h-plates" data-chars="">Sex merki, eitt hús</h2>
-          <p data-fade="">Hobby, Adria og Fendt hjólhýsi, Mink sporthýsi, Camp-Let tjaldvagnar og Randger húsbílar. Veldu merki og sjáðu vagnana.</p>
-        </div>
-        <ul className="plates" role="list">
-          {PLATES.map((b) => (
-            <li key={b.key} style={{ display: 'contents' }}>
-              <Link className="plate" to={to(`vagnar?merki=${b.key}`)}>
-                <Pic p={b.img} sizes="(min-width: 900px) 34vw, 72vw" />
-                <span className="sign">{b.kind}</span>
-                <b translate="no">{b.name}</b>
-                <span className="pl">{b.line}</span>
-                <span className="pc">{b.count}<ArrowRight size={15} aria-hidden="true" /></span>
+    <section id="intro" className="wrap ss-intro" aria-labelledby="h-intro">
+      <h2 id="h-intro" className="sh" data-fade="">Allt sem ferðalagið þarf, á einum stað.</h2>
+      <div>
+        <p className="lead" data-fade="">Víkurverk selur nýja húsbíla, hjólhýsi, sporthýsi og tjaldvagna, og notaða ferðavagna á sama lista.</p>
+        <p data-fade="">Á sumrin leigir Víkurverk út hjólhýsi og Mink. Verkstæðið er opið allt árið og verslunin er með það sem fer með í ferðina.</p>
+        <Link className="ringlink" to={to('skodun')} data-fade=""><Ring />Bóka skoðun</Link>
+      </div>
+    </section>
+  )
+}
+
+const FEATURED: { slug: string; img: Photo }[] = [
+  { slug: 'hobby-prestige-620-cl', img: photo('u-prestige-620-cl-1', 'Hobby Prestige 620 CL í sýningarsal Víkurverks') },
+  { slug: 'mink-s', img: photo('mink-life', 'Mink sporthýsi með markísu') },
+  { slug: 'adria-aviva-360-dk', img: photo('u-aviva-360-dk-1', 'Adria Aviva 360 DK hjólhýsi') },
+  { slug: 'randger-r560', img: photo('u-randger-r560-1', 'Randger R560 4x4 húsbíll í sýningarsal') },
+]
+function Featured() {
+  return (
+    <section className="wrap ss-sec" aria-labelledby="h-sel">
+      <div className="ss-head">
+        <h2 className="sd" id="h-sel" data-chars="">Vagnar</h2>
+        <p data-fade="">Á staðnum núna, með verði, svefnplássi og þyngd. Nýir og notaðir á einum lista.</p>
+      </div>
+      <ul className="ss-feat" role="list" data-items="">
+        {FEATURED.map(({ slug, img }) => {
+          const x = unitBySlug(slug)!
+          return (
+            <li key={slug}>
+              <Link className="ss-card" to={to(`vagnar/${slug}`)}>
+                <p className="leaf"><span>{kindLabel(x.kind)} · {x.brand}</span><span>{x.cond === 'ny' ? 'Nýtt' : 'Notað'}</span></p>
+                <div className="ph"><Pic p={img} sizes="(max-width: 900px) 100vw, 46vw" /></div>
+                <div className="ft">
+                  <div><h3 translate="no">{x.model}</h3><p className="num">{[x.sleeps && `Svefnpláss ${x.sleeps}`, x.weight && `${x.weight.toLocaleString('de-DE')} kg`].filter(Boolean).join(' · ')}</p></div>
+                  <p className="pr num">{kr(x.price)}</p>
+                </div>
               </Link>
             </li>
-          ))}
+          )
+        })}
+      </ul>
+      <Link className="ringlink" to={to('vagnar')}><Ring />Allir vagnar</Link>
+    </section>
+  )
+}
+
+const DOING: { t: string; d: string; to: string }[] = [
+  { t: 'Hjólhýsi', d: 'Hobby, Adria og Fendt. 46 gerðir með verði.', to: 'vagnar?tegund=hjolhysi' },
+  { t: 'Húsbílar', d: 'Randger og Benimar, líka með fjórhjóladrifi.', to: 'vagnar?tegund=husbill' },
+  { t: 'Sporthýsi og tjaldvagnar', d: 'Mink, hannaður á Íslandi, og Camp-Let.', to: 'vagnar?tegund=sporthysi' },
+  { t: 'Notaðir vagnar', d: '24 á söluskrá, á sama lista og þeir nýju.', to: 'vagnar?astand=notad' },
+  { t: 'Leiga', d: 'Hjólhýsi og Mink, vika í senn, sumarið 2027.', to: 'leiga' },
+  { t: 'Verkstæði', d: 'Skoðanir, vetrarstandsetning og tjónaviðgerðir.', to: 'verkstaedi' },
+  { t: 'Verslun', d: '1.635 vörur, frí heimsending yfir 20.000 kr.', to: 'verslun' },
+]
+function Doing() {
+  return (
+    <section className="wrap ss-sec" aria-labelledby="h-doing">
+      <div className="ss-head">
+        <h2 className="sd" id="h-doing" data-chars="">Starfsemin</h2>
+        <p data-fade="">Frá fyrsta hjólhýsinu að vetrargeymslunni. Veldu það sem þú ert að leita að.</p>
+      </div>
+      <div className="ss-rows" data-items="">
+        {DOING.map((r, i) => (
+          <Link key={r.t} to={to(r.to)}>
+            <span className="n num">{pad2(i + 1)}</span>
+            <span className="tx"><b>{r.t}</b><small>{r.d}</small></span>
+            <Ring />
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function Split() {
+  return (
+    <section className="wrap ss-split" aria-labelledby="h-split">
+      <figure className="vis" data-media=""><Pic p={photo('workshop', 'Hjólhýsi standsett á verkstæði Víkurverks')} sizes="(max-width: 900px) 100vw, 50vw" /></figure>
+      <div className="cp">
+        <h2 className="sd" id="h-split" data-chars="">Verkstæði</h2>
+        <p data-fade="">Opið allt árið. Stærri tjónaviðgerðir eru unnar frá 1. september til 1. apríl; gefðu upp fastanúmer vagnsins.</p>
+        <div className="inl" data-fade="">{SERVICES.map((s) => <Link key={s.key} to={to('verkstaedi')}>{s.label}{ARROW}</Link>)}</div>
+        <Link className="sbtn" to={to('verkstaedi')} data-fade="">Bóka verkstæði{ARROW}</Link>
+      </div>
+    </section>
+  )
+}
+
+const SHOP_ROWS: { t: string; d: string; cat: string; items: string[] }[] = [
+  { t: 'Fortjöld og útilega', d: 'Kampa/Dometic fortjöld, stólar og kælibox frá Brunner.', cat: 'fortjold', items: ['fortjald-club-air-pro-260s-kampa-dometic', 'stoll-aravel-3d-m-svartur-brunner', 'kaelibox-polarys-freeze-sz-30l-brunner'] },
+  { t: 'Grill og gas', d: 'O-Grill, borðstandur og þrýstijafnari sem passar.', cat: 'grill', items: ['o-grill-3500-rautt', 'bordstandur-fyrir-o-grill', 'thrystijafnari-29mb-m-2-slongu'] },
+  { t: 'Fyrir vagninn', d: 'Tröppur, upphækkun og frostlögur fyrir veturinn.', cat: 'vagninn', items: ['troppur-king', 'level-up-kit-m-tosku', 'neysluvatns-frostlogur-2'] },
+]
+function Shop() {
+  const t = TRIPS.find((x) => x.key === 'sumarfri')!
+  const total = t.items.reduce((a, [sl, q]) => a + (productBySlug(sl)?.price ?? 0) * q, 0)
+  return (
+    <section className="wrap ss-sec ss-shop" id="verslun" aria-labelledby="h-shop">
+      <div className="ss-head">
+        <h2 className="sd" id="h-shop" data-chars="">Verslun</h2>
+        <p data-fade="">1.635 vörur í verslun Víkurverks. Frí heimsending á pöntunum yfir 20.000 kr.</p>
+      </div>
+      <div className="ss-dots" aria-hidden="true" style={{ width: '100%', marginTop: 0 }} />
+      {SHOP_ROWS.map((r, i) => (
+        <article className="srow2" key={r.t} aria-labelledby={`shop-${i}`}>
+          <div className="txt">
+            <p className="n num">{pad2(i + 1)}</p>
+            <h3 id={`shop-${i}`}>{r.t}</h3>
+            <p className="d">{r.d}</p>
+            <Link className="ringlink" to={to(`verslun?flokkur=${r.cat}`)}><Ring />Skoða allt<span className="sr"> {r.t}</span></Link>
+          </div>
+          <ul className="cards" role="list" data-items="">
+            {r.items.map((sl) => <li key={sl}><ProductCard p={productBySlug(sl)!} /></li>)}
+          </ul>
+        </article>
+      ))}
+      <div className="vv-steaser ss-teaser">
+        <div className="tt">
+          <h3 className="sd" data-chars="">Ferðalistinn</h3>
+          <p className="lede" data-fade="">Byrjaðu á tilbúnum lista fyrir helgarferð, sumarfríið eða haustið, lagaðu magnið og sendu pöntunina.</p>
+          <Link className="sbtn" to={to('ferdalistinn?ferd=sumarfri')}>Opna ferðalistann{ARROW}</Link>
+        </div>
+        <ul className="tl2" aria-label="Sumarfríið, ferðalisti" data-fade="">
+          {t.items.slice(0, 4).map(([sl, q]) => { const pr = productBySlug(sl)!; return <li key={sl}><img src={pr.img.src} alt="" width={56} height={56} loading="lazy" /><b>{pr.name}</b><span className="num">{q} stk. · {kr(pr.price)}</span></li> })}
+          <li className="foot on-dark"><span>Sumarfríið · {t.items.length} vörur · <b className="num">{kr(total)}</b></span><img src={A('logo-white.png')} alt="" width={306} height={200} /></li>
         </ul>
       </div>
     </section>
   )
 }
 
+function People() {
+  return (
+    <section className="wrap ss-sec ss-people" aria-labelledby="h-people">
+      <div className="ss-head">
+        <h2 className="sd" id="h-people" data-chars="">Fólkið</h2>
+        <p data-fade="">Söluráðgjafar í Víkurhvarfi. Skoðaðu vagninn með þeim, spurðu um fjármögnun hjá Ergo eða láttu meta vagninn þinn upp í.</p>
+      </div>
+      <ul className="ppl" role="list" data-items="">
+        {PEOPLE.map((p) => <li key={p.email}><a href={mailHref(p.email)}><b>{p.name}</b><span>{p.role}</span><small>{p.email}</small></a></li>)}
+      </ul>
+    </section>
+  )
+}
+
+const NEXT: { q: string; a: string; link: [string, string] }[] = [
+  { q: 'Get ég tekið vagninn minn upp í?', a: 'Já. Sendu fastanúmer, gerð og árgerð og söluráðgjafi metur vagninn, upp í nýjan eða í umboðssölu.', link: ['Senda vagninn til mats', 'uppitaka'] },
+  { q: 'Hvenær er hægt að bóka leigu?', a: 'Sumarið 2027 er opið. Leigan er vika í senn, frá fimmtudegi til miðvikudags, með afhendingu kl. 13-15.', link: ['Sjá lausar vikur', 'leiga'] },
+  { q: 'Þarf ég sérstök réttindi til að draga hjólhýsi?', a: 'Ökuréttindi gefin út fyrir 15. ágúst 1997 gilda sjálfkrafa. Yngri réttindum þarf að bæta við. Dráttargeta bílsins þarf að ná leyfilegri heildarþyngd vagnsins.', link: ['Hvað dregur bíllinn?', 'vagnar#drattargeta'] },
+]
+function NextStep() {
+  const [open, setOpen] = useState(0)
+  return (
+    <section className="wrap vv-show ss-faq" aria-labelledby="h-next">
+      <div className="hh">
+        <h2 className="sd" id="h-next" data-chars="">Spurt og svarað</h2>
+        <a className="sbtn" href={`tel:${CONTACT.tel}`}>Hringja {CONTACT.phone}<Phone size={16} aria-hidden="true" /></a>
+      </div>
+      <ol className="acc-list">
+        {NEXT.map((n, i) => {
+          const on = open === i
+          return (
+            <li key={n.q} className={`acc${on ? ' is-open' : ''}`}>
+              <h3><button type="button" className="acc-b" aria-expanded={on} aria-controls={`acc-${i}`} id={`acc-b-${i}`} onClick={() => setOpen(on ? -1 : i)}>
+                <span className="an num">{pad2(i + 1)}</span><span className="at">{n.q}</span><span className="pm" aria-hidden="true" />
+              </button></h3>
+              <div className="acc-p" id={`acc-${i}`} role="region" aria-labelledby={`acc-b-${i}`}>
+                <div><p>{n.a} <Link className="tlink" to={to(n.link[1])} tabIndex={on ? 0 : -1}>{n.link[0]}</Link></p></div>
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+    </section>
+  )
+}
+
+function Home() {
+  return (
+    <>
+      <Hero />
+      <HomeIntro />
+      <Featured />
+      <Doing />
+      <Split />
+      <Shop />
+      <People />
+      <NextStep />
+    </>
+  )
+}
 
 /* towing: their own contract rule (the car's towing capacity must be at least the trailer's permitted total weight) */
 const TOW = UNITS.filter((u) => u.cond === 'ny' && u.kind !== 'husbill' && u.maxWeight).sort((a, b) => a.maxWeight! - b.maxWeight!)
@@ -356,175 +527,6 @@ function Towing() {
       </ul>
       <p className="note">Ökuréttindi gefin út fyrir 15. ágúst 1997 gilda til að draga hjólhýsi; yngri réttindum þarf að bæta við (af leigusíðum Víkurverks). Leyfileg heildarþyngd úr bæklingum Víkurverks.</p>
     </section>
-  )
-}
-
-/* the rental season, laid out as the product itself: 18 weeks per vehicle */
-const MONTHS_SEASON = [{ m: 'maí', at: 0 }, { m: 'júní', at: 3 }, { m: 'júlí', at: 7 }, { m: 'ágúst', at: 11 }, { m: 'sept.', at: 16 }]
-function RentSeason() {
-  return (
-    <section className="vv-rent on-dark" id="leiga" aria-labelledby="h-rent">
-      <div className="wrap">
-        <div className="shead">
-          <h2 id="h-rent" data-chars="">Sumarið 2027 er opið</h2>
-          <p data-fade="">Vikuleiga frá fimmtudegi til miðvikudags. Hver reitur er ein vika; veldu vagn og sendu beiðni á meðan vikurnar eru lausar.</p>
-        </div>
-        <div className="season">
-          <div className="srow shd" aria-hidden="true">
-            <span />
-            <div className="cells">{MONTHS_SEASON.map((x) => <span key={x.m} className="mo sign" style={{ gridColumnStart: x.at + 1 }}>{x.m}</span>)}</div>
-          </div>
-          {RENTALS.map((r) => {
-            const b = bookedFor(r.key)
-            const free = SEASON.length - b.length
-            return (
-              <Link key={r.key} className="srow" to={to(`leiga/${r.key}`)} aria-label={`${r.name}: ${free} vikur lausar af ${SEASON.length}, ${kr(r.price)} á viku`}>
-                <span className="who">
-                  <img src={r.img.src} alt="" width={r.img.w} height={r.img.h} loading="lazy" />
-                  <span><b translate="no">{r.name}</b><small className="num">{kr(r.price)} á viku · svefnpláss {r.sleeps}</small></span>
-                </span>
-                <span className="cells" aria-hidden="true" data-items="">
-                  {SEASON.map((w) => <i key={w.i} className={b.includes(w.i) ? 'b' : w.peak && r.peak ? 'pk' : ''} />)}
-                </span>
-                <span className="free sign num">{free} lausar<ArrowRight size={15} aria-hidden="true" /></span>
-              </Link>
-            )
-          })}
-          <p className="legend"><span><i className="f" />Laus vika</span><span><i className="b" />Bókuð (sýnishorn)</span><span><i className="pk" />Verslunarmannahelgi, {kr(229000)}</span></p>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function TradeStrip() {
-  const nav = useNavigate()
-  const [fn, setFn] = useState('')
-  return (
-    <section className="wrap vv-trade" aria-labelledby="h-trade">
-      <div className="tbox">
-        <div>
-          <h2 id="h-trade" data-chars="">Áttu vagn? Taktu hann upp í.</h2>
-          <p className="lede" style={{ marginTop: 16 }} data-fade="">Sendu fastanúmerið og söluráðgjafi metur vagninn, upp í nýjan eða í umboðssölu.</p>
-        </div>
-        <form onSubmit={(e) => { e.preventDefault(); nav(to(`uppitaka${fn.trim() ? `?fn=${encodeURIComponent(fn.trim().toUpperCase())}` : ''}`)) }}>
-          <label htmlFor="trade-fn">Fastanúmer vagnsins</label>
-          <input id="trade-fn" name="fn" value={fn} onChange={(e) => setFn(e.target.value)} autoComplete="off" autoCapitalize="characters" spellCheck={false} placeholder="t.d. AB123" />
-          <Btn type="submit" label="Áfram" tone="ink" icon={<ArrowRight size={18} aria-hidden="true" />} />
-          <p className="fine">Engin skuldbinding. Svar frá söluráðgjafa.</p>
-        </form>
-      </div>
-    </section>
-  )
-}
-
-
-/* the year at Víkurverk, from their own pages; the current month is marked live */
-const MON = ['jan', 'feb', 'mar', 'apr', 'maí', 'jún', 'júl', 'ág', 'sep', 'okt', 'nóv', 'des']
-const YEAR: { k: string; spans: [number, number][]; src: string }[] = [
-  { k: 'Verkstæði', spans: [[1, 12]], src: 'opið allt árið' },
-  { k: 'Sýningarhelgar', spans: [[2, 5]], src: 'febrúar til maí 2026' },
-  { k: 'Opið á laugardögum', spans: [[3, 8]], src: 'mars til ágúst' },
-  { k: 'Leiga', spans: [[5, 9]], src: 'miðjan maí til miðjan sept.' },
-  { k: 'Stærri tjónaviðgerðir', spans: [[9, 12], [1, 3]], src: '1. sept. til 1. apríl' },
-]
-function YearRow({ now }: { now: Date }) {
-  const m = now.getUTCMonth() + 1
-  const active = YEAR.filter((y) => y.spans.some(([a, b]) => m >= a && m <= b)).map((y) => y.k.toLowerCase())
-  return (
-    <section className="wrap vv-year" id="verkstaedi" aria-labelledby="h-year">
-      <div className="year-head">
-        <h2 id="h-year" data-chars="">Árið hjá Víkurverki</h2>
-        <div className="now" data-fade="">
-          <p><span className="sign">Núna, {MON[m - 1]}.</span> Í gangi: {active.join(', ')}.</p>
-          <Btn to="verkstaedi" label="Bóka verkstæði" tone="pine" icon={<ArrowRight size={18} aria-hidden="true" />} />
-        </div>
-      </div>
-      <div className="yr" role="table" aria-label="Árið hjá Víkurverki eftir mánuðum">
-        <div className="yrow yh" role="row"><span role="columnheader"><span className="sr">Hvað</span></span><span className="track mos">{MON.map((x, i) => <span key={x} role="columnheader" className={`sign${i + 1 === m ? ' cur' : ''}`}>{x}</span>)}</span></div>
-        {YEAR.map((y) => (
-          <div key={y.k} className="yrow" role="row">
-            <span role="rowheader"><b>{y.k}</b><small>{y.src}</small></span>
-            <span className="track" role="cell" aria-label={y.src}>
-              <span className="curcol" style={{ gridColumn: `${m} / ${m + 1}` }} aria-hidden="true" />
-              {y.spans.map(([a, b]) => <i key={a} style={{ gridColumn: `${a} / ${b + 1}` }} data-bar="" />)}
-            </span>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function ShopRow() {
-  return (
-    <section className="wrap vv-shop" id="verslun" aria-labelledby="h-shop">
-      <div className="shead-row">
-        <div className="shead">
-          <h2 id="h-shop" data-chars="">Allt sem fer með</h2>
-          <p data-fade="">1.635 vörur í verslun Víkurverks. Byrjaðu á lista fyrir ferðina og lagaðu hann að þér.</p>
-        </div>
-        <Link className="tlink" to={to('verslun')}>Öll verslunin <ArrowRight size={16} aria-hidden="true" /></Link>
-      </div>
-      <div className="shop-grid">
-        <ul className="pgrid" role="list" data-items="">
-          {['fortjald-club-air-pro-260s-kampa-dometic', 'o-grill-3500-rautt', 'stoll-aravel-3d-m-svartur-brunner', 'kaelibox-polarys-freeze-sz-30l-brunner'].map((s) => <li key={s}><ProductCard p={productBySlug(s)!} /></li>)}
-        </ul>
-        <ul className="receipts" role="list" data-items="">
-          {TRIPS.map((t) => (
-            <li key={t.key}>
-              <Link className="rcpt" to={to(`ferdalistinn?ferd=${t.key}`)}>
-                <span className="thumbs" aria-hidden="true">{t.items.slice(0, 4).map(([s]) => { const p = productBySlug(s)!; return <img key={s} src={p.img.src} alt="" width={64} height={64} loading="lazy" /> })}</span>
-                <span className="rt"><b>{t.label}</b><small>{t.line}</small></span>
-                <span className="rs num"><span>{t.items.reduce((a, [, q]) => a + q, 0)} stk.</span><b>{kr(tripTotal(t.key))}</b></span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  )
-}
-
-function Visit({ now }: { now: Date }) {
-  const s = openState(now)
-  return (
-    <section className="vv-visit on-dark" aria-labelledby="h-visit">
-      <div className="bg" data-par-bg=""><Pic p={photo('showroom', 'Sýningarsalur Víkurverks með húsbílum og hjólhýsum')} sizes="100vw" /></div>
-      <div className="wrap">
-        <div>
-          <h2 id="h-visit" data-chars="">Komdu í Víkurhvarf</h2>
-          <p style={{ marginTop: 14, maxWidth: '46ch', color: 'rgba(255,255,255,.86)' }}>Vagnarnir standa inni og úti. Bókaðu skoðun og söluráðgjafi tekur á móti þér.</p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 24 }}>
-            <Btn to="skodun" label="Bóka skoðun" tone="white" />
-            <Btn href={`tel:${CONTACT.tel}`} label={CONTACT.phone} tone="ghost" icon={<Phone size={17} aria-hidden="true" />} />
-          </div>
-        </div>
-        <dl>
-          <div><dt>Heimilisfang</dt><dd>{CONTACT.street}, {CONTACT.town}</dd></div>
-          <div><dt>Verslun núna</dt><dd>{s.text}</dd></div>
-          <div><dt>Vetur</dt><dd>Virka daga 10-17</dd></div>
-          <div><dt>Sumar</dt><dd>Virka daga 10-18, lau. 11-15</dd></div>
-          <div><dt>Verkstæði</dt><dd>Virka daga 8-17</dd></div>
-        </dl>
-      </div>
-    </section>
-  )
-}
-
-
-function Home({ now }: { now: Date }) {
-  return (
-    <>
-      <Hero />
-      <Plates />
-      <Towing />
-      <RentSeason />
-      <TradeStrip />
-      <YearRow now={now} />
-      <ShopRow />
-      <Visit now={now} />
-    </>
   )
 }
 
@@ -661,7 +663,7 @@ function CatalogPage() {
         </div>
       )}
       <p className="note">{SAMPLE_NOTE}</p>
-    </div></div>
+    </div><Towing /></div>
   )
 }
 
@@ -1339,7 +1341,7 @@ export default function VikurverkPage() {
 
       /* the opening: masked lines, the swoosh draws, the photo settles under it, body, buttons */
       const open = gsap.timeline({ defaults: { ease: 'power3.out' } })
-      const intro = main.querySelector<HTMLElement>('.vv-hero, .intro, .dside') ?? main
+      const intro = main.querySelector<HTMLElement>('.ss-hero, .intro, .dside') ?? main
       const lines = intro.querySelectorAll('[data-line]')
       const opens = main.querySelectorAll('[data-open]')
       if (lines.length) open.from(lines, { yPercent: 112, duration: 0.72, stagger: 0.08 }, 0.12)
@@ -1400,7 +1402,7 @@ export default function VikurverkPage() {
 
   const s = openState(now)
   let body: ReactNode
-  if (sub === '') body = <Home now={now} />
+  if (sub === '') body = <Home />
   else if (page === 'vagnar') body = seg[1] ? <DetailPage slug={seg[1]} /> : <CatalogPage />
   else if (page === 'leiga') { const r = seg[1] ? RENTALS.find((x) => x.key === seg[1]) : undefined; body = seg[1] ? (r ? <RentalPage r={r} /> : <NotFound />) : <RentalList /> }
   else if (page === 'skodun') body = <ViewingPage />
