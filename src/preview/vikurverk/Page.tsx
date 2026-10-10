@@ -2,11 +2,10 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperti
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { SplitText } from 'gsap/SplitText'
 import { CustomEase } from 'gsap/CustomEase'
 import Lenis from 'lenis'
-import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, ChevronDown, Download, ExternalLink, Mail, MapPin, Menu, MessageCircle, Minus, Phone, Plus, ShoppingBag, SlidersHorizontal, Trash2, X } from 'lucide-react'
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Download, ExternalLink, Mail, MessageCircle, Minus, Phone, Plus, ShoppingBag, SlidersHorizontal, Trash2, X, Menu } from 'lucide-react'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { SndrBadge } from '../SndrBadge'
@@ -14,7 +13,7 @@ import { setMetaDescription, setNoindex, setThemeColor } from '../../lib/preview
 import {
   A, CONTACT, EXTRAS, FREE_SHIPPING, HOURS, JSON_LD, KINDS, PEOPLE, PRODUCTS, RENTALS, RENTAL_TERMS, REQ_LABEL, ROUTE, SAMPLE_BOOKED, SAMPLE_NOTE,
   SAMPLE_REQUESTS, SEASON, SERVICES, SHOP_CATS, SHOP_NOTE, TRIPS, UNITS, WORKSHOP_FACTS,
-  fmtDay, kindLabel, kr, loadRequests, openState, photo, productBySlug, routeTo, saveRequest, unitBySlug, unitName,
+  fmtDay, kindLabel, kr, loadRequests, photo, productBySlug, routeTo, saveRequest, unitBySlug, unitName,
   type Kind, type Photo, type Product, type Rental, type ReqKind, type Request, type Unit,
 } from './data'
 import { clearList, listCount, listTotal, loadTrip, setQty, toggle, useList } from './store'
@@ -22,36 +21,39 @@ import { answer, CHIPS, GREETING } from './chat'
 import { CSS, PINE_INK } from './styles'
 
 /*
- * Víkurverk — "Allt í ferðalagið". Plan: _docs/VIKURVERK-BUILD-2026-10-09.md.
+ * Víkurverk — "Allt í ferðalagið". Round 3 (2026-10-10): the whole site re-cut in the
+ * language of lightshiprv.com (Awwwards SOTD, premium travel trailers): a framed full-height
+ * hero, a floating glass header, quiet sentence-case type at one weight, captioned photo
+ * cards on native scroll rails, sand spec sheets, a sticky price bar on the vehicle page.
+ * The shop follows Mammut's flagship store (filter rail, open product grid, small
+ * "added" panel, a product page with fit before price); the questions follow Pebble.
+ * Teardowns: 04-platform/sndr-teardowns/teardowns/{lightship,mammut,pebble}-vikurverk-2026-10-10,
+ * _docs/vikurverk-reference-hunt-2026-10-10 (Codex REPORT.md for Mammut/Pebble).
  *
- * A hybrid of two of our systems. From Set: the white page with square grey
- * cards, products (here: the caravans' own floor plans) multiplied onto the
- * grey, big capitals, the catalogue row (3/12 heading, 9/12 cards) and the
- * material list, re-aimed as a trip list. From Vatt/Vélfang: the shell (contact
- * bar, grouped dropdowns, staged opening, masked titles, position-tied reveals),
- * the brand plates, the catalogue with URL filters and an empty state, the
- * detail page, the request forms and the staff inbox, the page-only assistant.
- * New: the rental season calendar and the trade-in request. The one curve is
- * the swoosh from Víkurverk's mark.
+ * Motion budget (Sindri: "don't ruin the user friendliness with too much scroll motion"):
+ * one opening per page, reveals that play once as content arrives, hover feedback.
+ * No pinning, no scrubbed parallax, nothing that holds the scroll.
  *
  * Routes live under /preview/vikurverk/*; this component reads the sub-path.
  */
 
-gsap.registerPlugin(ScrollTrigger, SplitText, CustomEase)
-CustomEase.create('vv', 'M0,0 C0.625,0.05 0,1 1,1')
+gsap.registerPlugin(ScrollTrigger, CustomEase)
+CustomEase.create('vvSmooth', 'M0,0 C0.38,0 0.215,1 1,1')
 
 const company = getPreviewCompany('vikurverk')
 let pageLenis: Lenis | null = null
+let firstLoad = true
 const isTouch = () => window.matchMedia('(hover: none) and (pointer: coarse)').matches
 const still = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const to = (p = '') => (p ? `${ROUTE}/${p}` : ROUTE)
 const mailHref = (e: string) => `mailto:${e}`
 const ERGO = 'https://ergo.is/bilalan/'
+const ADDED = 'vv-added'
 
 function goTo(id: string) {
   const t = document.getElementById(id)
   if (!t) return
-  if (pageLenis) pageLenis.scrollTo(t, { offset: -110 })
+  if (pageLenis) { pageLenis.resize(); pageLenis.scrollTo(t, { offset: -90 }) }
   else t.scrollIntoView({ behavior: still() ? 'auto' : 'smooth', block: 'start' })
 }
 
@@ -65,58 +67,87 @@ function Pic({ p, sizes, eager, className, pos }: { p: Photo; sizes: string; eag
   )
 }
 
-function Frame({ p, sizes, ratio, className = '', pos, parallax = true }: { p: Photo; sizes: string; ratio?: string; className?: string; pos?: string; parallax?: boolean }) {
-  return (
-    <div className={`frame ${className}`} style={ratio ? { aspectRatio: ratio } : undefined} data-media="">
-      <div className={parallax ? 'par' : 'still-photo'} data-par={parallax ? '' : undefined}>
-        <Pic p={p} sizes={sizes} pos={pos} />
-      </div>
-    </div>
-  )
-}
-
-type Tone = 'pine' | 'ink' | 'white' | 'line' | 'ghost'
-function Btn({ to: path, href, label, tone = 'pine', icon, onClick, ext, type, className = '' }: {
-  to?: string; href?: string; label: string; tone?: Tone; icon?: ReactNode; onClick?: () => void; ext?: boolean; type?: 'submit' | 'button'; className?: string
+type Tone = '' | 'white' | 'pine' | 'grey' | 'beige' | 'line' | 'glass' | 'glass-d'
+function Btn({ to: path, href, label, tone = '', size = '', icon, onClick, ext, type, className = '' }: {
+  to?: string; href?: string; label: string; tone?: Tone; size?: '' | 'lg' | 'sm'; icon?: ReactNode; onClick?: () => void; ext?: boolean; type?: 'submit' | 'button'; className?: string
 }) {
   const inner = (
     <>
-      <span className="sr">{label}</span>
-      <span className="lbl" aria-hidden="true">
-        {[...label].map((c, i) => <span key={i} className="c" style={{ '--i': i } as CSSProperties}>{c === ' ' ? '\u00a0' : c}</span>)}
-      </span>
+      <span className="lbl"><span>{label}</span><span aria-hidden="true">{label}</span></span>
       {icon}
     </>
   )
-  const cls = `btn btn-${tone} ${className}`
-  if (path !== undefined) return <Link className={cls} to={to(path)} data-btn="" onClick={onClick}>{inner}</Link>
-  if (href) return <a className={cls} href={href} data-btn="" {...(ext ? { target: '_blank', rel: 'noopener' } : {})} onClick={onClick}>{inner}</a>
-  return <button className={cls} type={type ?? 'button'} onClick={onClick} data-btn="">{inner}</button>
+  const cls = `btn ${tone} ${size} ${className}`.replace(/\s+/g, ' ').trim()
+  if (path !== undefined) return <Link className={cls} to={to(path)} onClick={onClick}>{inner}</Link>
+  if (href) return <a className={cls} href={href} {...(ext ? { target: '_blank', rel: 'noopener' } : {})} onClick={onClick}>{inner}</a>
+  return <button className={cls} type={type ?? 'button'} onClick={onClick}>{inner}</button>
 }
 
 function Lines({ lines }: { lines: ReactNode[] }) {
   return <>{lines.map((l, i) => <span key={i} className="lm"><span data-line="">{l}</span></span>)}</>
 }
 
+const ARROW = <ArrowRight size={16} strokeWidth={1.6} aria-hidden="true" />
+const PLUS = <span className="ibtn" aria-hidden="true"><Plus size={16} strokeWidth={1.6} /></span>
+
+/* a native scroll rail with arrows and dots (Lightship's carousels, without hijacking the wheel) */
+function Rail({ children, label, className = '', cw, pr }: { children: ReactNode[]; label: string; className?: string; cw?: string; pr?: boolean }) {
+  const ref = useRef<HTMLUListElement>(null)
+  const [at, setAt] = useState(0)
+  const [end, setEnd] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const on = () => {
+      const first = el.children[0] as HTMLElement | undefined
+      const step = first ? first.offsetWidth + parseFloat(getComputedStyle(el).columnGap || '0') : 1
+      setAt(Math.round(el.scrollLeft / step))
+      setEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4)
+    }
+    on()
+    el.addEventListener('scroll', on, { passive: true })
+    window.addEventListener('resize', on)
+    return () => { el.removeEventListener('scroll', on); window.removeEventListener('resize', on) }
+  }, [])
+  const go = (d: number) => {
+    const el = ref.current
+    if (!el) return
+    const first = el.children[0] as HTMLElement | undefined
+    const step = first ? first.offsetWidth + parseFloat(getComputedStyle(el).columnGap || '0') : el.clientWidth
+    el.scrollBy({ left: d * step, behavior: still() ? 'auto' : 'smooth' })
+  }
+  return (
+    <div className={className}>
+      <ul ref={ref} className={`rail${pr ? ' pr' : ''}`} role="list" aria-label={label} style={cw ? ({ '--cw': cw } as CSSProperties) : undefined}>
+        {children.map((c, i) => <li key={i}>{c}</li>)}
+      </ul>
+      <div className="rail-ft">
+        <button type="button" className="ibtn" onClick={() => go(-1)} disabled={at === 0} aria-label={`Fyrri, ${label}`}><ArrowLeft size={15} aria-hidden="true" /></button>
+        <button type="button" className="ibtn" onClick={() => go(1)} disabled={end} aria-label={`Næsta, ${label}`}><ArrowRight size={15} aria-hidden="true" /></button>
+        <span className="dots" aria-hidden="true">{children.map((_, i) => <i key={i} className={i === at || (end && i === children.length - 1) ? 'on' : ''} />)}</span>
+      </div>
+    </div>
+  )
+}
 
 /* ── navigation: three groups with dropdowns ────────────────────────────── */
 
 type NavItem = { k: string; label: string; sub: string }
-const NAV: { key: string; label: string; items: NavItem[] }[] = [
-  { key: 'vagnar', label: 'Vagnar', items: [
+const NAV: { key: string; label: string; items: NavItem[]; img: Photo; cap: string }[] = [
+  { key: 'vagnar', label: 'Vagnar', img: photo('u-prestige-620-cl-2', 'Setustofa í Hobby Prestige 620 CL'), cap: 'Hobby Prestige 620 CL', items: [
     { k: 'vagnar', label: 'Allir vagnar', sub: 'Nýir og notaðir, með verði og síum' },
-    { k: 'vagnar?astand=notad', label: 'Notaðir vagnar', sub: 'Á sama stað og þeir nýju' },
+    { k: 'vagnar?astand=notad', label: 'Notaðir vagnar', sub: 'Á sama lista og þeir nýju' },
     { k: 'uppitaka', label: 'Taka upp í', sub: 'Sendu fastanúmerið, fáðu mat' },
-    { k: 'skodun', label: 'Bóka skoðun', sub: 'Komdu og skoðaðu í Víkurhvarfi' },
+    { k: 'skodun', label: 'Bóka skoðun', sub: 'Komdu í Víkurhvarf 6' },
   ] },
-  { key: 'leiga', label: 'Leiga', items: [
-    { k: 'leiga', label: 'Leiguvagnar', sub: 'Sumarið 2027, vika í senn' },
-    ...RENTALS.map((r) => ({ k: `leiga/${r.key}`, label: r.name, sub: `${r.short}, frá ${kr(r.price)} á viku` })),
+  { key: 'leiga', label: 'Leiga', img: photo('scene-night', 'Hjólhýsi við fjörð á björtu sumarkvöldi'), cap: 'Sumarið 2027 er opið', items: [
+    { k: 'leiga', label: 'Leiguvagnar', sub: 'Vika í senn, fimmtudag til miðvikudags' },
+    ...RENTALS.map((r) => ({ k: `leiga/${r.key}`, label: r.name, sub: `${r.short}, ${kr(r.price)} á viku` })),
   ] },
-  { key: 'thjonusta', label: 'Þjónusta', items: [
-    { k: 'verkstaedi', label: 'Bóka verkstæði', sub: 'Skoðun, vetrarstandsetning, viðgerð' },
+  { key: 'thjonusta', label: 'Þjónusta', img: photo('scene-shop', 'Fortjald, stólar og grill við hjólhýsi'), cap: '1.635 vörur í versluninni', items: [
     { k: 'verslun', label: 'Verslun', sub: 'Fortjöld, grill, stólar og varahlutir' },
     { k: 'ferdalistinn', label: 'Ferðalistinn', sub: 'Allt sem fer með í ferðina' },
+    { k: 'verkstaedi', label: 'Bóka verkstæði', sub: 'Skoðun, vetrarstandsetning, viðgerð' },
   ] },
 ]
 
@@ -138,34 +169,34 @@ function Header({ sub, onMenu }: { sub: string; onMenu: () => void }) {
   }, [open])
   const page = sub.split('/')[0]
   return (
-    <div className="row" ref={ref}>
-      <Link className="logo" to={to()} aria-label="Víkurverk, forsíða">
-        <img src={A('logo-t.png')} alt="" width={306} height={200} />
-      </Link>
-      <nav className="links" aria-label="Aðalvalmynd">
+    <div className="cap" ref={ref} data-cap="">
+      <nav className="nav" aria-label="Aðalvalmynd">
         {NAV.map((g) => (
           <div key={g.key} className="dd" data-dd={g.key} data-open={open === g.key ? '1' : '0'}
             onPointerEnter={() => { if (fine) setOpen(g.key) }} onPointerLeave={() => { if (fine) setOpen(null) }}>
             <button type="button" aria-expanded={open === g.key} aria-controls={`dd-${g.key}`} aria-current={g.items.some((i) => i.k.split(/[/?]/)[0] === page) ? 'true' : undefined}
               onClick={() => setOpen(open === g.key ? null : g.key)}>
-              {g.label}<ChevronDown size={16} strokeWidth={2} aria-hidden="true" />
+              {g.label}<ChevronDown size={14} strokeWidth={1.8} aria-hidden="true" />
             </button>
             <div className="panel" id={`dd-${g.key}`}>
-              {g.items.map((i) => (
-                <Link key={i.k} to={to(i.k)} tabIndex={open === g.key ? 0 : -1}><b>{i.label}</b><span>{i.sub}</span></Link>
-              ))}
+              <ul>{g.items.map((i) => <li key={i.k}><Link to={to(i.k)} tabIndex={open === g.key ? 0 : -1}><b>{i.label}</b><span>{i.sub}</span></Link></li>)}</ul>
+              <figure aria-hidden="true"><Pic p={g.img} sizes="180px" /><figcaption>{g.cap}</figcaption></figure>
             </div>
           </div>
         ))}
       </nav>
+      <Link className="logo" to={to()} aria-label="Víkurverk, forsíða">
+        <img className="lc" src={A('logo-t.png')} alt="" width={306} height={200} />
+        <img className="lw" src={A('logo-white.png')} alt="" width={306} height={200} />
+      </Link>
       <div className="acts">
-        <Link className="cta" to={to('leiga')}>Leigja vagn</Link>
         <Link className="bag" to={to('ferdalistinn')} aria-label={`Ferðalistinn, ${n} ${n === 1 ? 'vara' : 'vörur'}`}>
-          <ShoppingBag size={22} strokeWidth={1.8} aria-hidden="true" />
+          <ShoppingBag size={19} strokeWidth={1.6} aria-hidden="true" />
           {n > 0 && <span className="n num" aria-hidden="true">{n}</span>}
         </Link>
+        <Btn to="skodun" label="Bóka skoðun" />
         <button className="burger" type="button" onClick={onMenu} aria-label="Opna valmynd">
-          <Menu size={24} strokeWidth={1.8} aria-hidden="true" />
+          <Menu size={20} strokeWidth={1.6} aria-hidden="true" />
         </button>
       </div>
     </div>
@@ -182,45 +213,44 @@ function UnitCard({ x }: { x: Unit }) {
     <Link className="uc" to={to(`vagnar/${x.slug}`)}>
       <div className="ph">
         <span className="tags">
-          <span className={`tag sign ${x.cond === 'ny' ? 'new' : ''}`}>{x.cond === 'ny' ? 'Nýtt' : 'Notað'}</span>
-          {x.flott && <span className="tag sign flott">Flott verð</span>}
+          <span className={`pill ${x.cond === 'ny' ? 'light' : 'solid'}`}>{x.cond === 'ny' ? 'Nýtt' : `Notað · ${x.year}`}</span>
+          {x.flott && <span className="pill pine">Flott verð</span>}
         </span>
-        {x.plan ? (
-          <>
-            <Pic className="plan" p={x.plan} sizes="(min-width: 1100px) 26vw, (min-width: 600px) 44vw, 80vw" />
-            <Pic className="shot" p={shot} sizes="(min-width: 1100px) 26vw, (min-width: 600px) 44vw, 80vw" />
-          </>
-        ) : <Pic className="shot only" p={shot} sizes="(min-width: 1100px) 26vw, (min-width: 600px) 44vw, 80vw" />}
+        <Pic className={`shot${x.plan ? ' has-plan' : ''}`} p={shot} sizes="(min-width: 1100px) 30vw, (min-width: 600px) 46vw, 92vw" />
+        {x.plan && <Pic className="plan" p={x.plan} sizes="(min-width: 1100px) 30vw, (min-width: 600px) 46vw, 92vw" />}
       </div>
       <div className="bd">
-        <p className="br sign">{x.brand} · {kindLabel(x.kind)}</p>
+        <p className="br">{x.brand} · {kindLabel(x.kind)}</p>
         <h3 className="nm" translate="no">{x.model}</h3>
+        <p className="pr num">{kr(x.price)}</p>
         <p className="facts num">
-          {x.year && <span>Árgerð {x.year}</span>}
           {x.sleeps && <span>Svefnpláss {x.sleeps}</span>}
           {x.weight && <span>{x.weight.toLocaleString('de-DE')} kg</span>}
+          {x.length && <span>{x.length} cm</span>}
         </p>
-        <p className="pr num">{kr(x.price)}</p>
       </div>
     </Link>
   )
 }
 
-function ProductCard({ p }: { p: Product }) {
+function ProductCard({ p, sizes = '(min-width: 1100px) 22vw, (min-width: 700px) 30vw, 46vw' }: { p: Product; sizes?: string }) {
   const list = useList()
   const on = list.some((l) => l.slug === p.slug)
   return (
     <article className="pcard">
-      <div className="ph">
-        {p.brand && <span className="sign">{p.brand}</span>}
-        <Pic p={p.img} sizes="(min-width: 1100px) 20vw, (min-width: 700px) 30vw, 45vw" />
+      <div className="media">
+      <Link to={to(`verslun/${p.slug}`)} className="ph" aria-label={p.name}>
+        <Pic p={p.img} sizes={sizes} />
+      </Link>
+      <button type="button" className="add" aria-pressed={on} onClick={() => { const was = on; toggle(p.slug); if (!was) window.dispatchEvent(new CustomEvent(ADDED, { detail: p.slug })) }}
+        aria-label={on ? `Taka ${p.name} af ferðalistanum` : `Setja ${p.name} á ferðalistann`}>
+        {on ? <Check size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}
+      </button>
       </div>
       <div className="bd">
-        <h3 className="nm">{p.name}</h3>
+        {p.brand && <p className="br">{p.brand}</p>}
+        <h3 className="nm"><Link to={to(`verslun/${p.slug}`)}>{p.name}</Link></h3>
         <p className="pr num">{kr(p.price)}</p>
-        <button type="button" className="add" aria-pressed={on} onClick={() => toggle(p.slug)} aria-label={on ? `Taka ${p.name} af ferðalistanum` : `Setja ${p.name} á ferðalistann`}>
-          {on ? <Check size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}{on ? 'Á lista' : 'Á lista'}
-        </button>
       </div>
     </article>
   )
@@ -238,191 +268,263 @@ function freeWeeks(key: string, n = 3) {
 
 /* ── home ───────────────────────────────────────────────────────────────── */
 
-/*
- * The home page: the Suðurverk landing's order (03-prototypes/sudurverk/src/pages.js home():
- * hero with a captioned photo, intro statement, featured 2 x 2, numbered rows of what
- * the company does, image + copy split, people, next-step questions) dressed in Set's
- * design (src/preview/set): white paper, ink, square grey cards, display capitals for
- * section titles, the dark uppercase button, ring links, the numbered accordion and
- * the dotted dimension rule. Suðurverk's pinned chapter is left out (no pinned scroll).
- */
-
-const ARROW = <ArrowRight size={18} strokeWidth={1.8} aria-hidden="true" />
-function Ring({ dir = 'right' }: { dir?: 'right' | 'left' }) {
-  return (
-    <span className="vring" aria-hidden="true">
-      <svg viewBox="0 0 44 44"><circle className="r-wall" cx="22" cy="22" r="20" /><circle className="r-draw" cx="22" cy="22" r="20" pathLength={1} transform="rotate(-90 22 22)" /></svg>
-      <ArrowRight size={15} strokeWidth={1.8} style={dir === 'left' ? { transform: 'rotate(180deg)' } : undefined} />
-    </span>
-  )
-}
-const pad2 = (n: number) => String(n).padStart(2, '0')
-
 function Hero() {
   return (
-    <section className="ss-hero" aria-labelledby="h-hero">
-      <div className="wrap ss-inner">
-        <div className="ss-copy">
-          <p className="kick" data-open="">Víkurverk · Kópavogi · frá 2006</p>
-          <h1 id="h-hero"><Lines lines={['Allt í', 'ferðalagið.']} /></h1>
-          <p className="lede" data-open="">Ný og notuð hjólhýsi, húsbílar og sporthýsi. Leiga, verkstæði og verslun í Víkurhvarfi.</p>
-          <div className="cta" data-open="">
-            <Link className="sbtn" to={to('vagnar')}>Skoða vagnana{ARROW}</Link>
-            <Link className="ringlink" to={to('leiga')}><Ring />Leiga sumarið 2027</Link>
+    <section className="hero" aria-labelledby="h-hero">
+      <div className="mask" data-hmask="">
+        <Pic p={photo('scene-hero', 'Hjólhýsi og jeppi við vatn á hálendinu í kvöldsól, tvö sitja í stólum undir markísu')} sizes="100vw" eager />
+        <div className="inner">
+          <div className="copy">
+            <h1 id="h-hero"><Lines lines={['Íslenska sumarið,', 'á hjólum.']} /></h1>
+            <p className="sub" data-open="">Ný og notuð hjólhýsi, húsbílar og sporthýsi. Leiga á sumrin, verkstæði allt árið og verslun með allt sem fer með í ferðina.</p>
+            <div className="cta" data-open="">
+              <Btn to="vagnar" label="Skoða vagnana" tone="white" />
+              <Btn to="leiga" label="Leiga sumarið 2027" tone="glass" />
+            </div>
+          </div>
+          <div className="bot">
+            <span className="rule" aria-hidden="true" data-rule="" />
+            <p data-open="">Víkurverk · Víkurhvarfi 6, Kópavogi</p>
+            <p data-open="">Opið virka daga, laugardaga á sumrin</p>
           </div>
         </div>
-        <figure className="ss-photo">
-          <div className="mask" data-hmask=""><div className="hp" data-hp=""><Pic p={photo('showroom', 'Sýningarsalur Víkurverks með Randger húsbíl og hjólhýsum')} sizes="(max-width: 900px) 100vw, 50vw" eager /></div></div>
-          <figcaption data-open=""><span>Sýningarsalurinn í Víkurhvarfi</span><span>Randger R560 4x4</span></figcaption>
-        </figure>
       </div>
-      <div className="wrap"><div className="ss-dots" aria-hidden="true" /></div>
     </section>
   )
 }
 
 function HomeIntro() {
   return (
-    <section id="intro" className="wrap ss-intro" aria-labelledby="h-intro">
-      <h2 id="h-intro" className="sh" data-fade="">Allt sem ferðalagið þarf, á einum stað.</h2>
-      <div>
-        <p className="lead" data-fade="">Víkurverk selur nýja húsbíla, hjólhýsi, sporthýsi og tjaldvagna, og notaða ferðavagna á sama lista.</p>
-        <p data-fade="">Á sumrin leigir Víkurverk út hjólhýsi og Mink. Verkstæðið er opið allt árið og verslunin er með það sem fer með í ferðina.</p>
-        <Link className="ringlink" to={to('skodun')} data-fade=""><Ring />Bóka skoðun</Link>
+    <section className="intro-c" aria-labelledby="h-intro">
+      <p className="q" data-rv="">Víkurverk hefur selt hjólhýsi, húsbíla og ferðavagna frá 2006. Nýir og notaðir vagnar á einum lista, leiga á sumrin, verkstæði allt árið og verslun með það sem fer með í ferðina.</p>
+      <h2 id="h-intro" className="h-3xl" data-rv="">Vagnar á staðnum.</h2>
+    </section>
+  )
+}
+
+const FEATURED: { slug: string; img: Photo; line: string }[] = [
+  { slug: 'hobby-prestige-620-cl', img: photo('u-prestige-620-cl-2', 'Setustofa í Hobby Prestige 620 CL'), line: 'Rúmgóð setustofa fyrir fjóra' },
+  { slug: 'randger-r560', img: photo('u-randger-r560-1', 'Randger R560 4x4 húsbíll'), line: 'Húsbíll með fjórhjóladrifi' },
+  { slug: 'mink-s', img: photo('mink-life', 'Mink sporthýsi með markísu'), line: 'Hannaður á Íslandi' },
+  { slug: 'adria-aviva-360-dk', img: photo('u-aviva-360-dk-1', 'Adria Aviva 360 DK hjólhýsi'), line: 'Létt, 750 kg, kojur fyrir börnin' },
+  { slug: 'camp-let-north', img: photo('u-camplet-north-1', 'Camp-Let North tjaldvagn uppsettur'), line: 'Tjaldvagn sem tekur tvær mínútur' },
+  { slug: 'hobby-de-luxe-460-ufe', img: photo('u-deluxe-460-ufe-2', 'Innrétting í Hobby De Luxe 460 UFe'), line: 'Hjónarúm og eldhús í fullri stærð' },
+]
+function Featured() {
+  const items = FEATURED.map((f) => ({ ...f, x: unitBySlug(f.slug) })).filter((f) => f.x)
+  return (
+    <section className="wrap sec" style={{ paddingTop: 'var(--sp-lg)' }} aria-label="Vagnar á staðnum">
+      <Rail label="Vagnar á staðnum" cw="calc((100% - 2 * var(--gutter)) / 3.15)">
+        {items.map(({ slug, img, line, x }) => (
+          <Link key={slug} className="pc" to={to(`vagnar/${slug}`)}>
+            <div className="ph zoom"><Pic p={img} sizes="(min-width: 1000px) 32vw, (min-width: 600px) 46vw, 82vw" /></div>
+            <div className="top"><span className="pill">{kindLabel(x!.kind)} · {x!.brand}</span><span className="pill">{x!.cond === 'ny' ? 'Nýtt' : 'Notað'}</span></div>
+            <div className="bt"><div><h3 translate="no">{x!.model}</h3><p>{line} · <span className="num">{kr(x!.price)}</span></p></div>{PLUS}</div>
+          </Link>
+        ))}
+      </Rail>
+      <div style={{ marginTop: 'var(--sp-sm)' }}><Btn to="vagnar" label="Allir vagnar" tone="grey" icon={ARROW} /></div>
+    </section>
+  )
+}
+
+/* choose by the kind of trip (Pebble's use-case carousel: tabs synced to a native swipe track, no autoplay) */
+const INTENTS: { k: string; tab: string; t: string; d: string; img: Photo; units: string[]; rent?: string; cta: [string, string] }[] = [
+  { k: 'fjolskylda', tab: 'Fjölskyldan', t: 'Sumarfrí með allri fjölskyldunni', d: 'Svefnpláss fyrir fjóra, setustofa sem verður að rúmi og eldhús sem dugar í vikuna.', img: photo('u-prestige-620-cl-3', 'Eldhús í Hobby Prestige 620 CL'), units: ['hobby-prestige-620-cl', 'hobby-de-luxe-460-ufe'], rent: 'adora-593-uk', cta: ['Skoða hjólhýsin', 'vagnar?tegund=hjolhysi'] },
+  { k: 'helgi', tab: 'Helgarferðir', t: 'Létt og nett um helgar', d: 'Vagnar sem venjulegur fólksbíll dregur. Mink er hannaður á Íslandi og vegur 520 kg.', img: photo('hero', 'Mink sporthýsi með markísu í kvöldsól'), units: ['mink-s', 'adria-aviva-360-dk'], cta: ['Hvað dregur bíllinn?', 'vagnar#drattargeta'] },
+  { k: 'fjoll', tab: 'Allt árið', t: 'Hvert sem vegurinn liggur', d: 'Randger R560 er húsbíll með fjórhjóladrifi, byggður á Ford. Þú keyrir af stað án þess að tengja neitt aftan í.', img: photo('u-randger-r560-4', 'Innrétting í Randger R560 húsbíl'), units: ['randger-r560'], cta: ['Skoða húsbíla', 'vagnar?tegund=husbill'] },
+  { k: 'profa', tab: 'Prófa fyrst', t: 'Leigðu viku áður en þú kaupir', d: 'Hjólhýsi eða Mink, vika í senn frá fimmtudegi. Eldhúsáhöld, útiborð og stólar fylgja.', img: photo('u-leiga-522-2', 'Innrétting í Adria Adora 522 UP leiguhjólhýsi'), units: [], rent: 'mink', cta: ['Sjá lausar vikur', 'leiga'] },
+]
+function Intents() {
+  const ref = useRef<HTMLUListElement>(null)
+  const [at, setAt] = useState(0)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const on = () => {
+      const mid = el.scrollLeft + el.clientWidth / 2
+      let best = 0, d = 1e9
+      ;[...el.children].forEach((c, i) => { const h = c as HTMLElement; const m = h.offsetLeft + h.offsetWidth / 2; if (Math.abs(m - mid) < d) { d = Math.abs(m - mid); best = i } })
+      setAt(best)
+    }
+    on()
+    el.addEventListener('scroll', on, { passive: true })
+    return () => el.removeEventListener('scroll', on)
+  }, [])
+  const go = (i: number) => {
+    const el = ref.current
+    const c = el?.children[i] as HTMLElement | undefined
+    if (!el || !c) return
+    el.scrollTo({ left: c.offsetLeft - (el.clientWidth - c.offsetWidth) / 2, behavior: still() ? 'auto' : 'smooth' })
+  }
+  return (
+    <section className="sec intents" aria-labelledby="h-int">
+      <div className="center-head wrap">
+        <h2 id="h-int" className="h-2xl" data-rv="">Hvernig ferðast þú?</h2>
+        <div className="itabs" role="tablist" aria-label="Tegund ferðalags" data-rv="">
+          {INTENTS.map((x, i) => <button key={x.k} type="button" role="tab" aria-selected={at === i} aria-controls={`int-${x.k}`} onClick={() => go(i)}>{x.tab}</button>)}
+        </div>
+      </div>
+      <ul ref={ref} className="itrack">
+        {INTENTS.map((x, i) => {
+          const r = x.rent ? RENTALS.find((y) => y.key === x.rent) : undefined
+          return (
+            <li key={x.k} id={`int-${x.k}`} role="tabpanel" aria-label={x.tab} data-on={at === i ? '1' : '0'} {...((at !== i ? { inert: '' } : {}) as Record<string, string>)}>
+              <div className="icard">
+                <div className="ipanel">
+                  <p className="eyebrow">{x.tab}</p>
+                  <h3 className="h-sm">{x.t}</h3>
+                  <p className="muted">{x.d}</p>
+                  <ul className="ifit">
+                    {x.units.map((sl) => { const u = unitBySlug(sl)!; return <li key={sl}><Link to={to(`vagnar/${sl}`)} tabIndex={at === i ? 0 : -1}><span translate="no">{u.brand} {u.model}</span><span className="num">{kr(u.price)}</span></Link></li> })}
+                    {r && <li><Link to={to(`leiga/${r.key}`)} tabIndex={at === i ? 0 : -1}><span translate="no">Leiga: {r.name}</span><span className="num">{kr(r.price)} á viku</span></Link></li>}
+                  </ul>
+                  <Btn to={x.cta[1]} label={x.cta[0]} icon={ARROW} />
+                </div>
+                <div className="iimg"><Pic p={x.img} sizes="(min-width: 1024px) 50vw, 90vw" /></div>
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+      <div className="wrap rail-ft" style={{ justifyContent: 'center' }}>
+        <button type="button" className="ibtn" onClick={() => go(at - 1)} disabled={at === 0} aria-label="Fyrri ferð"><ArrowLeft size={15} aria-hidden="true" /></button>
+        <button type="button" className="ibtn" onClick={() => go(at + 1)} disabled={at === INTENTS.length - 1} aria-label="Næsta ferð"><ArrowRight size={15} aria-hidden="true" /></button>
       </div>
     </section>
   )
 }
 
-const FEATURED: { slug: string; img: Photo }[] = [
-  { slug: 'hobby-prestige-620-cl', img: photo('u-prestige-620-cl-1', 'Hobby Prestige 620 CL í sýningarsal Víkurverks') },
-  { slug: 'mink-s', img: photo('mink-life', 'Mink sporthýsi með markísu') },
-  { slug: 'adria-aviva-360-dk', img: photo('u-aviva-360-dk-1', 'Adria Aviva 360 DK hjólhýsi') },
-  { slug: 'randger-r560', img: photo('u-randger-r560-1', 'Randger R560 4x4 húsbíll í sýningarsal') },
+const WAYS: { t: string; d: string; to: string; img: Photo; tag: string }[] = [
+  { t: 'Nýir og notaðir', d: 'Hobby, Adria, Fendt, Randger, Mink og Camp-Let.', to: 'vagnar', img: photo('showroom', 'Sýningarsalur Víkurverks'), tag: 'Sala' },
+  { t: 'Taka vagninn upp í', d: 'Sendu fastanúmerið og fáðu mat.', to: 'uppitaka', img: photo('u-randger-r560-3', 'Randger R560 með opna hurð í sýningarsal'), tag: 'Uppítaka' },
+  { t: 'Verkstæði allt árið', d: 'Skoðun, vetrarstandsetning og viðgerðir.', to: 'verkstaedi', img: photo('workshop', 'Hjólhýsi standsett á verkstæði Víkurverks'), tag: 'Verkstæði' },
+  { t: 'Allt sem fer með', d: 'Fortjöld, grill, stólar og kælibox.', to: 'verslun', img: photo('scene-shop', 'Fortjald, stólar, borð og grill við hjólhýsi'), tag: 'Verslun' },
 ]
-function Featured() {
+function Ways() {
   return (
-    <section className="wrap ss-sec" aria-labelledby="h-sel">
-      <div className="ss-head">
-        <h2 className="sd" id="h-sel" data-chars="">Vagnar</h2>
-        <p data-fade="">Á staðnum núna, með verði, svefnplássi og þyngd. Nýir og notaðir á einum lista.</p>
+    <section className="wrap sec" aria-labelledby="h-ways">
+      <div className="center-head">
+        <h2 id="h-ways" className="h-2xl" data-rv="">Frá fyrstu ferðinni<br />að vetrargeymslunni.</h2>
+        <div data-rv=""><Btn to="skodun" label="Bóka skoðun" tone="grey" size="sm" /></div>
       </div>
-      <ul className="ss-feat" role="list" data-items="">
-        {FEATURED.map(({ slug, img }) => {
-          const x = unitBySlug(slug)!
+      <ul className="ways" role="list" data-rv-g="">
+        {WAYS.map((w) => (
+          <li key={w.t}>
+            <Link className="pc" to={to(w.to)}>
+              <div className="ph zoom"><Pic p={w.img} sizes="(min-width: 1000px) 24vw, (min-width: 600px) 46vw, 92vw" /></div>
+              <div className="top"><span>{w.tag}</span></div>
+              <div className="bt"><div><h3>{w.t}</h3><p>{w.d}</p></div>{PLUS}</div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+function Look() {
+  return (
+    <section className="edge" aria-labelledby="h-look">
+      <div className="look">
+        <div className="ph" data-rv-img=""><Pic p={photo('u-prestige-620-cl-2', 'Setustofa og eldhús í Hobby Prestige 620 CL')} sizes="100vw" /></div>
+        <div className="c">
+          <h2 id="h-look" className="h-xl" data-rv="">Ferðalagið byrjar á því að skoða.</h2>
+          <div data-rv=""><Btn to="skodun" label="Bóka skoðun" tone="glass" /></div>
+        </div>
+      </div>
+      <div className="wrap" style={{ paddingInline: 'calc(var(--margin) - var(--edge))' }}>
+        <div className="stmt">
+          <p className="big" data-rv="">Komdu í Víkurhvarf, sestu inn og opnaðu skápana. Söluráðgjafi fer yfir svefnplássið, hvað bíllinn má draga og fjármögnun hjá Ergo, og metur vagninn þinn ef þú vilt taka hann upp í.</p>
+          <div className="side" data-rv="">
+            <p>{HOURS.shopSummer}.</p>
+            <Btn to="uppitaka" label="Taka upp í" tone="line" size="sm" />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function RentBand() {
+  return (
+    <section className="edge" aria-labelledby="h-rent">
+      <div className="band">
+        <div className="ph" data-rv-img=""><Pic p={photo('scene-night', 'Hjólhýsi við fjörð á björtu sumarkvöldi með ljós í gluggum')} sizes="100vw" /></div>
+        <div className="in">
+          <div className="copy">
+            <span className="pill">Leiga · sumarið 2027</span>
+            <h2 id="h-rent" className="h-xl" data-rv="">Vika í senn,<br />frá fimmtudegi.</h2>
+            <p data-rv="">Hjólhýsi fyrir fjóra eða sjö, eða Mink fyrir tvo. Eldhúsáhöld, útiborð og stólar fylgja. Afhent kl. 13-15.</p>
+            <div data-rv=""><Btn to="leiga" label="Sjá lausar vikur" tone="white" icon={ARROW} /></div>
+          </div>
+          <div className="glass" data-rv="">
+            {RENTALS.map((r) => {
+              const fw = freeWeeks(r.key, 1)[0]
+              return (
+                <Link key={r.key} to={to(`leiga/${r.key}`)}>
+                  <img src={r.img.src} srcSet={r.img.srcSet} sizes="64px" alt="" width={64} height={48} loading="lazy" />
+                  <span><b translate="no">{r.name}</b><small>{r.short} · svefnpláss {r.sleeps}{fw ? ` · laus ${fw.label}` : ''}</small></span>
+                  <span className="pr num">{kr(r.price)}<br /><small>á viku</small></span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const CAT_IMG: Record<string, string> = { fortjold: 'fortjald-club-air-pro-260s-kampa-dometic', grill: 'o-grill-3500-rautt', stolar: 'stoll-aravel-3d-m-svartur-brunner', vagninn: 'troppur-king' }
+function ShopHome() {
+  const t = TRIPS.find((x) => x.key === 'sumarfri')!
+  const total = t.items.reduce((a, [sl, q]) => a + (productBySlug(sl)?.price ?? 0) * q, 0)
+  const picks = ['fortjald-club-air-pro-260s-kampa-dometic', 'o-grill-3500-rautt', 'stoll-aravel-3d-m-svartur-brunner', 'kaelibox-polarys-freeze-sz-30l-brunner', 'troppur-king', 'level-up-kit-m-tosku', 'gashitari-42-kw-fmt']
+  return (
+    <section className="wrap sec" id="verslun" aria-labelledby="h-shop">
+      <div className="shead">
+        <div className="t"><h2 id="h-shop" className="h-xl" data-rv="">Verslun</h2><p data-rv="">1.635 vörur fyrir ferðina og vagninn. Frí heimsending á pöntunum yfir 20.000 kr.</p></div>
+        <div className="tools" data-rv=""><Btn to="verslun" label="Öll verslunin" tone="grey" icon={ARROW} /></div>
+      </div>
+      <ul className="cats" role="list" data-rv-g="">
+        {SHOP_CATS.filter((c) => CAT_IMG[c.key]).map((c) => {
+          const pr = productBySlug(CAT_IMG[c.key])!
           return (
-            <li key={slug}>
-              <Link className="ss-card" to={to(`vagnar/${slug}`)}>
-                <p className="leaf"><span>{kindLabel(x.kind)} · {x.brand}</span><span>{x.cond === 'ny' ? 'Nýtt' : 'Notað'}</span></p>
-                <div className="ph"><Pic p={img} sizes="(max-width: 900px) 100vw, 46vw" /></div>
-                <div className="ft">
-                  <div><h3 translate="no">{x.model}</h3><p className="num">{[x.sleeps && `Svefnpláss ${x.sleeps}`, x.weight && `${x.weight.toLocaleString('de-DE')} kg`].filter(Boolean).join(' · ')}</p></div>
-                  <p className="pr num">{kr(x.price)}</p>
-                </div>
+            <li key={c.key}>
+              <Link className="cat" to={to(`verslun?flokkur=${c.key}`)}>
+                <div className="ph zoom"><Pic p={pr.img} sizes="(min-width: 900px) 22vw, 46vw" /></div>
+                <b>{c.label}<ArrowRight size={15} strokeWidth={1.6} aria-hidden="true" /></b>
+                <small className="num">{c.count} vörur</small>
               </Link>
             </li>
           )
         })}
       </ul>
-      <Link className="ringlink" to={to('vagnar')}><Ring />Allir vagnar</Link>
-    </section>
-  )
-}
-
-const DOING: { t: string; d: string; to: string }[] = [
-  { t: 'Hjólhýsi', d: 'Hobby, Adria og Fendt. 46 gerðir með verði.', to: 'vagnar?tegund=hjolhysi' },
-  { t: 'Húsbílar', d: 'Randger og Benimar, líka með fjórhjóladrifi.', to: 'vagnar?tegund=husbill' },
-  { t: 'Sporthýsi og tjaldvagnar', d: 'Mink, hannaður á Íslandi, og Camp-Let.', to: 'vagnar?tegund=sporthysi' },
-  { t: 'Notaðir vagnar', d: '24 á söluskrá, á sama lista og þeir nýju.', to: 'vagnar?astand=notad' },
-  { t: 'Leiga', d: 'Hjólhýsi og Mink, vika í senn, sumarið 2027.', to: 'leiga' },
-  { t: 'Verkstæði', d: 'Skoðanir, vetrarstandsetning og tjónaviðgerðir.', to: 'verkstaedi' },
-  { t: 'Verslun', d: '1.635 vörur, frí heimsending yfir 20.000 kr.', to: 'verslun' },
-]
-function Doing() {
-  return (
-    <section className="wrap ss-sec" aria-labelledby="h-doing">
-      <div className="ss-head">
-        <h2 className="sd" id="h-doing" data-chars="">Starfsemin</h2>
-        <p data-fade="">Frá fyrsta hjólhýsinu að vetrargeymslunni. Veldu það sem þú ert að leita að.</p>
-      </div>
-      <div className="ss-rows" data-items="">
-        {DOING.map((r, i) => (
-          <Link key={r.t} to={to(r.to)}>
-            <span className="n num">{pad2(i + 1)}</span>
-            <span className="tx"><b>{r.t}</b><small>{r.d}</small></span>
-            <Ring />
-          </Link>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function Split() {
-  return (
-    <section className="wrap ss-split" aria-labelledby="h-split">
-      <figure className="vis" data-media=""><Pic p={photo('workshop', 'Hjólhýsi standsett á verkstæði Víkurverks')} sizes="(max-width: 900px) 100vw, 50vw" /></figure>
-      <div className="cp">
-        <h2 className="sd" id="h-split" data-chars="">Verkstæði</h2>
-        <p data-fade="">Opið allt árið. Stærri tjónaviðgerðir eru unnar frá 1. september til 1. apríl; gefðu upp fastanúmer vagnsins.</p>
-        <div className="inl" data-fade="">{SERVICES.map((s) => <Link key={s.key} to={to('verkstaedi')}>{s.label}{ARROW}</Link>)}</div>
-        <Link className="sbtn" to={to('verkstaedi')} data-fade="">Bóka verkstæði{ARROW}</Link>
-      </div>
-    </section>
-  )
-}
-
-const SHOP_ROWS: { t: string; d: string; cat: string; items: string[] }[] = [
-  { t: 'Fortjöld og útilega', d: 'Kampa/Dometic fortjöld, stólar og kælibox frá Brunner.', cat: 'fortjold', items: ['fortjald-club-air-pro-260s-kampa-dometic', 'stoll-aravel-3d-m-svartur-brunner', 'kaelibox-polarys-freeze-sz-30l-brunner'] },
-  { t: 'Grill og gas', d: 'O-Grill, borðstandur og þrýstijafnari sem passar.', cat: 'grill', items: ['o-grill-3500-rautt', 'bordstandur-fyrir-o-grill', 'thrystijafnari-29mb-m-2-slongu'] },
-  { t: 'Fyrir vagninn', d: 'Tröppur, upphækkun og frostlögur fyrir veturinn.', cat: 'vagninn', items: ['troppur-king', 'level-up-kit-m-tosku', 'neysluvatns-frostlogur-2'] },
-]
-function Shop() {
-  const t = TRIPS.find((x) => x.key === 'sumarfri')!
-  const total = t.items.reduce((a, [sl, q]) => a + (productBySlug(sl)?.price ?? 0) * q, 0)
-  return (
-    <section className="wrap ss-sec ss-shop" id="verslun" aria-labelledby="h-shop">
-      <div className="ss-head">
-        <h2 className="sd" id="h-shop" data-chars="">Verslun</h2>
-        <p data-fade="">1.635 vörur í verslun Víkurverks. Frí heimsending á pöntunum yfir 20.000 kr.</p>
-      </div>
-      <div className="ss-dots" aria-hidden="true" style={{ width: '100%', marginTop: 0 }} />
-      {SHOP_ROWS.map((r, i) => (
-        <article className="srow2" key={r.t} aria-labelledby={`shop-${i}`}>
-          <div className="txt">
-            <p className="n num">{pad2(i + 1)}</p>
-            <h3 id={`shop-${i}`}>{r.t}</h3>
-            <p className="d">{r.d}</p>
-            <Link className="ringlink" to={to(`verslun?flokkur=${r.cat}`)}><Ring />Skoða allt<span className="sr"> {r.t}</span></Link>
-          </div>
-          <ul className="cards" role="list" data-items="">
-            {r.items.map((sl) => <li key={sl}><ProductCard p={productBySlug(sl)!} /></li>)}
+      <div className="editorial">
+        <div className="ph" data-rv-img=""><Pic p={photo('scene-shop', 'Uppblásið fortjald með stólum, borði, kæliboxi og grilli við hjólhýsi')} sizes="(min-width: 900px) 58vw, 100vw" /></div>
+        <div className="tl2" data-rv="">
+          <h3>Ferðalistinn</h3>
+          <p>Byrjaðu á tilbúnum lista fyrir helgarferð, sumarfríið eða haustið, lagaðu magnið og sendu pöntunina.</p>
+          <ul aria-label="Sumarfríið, ferðalisti">
+            {t.items.slice(0, 4).map(([sl, q]) => { const pr = productBySlug(sl)!; return <li key={sl}><img src={pr.img.src} alt="" width={48} height={48} loading="lazy" /><span>{pr.name}</span><span className="num muted">{q} stk.</span></li> })}
           </ul>
-        </article>
-      ))}
-      <div className="vv-steaser ss-teaser">
-        <div className="tt">
-          <h3 className="sd" data-chars="">Ferðalistinn</h3>
-          <p className="lede" data-fade="">Byrjaðu á tilbúnum lista fyrir helgarferð, sumarfríið eða haustið, lagaðu magnið og sendu pöntunina.</p>
-          <Link className="sbtn" to={to('ferdalistinn?ferd=sumarfri')}>Opna ferðalistann{ARROW}</Link>
+          <div className="tot"><span className="small muted">Sumarfríið · {t.items.length} vörur</span><b className="num">{kr(total)}</b></div>
+          <div style={{ marginTop: 16 }}><Btn to="ferdalistinn?ferd=sumarfri" label="Opna ferðalistann" icon={ARROW} /></div>
         </div>
-        <ul className="tl2" aria-label="Sumarfríið, ferðalisti" data-fade="">
-          {t.items.slice(0, 4).map(([sl, q]) => { const pr = productBySlug(sl)!; return <li key={sl}><img src={pr.img.src} alt="" width={56} height={56} loading="lazy" /><b>{pr.name}</b><span className="num">{q} stk. · {kr(pr.price)}</span></li> })}
-          <li className="foot on-dark"><span>Sumarfríið · {t.items.length} vörur · <b className="num">{kr(total)}</b></span><img src={A('logo-white.png')} alt="" width={306} height={200} /></li>
-        </ul>
       </div>
+      <Rail label="Vinsælt í versluninni" pr cw="calc((100% - 3 * var(--gutter)) / 4.2)">
+        {picks.map((sl) => <ProductCard key={sl} p={productBySlug(sl)!} sizes="(min-width: 1000px) 23vw, 46vw" />)}
+      </Rail>
     </section>
   )
 }
 
 function People() {
   return (
-    <section className="wrap ss-sec ss-people" aria-labelledby="h-people">
-      <div className="ss-head">
-        <h2 className="sd" id="h-people" data-chars="">Fólkið</h2>
-        <p data-fade="">Söluráðgjafar í Víkurhvarfi. Skoðaðu vagninn með þeim, spurðu um fjármögnun hjá Ergo eða láttu meta vagninn þinn upp í.</p>
-      </div>
-      <ul className="ppl" role="list" data-items="">
+    <section className="wrap sec" aria-labelledby="h-people">
+      <div className="shead"><div className="t"><h2 id="h-people" className="h-xl" data-rv="">Fólkið í Víkurhvarfi</h2><p data-rv="">Skoðaðu vagninn með söluráðgjafa, spurðu um fjármögnun hjá Ergo eða láttu meta vagninn þinn upp í.</p></div></div>
+      <ul className="ppl" role="list" data-rv-g="">
         {PEOPLE.map((p) => <li key={p.email}><a href={mailHref(p.email)}><b>{p.name}</b><span>{p.role}</span><small>{p.email}</small></a></li>)}
       </ul>
     </section>
@@ -433,31 +535,48 @@ const NEXT: { q: string; a: string; link: [string, string] }[] = [
   { q: 'Get ég tekið vagninn minn upp í?', a: 'Já. Sendu fastanúmer, gerð og árgerð og söluráðgjafi metur vagninn, upp í nýjan eða í umboðssölu.', link: ['Senda vagninn til mats', 'uppitaka'] },
   { q: 'Hvenær er hægt að bóka leigu?', a: 'Sumarið 2027 er opið. Leigan er vika í senn, frá fimmtudegi til miðvikudags, með afhendingu kl. 13-15.', link: ['Sjá lausar vikur', 'leiga'] },
   { q: 'Þarf ég sérstök réttindi til að draga hjólhýsi?', a: 'Ökuréttindi gefin út fyrir 15. ágúst 1997 gilda sjálfkrafa. Yngri réttindum þarf að bæta við. Dráttargeta bílsins þarf að ná leyfilegri heildarþyngd vagnsins.', link: ['Hvað dregur bíllinn?', 'vagnar#drattargeta'] },
+  { q: 'Er hægt að fá fjármögnun?', a: 'Víkurverk vinnur með Ergo. Þú getur reiknað lánið á vef Ergo og farið yfir það með söluráðgjafa þegar þú kemur að skoða.', link: ['Bóka skoðun', 'skodun'] },
+  { q: 'Hvenær er verkstæðið opið?', a: 'Verkstæðið er opið allt árið, virka daga kl. 8-17. Stærri tjónaviðgerðir eru unnar frá 1. september til 1. apríl.', link: ['Bóka verkstæði', 'verkstaedi'] },
 ]
-function NextStep() {
+function Faq() {
   const [open, setOpen] = useState(0)
   return (
-    <section className="wrap vv-show ss-faq" aria-labelledby="h-next">
-      <div className="hh">
-        <h2 className="sd" id="h-next" data-chars="">Spurt og svarað</h2>
-        <a className="sbtn" href={`tel:${CONTACT.tel}`}>Hringja {CONTACT.phone}<Phone size={16} aria-hidden="true" /></a>
+    <section className="edge" aria-labelledby="h-next">
+      <div className="faq">
+        <div className="center-head"><h2 id="h-next" className="h-xl" data-rv="">Spurt og svarað</h2></div>
+        <ul className="acc-list" role="list" data-rv-g="">
+          {NEXT.map((n, i) => {
+            const on = open === i
+            return (
+              <li key={n.q} className={`acc${on ? ' is-open' : ''}`}>
+                <h3><button type="button" className="acc-b" aria-expanded={on} aria-controls={`acc-${i}`} id={`acc-b-${i}`} onClick={() => setOpen(on ? -1 : i)}>
+                  <span>{n.q}</span><span className="pm" aria-hidden="true" />
+                </button></h3>
+                <div className="acc-p" id={`acc-${i}`} role="region" aria-labelledby={`acc-b-${i}`}>
+                  <div><p>{n.a} <Link className="tlink" to={to(n.link[1])} tabIndex={on ? 0 : -1}>{n.link[0]}</Link></p></div>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+        <div className="more"><Btn href={`tel:${CONTACT.tel}`} label={`Hringja ${CONTACT.phone}`} tone="white" icon={<Phone size={15} aria-hidden="true" />} /></div>
       </div>
-      <ol className="acc-list">
-        {NEXT.map((n, i) => {
-          const on = open === i
-          return (
-            <li key={n.q} className={`acc${on ? ' is-open' : ''}`}>
-              <h3><button type="button" className="acc-b" aria-expanded={on} aria-controls={`acc-${i}`} id={`acc-b-${i}`} onClick={() => setOpen(on ? -1 : i)}>
-                <span className="an num">{pad2(i + 1)}</span><span className="at">{n.q}</span><span className="pm" aria-hidden="true" />
-              </button></h3>
-              <div className="acc-p" id={`acc-${i}`} role="region" aria-labelledby={`acc-b-${i}`}>
-                <div><p>{n.a} <Link className="tlink" to={to(n.link[1])} tabIndex={on ? 0 : -1}>{n.link[0]}</Link></p></div>
-              </div>
-            </li>
-          )
-        })}
-      </ol>
     </section>
+  )
+}
+
+function Tiles({ a, b }: { a?: [string, string, string]; b?: [string, string, string] }) {
+  const [at, al, ah] = a ?? ['Talaðu við söluráðgjafa', 'Spurningar um vagnana', `tel:${CONTACT.tel}`]
+  const [bt, bl, bh] = b ?? ['Bóka skoðun í Víkurhvarfi', 'Komdu og sjáðu', 'skodun']
+  return (
+    <div className="edge">
+      <div className="tiles">
+        {ah.startsWith('tel:') || ah.startsWith('mailto:')
+          ? <a className="tile" href={ah}><small>{al}</small><span className="tb"><b>{at}</b><span className="ibtn light" aria-hidden="true"><ArrowRight size={15} /></span></span></a>
+          : <Link className="tile" to={to(ah)}><small>{al}</small><span className="tb"><b>{at}</b><span className="ibtn light" aria-hidden="true"><ArrowRight size={15} /></span></span></Link>}
+        <Link className="tile pine" to={to(bh)}><small>{bl}</small><span className="tb"><b>{bt}</b><span className="ibtn light" aria-hidden="true"><ArrowRight size={15} /></span></span></Link>
+      </div>
+    </div>
   )
 }
 
@@ -467,11 +586,14 @@ function Home() {
       <Hero />
       <HomeIntro />
       <Featured />
-      <Doing />
-      <Split />
-      <Shop />
+      <Intents />
+      <Ways />
+      <Look />
+      <RentBand />
+      <ShopHome />
       <People />
-      <NextStep />
+      <Faq />
+      <Tiles />
     </>
   )
 }
@@ -485,29 +607,27 @@ function Towing() {
   const [kg, setKg] = useState(1300)
   const fits = TOW.filter((u) => u.maxWeight! <= kg)
   return (
-    <section className="wrap vv-tow" id="drattargeta" aria-labelledby="h-tow">
+    <section className="tow" id="drattargeta" aria-labelledby="h-tow">
       <div className="tow-head">
-        <h2 id="h-tow" data-chars="">Hvað dregur bíllinn?</h2>
-        <p data-fade="">Dráttargeta bílsins þarf að vera jöfn eða meiri en leyfileg heildarþyngd vagnsins. Hún stendur í skráningarskírteininu. Dragðu sleðann.</p>
+        <h2 id="h-tow" className="h-lg" data-rv="">Hvað dregur bíllinn?</h2>
+        <p data-rv="">Dráttargeta bílsins þarf að vera jöfn eða meiri en leyfileg heildarþyngd vagnsins. Hún stendur í skráningarskírteininu. Dragðu sleðann.</p>
       </div>
-      <div className="tow-tool">
-        <label className="tow-in" htmlFor="tow-kg">
-          <span className="sign">Bíllinn má draga</span>
-          <output htmlFor="tow-kg" className="num" aria-live="polite">{kg.toLocaleString('de-DE')} kg</output>
-          <input id="tow-kg" type="range" min={600} max={2100} step={50} value={kg} onChange={(e) => setKg(Number(e.target.value))}
-            aria-valuetext={`${kg} kíló, ${fits.length} af ${TOW.length} vögnum passa`} />
-        </label>
-        <div className="scale" aria-hidden="true">
-          <div className="zone" style={{ width: `${pct(kg)}%` }} />
-          {[750, 1000, 1500, 2000].map((t) => <span key={t} className="tick num" style={{ left: `${pct(t)}%` }}>{t.toLocaleString('de-DE')}</span>)}
-          {TOW.map((u, i) => (
-            <span key={u.slug} className={`pin l${i % 3}${u.maxWeight! <= kg ? ' ok' : ''}`} style={{ left: `${pct(u.maxWeight!)}%` }}>
-              <i /><em translate="no">{u.brand === 'Mink' ? u.model : `${u.brand} ${u.model}`}</em>
-            </span>
-          ))}
-        </div>
-        <p className="tow-sum"><b className="num">{fits.length} af {TOW.length}</b> nýjum vögnum í úrtakinu passa.{fits.length < TOW.length && ` Þyngri: ${TOW.filter((u) => u.maxWeight! > kg).map((u) => u.model).join(', ')}.`}</p>
+      <label className="tow-in" htmlFor="tow-kg">
+        <span>Bíllinn má draga</span>
+        <output htmlFor="tow-kg" className="num" aria-live="polite">{kg.toLocaleString('de-DE')} kg</output>
+        <input id="tow-kg" type="range" min={600} max={2100} step={50} value={kg} onChange={(e) => setKg(Number(e.target.value))}
+          aria-valuetext={`${kg} kíló, ${fits.length} af ${TOW.length} vögnum passa`} />
+      </label>
+      <div className="scale" aria-hidden="true">
+        <div className="zone" style={{ width: `${pct(kg)}%` }} />
+        {[750, 1000, 1500, 2000].map((t) => <span key={t} className="tick num" style={{ left: `${pct(t)}%` }}>{t.toLocaleString('de-DE')}</span>)}
+        {TOW.map((u, i) => (
+          <span key={u.slug} className={`pin l${i % 3}${u.maxWeight! <= kg ? ' ok' : ''}`} style={{ left: `${pct(u.maxWeight!)}%` }}>
+            <i /><em translate="no">{u.brand === 'Mink' ? u.model : `${u.brand} ${u.model}`}</em>
+          </span>
+        ))}
       </div>
+      <p className="tow-sum"><b className="num">{fits.length} af {TOW.length}</b> nýjum vögnum í úrtakinu passa.{fits.length < TOW.length && ` Þyngri: ${TOW.filter((u) => u.maxWeight! > kg).map((u) => u.model).join(', ')}.`}</p>
       <ul className="tow-cards" role="list">
         {TOW.map((u) => {
           const ok = u.maxWeight! <= kg
@@ -515,11 +635,10 @@ function Towing() {
             <li key={u.slug} data-ok={ok ? '1' : '0'}>
               <Link to={to(`vagnar/${u.slug}`)} className="tc">
                 <div className="ph"><Pic className="plan" p={u.plan ?? u.imgs[0]} sizes="(min-width: 900px) 15vw, 45vw" /></div>
-                <span className="sign muted">{u.brand}</span>
+                <span className="muted">{u.brand}</span>
                 <b translate="no">{u.model}</b>
                 <span className="num kg">{u.maxWeight!.toLocaleString('de-DE')} kg leyfileg</span>
-                <span className="num pr">{kr(u.price)}</span>
-                <span className={`fit sign${ok ? ' ok' : ''}`}>{ok ? 'Passar' : 'Of þungt'}</span>
+                <span className={`fit${ok ? ' ok' : ''}`}>{ok ? 'Passar' : 'Of þungt'}</span>
               </Link>
             </li>
           )
@@ -532,14 +651,11 @@ function Towing() {
 
 /* ── pages: shared ──────────────────────────────────────────────────────── */
 
-/* the longest word decides the size on phones (Set's per-word fit, approximated from character count) */
-const fitw = (t: ReactNode[]) => Math.max(5, ...t.map((x) => (typeof x === 'string' ? Math.max(...x.split(/\s+/).map((w) => w.length)) * 0.72 + 0.3 : 6)))
-
-function Intro({ title, lede, crumb }: { title: ReactNode[]; lede?: ReactNode; crumb?: { to: string; label: string } }) {
+function Title({ title, lede, crumb }: { title: ReactNode[]; lede?: ReactNode; crumb?: { to: string; label: string } }) {
   return (
-    <div className="intro">
-      {crumb && <Link className="crumb" to={to(crumb.to)} data-open=""><ArrowLeft size={16} aria-hidden="true" />{crumb.label}</Link>}
-      <h1 style={{ '--fitw': fitw(title) } as CSSProperties}><Lines lines={title} /></h1>
+    <div className="ptitle" data-intro="">
+      {crumb && <Link className="crumb" to={to(crumb.to)} data-open=""><ArrowLeft size={15} aria-hidden="true" />{crumb.label}</Link>}
+      <h1><Lines lines={title} /></h1>
       {lede && <p className="lede" data-open="">{lede}</p>}
     </div>
   )
@@ -550,7 +666,7 @@ function Field({ label, name, type = 'text', required, auto, mode, error, placeh
   return (
     <label htmlFor={id}>
       <span>{label}{required ? '' : ' (valfrjálst)'}</span>
-      <input id={id} name={name} type={type} required={required} autoComplete={auto} inputMode={mode} placeholder={placeholder} defaultValue={defaultValue}
+      <input id={id} name={name} type={type} required={required} spellCheck={type === 'email' || name === 'fn' || name === 'tjonsnr' ? false : undefined} autoComplete={auto} inputMode={mode} placeholder={placeholder} defaultValue={defaultValue}
         aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-e` : hint ? `${id}-h` : undefined} />
       {hint && !error && <small className="hint" id={`${id}-h`}>{hint}</small>}
       {error && <p className="err" id={`${id}-e`}>{error}</p>}
@@ -586,7 +702,7 @@ function Done({ r, back }: { r: Request; back: ReactNode }) {
   return (
     <div className="done" role="status">
       <h2>Beiðnin er komin.</h2>
-      <p style={{ marginTop: 10 }}>{r.kind === 'leiga' ? 'Víkurverk staðfestir vikuna og sendir greiðsluhlekk. Vikan er frátekin á meðan.' : 'Svar berst í símann eða netfangið sem þú gafst upp.'}</p>
+      <p style={{ marginTop: 10 }} className="muted">{r.kind === 'leiga' ? 'Víkurverk staðfestir vikuna og sendir greiðsluhlekk. Vikan er frátekin á meðan.' : 'Svar berst í símann eða netfangið sem þú gafst upp.'}</p>
       <dl>
         <div><dt>Númer</dt><dd className="num">{r.id}</dd></div>
         <div><dt>Hvað</dt><dd>{r.title}</dd></div>
@@ -599,7 +715,11 @@ function Done({ r, back }: { r: Request; back: ReactNode }) {
   )
 }
 
-/* ── catalogue ──────────────────────────────────────────────────────────── */
+function Page({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <div className={`page ${className}`}><div className="wrap">{children}</div></div>
+}
+
+/* ── catalogue (Mammut's listing: count, filter panel, sort, active chips) ── */
 
 const SORTS: Record<string, { label: string; fn: (a: Unit, b: Unit) => number }> = {
   'verd-upp': { label: 'Verð: lægst fyrst', fn: (a, b) => a.price - b.price },
@@ -616,6 +736,14 @@ function Chips({ name, value, opts, onPick }: { name: string; value: string; opt
   )
 }
 
+const FLABEL: Record<string, (v: string) => string> = {
+  astand: (v) => (v === 'ny' ? 'Nýtt' : 'Notað'),
+  tegund: (v) => KINDS.find((k) => k.key === v)?.plural ?? v,
+  merki: (v) => BRAND_KEYS.find(([k]) => k === v)?.[1] ?? v,
+  svefn: (v) => `${v}+ svefnpláss`,
+  thyngd: (v) => `Allt að ${Number(v).toLocaleString('de-DE')} kg`,
+}
+
 function CatalogPage() {
   const [sp, setSp] = useSearchParams()
   const [open, setOpen] = useState(false)
@@ -623,33 +751,39 @@ function CatalogPage() {
   const set = (k: string, v: string) => { const n = new URLSearchParams(sp); if (v) n.set(k, v); else n.delete(k); setSp(n, { replace: true }) }
   const items = UNITS.filter((u) => (!f.astand || u.cond === f.astand) && (!f.tegund || u.kind === f.tegund) && (!f.merki || u.brandKey === f.merki)
     && (!f.svefn || (u.sleepsN ?? 0) >= Number(f.svefn)) && (!f.thyngd || (u.weight ?? 9e9) <= Number(f.thyngd))).sort((SORTS[f.rod] ?? SORTS['verd-upp']).fn)
-  const active = ['astand', 'tegund', 'merki', 'svefn', 'thyngd'].filter((k) => sp.get(k)).length
+  const activeKeys = ['astand', 'tegund', 'merki', 'svefn', 'thyngd'].filter((k) => sp.get(k))
   return (
-    <div className="vv-page"><div className="wrap">
-      <Intro title={['Vagnar']} lede="Nýir og notaðir vagnar á einum lista, með verði, svefnplássi og eigin þyngd. Síaðu eftir því sem skiptir þig máli." />
-      <div className="filters" data-open={open ? '1' : '0'}>
-        <button type="button" className="ftoggle" aria-expanded={open} onClick={() => setOpen(!open)}><SlidersHorizontal size={18} aria-hidden="true" />Síur{active ? ` (${active})` : ''}<ChevronDown className="chev" size={18} aria-hidden="true" /></button>
-        <div className="fbody">
-          <div className="frow"><span className="sign">Ástand</span><Chips name="Ástand" value={f.astand} onPick={(v) => set('astand', v)} opts={[['', 'Allt'], ['ny', 'Nýtt'], ['notad', 'Notað']]} /></div>
-          <div className="frow"><span className="sign">Tegund</span><Chips name="Tegund" value={f.tegund} onPick={(v) => set('tegund', v)} opts={[['', 'Allar'], ...KINDS.map((k) => [k.key, k.plural] as [string, string])]} /></div>
-          <div className="frow"><span className="sign">Merki</span><Chips name="Merki" value={f.merki} onPick={(v) => set('merki', v)} opts={[['', 'Öll'], ...BRAND_KEYS]} /></div>
-          <div className="frow"><span className="sign">Svefnpláss</span><Chips name="Svefnpláss" value={f.svefn} onPick={(v) => set('svefn', v)} opts={[['', 'Skiptir ekki'], ['3', '3 eða fleiri'], ['4', '4 eða fleiri'], ['5', '5 eða fleiri']]} /></div>
-          <div className="frow"><span className="sign">Eigin þyngd</span><Chips name="Eigin þyngd" value={f.thyngd} onPick={(v) => set('thyngd', v)} opts={[['', 'Skiptir ekki'], ['750', 'Allt að 750 kg'], ['1300', 'Allt að 1.300 kg'], ['1700', 'Allt að 1.700 kg']]} /></div>
-        </div>
-      </div>
-      <div className="ftools" style={{ marginBottom: 20 }}>
-        <p aria-live="polite"><b className="num">{items.length}</b> {items.length === 1 ? 'vagn' : 'vagnar'} í úrtakinu{active ? '' : ''}</p>
-        <label>Röðun{' '}
+    <div className="page"><div className="wrap">
+      <Title title={['Vagnar']} lede="Nýir og notaðir vagnar á einum lista, með verði, svefnplássi og eigin þyngd." />
+      <div className="fbar">
+        <p className="count" aria-live="polite"><span className="num">{items.length}</span> {items.length === 1 ? 'vagn' : 'vagnar'}</p>
+        <button type="button" className="chip" aria-expanded={open} aria-controls="fpanel" onClick={() => setOpen(!open)}><SlidersHorizontal size={15} aria-hidden="true" />{open ? 'Fela síur' : 'Síur'}{activeKeys.length ? ` (${activeKeys.length})` : ''}</button>
+        <label><span className="sr">Röðun</span>
           <select value={f.rod} onChange={(e) => set('rod', e.target.value === 'verd-upp' ? '' : e.target.value)}>
             {Object.entries(SORTS).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
           </select>
         </label>
       </div>
+      {open && (
+        <div className="fpanel" id="fpanel">
+          <div className="fg"><span>Ástand</span><Chips name="Ástand" value={f.astand} onPick={(v) => set('astand', v)} opts={[['', 'Allt'], ['ny', 'Nýtt'], ['notad', 'Notað']]} /></div>
+          <div className="fg"><span>Tegund</span><Chips name="Tegund" value={f.tegund} onPick={(v) => set('tegund', v)} opts={[['', 'Allar'], ...KINDS.map((k) => [k.key, k.plural] as [string, string])]} /></div>
+          <div className="fg"><span>Merki</span><Chips name="Merki" value={f.merki} onPick={(v) => set('merki', v)} opts={[['', 'Öll'], ...BRAND_KEYS]} /></div>
+          <div className="fg"><span>Svefnpláss</span><Chips name="Svefnpláss" value={f.svefn} onPick={(v) => set('svefn', v)} opts={[['', 'Skiptir ekki'], ['3', '3+'], ['4', '4+'], ['5', '5+']]} /></div>
+          <div className="fg"><span>Eigin þyngd</span><Chips name="Eigin þyngd" value={f.thyngd} onPick={(v) => set('thyngd', v)} opts={[['', 'Skiptir ekki'], ['750', 'Allt að 750 kg'], ['1300', 'Allt að 1.300 kg'], ['1700', 'Allt að 1.700 kg']]} /></div>
+        </div>
+      )}
+      {activeKeys.length > 0 && (
+        <div className="chips" style={{ marginBottom: 'var(--sp-sm)' }} aria-label="Virkar síur">
+          {activeKeys.map((k) => <button key={k} type="button" className="chip" aria-pressed="true" onClick={() => set(k, '')} aria-label={`Fjarlægja síu: ${FLABEL[k](sp.get(k)!)}`}>{FLABEL[k](sp.get(k)!)}<X size={14} aria-hidden="true" /></button>)}
+          <button type="button" className="chip" onClick={() => { const n = new URLSearchParams(); if (sp.get('rod')) n.set('rod', sp.get('rod')!); setSp(n, { replace: true }) }}>Hreinsa allt</button>
+        </div>
+      )}
       {items.length ? (
         <motion.ul className="ugrid" role="list" layout>
           <AnimatePresence mode="popLayout">
             {items.map((x) => (
-              <motion.li key={x.slug} layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}>
+              <motion.li key={x.slug} layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}>
                 <UnitCard x={x} />
               </motion.li>
             ))}
@@ -658,58 +792,94 @@ function CatalogPage() {
       ) : (
         <div className="empty">
           <h3>Enginn vagn passar</h3>
-          <p>Prófaðu að slaka á einni síu. Allt úrvalið hjá Víkurverki er stærra en úrtakið hér.</p>
-          <Btn label="Hreinsa síur" tone="ink" onClick={() => setSp(new URLSearchParams(), { replace: true })} />
+          <p className="muted">Prófaðu að slaka á einni síu. Allt úrvalið hjá Víkurverki er stærra en úrtakið hér.</p>
+          <Btn label="Hreinsa síur" onClick={() => setSp(new URLSearchParams(), { replace: true })} />
         </div>
       )}
       <p className="note">{SAMPLE_NOTE}</p>
-    </div><Towing /></div>
+      <Towing />
+    </div><div style={{ height: 'var(--sp-2xl)' }} /></div>
   )
 }
 
+/* ── the vehicle page (Lightship's AE.1 page) ───────────────────────────── */
+
 function DetailPage({ slug }: { slug: string }) {
   const x = unitBySlug(slug)
+  const [view, setView] = useState(0)
   if (!x) return <NotFound />
-  const keys: [string, string][] = [
-    ['Svefnpláss', x.sleeps ?? (x.year ? `Árg. ${x.year.split('/')[1]}` : 'Sjá bækling')],
+  const ext = x.imgs[0]
+  const inside = x.imgs.find((_, i) => i > 0) ?? x.imgs[0]
+  const views: { k: string; p: Photo; plan?: boolean }[] = [{ k: 'Að utan', p: ext }, { k: 'Að innan', p: inside }, ...(x.plan ? [{ k: 'Grunnmynd', p: x.plan, plan: true }] : [])]
+  const figs: [string, string][] = [
+    ['Svefnpláss', x.sleeps ?? '-'],
     ['Eigin þyngd', x.weight ? `${x.weight.toLocaleString('de-DE')} kg` : '-'],
-    ['Lengd', x.length ? `${x.length} cm` : x.reg ? `Nr. ${x.reg}` : '-'],
-  ]
+    ['Lengd húss', x.length ? `${x.length} cm` : '-'],
+    [x.cond === 'ny' ? 'Ástand' : 'Árgerð', x.cond === 'ny' ? 'Nýr' : (x.year ?? '-')],
+  ].filter(([, v]) => v !== '-') as [string, string][]
+  const rest = x.imgs.slice(1)
   return (
-    <div className="vv-page vv-detail"><div className="wrap">
-      <div className="dgrid">
-        <div className="dside">
-          <Link className="crumb tlink" to={to('vagnar')} style={{ border: 0, width: 'max-content' }} data-open=""><ArrowLeft size={16} aria-hidden="true" />Allir vagnar</Link>
-          <p className="sign muted" data-open="">{x.brand} · {kindLabel(x.kind)} · {x.cond === 'ny' ? 'Nýtt' : `Notað, árgerð ${x.year}`}</p>
-          <h1 translate="no"><Lines lines={[x.model]} /></h1>
-          <p className="price num" data-open="">{kr(x.price)}{x.flott && <span className="tag sign flott" style={{ marginLeft: 10, verticalAlign: 'middle' }}>Flott verð</span>}</p>
-          <div className="keys" data-open="">{keys.map(([k, v]) => <div key={k}><span className="sign">{k}</span><b className="num">{v}</b></div>)}</div>
-          <div className="dacts" data-open="">
-            <Btn to={`skodun?v=${x.slug}`} label="Bóka skoðun" tone="pine" />
-            <Btn to={`uppitaka?v=${x.slug}`} label="Taka minn upp í" tone="line" />
+    <>
+      <section className="dhero" aria-labelledby="h-unit" data-dhero="">
+        <div className="mask" data-hmask="">
+          <Pic p={ext} sizes="100vw" eager />
+          <Link className="crumb" to={to('vagnar')} data-open=""><ArrowLeft size={15} aria-hidden="true" />Allir vagnar</Link>
+          <div className="in">
+            <div>
+              <div className="meta" data-open=""><span className="pill">{x.brand} · {kindLabel(x.kind)}</span><span className="pill">{x.cond === 'ny' ? 'Nýtt' : `Notað, ${x.year}`}</span>{x.flott && <span className="pill pine">Flott verð</span>}</div>
+              <h1 id="h-unit" translate="no"><Lines lines={[x.model]} /></h1>
+            </div>
+            <p className="pr num" data-open="">{kr(x.price)}</p>
           </div>
-          <p className="fin" data-open="">Fjármögnun: Víkurverk vinnur með Ergo. <a href={ERGO} target="_blank" rel="noopener">Reiknaðu lánið</a>.</p>
-          <div data-open="">
-            <p className="sign muted" style={{ marginBottom: 6 }}>Söluráðgjafar</p>
+        </div>
+      </section>
+      <div className="edge"><div className="figs" data-rv-g="" style={{ '--n': figs.length } as CSSProperties}>{figs.map(([k, v]) => <div key={k}><b className="num">{v}</b><span>{k}</span></div>)}</div></div>
+      <div className="wrap">
+        <div className="dgrid">
+          <div className="dtext" data-rv="">{x.text.map((t) => <p key={t}>{t}</p>)}</div>
+          <aside className="dside" data-rv="">
+            <Btn to={`skodun?v=${x.slug}`} label="Bóka skoðun" size="lg" />
+            <Btn to={`uppitaka?v=${x.slug}`} label="Taka minn upp í" tone="grey" size="lg" />
+            <p className="fin">Fjármögnun: Víkurverk vinnur með Ergo. <a href={ERGO} target="_blank" rel="noopener">Reiknaðu lánið</a>.</p>
             <div className="sellers">
               {PEOPLE.slice(0, 3).map((p) => <a key={p.email} href={mailHref(p.email)}>{p.name}<span>{p.email}</span></a>)}
               <a href={`tel:${CONTACT.tel}`}>Sími<span className="num">{CONTACT.phone}</span></a>
             </div>
-          </div>
+          </aside>
         </div>
-        <div>
-          {x.plan && <div className="plan" data-media=""><Pic p={x.plan} sizes="(min-width: 900px) 60vw, 100vw" /></div>}
-          <div className="gal">{x.imgs.slice(0, 1 + Math.floor((Math.min(x.imgs.length, 5) - 1) / 2) * 2).map((p, i) => <Frame key={i} p={p} sizes={i === 0 ? '(min-width: 900px) 60vw, 100vw' : '(min-width: 900px) 30vw, 50vw'} parallax={false} />)}</div>
-          <dl className="specs">{x.specs.map(([k, v]) => <div key={k}><dt>{k}</dt><dd className="num">{v}</dd></div>)}</dl>
-          <div className="dtext">{x.text.map((t) => <p key={t}>{t}</p>)}</div>
+        <section className="views" aria-labelledby="h-views">
+          <div className="shead" style={{ marginBottom: 0 }}>
+            <h2 id="h-views" className="h-lg" data-rv="">Skoðaðu {x.model}</h2>
+            <div className="seg" role="group" aria-label="Sjónarhorn">{views.map((v, i) => <button key={v.k} type="button" aria-pressed={view === i} onClick={() => setView(i)}>{v.k}</button>)}</div>
+          </div>
+          <div className="stage" data-rv="">
+            {views.map((v, i) => <Pic key={v.k} className={`${v.plan ? 'plan ' : ''}${view === i ? 'on' : ''}`} p={v.p} sizes="(min-width: 1700px) 1600px, 100vw" />)}
+          </div>
+        </section>
+        {rest.length > 1 && (
+          <section className="sec" aria-label="Fleiri myndir" style={{ paddingTop: 'var(--sp-lg)' }}>
+            <Rail label="Fleiri myndir" cw="calc((100% - 2 * var(--gutter)) / 2.6)">
+              {rest.map((p, i) => <div key={i} className="pc" style={{ '--ar': '4 / 3' } as CSSProperties}><div className="ph"><Pic p={p} sizes="(min-width: 1000px) 40vw, 82vw" /></div></div>)}
+            </Rail>
+          </section>
+        )}
+        <section className="sheet" aria-labelledby="h-specs">
+          <div className="shead"><h2 id="h-specs" className="h-lg" data-rv="">Helstu upplýsingar</h2></div>
+          <div className="panel" data-rv=""><dl>{x.specs.map(([k, v]) => <div key={k}><dt>{k}</dt><dd className="num">{v}</dd></div>)}</dl></div>
           <div className="files">
-            {x.pdf && <Btn href={x.pdf} ext label="Bæklingur (PDF)" tone="line" icon={<Download size={17} aria-hidden="true" />} />}
-            {x.v360 && <Btn href={x.v360} ext label="360° skoðun" tone="line" icon={<ExternalLink size={17} aria-hidden="true" />} />}
+            {x.pdf && <Btn href={x.pdf} ext label="Bæklingur (PDF)" tone="grey" icon={<Download size={15} aria-hidden="true" />} />}
+            {x.v360 && <Btn href={x.v360} ext label="360° skoðun" tone="grey" icon={<ExternalLink size={15} aria-hidden="true" />} />}
           </div>
           <p className="note">Upplýsingar af {x.cond === 'ny' ? 'vikurverk.is og bæklingi Víkurverks' : 'söluskrá Víkurverks'}, 9. október 2026. Verð geta breyst.</p>
-        </div>
+        </section>
       </div>
-    </div></div>
+      <Tiles a={['Spurðu um þennan vagn', 'Söluráðgjafi svarar', `mailto:${CONTACT.email}`]} b={[`Bóka skoðun á ${x.model}`, 'Komdu og sjáðu', `skodun?v=${x.slug}`]} />
+      <div className="buybar" aria-label="Verð og skoðun">
+        <span className="bn"><b translate="no">{x.brand} {x.model}</b><span className="num">{kr(x.price)}</span></span>
+        <Btn href={`tel:${CONTACT.tel}`} label="Hringja" tone="glass" />
+        <Btn to={`skodun?v=${x.slug}`} label="Bóka skoðun" tone="white" className="bk" />
+      </div>
+    </>
   )
 }
 
@@ -717,39 +887,40 @@ function DetailPage({ slug }: { slug: string }) {
 
 function RentalList() {
   return (
-    <div className="vv-page"><div className="wrap">
-      <Intro title={['Leiga']} lede="Þrír vagnar til leigu, vika í senn frá fimmtudegi til miðvikudags. Sjáðu lausar vikur sumarsins 2027 og sendu beiðni." />
-      <ul className="rlist" role="list">
+    <Page>
+      <Title title={['Leiga']} lede="Þrír vagnar til leigu, vika í senn frá fimmtudegi til miðvikudags. Sjáðu lausar vikur sumarsins 2027 og sendu beiðni." />
+      <ul className="rlist" role="list" data-rv-g="">
         {RENTALS.map((r) => {
-          const fw = freeWeeks(r.key, 4)
+          const fw = freeWeeks(r.key, 3)
           return (
-            <li key={r.key} className="rrow">
-              <div className="ph"><Pic p={r.img} sizes="(min-width: 900px) 34vw, 100vw" /></div>
-              <div className="bd">
-                <span className="sign muted">{r.short} · svefnpláss {r.sleeps}</span>
-                <h2 translate="no">{r.name}</h2>
-                <p className="num"><b style={{ fontSize: 22 }}>{kr(r.price)}</b> á viku{r.peak ? `, ${kr(r.peak)} vikuna um verslunarmannahelgi` : ''}</p>
-                <p className="muted">{r.text}</p>
-                <p className="sign" style={{ marginTop: 6 }}>Næstu lausu vikur</p>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{fw.map((w) => <span key={w.i} className="tag sign num">{w.label}</span>)}</div>
-                <div style={{ marginTop: 10 }}><Btn to={`leiga/${r.key}`} label="Velja vikur" tone="pine" icon={<ArrowRight size={18} aria-hidden="true" />} /></div>
-              </div>
+            <li key={r.key}>
+              <Link className="rcard" to={to(`leiga/${r.key}`)}>
+                <div className="ph zoom"><Pic p={r.img} sizes="(min-width: 900px) 32vw, 100vw" /></div>
+                <div className="bd">
+                  <span className="eyebrow">{r.short} · svefnpláss {r.sleeps}</span>
+                  <h2 translate="no">{r.name}</h2>
+                  <p className="pp num">{kr(r.price)} á viku{r.peak ? <span className="muted">, {kr(r.peak)} um verslunarmannahelgi</span> : ''}</p>
+                  <p className="muted small">{r.text}</p>
+                  <div className="free">{fw.map((w) => <span key={w.i} className="num">{w.label}</span>)}</div>
+                  <span className="btn grey sm" style={{ marginTop: 6 }}><span className="lbl"><span>Velja vikur</span><span aria-hidden="true">Velja vikur</span></span>{ARROW}</span>
+                </div>
+              </Link>
             </li>
           )
         })}
       </ul>
-      <section style={{ marginTop: 'var(--sec)' }} aria-labelledby="h-terms" className="book-grid">
+      <section style={{ marginTop: 'var(--sp-xl)' }} aria-labelledby="h-terms" className="book-grid">
         <div>
-          <h2 id="h-terms" data-chars="">Skilmálar í stuttu máli</h2>
+          <h2 id="h-terms" className="h-md" data-rv="">Skilmálar í stuttu máli</h2>
           <ul className="terms" style={{ marginTop: 24 }}>{RENTAL_TERMS.map((t) => <li key={t}>{t}</li>)}</ul>
         </div>
-        <aside className="aside">
-          <h3>Aukalega</h3>
-          {Object.values(EXTRAS).map((e) => <p key={e.label}><b style={{ color: 'var(--ink)' }}>{e.label}: {kr(e.price)}.</b> {e.note}</p>)}
+        <aside className="sumbox" aria-label="Aukalega">
+          {Object.values(EXTRAS).map((e) => <div key={e.label}><span>{e.label}<br /><small className="muted">{e.note}</small></span><span className="num">{kr(e.price)}</span></div>)}
         </aside>
       </section>
       <p className="note">Dagatalið sýnir sumarið 2027 sett upp eins og sumarið 2026 á vikurverk.is (fimmtudagur til miðvikudags, 13. maí til 15. sept.) með verðum ársins 2026. Bókaðar vikur eru sýnishorn.</p>
-    </div></div>
+      <div style={{ height: 'var(--sp-xl)' }} />
+    </Page>
   )
 }
 
@@ -775,10 +946,10 @@ function RentalPage({ r }: { r: Rental }) {
       detail: `${r.key}:${sel.join(',')}:${ex.join('+') || 'ekkert aukalega'}:${kr(rent + extras)}` }))
     window.scrollTo({ top: 0, behavior: still() ? 'auto' : 'smooth' })
   }
-  if (done) return <div className="vv-page"><div className="wrap"><Done r={done} back={<Btn to="leiga" label="Aftur í leigu" tone="pine" />} /></div></div>
+  if (done) return <Page><Done r={done} back={<Btn to="leiga" label="Aftur í leigu" />} /><div style={{ height: 'var(--sp-xl)' }} /></Page>
   return (
-    <div className="vv-page"><div className="wrap">
-      <Intro crumb={{ to: 'leiga', label: 'Allir leiguvagnar' }} title={[r.name]} lede={`${r.text} ${kr(r.price)} á viku${r.peak ? `, ${kr(r.peak)} vikuna um verslunarmannahelgi` : ''}.`} />
+    <Page>
+      <Title crumb={{ to: 'leiga', label: 'Allir leiguvagnar' }} title={[r.name]} lede={`${r.text} ${kr(r.price)} á viku${r.peak ? `, ${kr(r.peak)} vikuna um verslunarmannahelgi` : ''}.`} />
       <div className="book-grid">
         <form className="form" onSubmit={submit} noValidate style={{ maxWidth: 'none' }}>
           <fieldset>
@@ -789,7 +960,7 @@ function RentalPage({ r }: { r: Rental }) {
                 return (
                   <button key={w.i} type="button" className="wk" disabled={b} aria-pressed={sel.includes(w.i)} data-peak={w.peak && r.peak ? '1' : '0'} onClick={() => flip(w.i)}
                     aria-label={`${w.label}${b ? ', bókuð' : `, ${kr(w.peak && r.peak ? r.peak : r.price)}`}${w.peak && r.peak ? ', verslunarmannahelgi' : ''}`}>
-                    <span className="sign num">Vika {w.i + 1}</span>
+                    <span className="s num">Vika {w.i + 1}</span>
                     <span className="d num">{w.label}</span>
                     <span className="p num">{b ? 'Bókuð' : kr(w.peak && r.peak ? r.peak : r.price)}</span>
                   </button>
@@ -804,29 +975,28 @@ function RentalPage({ r }: { r: Rental }) {
             {r.extras.map((k) => (
               <label key={k} className="check">
                 <input type="checkbox" checked={ex.includes(k)} onChange={() => setEx((s) => (s.includes(k) ? s.filter((x) => x !== k) : [...s, k]))} />
-                <span style={{ margin: 0, fontWeight: 500 }}>{EXTRAS[k].label}, {kr(EXTRAS[k].price)}<small className="hint" style={{ marginTop: 2 }}>{EXTRAS[k].note}</small></span>
+                <span style={{ margin: 0 }}>{EXTRAS[k].label}, {kr(EXTRAS[k].price)}<small className="hint" style={{ marginTop: 2 }}>{EXTRAS[k].note}</small></span>
               </label>
             ))}
           </fieldset>
           <Contact err={err} emailRequired />
           <label htmlFor="f-fjoldi"><span>Hversu mörg verða með? (valfrjálst)</span><input id="f-fjoldi" name="fjoldi" inputMode="numeric" /></label>
-          <div className="acts"><Btn type="submit" label="Senda leigubeiðni" tone="pine" /></div>
+          <div className="acts"><Btn type="submit" label="Senda leigubeiðni" size="lg" /></div>
           <p className="proto-note">Víkurverk staðfestir og sendir greiðsluhlekk; ekkert er rukkað hér.</p>
         </form>
         <aside className="aside" aria-label="Samantekt">
-          <div className="sumbox" style={{ '--p': sel.length ? 1 : 0 } as CSSProperties}>
-            <span className="sw" aria-hidden="true" />
+          <div className="sumbox">
             <div><span>Vikur</span><span className="num">{sel.length || '-'}</span></div>
             <div><span>Leiga</span><span className="num">{kr(rent)}</span></div>
             <div><span>Aukalega</span><span className="num">{kr(extras)}</span></div>
             <div><span>Samtals</span><span className="num">{kr(rent + extras)}</span></div>
           </div>
-          <Frame p={r.imgs[0] ?? r.img} sizes="(min-width: 900px) 34vw, 100vw" parallax={false} />
-          <dl className="specs" style={{ marginTop: 0 }}>{r.specs.map(([k, v]) => <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '9px 0', borderBottom: '1px solid var(--line)' }}><dt className="muted">{k}</dt><dd className="num" style={{ fontWeight: 600 }}>{v}</dd></div>)}</dl>
-          <ul className="terms">{RENTAL_TERMS.slice(0, 3).map((t) => <li key={t}>{t}</li>)}</ul>
+          <div className="ph"><Pic p={r.imgs[0] ?? r.img} sizes="(min-width: 900px) 34vw, 100vw" /></div>
+          <dl className="terms">{r.specs.map(([k, v]) => <li key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}><dt>{k}</dt><dd className="num" style={{ color: 'var(--ink)' }}>{v}</dd></li>)}</dl>
         </aside>
       </div>
-    </div></div>
+      <div style={{ height: 'var(--sp-xl)' }} />
+    </Page>
   )
 }
 
@@ -863,7 +1033,7 @@ function weeksAhead(n = 8) {
 function Picked({ x }: { x: Unit }) {
   return (
     <div className="picked">
-      <Pic p={x.plan ?? x.imgs[0]} sizes="110px" />
+      <Pic p={x.imgs[0]} sizes="110px" />
       <div><b translate="no">{unitName(x)}</b><span className="num">{kr(x.price)} · {x.cond === 'ny' ? 'Nýtt' : `Notað, ${x.year}`}</span></div>
     </div>
   )
@@ -891,10 +1061,10 @@ function ViewingPage() {
     setDone(saveRequest({ kind: 'skodun', title: unitName(x), when: `${days.find((d) => d.v === dag)?.label}, kl. ${timi}`, who: c.nafn, contact: `${c.simi}${c.netfang ? `, ${c.netfang}` : ''}`, detail: extra || 'Skoðun' }))
     window.scrollTo({ top: 0, behavior: still() ? 'auto' : 'smooth' })
   }
-  if (done) return <div className="vv-page"><div className="wrap"><Done r={done} back={<Btn to="vagnar" label="Aftur í vagna" tone="pine" />} /></div></div>
+  if (done) return <Page><Done r={done} back={<Btn to="vagnar" label="Aftur í vagna" />} /><div style={{ height: 'var(--sp-xl)' }} /></Page>
   return (
-    <div className="vv-page"><div className="wrap">
-      <Intro title={['Bóka skoðun']} lede="Veldu vagn, dag og tíma. Söluráðgjafi tekur á móti þér í Víkurhvarfi 6." />
+    <Page>
+      <Title title={['Bóka skoðun']} lede="Veldu vagn, dag og tíma. Söluráðgjafi tekur á móti þér í Víkurhvarfi 6." />
       <div className="book-grid">
         <form className="form" onSubmit={submit} noValidate>
           <label htmlFor="f-v"><span>Vagn</span>
@@ -912,18 +1082,19 @@ function ViewingPage() {
             </label>
           </div>
           <Contact err={err} />
-          <label className="check"><input type="checkbox" name="fjarmognun" /><span style={{ margin: 0, fontWeight: 500 }}>Ég vil skoða fjármögnun hjá Ergo</span></label>
-          <label className="check"><input type="checkbox" name="uppi" /><span style={{ margin: 0, fontWeight: 500 }}>Ég á vagn sem ég vil taka upp í</span></label>
-          <div className="acts"><Btn type="submit" label="Bóka skoðun" tone="pine" /></div>
+          <label className="check"><input type="checkbox" name="fjarmognun" /><span style={{ margin: 0 }}>Ég vil skoða fjármögnun hjá Ergo</span></label>
+          <label className="check"><input type="checkbox" name="uppi" /><span style={{ margin: 0 }}>Ég á vagn sem ég vil taka upp í</span></label>
+          <div className="acts"><Btn type="submit" label="Bóka skoðun" size="lg" /></div>
         </form>
         <aside className="aside">
           <h3>Opið til skoðunar</h3>
           <p>{HOURS.shopWinter}.</p>
           <p>{HOURS.shopSummer}.</p>
-          <Frame p={photo('showroom', 'Sýningarsalur Víkurverks')} sizes="(min-width: 900px) 34vw, 100vw" parallax={false} />
+          <div className="ph"><Pic p={photo('showroom', 'Sýningarsalur Víkurverks')} sizes="(min-width: 900px) 34vw, 100vw" /></div>
         </aside>
       </div>
-    </div></div>
+      <div style={{ height: 'var(--sp-xl)' }} />
+    </Page>
   )
 }
 
@@ -949,10 +1120,10 @@ function TradeInPage() {
       detail: `Fastanúmer ${fn}. ${fd.get('leid')}. Ástand: ${fd.get('astand')}.${files.length ? ` Myndir: ${files.join(', ')}.` : ''}` }))
     window.scrollTo({ top: 0, behavior: still() ? 'auto' : 'smooth' })
   }
-  if (done) return <div className="vv-page"><div className="wrap"><Done r={done} back={<Btn to="vagnar" label="Skoða vagna" tone="pine" />} /></div></div>
+  if (done) return <Page><Done r={done} back={<Btn to="vagnar" label="Skoða vagna" />} /><div style={{ height: 'var(--sp-xl)' }} /></Page>
   return (
-    <div className="vv-page"><div className="wrap">
-      <Intro title={['Taka upp í']} lede="Sendu upplýsingar um vagninn þinn. Söluráðgjafi metur hann, upp í nýjan vagn eða í umboðssölu hjá Víkurverki." />
+    <Page>
+      <Title title={['Taka upp í']} lede="Sendu upplýsingar um vagninn þinn. Söluráðgjafi metur hann, upp í nýjan vagn eða í umboðssölu hjá Víkurverki." />
       <div className="book-grid">
         <form className="form" onSubmit={submit} noValidate>
           <div className="two">
@@ -968,7 +1139,7 @@ function TradeInPage() {
           <label htmlFor="f-myndir"><span>Myndir (valfrjálst)</span><input id="f-myndir" type="file" accept="image/*" multiple onChange={(e) => setFiles([...(e.target.files ?? [])].map((f) => f.name))} />
             <small className="hint">{files.length ? files.join(', ') : 'Að utan, að innan og af aukabúnaði. Í frumgerðinni fer engin mynd neitt.'}</small></label>
           <Contact err={err} />
-          <div className="acts"><Btn type="submit" label="Senda til mats" tone="pine" /></div>
+          <div className="acts"><Btn type="submit" label="Senda til mats" size="lg" /></div>
         </form>
         <aside className="aside">
           <h3>Hvað gerist næst</h3>
@@ -980,7 +1151,8 @@ function TradeInPage() {
           <p>Engin skuldbinding. Kílómetrastaða er ekki spurð um; hjólhýsi eru ekki með mæli.</p>
         </aside>
       </div>
-    </div></div>
+      <div style={{ height: 'var(--sp-xl)' }} />
+    </Page>
   )
 }
 
@@ -1005,10 +1177,10 @@ function WorkshopPage() {
       detail: `Fastanúmer ${fn}.${svc === 'tjon' ? ` Tjónsnúmer ${fd.get('tjonsnr')}.` : ''} ${fd.get('lysing') || ''}`.trim() }))
     window.scrollTo({ top: 0, behavior: still() ? 'auto' : 'smooth' })
   }
-  if (done) return <div className="vv-page"><div className="wrap"><Done r={done} back={<Btn to="" label="Á forsíðu" tone="pine" />} /></div></div>
+  if (done) return <Page><Done r={done} back={<Btn to="" label="Á forsíðu" />} /><div style={{ height: 'var(--sp-xl)' }} /></Page>
   return (
-    <div className="vv-page"><div className="wrap">
-      <Intro title={['Bóka verkstæði']} lede="Veldu þjónustu og viku. Verkstæðið staðfestir tímann; móttakan er austan megin við húsið." />
+    <Page>
+      <Title title={['Bóka verkstæði']} lede="Veldu þjónustu og viku. Verkstæðið staðfestir tímann; móttakan er austan megin við húsið." />
       <div className="book-grid">
         <form className="form" onSubmit={submit} noValidate>
           <fieldset><legend>Þjónusta</legend>
@@ -1025,43 +1197,194 @@ function WorkshopPage() {
           </label>
           <label htmlFor="f-lysing"><span>Lýsing (valfrjálst)</span><textarea id="f-lysing" name="lysing" placeholder="Hvað á að gera, eða hvað er að?" /></label>
           <Contact err={err} />
-          <div className="acts"><Btn type="submit" label="Senda beiðni" tone="pine" /></div>
+          <div className="acts"><Btn type="submit" label="Senda beiðni" size="lg" /></div>
         </form>
         <aside className="aside">
           <h3>Gott að vita</h3>
           <ul className="terms">{WORKSHOP_FACTS.map((f) => <li key={f}>{f}</li>)}</ul>
-          <p><b style={{ color: 'var(--ink)' }}>{HOURS.workshop}.</b> {CONTACT.workshop}, sími {CONTACT.phone}.</p>
-          <Frame p={photo('workshop-2', 'Unnið í innréttingu hjólhýsis á verkstæði Víkurverks')} sizes="(min-width: 900px) 34vw, 100vw" parallax={false} />
+          <p><span style={{ color: 'var(--ink)' }}>{HOURS.workshop}.</span> {CONTACT.workshop}, sími {CONTACT.phone}.</p>
+          <div className="ph"><Pic p={photo('workshop-2', 'Unnið í innréttingu hjólhýsis á verkstæði Víkurverks')} sizes="(min-width: 900px) 34vw, 100vw" /></div>
         </aside>
       </div>
-    </div></div>
+      <div style={{ height: 'var(--sp-xl)' }} />
+    </Page>
   )
 }
 
-/* ── shop + trip list ───────────────────────────────────────────────────── */
+/* ── shop (Mammut: filter rail, open grid, product page, "added" panel) ── */
+
+const PRICES: [string, string, (n: number) => boolean][] = [
+  ['', 'Öll verð', () => true],
+  ['u10', 'Undir 10.000 kr.', (n) => n < 10000],
+  ['10-50', '10.000-50.000 kr.', (n) => n >= 10000 && n <= 50000],
+  ['o50', 'Yfir 50.000 kr.', (n) => n > 50000],
+]
+const PSORT: Record<string, { label: string; fn: (a: Product, b: Product) => number }> = {
+  vinsaelt: { label: 'Vinsælast', fn: () => 0 },
+  'verd-upp': { label: 'Verð: lægst fyrst', fn: (a, b) => a.price - b.price },
+  'verd-nidur': { label: 'Verð: hæst fyrst', fn: (a, b) => b.price - a.price },
+}
+const P_BRANDS = [...new Set(PRODUCTS.map((p) => p.brand).filter(Boolean))] as string[]
 
 function ShopPage() {
   const [sp, setSp] = useSearchParams()
+  const [drawer, setDrawer] = useState(false)
   const cat = sp.get('flokkur') ?? ''
-  const list = useList()
-  const items = PRODUCTS.filter((p) => !cat || p.cat === cat)
-  return (
-    <div className="vv-page"><div className="wrap">
-      <Intro title={['Verslun']} lede="Fortjöld, grill, stólar, kælibox og það sem vagninn þarf. Frí heimsending á pöntunum yfir 20.000 kr." />
-      <div className="ftools" style={{ marginBottom: 20 }}>
-        <Chips name="Flokkur" value={cat} onPick={(v) => { const n = new URLSearchParams(sp); if (v) n.set('flokkur', v); else n.delete('flokkur'); setSp(n, { replace: true }) }}
-          opts={[['', 'Allt'], ...SHOP_CATS.map((c) => [c.key, c.label] as [string, string])]} />
-        <Link className="tlink" to={to('ferdalistinn')}>Ferðalistinn ({listCount(list)}) <ArrowRight size={16} aria-hidden="true" /></Link>
+  const brand = sp.get('merki') ?? ''
+  const price = sp.get('verd') ?? ''
+  const rod = sp.get('rod') ?? 'vinsaelt'
+  const set = (k: string, v: string) => { const n = new URLSearchParams(sp); if (v) n.set(k, v); else n.delete(k); setSp(n, { replace: true }) }
+  const pf = PRICES.find((x) => x[0] === price)?.[2] ?? (() => true)
+  const items = PRODUCTS.filter((p) => (!cat || p.cat === cat) && (!brand || p.brand === brand) && pf(p.price)).sort((PSORT[rod] ?? PSORT.vinsaelt).fn)
+  const active = [cat && ['flokkur', SHOP_CATS.find((c) => c.key === cat)?.label ?? cat], brand && ['merki', brand], price && ['verd', PRICES.find((x) => x[0] === price)?.[1] ?? price]].filter(Boolean) as [string, string][]
+  const rail = (
+    <>
+      <div className="fg"><span>Flokkur</span>
+        <ul className="opts-list">{[['', 'Allt', PRODUCTS.length] as [string, string, number], ...SHOP_CATS.map((c) => [c.key, c.label, c.count] as [string, string, number])].map(([k, l, n]) => (
+          <li key={k || 'all'}><button type="button" aria-pressed={cat === k} onClick={() => set('flokkur', k)}><span>{l}</span><small className="num">{n}</small></button></li>
+        ))}</ul>
       </div>
-      <motion.ul className="pgrid" role="list" layout>
-        <AnimatePresence mode="popLayout">
-          {items.map((p) => (
-            <motion.li key={p.slug} layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}><ProductCard p={p} /></motion.li>
-          ))}
-        </AnimatePresence>
-      </motion.ul>
-      <p className="note">{SHOP_NOTE} Flokkarnir eru {SHOP_CATS.map((c) => `${c.label} (${c.count})`).join(', ')} og fleiri.</p>
-    </div></div>
+      <div className="fg"><span>Merki</span><Chips name="Merki" value={brand} onPick={(v) => set('merki', v)} opts={[['', 'Öll'], ...P_BRANDS.map((b) => [b, b] as [string, string])]} /></div>
+      <div className="fg"><span>Verð</span><Chips name="Verð" value={price} onPick={(v) => set('verd', v)} opts={PRICES.map(([k, l]) => [k, l] as [string, string])} /></div>
+    </>
+  )
+  useEffect(() => {
+    if (!drawer) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setDrawer(false) }
+    document.addEventListener('keydown', onKey)
+    pageLenis?.stop()
+    return () => { document.removeEventListener('keydown', onKey); pageLenis?.start() }
+  }, [drawer])
+  return (
+    <Page>
+      <Title title={['Verslun']} lede="Fortjöld, grill, stólar, kælibox og það sem vagninn þarf. Frí heimsending á pöntunum yfir 20.000 kr." />
+      <div className="shop">
+        <aside className="frail" aria-label="Síur">{rail}</aside>
+        <div className="results">
+          <div className="fbar">
+            <p className="count" aria-live="polite"><span className="num">{items.length}</span> vörur í úrtakinu</p>
+            <button type="button" className="chip only-s" onClick={() => setDrawer(true)} aria-haspopup="dialog"><SlidersHorizontal size={15} aria-hidden="true" />Síur{active.length ? ` (${active.length})` : ''}</button>
+            <label><span className="sr">Röðun</span>
+              <select value={rod} onChange={(e) => set('rod', e.target.value === 'vinsaelt' ? '' : e.target.value)}>{Object.entries(PSORT).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}</select>
+            </label>
+          </div>
+          {active.length > 0 && (
+            <div className="chips" style={{ marginBottom: 'var(--sp-sm)' }} aria-label="Virkar síur">
+              {active.map(([k, l]) => <button key={k} type="button" className="chip" aria-pressed="true" onClick={() => set(k, '')} aria-label={`Fjarlægja síu: ${l}`}>{l}<X size={14} aria-hidden="true" /></button>)}
+            </div>
+          )}
+          {items.length ? (
+            <motion.ul className="pgrid" role="list" layout>
+              <AnimatePresence mode="popLayout">
+                {items.map((p) => (
+                  <motion.li key={p.slug} layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}><ProductCard p={p} /></motion.li>
+                ))}
+              </AnimatePresence>
+            </motion.ul>
+          ) : (
+            <div className="empty"><h3>Engin vara passar</h3><p className="muted">Prófaðu að slaka á einni síu.</p><Btn label="Hreinsa síur" onClick={() => setSp(new URLSearchParams(), { replace: true })} /></div>
+          )}
+          <p className="note">{SHOP_NOTE} Flokkarnir eru {SHOP_CATS.map((c) => `${c.label} (${c.count})`).join(', ')} og fleiri.</p>
+        </div>
+      </div>
+      {drawer && (
+        <div className="fdrawer" role="dialog" aria-modal="true" aria-label="Síur" data-lenis-prevent="">
+          <button type="button" className="scrim" aria-label="Loka síum" onClick={() => setDrawer(false)} />
+          <div className="sheet-in">
+            <div className="dtop"><b>Síur</b><button type="button" className="ibtn" onClick={() => setDrawer(false)} aria-label="Loka síum"><X size={16} aria-hidden="true" /></button></div>
+            <div className="dbody">{rail}</div>
+            <div className="dfoot"><Btn label={`Sýna ${items.length} vörur`} onClick={() => setDrawer(false)} size="lg" className="w100" /></div>
+          </div>
+        </div>
+      )}
+      <div style={{ height: 'var(--sp-xl)' }} />
+    </Page>
+  )
+}
+
+function ProductPage({ slug }: { slug: string }) {
+  const p = productBySlug(slug)
+  const list = useList()
+  const [qty, setQ] = useState(1)
+  const [openAcc, setOpenAcc] = useState(0)
+  if (!p) return <NotFound />
+  const line = list.find((l) => l.slug === p.slug)
+  const catLabel = SHOP_CATS.find((c) => c.key === p.cat)?.label ?? 'Verslun'
+  const fits = PRODUCTS.filter((x) => x.slug !== p.slug && (x.cat === p.cat || (p.cat === 'grill' && x.cat === 'grill'))).slice(0, 4)
+  const more = fits.length < 4 ? [...fits, ...PRODUCTS.filter((x) => x.slug !== p.slug && !fits.includes(x)).slice(0, 4 - fits.length)] : fits
+  const add = () => { setQty(p.slug, (line?.qty ?? 0) + qty); window.dispatchEvent(new CustomEvent(ADDED, { detail: p.slug })) }
+  const ACC: [string, ReactNode][] = [
+    ['Um vöruna', <p key="a">{p.desc} {p.brand ? `Framleiðandi: ${p.brand}.` : ''}</p>],
+    ['Afhending', <p key="b">Send heim eða sótt í Víkurhvarf 6. Frí heimsending á pöntunum yfir {kr(FREE_SHIPPING)}.</p>],
+    ['Passar þetta?', <p key="c">Ertu ekki viss um hvort varan passar á vagninn þinn? Hringdu í {CONTACT.phone} eða spurðu í versluninni með gerð og árgerð vagnsins.</p>],
+  ]
+  return (
+    <Page className="pdp">
+      <Link className="crumb tlink" to={to(`verslun?flokkur=${p.cat}`)} style={{ marginBottom: 16, textDecoration: 'none' }}><ArrowLeft size={15} aria-hidden="true" />{catLabel}</Link>
+      <div className="pdp-grid">
+        <div className="gal" data-intro="">
+          <div className="stagep" data-open=""><Pic p={p.img} sizes="(min-width: 1024px) 55vw, 100vw" eager /></div>
+        </div>
+        <div className="buy">
+          <div className="buy-in">
+            {p.brand && <p className="eyebrow" data-open="">{p.brand}</p>}
+            <h1 className="h-md"><Lines lines={[p.name]} /></h1>
+            <p className="pr num" data-open="">{kr(p.price)}</p>
+            <p className="muted" data-open="">{p.desc}</p>
+            <div className="row-buy" data-open="">
+              <div className="qty" aria-label="Magn">
+                <button type="button" aria-label="Fækka" onClick={() => setQ(Math.max(1, qty - 1))}><Minus size={15} aria-hidden="true" /></button>
+                <span className="num" aria-live="polite">{qty}</span>
+                <button type="button" aria-label="Fjölga" onClick={() => setQ(qty + 1)}><Plus size={15} aria-hidden="true" /></button>
+              </div>
+              <Btn label={line ? `Bæta við (${line.qty} á lista)` : 'Setja á ferðalistann'} onClick={add} size="lg" className="grow" />
+            </div>
+            <ul className="facts" data-open="">
+              <li><Check size={15} aria-hidden="true" />Frí heimsending yfir {kr(FREE_SHIPPING)}</li>
+              <li><Check size={15} aria-hidden="true" />Sótt í Víkurhvarf 6, {HOURS.shopWinter.split(':')[1]?.trim()}</li>
+            </ul>
+            <ul className="pacc" role="list">
+              {ACC.map(([t, body], i) => (
+                <li key={t} className={`acc${openAcc === i ? ' is-open' : ''}`}>
+                  <h2><button type="button" className="acc-b" aria-expanded={openAcc === i} aria-controls={`pa-${i}`} onClick={() => setOpenAcc(openAcc === i ? -1 : i)}><span>{t}</span><span className="pm" aria-hidden="true" /></button></h2>
+                  <div className="acc-p" id={`pa-${i}`}><div>{body}</div></div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+      <section className="sec" aria-labelledby="h-fits">
+        <div className="shead"><h2 id="h-fits" className="h-lg" data-rv="">Passar með</h2></div>
+        <ul className="pgrid" role="list" data-rv-g="">{more.map((x) => <li key={x.slug}><ProductCard p={x} /></li>)}</ul>
+      </section>
+      <p className="note">{SHOP_NOTE}</p>
+      <div style={{ height: 'var(--sp-xl)' }} />
+    </Page>
+  )
+}
+
+/* the small "added" panel (Mammut: confirm the exact item, keep browsing) */
+function AddedPanel() {
+  const [slug, setSlug] = useState<string | null>(null)
+  const list = useList()
+  useEffect(() => {
+    let t = 0
+    const on = (e: Event) => { setSlug((e as CustomEvent<string>).detail); window.clearTimeout(t); t = window.setTimeout(() => setSlug(null), 5000) }
+    window.addEventListener(ADDED, on)
+    return () => { window.removeEventListener(ADDED, on); window.clearTimeout(t) }
+  }, [])
+  const p = slug ? productBySlug(slug) : undefined
+  return (
+    <AnimatePresence>
+      {p && (
+        <motion.div className="added" role="status" aria-live="polite" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} transition={{ duration: 0.3, ease: [0.19, 1, 0.22, 1] }}>
+          <div className="atop"><b>Komið á ferðalistann</b><button type="button" className="ibtn" aria-label="Loka" onClick={() => setSlug(null)}><X size={15} aria-hidden="true" /></button></div>
+          <div className="aitem"><img src={p.img.src} alt="" width={64} height={64} /><span><span className="nm">{p.name}</span><small className="num">{kr(p.price)} · {listCount(list)} vörur á listanum</small></span></div>
+          <div className="aacts"><Btn label="Halda áfram" tone="grey" onClick={() => setSlug(null)} /><Btn to="ferdalistinn" label="Opna listann" onClick={() => setSlug(null)} /></div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -1087,10 +1410,10 @@ function TripPage() {
     clearList()
     window.scrollTo({ top: 0, behavior: still() ? 'auto' : 'smooth' })
   }
-  if (done) return <div className="vv-page"><div className="wrap"><Done r={done} back={<Btn to="verslun" label="Aftur í verslun" tone="pine" />} /></div></div>
+  if (done) return <Page><Done r={done} back={<Btn to="verslun" label="Aftur í verslun" />} /><div style={{ height: 'var(--sp-xl)' }} /></Page>
   return (
-    <div className="vv-page"><div className="wrap">
-      <Intro title={['Ferðalistinn']} lede="Byrjaðu á tilbúnum lista fyrir ferðina, eða safnaðu vörum úr versluninni. Lagaðu magnið og sendu pöntunina." />
+    <Page>
+      <Title title={['Ferðalistinn']} lede="Byrjaðu á tilbúnum lista fyrir ferðina, eða safnaðu vörum úr versluninni. Lagaðu magnið og sendu pöntunina." />
       <div className="tabs" role="group" aria-label="Byrja á lista">
         {TRIPS.map((t) => <button key={t.key} type="button" className="chip" aria-pressed={trip === t.key} onClick={() => { loadTrip(t.key); setTrip(t.key) }}>{t.label}</button>)}
       </div>
@@ -1104,16 +1427,16 @@ function TripPage() {
                   <li key={l.slug} className="tli">
                     <Pic p={p.img} sizes="72px" />
                     <div><b>{p.name}</b><small className="num">{kr(p.price)} stk.{p.brand ? ` · ${p.brand}` : ''}</small></div>
-                    <div className="qty"><button type="button" aria-label={`Fækka ${p.name}`} onClick={() => setQty(l.slug, l.qty - 1)}><Minus size={16} aria-hidden="true" /></button><span className="num" aria-live="polite">{l.qty}</span><button type="button" aria-label={`Fjölga ${p.name}`} onClick={() => setQty(l.slug, l.qty + 1)}><Plus size={16} aria-hidden="true" /></button></div>
-                    <button type="button" className="rm" aria-label={`Taka ${p.name} af listanum`} onClick={() => setQty(l.slug, 0)}><Trash2 size={18} aria-hidden="true" /></button>
+                    <div className="qty"><button type="button" aria-label={`Fækka ${p.name}`} onClick={() => setQty(l.slug, l.qty - 1)}><Minus size={15} aria-hidden="true" /></button><span className="num" aria-live="polite">{l.qty}</span><button type="button" aria-label={`Fjölga ${p.name}`} onClick={() => setQty(l.slug, l.qty + 1)}><Plus size={15} aria-hidden="true" /></button></div>
+                    <button type="button" className="rm" aria-label={`Taka ${p.name} af listanum`} onClick={() => setQty(l.slug, 0)}><Trash2 size={17} aria-hidden="true" /></button>
                   </li>
                 )
               })}
             </ul>
           ) : (
-            <div className="empty"><h3>Listinn er tómur</h3><p>Veldu ferð hér að ofan eða settu vörur á listann í versluninni.</p><Btn to="verslun" label="Í verslun" tone="ink" /></div>
+            <div className="empty"><h3>Listinn er tómur</h3><p className="muted">Veldu ferð hér að ofan eða settu vörur á listann í versluninni.</p><Btn to="verslun" label="Í verslun" /></div>
           )}
-          {err.listi && <p className="err" role="alert" style={{ color: '#B00012', marginTop: 10 }}>{err.listi}</p>}
+          {err.listi && <p className="err" role="alert" style={{ color: 'var(--err)', marginTop: 10 }}>{err.listi}</p>}
         </div>
         <aside className="aside" aria-label="Pöntun">
           <div className="sumbox">
@@ -1122,17 +1445,18 @@ function TripPage() {
           </div>
           <div>
             <div className="ship" aria-hidden="true"><i style={{ transform: `scaleX(${Math.min(1, total / FREE_SHIPPING)})` }} /></div>
-            <p style={{ fontSize: 14 }}>{toFree ? `${kr(toFree)} upp í fría heimsendingu.` : 'Frí heimsending.'}</p>
+            <p className="small">{toFree ? `${kr(toFree)} upp í fría heimsendingu.` : 'Frí heimsending.'}</p>
           </div>
           <form className="form" onSubmit={submit} noValidate>
             <fieldset><legend>Afhending</legend><div className="opts">{['Senda heim', 'Sækja í Víkurhvarf'].map((a, i) => <label key={a} className="opt"><input type="radio" name="afh" value={a} defaultChecked={i === 0} /><span>{a}</span></label>)}</div></fieldset>
             <Contact err={err} />
-            <div className="acts"><Btn type="submit" label="Senda pöntun" tone="pine" /></div>
+            <div className="acts"><Btn type="submit" label="Senda pöntun" size="lg" /></div>
             <p className="proto-note">Í vef Víkurverks færi þetta beint í körfu vefverslunarinnar.</p>
           </form>
         </aside>
       </div>
-    </div></div>
+      <div style={{ height: 'var(--sp-xl)' }} />
+    </Page>
   )
 }
 
@@ -1144,8 +1468,8 @@ function InboxPage() {
   const all = [...loadRequests(), ...SAMPLE_REQUESTS]
   const rows = all.filter((r) => !kind || r.kind === kind)
   return (
-    <div className="vv-page vv-inbox"><div className="wrap">
-      <Intro title={['Afgreiðsla']} lede="Hlið starfsfólks: leigubeiðnir, skoðanir, uppítökur, verkstæðistímar og ferðalistar á einum stað, hver á réttan stað." />
+    <Page className="inbox">
+      <Title title={['Afgreiðsla']} lede="Hlið starfsfólks: leigubeiðnir, skoðanir, uppítökur, verkstæðistímar og ferðalistar á einum stað, hver á réttan stað." />
       <div className="ibar"><span>{rows.length} beiðnir · {rows.filter((r) => (st[r.id] ?? r.status) === 'ný').length} nýjar</span><span>Sýnishorn eru merkt; þínar beiðnir eru efst.</span></div>
       <div className="chips" role="group" aria-label="Tegund" style={{ marginBottom: 20 }}>
         <button type="button" className="chip" aria-pressed={kind === ''} onClick={() => setKind('')}>Allt</button>
@@ -1159,8 +1483,8 @@ function InboxPage() {
             return (
               <tr key={r.id}>
                 <td className="num">{r.id}</td>
-                <td><span className="kind sign">{REQ_LABEL[r.kind]}</span></td>
-                <td><b style={{ fontWeight: 600 }}>{r.title}</b><br /><small>{r.when} · {r.kind === 'leiga' ? r.detail.split(':').slice(2).join(', ') : r.detail}</small></td>
+                <td><span className="kind">{REQ_LABEL[r.kind]}</span></td>
+                <td>{r.title}<br /><small>{r.when} · {r.kind === 'leiga' ? r.detail.split(':').slice(2).join(', ') : r.detail}</small></td>
                 <td>{r.who}<br /><small>{r.contact}</small></td>
                 <td><small>{routeTo(r.kind)}</small></td>
                 <td><span className={`st${s === 'ný' ? ' new' : ''}`}><i aria-hidden="true" />{s === 'ný' ? 'Ný' : 'Staðfest'}</span></td>
@@ -1170,26 +1494,28 @@ function InboxPage() {
           })}
         </tbody>
       </table>
-      <p className="inote">Frumgerð: beiðnir úr formunum eru geymdar í þessum vafra (sessionStorage). Í raunveruleikanum fara þær í tölvupóst á rétta deild og birtast hér.</p>
-    </div></div>
+      <p className="note">Frumgerð: beiðnir úr formunum eru geymdar í þessum vafra (sessionStorage). Í raunveruleikanum fara þær í tölvupóst á rétta deild og birtast hér.</p>
+      <div style={{ height: 'var(--sp-xl)' }} />
+    </Page>
   )
 }
 
 function PrivacyPage() {
   return (
-    <div className="vv-page"><div className="wrap">
-      <Intro title={['Persónuvernd']} lede="Hvaða upplýsingum formin á þessum vef myndu safna og til hvers." />
+    <Page>
+      <Title title={['Persónuvernd']} lede="Hvaða upplýsingum formin á þessum vef myndu safna og til hvers." />
       <div className="doc">
         <p>Formin biðja um nafn, síma og netfang til að svara beiðninni, auk upplýsinga um vagninn (fastanúmer, gerð, árgerð) þegar beiðnin snýst um verkstæði eða uppítöku. Upplýsingarnar fara aðeins til Víkurverks ehf., kt. {CONTACT.kt}.</p>
         <p>Í þessari frumgerð er ekkert sent: beiðnir eru geymdar í vafranum þínum og hverfa þegar glugganum er lokað. Ferðalistinn er geymdur í vafranum þar til þú tæmir hann.</p>
         <p>Víkurverk birtir eigin persónuverndarstefnu á vikurverk.is.</p>
       </div>
-    </div></div>
+      <div style={{ height: 'var(--sp-xl)' }} />
+    </Page>
   )
 }
 
 function NotFound() {
-  return <div className="vv-page"><div className="wrap"><Intro title={['Síðan fannst ekki.']} lede="Hlekkurinn er úreltur eða skakkt skrifaður." /><Btn to="" label="Á forsíðu" tone="ink" /></div></div>
+  return <Page><Title title={['Síðan fannst ekki.']} lede="Hlekkurinn er úreltur eða skakkt skrifaður." /><Btn to="" label="Á forsíðu" /><div style={{ height: 'var(--sp-xl)' }} /></Page>
 }
 
 /* ── the shell ──────────────────────────────────────────────────────────── */
@@ -1212,12 +1538,15 @@ export default function VikurverkPage() {
   const loc = useLocation()
   const sub = loc.pathname.replace(/^.*?\/preview\/vikurverk\/?/, '').replace(/\/+$/, '')
   const [menu, setMenu] = useState(false)
-  const [now, setNow] = useState(() => new Date())
+  const [banner, setBanner] = useState(() => { try { return sessionStorage.getItem('vv-banner') !== '0' } catch { return true } })
   const chat = useRef<ChatEl | null>(null)
   const page = sub.split('/')[0]
   const seg = sub.split('/')
+  const overHero = sub === '' || (page === 'vagnar' && !!seg[1] && !!unitBySlug(seg[1]))
   const formPage = useRef(false)
   formPage.current = ['leiga', 'skodun', 'uppitaka', 'verkstaedi', 'ferdalistinn', 'afgreidsla'].includes(page) && (page !== 'leiga' || !!seg[1])
+  const overRef = useRef(overHero)
+  overRef.current = overHero
 
   useEffect(() => {
     const prevTitle = document.title
@@ -1225,19 +1554,18 @@ export default function VikurverkPage() {
     const [t, d] = TITLES[page] ?? TITLES['']
     const u = page === 'vagnar' && seg[1] ? unitBySlug(seg[1]) : undefined
     const r = page === 'leiga' && seg[1] ? RENTALS.find((x) => x.key === seg[1]) : undefined
-    document.title = u ? `${unitName(u)} | Víkurverk` : r ? `Leiga: ${r.name} | Víkurverk` : t
+    const pr = page === 'verslun' && seg[1] ? productBySlug(seg[1]) : undefined
+    document.title = u ? `${unitName(u)} | Víkurverk` : r ? `Leiga: ${r.name} | Víkurverk` : pr ? `${pr.name} | Víkurverk` : t
     document.documentElement.lang = 'is'
-    setThemeColor(PINE_INK)
-    const a = setMetaDescription(u ? `${unitName(u)} hjá Víkurverki: ${kr(u.price)}${u.sleeps ? `, svefnpláss ${u.sleeps}` : ''}${u.weight ? `, ${u.weight} kg` : ''}.` : r ? `${r.name} til leigu: ${kr(r.price)} á viku.` : d)
+    setThemeColor(banner ? PINE_INK : '#FFFFFF')
+    const a = setMetaDescription(u ? `${unitName(u)} hjá Víkurverki: ${kr(u.price)}${u.sleeps ? `, svefnpláss ${u.sleeps}` : ''}${u.weight ? `, ${u.weight} kg` : ''}.` : r ? `${r.name} til leigu: ${kr(r.price)} á viku.` : pr ? `${pr.name}: ${kr(pr.price)}. ${pr.desc}` : d)
     const nb = setNoindex(true)
     const ld = document.createElement('script')
     ld.type = 'application/ld+json'
     ld.textContent = JSON.stringify(JSON_LD)
     document.head.appendChild(ld)
     return () => { document.title = prevTitle; document.documentElement.lang = prevLang; a(); nb(); ld.remove() }
-  }, [sub, page]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => { const t = window.setInterval(() => setNow(new Date()), 60_000); return () => window.clearInterval(t) }, [])
+  }, [sub, page, banner]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let el: ChatEl | null = null
@@ -1261,33 +1589,36 @@ export default function VikurverkPage() {
 
   useEffect(() => {
     setMenu(false)
-    if (loc.hash) { window.setTimeout(() => goTo(decodeURIComponent(loc.hash.slice(1))), 80); return }
+    if (loc.hash) { window.setTimeout(() => goTo(decodeURIComponent(loc.hash.slice(1))), 120); return }
     if (pageLenis) pageLenis.scrollTo(0, { immediate: true }); else window.scrollTo(0, 0)
   }, [loc.pathname, loc.hash])
 
-  /* chrome: hide on the way down, show on the way up */
-  const chromeRef = useRef<HTMLDivElement>(null)
+  /* chrome state: over the hero (white text), quick bar, buy bar */
   useEffect(() => {
-    const chrome = chromeRef.current!
-    let lastY = window.scrollY
+    const el = root.current!
     let raf = 0
     const tick = () => {
       raf = 0
       const y = window.scrollY
-      chrome.dataset.solid = y > 20 ? '1' : '0'
-      if (root.current) root.current.dataset.sticky = !formPage.current && y > window.innerHeight * 0.6 ? '1' : '0'
-      if (!document.documentElement.classList.contains('vv-menu') && !chrome.querySelector('.dd[data-open="1"]')) {
-        if (y > 320 && y > lastY + 4) chrome.dataset.hide = '1'
-        else if (y < lastY - 4 || y <= 320) chrome.dataset.hide = '0'
+      const vh = window.innerHeight
+      const heroEl = el.querySelector<HTMLElement>('.hero, .dhero')
+      const heroBottom = heroEl ? heroEl.offsetTop + heroEl.offsetHeight : 0
+      const isDetail = !!el.querySelector('.dhero')
+      const next = {
+        over: overRef.current && heroEl && y < heroBottom - 80 ? '1' : '0',
+        sticky: !formPage.current && !isDetail && y > vh * 0.6 ? '1' : '0',
+        buy: isDetail && y > heroBottom - vh * 0.3 ? '1' : '0',
       }
-      lastY = y
+      /* write only on change: these attributes sit on the root, so every write restyles the page */
+      for (const [k, v] of Object.entries(next)) if (el.dataset[k] !== v) el.dataset[k] = v
     }
     const on = () => { if (!raf) raf = requestAnimationFrame(tick) }
     tick()
+    const t = window.setTimeout(tick, 50)
     window.addEventListener('scroll', on, { passive: true })
     window.addEventListener('resize', on)
-    return () => { window.removeEventListener('scroll', on); window.removeEventListener('resize', on); cancelAnimationFrame(raf) }
-  }, [])
+    return () => { window.removeEventListener('scroll', on); window.removeEventListener('resize', on); cancelAnimationFrame(raf); window.clearTimeout(t) }
+  }, [loc.pathname])
 
   /* menu */
   const menuRef = useRef<HTMLDivElement>(null)
@@ -1304,8 +1635,8 @@ export default function VikurverkPage() {
     const panel = menuRef.current
     if (!isTouch()) panel?.querySelector<HTMLElement>('a,button')?.focus()
     if (panel && !still()) {
-      gsap.fromTo(panel, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: 0.32, ease: 'power3.out' })
-      gsap.fromTo(panel.querySelectorAll('[data-mi]'), { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.3, stagger: 0.04, delay: 0.15, ease: 'vv' })
+      gsap.fromTo(panel, { clipPath: 'inset(0 0 100% 0 round 12px)' }, { clipPath: 'inset(0 0 0% 0 round 12px)', duration: 0.35, ease: 'power4.out' })
+      gsap.fromTo(panel.querySelectorAll('[data-mi]'), { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.3, stagger: 0.04, delay: 0.08, ease: 'power3.out' })
     }
     return () => { document.removeEventListener('keydown', onKey); pageLenis?.start(); html.classList.remove('vv-menu'); bg.forEach((c) => c.removeAttribute('inert')); opener?.focus?.() }
   }, [menu])
@@ -1326,81 +1657,63 @@ export default function VikurverkPage() {
     return () => { gsap.ticker.remove(onTick); lenis?.destroy(); pageLenis = null }
   }, [])
 
-  /* motion per route: the staged opening, then position-tied reveals */
+  /* motion per route: one opening, then reveals that play once (never tied to the scroll position) */
   useLayoutEffect(() => {
     const el = root.current!
     const main = el.querySelector<HTMLElement>('main')!
     const reduce = still()
     let ctx: gsap.Context | null = null
     let alive = true
-    const splits: SplitText[] = []
     const build = () => { if (!alive) return; ctx = gsap.context(() => {
       if (reduce) return
-      const desk = window.matchMedia('(min-width: 900px) and (hover: hover) and (pointer: fine)').matches
-      const travel = isTouch() ? 12 : 22
+      const travel = isTouch() ? 14 : 24
+      const open = gsap.timeline({ defaults: { ease: 'power4.out' } })
 
-      /* the opening: masked lines, the swoosh draws, the photo settles under it, body, buttons */
-      const open = gsap.timeline({ defaults: { ease: 'power3.out' } })
-      const intro = main.querySelector<HTMLElement>('.ss-hero, .intro, .dside') ?? main
-      const lines = intro.querySelectorAll('[data-line]')
-      const opens = main.querySelectorAll('[data-open]')
-      if (lines.length) open.from(lines, { yPercent: 112, duration: 0.72, stagger: 0.08 }, 0.12)
+      /* the capsule drops in on the first load only (Lightship: header slides from above the fold) */
+      if (firstLoad) { open.from(el.querySelector('[data-cap]'), { yPercent: -180, duration: 0.9 }, 0.15); firstLoad = false }
+
       const hmask = main.querySelector<HTMLElement>('[data-hmask]')
-      const sw = main.querySelector<SVGPathElement>('[data-swoosh]')
       if (hmask) {
-        open.fromTo(hmask, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: 1.1, ease: 'vv' }, 0.2)
-        open.fromTo(hmask.querySelector('img'), { scale: 1.1 }, { scale: 1, duration: 1.5, ease: 'vv' }, 0.2)
+        open.fromTo(hmask, { clipPath: 'inset(5% 4% 5% 4% round 24px)' }, { clipPath: 'inset(0% 0% 0% 0% round 12px)', duration: 1.4, ease: 'vvSmooth' }, 0)
+        const img = hmask.querySelector(':scope > img')
+        if (img) open.fromTo(img, { scale: 1.12 }, { scale: 1, duration: 1.8, ease: 'vvSmooth' }, 0)
       }
-      if (sw) open.fromTo(sw, { clipPath: 'inset(-50% 100% -50% 0)' }, { clipPath: 'inset(-50% 0% -50% 0)', duration: 1.1, ease: 'vv' }, 0.75)
-      if (opens.length) open.from(opens, { y: travel, opacity: 0, duration: 0.55, stagger: 0.07 }, 0.4)
+      const lines = main.querySelectorAll('[data-line]')
+      if (lines.length) open.from(lines, { yPercent: 110, duration: 0.9, stagger: 0.1 }, hmask ? 0.35 : 0.1)
+      const rule = main.querySelector('[data-rule]')
+      if (rule) open.from(rule, { scaleX: 0, duration: 0.9, ease: 'vvSmooth' }, 0.5)
+      const opens = main.querySelectorAll('[data-open]')
+      if (opens.length) open.from(opens, { y: travel * 0.7, autoAlpha: 0, duration: 0.7, stagger: 0.06, ease: 'power3.out' }, hmask ? 0.6 : 0.3)
       const finish = (e: KeyboardEvent) => { if (e.key === 'Tab') open.progress(1) }
       document.addEventListener('keydown', finish)
 
-      /* titles: masked characters by position */
-      main.querySelectorAll<HTMLElement>('[data-chars]').forEach((t) => {
-        splits.push(new SplitText(t, { type: 'chars,words', charsClass: 'ch', wordsClass: 'wd', mask: 'chars', autoSplit: true,
-          onSplit: (self) => gsap.fromTo(self.chars, { yPercent: 105 }, { yPercent: 0, ease: 'vv', duration: 0.8, stagger: 0.016, scrollTrigger: { trigger: t, start: 'top 100%', end: 'top 82%', scrub: true } }) }))
+      /* reveals: play once when the block arrives */
+      main.querySelectorAll<HTMLElement>('[data-rv]').forEach((t) => {
+        gsap.from(t, { y: travel, autoAlpha: 0, duration: 0.8, ease: 'vvSmooth', scrollTrigger: { trigger: t, start: 'top 90%', once: true } })
       })
-      main.querySelectorAll<HTMLElement>('[data-fade]').forEach((t) => {
-        if (intro.contains(t)) return
-        gsap.fromTo(t, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, ease: 'none', scrollTrigger: { trigger: t, start: 'top 100%', end: 'top 84%', scrub: true } })
+      main.querySelectorAll<HTMLElement>('[data-rv-g]').forEach((g) => {
+        gsap.from(g.children, { y: travel, autoAlpha: 0, duration: 0.8, ease: 'vvSmooth', stagger: 0.07, scrollTrigger: { trigger: g, start: 'top 88%', once: true } })
       })
-      /* every frame opens upward from its bottom edge, tied to position (reversible) */
-      main.querySelectorAll<HTMLElement>('[data-media]').forEach((f) => {
+      main.querySelectorAll<HTMLElement>('[data-rv-img]').forEach((f) => {
         const img = f.querySelector('img')
-        const tl = gsap.timeline({ scrollTrigger: { trigger: f, start: 'top 100%', end: 'top 64%', scrub: true } })
-        tl.fromTo(f, { clipPath: 'inset(22% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', ease: 'vv', duration: 1 }, 0)
-        if (img) tl.fromTo(img, { scale: 1.1 }, { scale: 1, ease: 'vv', duration: 1 }, 0)
+        if (img) gsap.from(img, { scale: 1.08, duration: 1.4, ease: 'vvSmooth', scrollTrigger: { trigger: f, start: 'top 92%', once: true } })
       })
-      main.querySelectorAll<HTMLElement>('[data-par]').forEach((p) => {
-        gsap.fromTo(p, { yPercent: -6 }, { yPercent: 6, ease: 'none', scrollTrigger: { trigger: p.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } })
-      })
-      main.querySelectorAll<HTMLElement>('[data-items]').forEach((g) => {
-        gsap.fromTo(g.children, { y: 28, autoAlpha: 0 }, { y: 0, autoAlpha: 1, ease: 'vv', duration: 0.8, stagger: 0.06, scrollTrigger: { trigger: g, start: 'top 100%', end: 'top 78%', scrub: true } })
-      })
-      const plates = main.querySelector<HTMLElement>('.plates')
-      if (plates) gsap.fromTo(plates.querySelectorAll('.plate'), { clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', ease: 'vv', stagger: 0.07, scrollTrigger: { trigger: plates, start: 'top 96%', end: 'top 50%', scrub: true } })
-      const visit = main.querySelector<HTMLElement>('[data-par-bg]')
-      if (visit && desk) gsap.fromTo(visit, { yPercent: -8, scale: 1.1 }, { yPercent: 8, scale: 1.1, ease: 'none', scrollTrigger: { trigger: visit.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } })
       const revealFocused = (e: FocusEvent) => {
         const t = e.target as HTMLElement
         ScrollTrigger.getAll().forEach((st) => { const tr = st.trigger as HTMLElement | null; if (tr && (tr === t || tr.contains(t) || t.contains(tr))) st.animation?.progress(1) })
       }
       main.addEventListener('focusin', revealFocused)
-
-      /* hero: the photo sinks a little as the words lift (desktop) */
-      const hp = main.querySelector<HTMLElement>('[data-hp]')
-      if (hp && desk) gsap.fromTo(hp, { yPercent: 0 }, { yPercent: 6, ease: 'none', scrollTrigger: { trigger: hp.parentElement, start: 'top 60%', end: 'bottom top', scrub: true } })
       return () => { document.removeEventListener('keydown', finish); main.removeEventListener('focusin', revealFocused) }
     }, el); ScrollTrigger.refresh() }
     if (!document.fonts) build()
-    else Promise.all(['400 16px VvT', '600 16px VvT', 'italic 900 16px VvD'].map((f) => document.fonts.load(f))).then(() => document.fonts.ready).then(build, build)
+    else Promise.all(['400 16px VvT', '500 16px VvT'].map((f) => document.fonts.load(f))).then(() => document.fonts.ready).then(build, build)
     const refresh = () => ScrollTrigger.refresh()
     window.addEventListener('load', refresh)
-    return () => { alive = false; window.removeEventListener('load', refresh); ctx?.revert(); splits.forEach((s) => s.revert()) }
+    return () => { alive = false; window.removeEventListener('load', refresh); ctx?.revert() }
   }, [loc.pathname])
 
-  const s = openState(now)
+  const closeBanner = () => { setBanner(false); try { sessionStorage.setItem('vv-banner', '0') } catch { /* private mode */ } }
+
   let body: ReactNode
   if (sub === '') body = <Home />
   else if (page === 'vagnar') body = seg[1] ? <DetailPage slug={seg[1]} /> : <CatalogPage />
@@ -1408,35 +1721,30 @@ export default function VikurverkPage() {
   else if (page === 'skodun') body = <ViewingPage />
   else if (page === 'uppitaka') body = <TradeInPage />
   else if (page === 'verkstaedi') body = <WorkshopPage />
-  else if (page === 'verslun') body = <ShopPage />
+  else if (page === 'verslun') body = seg[1] ? <ProductPage slug={seg[1]} /> : <ShopPage />
   else if (page === 'ferdalistinn') body = <TripPage />
   else if (page === 'afgreidsla') body = <InboxPage />
   else if (page === 'personuvernd') body = <PrivacyPage />
   else body = <NotFound />
 
   return (
-    <div ref={root} className={`vv${menu ? ' menu-open' : ''}`} id="efst" lang="is">
+    <div ref={root} className={`vv${menu ? ' menu-open' : ''}`} id="efst" lang="is" data-banner={banner ? '1' : '0'} data-over={overHero ? '1' : '0'} data-sticky="0" data-buy="0">
       <style>{CSS}</style>
       <PreviewChrome company={company} />
       <a className="skip" href="#efni">Fara í efni</a>
 
-      <div className="vv-chrome" ref={chromeRef} data-hide="0" data-solid="0">
-        <div className="bar">
-          <div className="in">
-            <a href={`tel:${CONTACT.tel}`}><Phone size={13} aria-hidden="true" />{CONTACT.phone}</a>
-            <a href={mailHref(CONTACT.email)} className="hide-s"><Mail size={13} aria-hidden="true" />{CONTACT.email}</a>
-            <span className={`st${s.open ? ' on' : ''}`}><i aria-hidden="true" />Verslun: {s.text.toLowerCase()}</span>
-            <span className="ad"><MapPin size={13} aria-hidden="true" style={{ display: 'inline', verticalAlign: '-2px', marginRight: 6 }} />{CONTACT.street}, {CONTACT.town}</span>
-          </div>
-        </div>
-        <header className="hdr"><Header sub={sub} onMenu={() => setMenu(true)} /></header>
+      <div className="banner" role="region" aria-label="Tilkynning">
+        <span>Leiga sumarið 2027 er opin<span className="hide-s">, vika í senn frá fimmtudegi</span>.</span>
+        <Link to={to('leiga')}>Sjá lausar vikur</Link>
+        <button type="button" className="x" onClick={closeBanner} aria-label="Loka tilkynningu"><X size={15} aria-hidden="true" /></button>
       </div>
+      <header className="hdr"><Header sub={sub} onMenu={() => setMenu(true)} /></header>
 
       {menu && (
         <div className="vv-menu-panel" ref={menuRef} role="dialog" aria-modal="true" aria-label="Valmynd" data-lenis-prevent="">
           <div className="mtop">
-            <img src={A('logo-white.png')} alt="Víkurverk" width={306} height={200} />
-            <button type="button" className="mx" onClick={() => setMenu(false)} aria-label="Loka valmynd"><X size={26} strokeWidth={1.8} aria-hidden="true" /></button>
+            <img src={A('logo-t.png')} alt="Víkurverk" width={306} height={200} />
+            <button type="button" className="mx" onClick={() => setMenu(false)} aria-label="Loka valmynd"><X size={20} strokeWidth={1.6} aria-hidden="true" /></button>
           </div>
           <div className="mgroups">
             {NAV.map((g) => (
@@ -1454,22 +1762,22 @@ export default function VikurverkPage() {
         </div>
       )}
 
-      <main id="efni" key={loc.pathname}>{body}</main>
+      <MotionConfig reducedMotion="user"><main id="efni" key={loc.pathname}>{body}</main></MotionConfig>
 
-      <footer className="vv-foot on-dark">
+      <footer className="vv-foot">
         <div className="wrap">
+          <div className="mark"><img src={A('logo-t.png')} alt="Víkurverk" width={306} height={200} /></div>
           <div className="ftop">
             <div className="fbrand">
-              <img src={A('logo-white.png')} alt="Víkurverk" width={306} height={200} />
-              <p className="sl">{CONTACT.slogan}.</p>
+              <b>{CONTACT.slogan}.</b>
               <p>{CONTACT.summary}</p>
             </div>
-            <div className="fcols">
+            <div className="fnav">
               <div>
                 <h3>Víkurhvarf 6</h3>
                 <p>{CONTACT.town}</p>
                 <a className="num" href={`tel:${CONTACT.tel}`}>Sími {CONTACT.phone}</a>
-                <a href={mailHref(CONTACT.email)}>{CONTACT.email}</a>
+                <a href={mailHref(CONTACT.email)}><Mail size={13} aria-hidden="true" style={{ display: 'inline', verticalAlign: '-2px', marginRight: 6 }} />{CONTACT.email}</a>
                 <a href={mailHref(CONTACT.workshop)}>{CONTACT.workshop}</a>
               </div>
               <div>
@@ -1480,7 +1788,7 @@ export default function VikurverkPage() {
               </div>
               <div>
                 <h3>Á vefnum</h3>
-                {[['vagnar', 'Vagnar'], ['leiga', 'Leiga'], ['uppitaka', 'Taka upp í'], ['verkstaedi', 'Verkstæði'], ['verslun', 'Verslun']].map(([k, l]) => <Link key={k} to={to(k)} style={{ display: 'block' }}>{l}</Link>)}
+                {[['vagnar', 'Vagnar'], ['leiga', 'Leiga'], ['uppitaka', 'Taka upp í'], ['verkstaedi', 'Verkstæði'], ['verslun', 'Verslun'], ['ferdalistinn', 'Ferðalistinn']].map(([k, l]) => <Link key={k} to={to(k)}>{l}</Link>)}
               </div>
             </div>
           </div>
@@ -1488,15 +1796,16 @@ export default function VikurverkPage() {
             <p>{CONTACT.legal} · Kt. {CONTACT.kt} · VSK nr. {CONTACT.vsk} · <a href={CONTACT.facebook} target="_blank" rel="noopener">Facebook</a> · <a href={CONTACT.youtube} target="_blank" rel="noopener">YouTube</a> · <Link to={to('personuvernd')}>Persónuvernd</Link> · <Link to={to('afgreidsla')}>Afgreiðsla</Link></p>
             <SndrBadge />
           </div>
-          <p className="proto">Frumgerð: hugmynd að nýjum vef, ekki vefur Víkurverks. Upplýsingar, verð og myndir eru af vikurverk.is, notadir.vikurverk.is og bæklingum Víkurverks, sótt 9. október 2026; verð geta breyst. Formin senda ekkert; beiðnir eru geymdar í þínum vafra. Aðstoðarmaðurinn svarar aðeins út frá því sem stendur á þessum vef.</p>
+          <p className="proto">Frumgerð: hugmynd að nýjum vef, ekki vefur Víkurverks. Upplýsingar, verð og vörumyndir eru af vikurverk.is, notadir.vikurverk.is og bæklingum Víkurverks, sótt 9. október 2026; verð geta breyst. Landslagsmyndirnar þrjár (forsíða, leiga, verslun) eru stemningsmyndir búnar til fyrir frumgerðina, ekki myndir af vögnum Víkurverks. Formin senda ekkert; beiðnir eru geymdar í þínum vafra. Aðstoðarmaðurinn svarar aðeins út frá því sem stendur á þessum vef.</p>
         </div>
       </footer>
 
       <div className="vv-sticky" aria-label="Flýtileiðir">
-        <a href={`tel:${CONTACT.tel}`}><Phone size={16} aria-hidden="true" />Hringja</a>
+        <a href={`tel:${CONTACT.tel}`}><Phone size={15} aria-hidden="true" />Hringja</a>
         <Link to={to('vagnar')}>Vagnar</Link>
-        <button type="button" onClick={openChat}><MessageCircle size={16} aria-hidden="true" />Spyrja</button>
+        <button type="button" onClick={openChat}><MessageCircle size={15} aria-hidden="true" />Spyrja</button>
       </div>
+      <MotionConfig reducedMotion="user"><AddedPanel /></MotionConfig>
     </div>
   )
 }
