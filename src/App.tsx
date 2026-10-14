@@ -186,6 +186,7 @@ const RobertsProject = lazy(() => import('./preview/roberts/Project'))
 const AegirPage = lazy(() => import('./preview/aegir/Page'))
 const AegirProject = lazy(() => import('./preview/aegir/Project'))
 const MatvelarPage = lazy(() => import('./preview/matvelar/Page'))
+const SamhentirPage = lazy(() => import('./preview/samhentir/Page'))
 const SamboPage = lazy(() => import('./preview/sambo/Page'))
 const TreborgPage = lazy(() => import('./preview/treborg/Page'))
 const TreborgProject = lazy(() => import('./preview/treborg/Project'))
@@ -485,6 +486,13 @@ export default function App() {
             <Route path="/preview/matvelar/velar/:slug" element={<MatvelarPage view="family" />} />
             <Route path="/preview/matvelar/thjonusta" element={<MatvelarPage view="thjonusta" />} />
             <Route path="/preview/matvelar/fyrirspurn" element={<MatvelarPage view="fyrirspurn" />} />
+            <Route path="/preview/samhentir" element={<SamhentirPage view="home" />} />
+            <Route path="/preview/samhentir/velar" element={<SamhentirPage view="velar" />} />
+            <Route path="/preview/samhentir/velar/:slug" element={<SamhentirPage view="family" />} />
+            <Route path="/preview/samhentir/atvinnugreinar/:slug" element={<SamhentirPage view="sector" />} />
+            <Route path="/preview/samhentir/merkingar" element={<SamhentirPage view="merkingar" />} />
+            <Route path="/preview/samhentir/thjonusta" element={<SamhentirPage view="thjonusta" />} />
+            <Route path="/preview/samhentir/fyrirspurn" element={<SamhentirPage view="fyrirspurn" />} />
             <Route path="/preview/sambo" element={<SamboPage />} />
             <Route path="/preview/treborg" element={<TreborgPage />} />
             <Route path="/preview/treborg/verk/:slug" element={<TreborgProject />} />

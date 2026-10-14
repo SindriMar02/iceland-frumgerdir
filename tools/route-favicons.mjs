@@ -53,6 +53,7 @@ const BRAND = {
   '/preview/isband': 'isband/brand',
   '/preview/aegir': 'aegir/brand',
   '/preview/matvelar': 'matvelar/brand',
+  '/preview/samhentir': 'samhentir/brand',
   '/preview/sambo': 'sambo/brand',
   '/preview/stod': 'stod/brand',
   '/preview/vatt': 'vatt/brand',
