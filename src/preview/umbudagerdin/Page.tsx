@@ -1,5 +1,6 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate, useNavigationType, useSearchParams } from 'react-router-dom'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentProps, type CSSProperties, type FormEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+import { Link as RouterLink, useLocation, useNavigate, useNavigationType, useSearchParams } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { CustomEase } from 'gsap/CustomEase'
@@ -50,7 +51,7 @@ const LOADER_MS = 1500
 const POS_KEY = 'ug-scroll-v1'
 const readPos = (k: string): number | undefined => { try { const m = JSON.parse(sessionStorage.getItem(POS_KEY) ?? '{}') as Record<string, number>; return m[k] } catch { return undefined } }
 const writePos = (k: string, y: number) => { try { const m = JSON.parse(sessionStorage.getItem(POS_KEY) ?? '{}') as Record<string, number>; m[k] = y; const keys = Object.keys(m); if (keys.length > 60) keys.slice(0, keys.length - 60).forEach((x) => delete m[x]); sessionStorage.setItem(POS_KEY, JSON.stringify(m)) } catch { /* private mode */ } }
-const jumpTo = (y: number) => { if (pageLenis) pageLenis.scrollTo(y, { immediate: true, force: true }); window.scrollTo(0, y) }
+const jumpTo = (y: number) => { if (pageLenis) pageLenis.scrollTo(y, { immediate: true, force: true }); window.scrollTo({ left: 0, top: y, behavior: 'instant' }) }
 
 function goTo(id: string) {
   const t = document.getElementById(id)
@@ -60,6 +61,11 @@ function goTo(id: string) {
 }
 
 /* ── small parts ────────────────────────────────────────────────────────── */
+
+// The catalogue shell exposes keepScroll so this route can own its history-keyed restoration.
+function Link({ state, ...props }: ComponentProps<typeof RouterLink>) {
+  return <RouterLink {...props} state={{ ...state, keepScroll: true }} />
+}
 
 function Pic({ p, sizes, eager, className, pos }: { p: Photo; sizes: string; eager?: boolean; className?: string; pos?: string }) {
   return (
@@ -133,7 +139,7 @@ function boxPaths(l: number, b: number, h: number) {
   const flap = Bd / 2
   const W = L + dx, T = H + dy + flap * 0.9
   const s = 100 / Math.max(W, T)
-  const ox = (100 - W * s) / 2 + 10, oy = (100 - T * s) / 2 + flap * 0.9 * s + 8
+  const ox = (100 - W * s) / 2 + 10, oy = (100 - T * s) / 2 + (flap * 0.9 + dy) * s + 8
   const X = (x: number) => +(ox + x * s).toFixed(2)
   const Y = (y: number) => +(oy + y * s).toFixed(2)
   const x0 = 0, y0 = H
@@ -152,10 +158,10 @@ function BoxDraw({ l, b, h, colour }: { l: number; b: number; h: number; colour:
   const outerD = colour === 'hb' ? '#E6E1D8' : '#A88F72'
   const inner = '#8E7159'
   const tr = { duration: 0.35, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] }
-  const { X, Y, L, H, dx, dy, fh } = g
+  const { X, Y, L, H, dx, dy } = g
   const off = 7
   return (
-    <svg viewBox="-12 0 140 125" role="img" aria-label={`Teikning af kassa, ${mm(l)} × ${mm(b)} × ${mm(h)}`}>
+    <svg viewBox="-22 0 164 138" role="img" aria-label={`Teikning af kassa, ${mm(l)} × ${mm(b)} × ${mm(h)}`}>
       <motion.path initial={false} className="face" d={g.flapB} fill={outerD} stroke="#2A2320" strokeWidth={0.5} animate={{ d: g.flapB }} transition={tr} />
       <motion.path initial={false} className="face" d={g.inner} fill={inner} stroke="#2A2320" strokeWidth={0.5} animate={{ d: g.inner }} transition={tr} />
       <motion.path initial={false} className="face" d={g.side} fill={outerD} stroke="#2A2320" strokeWidth={0.5} animate={{ d: g.side }} transition={tr} />
@@ -175,7 +181,7 @@ function BoxDraw({ l, b, h, colour }: { l: number; b: number; h: number; colour:
         {/* B: along the right bottom edge */}
         <motion.line initial={false} x1={X(L) + off * 0.6} x2={X(L + dx) + off * 0.6} y1={Y(H) + off * 0.5} y2={Y(H - dy) + off * 0.5} animate={{ x1: X(L) + off * 0.6, x2: X(L + dx) + off * 0.6, y1: Y(H) + off * 0.5, y2: Y(H - dy) + off * 0.5 }} transition={tr} />
         <motion.text initial={false} animate={{ attrX: X(L + dx / 2) + off * 1.3, attrY: Y(H - dy / 2) + off * 0.5 + 4 }} transition={tr} textAnchor="start" fontSize="4.2">B {b.toLocaleString('de-DE')}</motion.text>
-        <text x={X(L + dx) + 1} y={Y(-dy) - fh * 1 - 3} fontSize="3.6" fill="#6F655C">FEFCO 0201 · innri mál í mm</text>
+        <text x="60" y="134" textAnchor="middle" fontSize="3.6" fill="#6F655C">FEFCO 0201 · innri mál í mm</text>
       </g>
     </svg>
   )
@@ -209,7 +215,7 @@ function Loader({ onDone }: { onDone: () => void }) {
       .fromTo(el.querySelector('[data-f="red"]'), { x: -26, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.45 }, 0.22)
       .fromTo(el.querySelector('[data-f="amber"]'), { x: 26, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.45 }, 0.34)
       .fromTo(el.querySelector('[data-w]'), { y: 10, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.4 }, 0.55)
-      .to(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.6, ease: 'ugSmooth' }, 1.0)
+      .to(el, { clipPath: 'inset(0 0 100% 0)', duration: LOADER_MS / 1000 - 1, ease: 'ugSmooth' }, 1.0)
     return () => { tl.kill() }
   }, [onDone])
   return (
@@ -344,7 +350,7 @@ function Finder({ size = '' }: { size?: '' | 'lg' }) {
   const ok = Number(l) > 0 && Number(b) > 0 && Number(h) > 0
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (ok) { nav(to(`kassamal?l=${l}&b=${b}&h=${h}`)); return }
+    if (ok) { nav(to(`kassamal?l=${l}&b=${b}&h=${h}`), { state: { keepScroll: true } }); return }
     const empty = [...e.currentTarget.querySelectorAll<HTMLInputElement>('input')].find((i) => !(Number(i.value) > 0))
     empty?.focus()
   }
@@ -365,7 +371,7 @@ function Finder({ size = '' }: { size?: '' | 'lg' }) {
 
 /* ── home ───────────────────────────────────────────────────────────────── */
 
-const num = (s: string | null, d: number) => { const n = Number(s); return n > 0 && n < 5000 ? n : d }
+const num = (s: string | null, d: number) => { const n = Number(s); return n > 0 && n <= 9999 ? n : d }
 const pickKey = <K extends string>(opts: readonly { key: K }[], v: string | null, d: K): K => (opts.some((o) => o.key === v) ? (v as K) : d)
 
 /* the hero IS the instrument: three measurements, the box redraws, the stock boxes that fit appear */
@@ -379,7 +385,7 @@ function HeroInstrument() {
   const fits = useMemo(() => (live ? findFits(L, Bv, H, 3) : []), [live, L, Bv, H])
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (live) { nav(to(`kassamal?l=${L}&b=${Bv}&h=${H}`)); return }
+    if (live) { nav(to(`kassamal?l=${L}&b=${Bv}&h=${H}`), { state: { keepScroll: true } }); return }
     const empty = [...e.currentTarget.querySelectorAll<HTMLInputElement>('input')].find((i) => !(Number(i.value) > 0))
     empty?.focus()
   }
@@ -689,6 +695,13 @@ function Page({ children, className = '' }: { children: ReactNode; className?: s
   return <div className={`page ${className}`}><div className="wrap">{children}</div></div>
 }
 
+/* Fixed controls must live outside main's route-entry transform, including during its animation. */
+function ViewportLayer({ children }: { children: ReactNode }) {
+  const [host, setHost] = useState<Element | null>(() => document.querySelector('.ug'))
+  useLayoutEffect(() => { setHost(document.querySelector('.ug')) }, [])
+  return host ? createPortal(children, host) : null
+}
+
 function Chips({ name, value, opts, onPick }: { name: string; value: string; opts: [string, string, string?][]; onPick: (v: string) => void }) {
   return (
     <div className="chips" role="group" aria-label={name}>
@@ -701,6 +714,7 @@ function Chips({ name, value, opts, onPick }: { name: string; value: string; opt
 
 function KassamalPage() {
   const [sp, setSp] = useSearchParams()
+  const navigation = useNavigationType()
   const [l, setL] = useState(() => String(num(sp.get('l'), 300)))
   const [b, setB] = useState(() => String(num(sp.get('b'), 200)))
   const [h, setH] = useState(() => String(num(sp.get('h'), 150)))
@@ -712,13 +726,19 @@ function KassamalPage() {
   const L = num(l, 0), Bv = num(b, 0), H = num(h, 0)
   const fits = useMemo(() => findFits(L, Bv, H), [L, Bv, H])
   const tooBig = useMemo(() => (L && Bv && H ? allFits(L, Bv, H).filter((f) => f.slack > MAX_SLACK).length : 0), [L, Bv, H])
+  useEffect(() => {
+    if (navigation !== 'POP') return
+    setL(String(num(sp.get('l'), 300))); setB(String(num(sp.get('b'), 200))); setH(String(num(sp.get('h'), 150)))
+    setFlute(pickKey(FLUTES, sp.get('bylgja'), 'B')); setColour(pickKey(COLOURS, sp.get('litur'), 'bb'))
+    setStyle(pickKey(STYLES, sp.get('gerd'), '0201')); setQ(num(sp.get('magn'), 250))
+  }, [sp, navigation])
   /* the measurements live in the URL, so the result is shareable and Back lands on the same numbers */
   useEffect(() => {
     const n = new URLSearchParams(sp)
     const want: Record<string, string> = { l, b, h, bylgja: flute, litur: colour, gerd: style, magn: String(qty) }
     let changed = false
     for (const [k, v] of Object.entries(want)) if ((n.get(k) ?? '') !== v) { n.set(k, v); changed = true }
-    if (changed) setSp(n, { replace: true })
+    if (changed) setSp(n, { replace: true, state: { keepScroll: true } })
   }, [l, b, h, flute, colour, style, qty]) // eslint-disable-line react-hooks/exhaustive-deps
   const reqHref = `fyrirspurn?l=${L}&b=${Bv}&h=${H}&bylgja=${flute}&litur=${colour}&gerd=${style}&magn=${qty}`
   const vol = L && Bv && H ? (L * Bv * H) / 1e6 : 0
@@ -889,7 +909,7 @@ function ShopPage() {
   const pack = sp.get('pakki') ?? ''
   const rod = sp.get('rod') ?? 'flokkur'
   const page = Math.max(1, Number(sp.get('sida') ?? 1) || 1)
-  const set = (k: string, v: string) => { const n = new URLSearchParams(sp); if (v) n.set(k, v); else n.delete(k); if (k !== 'sida') n.delete('sida'); setSp(n, { replace: false }) }
+  const set = (k: string, v: string) => { const n = new URLSearchParams(sp); if (v) n.set(k, v); else n.delete(k); if (k !== 'sida') n.delete('sida'); setSp(n, { replace: false, state: { keepScroll: true } }) }
   const pf = PRICES.find((x) => x[0] === price)?.[2] ?? (() => true)
   const kf = PACKS.find((x) => x[0] === pack)?.[2] ?? (() => true)
   const all = PRODUCTS.filter((p) => (!cat || p.catKey === cat) && pf(p.price) && kf(p)).sort((PSORT[rod] ?? PSORT.flokkur).fn)
@@ -909,14 +929,30 @@ function ShopPage() {
       <div className="fg"><span>Verð</span><Chips name="Verð" value={price} onPick={(v) => set('verd', v)} opts={PRICES.map(([k, l]) => [k, l] as [string, string])} /></div>
     </>
   )
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!drawer) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setDrawer(false) }
-    document.addEventListener('keydown', onKey)
-    pageLenis?.stop()
+    const dialog = document.querySelector<HTMLElement>('.fdrawer')!
     const opener = document.activeElement as HTMLElement | null
-    window.setTimeout(() => document.querySelector<HTMLElement>('.fdrawer .dtop .ibtn')?.focus(), 30)
-    return () => { document.removeEventListener('keydown', onKey); pageLenis?.start(); opener?.focus?.() }
+    const background = [...dialog.parentElement!.children].filter((el) => el !== dialog && !el.hasAttribute('inert'))
+    background.forEach((el) => el.setAttribute('inert', ''))
+    document.documentElement.classList.add('ug-filter-open')
+    pageLenis?.stop()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); setDrawer(false) }
+      if (e.key !== 'Tab') return
+      const controls = [...dialog.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input,select')].filter((el) => el.getClientRects().length > 0)
+      const first = controls[0], last = controls[controls.length - 1]
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus() }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus() }
+    }
+    document.addEventListener('keydown', onKey)
+    dialog.querySelector<HTMLElement>('.dtop .ibtn')?.focus({ preventScroll: true })
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      background.forEach((el) => el.removeAttribute('inert'))
+      document.documentElement.classList.remove('ug-filter-open')
+      pageLenis?.start(); opener?.focus({ preventScroll: true })
+    }
   }, [drawer])
   return (
     <Page>
@@ -945,7 +981,7 @@ function ShopPage() {
               </AnimatePresence>
             </motion.ul>
           ) : (
-            <div className="empty"><h3>Engin vara passar</h3><p className="muted">Prófaðu að slaka á einni síu.</p><Btn label="Hreinsa síur" onClick={() => setSp(new URLSearchParams(), { replace: true })} /></div>
+            <div className="empty"><h3>Engin vara passar</h3><p className="muted">Prófaðu að slaka á einni síu.</p><Btn label="Hreinsa síur" onClick={() => setSp(new URLSearchParams(), { replace: true, state: { keepScroll: true } })} /></div>
           )}
           {pages > 1 && (
             <nav className="pager" aria-label="Síður">
@@ -957,7 +993,7 @@ function ShopPage() {
           <p className="note">{SAMPLE_NOTE} Síur, röðun og síða standa í slóðinni, svo "til baka" lendir á sama stað.</p>
         </div>
       </div>
-      {drawer && (
+      {drawer && <ViewportLayer>
         <div className="fdrawer" role="dialog" aria-modal="true" aria-label="Síur" data-lenis-prevent="">
           <button type="button" className="scrim" aria-label="Loka síum" onClick={() => setDrawer(false)} />
           <div className="sheet-in">
@@ -966,7 +1002,7 @@ function ShopPage() {
             <div className="dfoot"><Btn label={`Sýna ${vorur(all.length)}`} onClick={() => setDrawer(false)} size="lg" className="w100" /></div>
           </div>
         </div>
-      )}
+      </ViewportLayer>}
       <div style={{ height: 'var(--sp-xl)' }} />
     </Page>
   )
@@ -1083,6 +1119,17 @@ function AddedPanel() {
 
 /* ── the list ───────────────────────────────────────────────────────────── */
 
+function ListQuantity({ slug, qty, name }: { slug: string; qty: number; name: string }) {
+  const [draft, setDraft] = useState<string | null>(null)
+  return <input inputMode="numeric" pattern="[0-9]*" value={draft ?? qty} aria-label={`Magn, ${name}`}
+    onChange={(e) => {
+      const value = e.target.value.replace(/\D/g, '').slice(0, 6)
+      setDraft(value)
+      if (Number(value) > 0) setQty(slug, Number(value))
+    }}
+    onBlur={() => { if (draft !== null && draft !== '' && Number(draft) === 0) setQty(slug, 0); setDraft(null) }} />
+}
+
 function ListPage() {
   const [sp] = useSearchParams()
   const list = useList()
@@ -1095,7 +1142,7 @@ function ListPage() {
   useEffect(() => {
     const el = document.getElementById('pontun')
     if (!el || !('IntersectionObserver' in window)) return
-    const io = new IntersectionObserver(([e]) => setPanelSeen(e.isIntersecting), { threshold: 0.15 })
+    const io = new IntersectionObserver(([e]) => setPanelSeen(e.isIntersecting), { threshold: 0 })
     io.observe(el)
     return () => io.disconnect()
   }, [list.length])
@@ -1131,7 +1178,7 @@ function ListPage() {
                   <li key={l.slug} className="tli">
                     <Pic p={p.img} sizes="72px" />
                     <div><b>{p.name}</b><small className="num">{kr(p.price)}{p.pack ? ` fyrir ${p.pack} stk.` : ' stk.'}{p.sku ? ` · vnr. ${p.sku}` : ''}{t.pct ? <span className="disc">−{t.pct}%</span> : null}</small></div>
-                    <div className="qty"><button type="button" aria-label={`Fækka ${p.name}`} onClick={() => setQty(l.slug, l.qty - 1)}><Minus size={15} aria-hidden="true" /></button><input inputMode="numeric" value={l.qty} onChange={(e) => setQty(l.slug, Math.max(0, Number(e.target.value.replace(/\D/g, '')) || 0))} onBlur={(e) => { if (!(Number(e.target.value) > 0)) setQty(l.slug, 1) }} aria-label={`Magn, ${p.name}`} /><button type="button" aria-label={`Fjölga ${p.name}`} onClick={() => setQty(l.slug, l.qty + 1)}><Plus size={15} aria-hidden="true" /></button></div>
+                    <div className="qty"><button type="button" aria-label={`Fækka ${p.name}`} onClick={() => setQty(l.slug, l.qty - 1)}><Minus size={15} aria-hidden="true" /></button><ListQuantity slug={l.slug} qty={l.qty} name={p.name} /><button type="button" aria-label={`Fjölga ${p.name}`} onClick={() => setQty(l.slug, l.qty + 1)}><Plus size={15} aria-hidden="true" /></button></div>
                     <span className="lt num">{kr(t.net)}</span>
                     <button type="button" className="rm" aria-label={`Taka ${p.name} af listanum`} onClick={() => setQty(l.slug, 0)}><Trash2 size={17} aria-hidden="true" /></button>
                   </li>
@@ -1160,12 +1207,12 @@ function ListPage() {
           </form>
         </aside>
       </div>
-      {list.length > 0 && (
+      {list.length > 0 && <ViewportLayer>
         <div className="tl-bar" aria-label="Samtals" data-hide={panelSeen ? '1' : '0'}>
           <span><small>{listCount(list)} stk.{tot.gross - tot.net ? ` · −${kr(tot.gross - tot.net)}` : ''}</small><b className="num">{kr(tot.net)}</b></span>
           <Btn label="Senda pöntun" tone="red" onClick={() => goTo('pontun')} />
         </div>
-      )}
+      </ViewportLayer>}
       <div style={{ height: 'var(--sp-xl)' }} />
     </Page>
   )
@@ -1372,9 +1419,11 @@ export default function UmbudagerdinPage() {
   const loc = useLocation()
   const sub = loc.pathname.replace(/^.*?\/preview\/umbudagerdin\/?/, '').replace(/\/+$/, '')
   const navType = useNavigationType()
+  const routeEntry = useRef({ path: loc.pathname, animate: navType === 'PUSH' })
+  if (routeEntry.current.path !== loc.pathname) routeEntry.current = { path: loc.pathname, animate: navType === 'PUSH' }
   const [menu, setMenu] = useState(false)
   const [loader, setLoader] = useState(() => { try { return !still() && sessionStorage.getItem('ug-loaded') !== '1' } catch { return !still() } })
-  const loaderDone = () => { setLoader(false); try { sessionStorage.setItem('ug-loaded', '1') } catch { /* private mode */ } }
+  const loaderDone = useCallback(() => { setLoader(false); try { sessionStorage.setItem('ug-loaded', '1') } catch { /* private mode */ } }, [])
   const [banner, setBanner] = useState(() => { try { return sessionStorage.getItem('ug-banner') !== '0' } catch { return true } })
   const chat = useRef<ChatEl | null>(null)
   const page = sub.split('/')[0]
@@ -1422,23 +1471,42 @@ export default function UmbudagerdinPage() {
 
   /* navigation: a new page starts at the top; Back and Forward return to the exact position of that history entry.
      The position is saved for the entry being left, in the effect cleanup, before the next page paints. */
-  useLayoutEffect(() => { try { window.history.scrollRestoration = 'manual' } catch { /* old browsers */ } }, [])
+  useLayoutEffect(() => {
+    const previous = window.history.scrollRestoration
+    // ScrollTrigger also caches this setting and writes it back on every refresh.
+    ScrollTrigger.clearScrollMemory('manual')
+    // Mark the initial entry too, so returning to a directly opened home page skips the shell reset.
+    const state = window.history.state
+    window.history.replaceState({ ...state, key: state?.key ?? crypto.randomUUID(), usr: { ...state?.usr, keepScroll: true } }, '')
+    return () => { ScrollTrigger.clearScrollMemory(previous) }
+  }, [])
   const popRef = useRef(false)
   popRef.current = navType === 'POP'
+  const previousPath = useRef(loc.pathname)
   useLayoutEffect(() => {
     setMenu(false)
-    const key = loc.key
+    const key = window.history.state?.key ?? loc.key
     const pop = navType === 'POP'
+    const replacingQuery = navType === 'REPLACE' && previousPath.current === loc.pathname
+    previousPath.current = loc.pathname
     const saved = pop ? readPos(key) : undefined
-    let t1 = 0, t2 = 0
-    if (loc.hash && !pop) { t1 = window.setTimeout(() => goTo(decodeURIComponent(loc.hash.slice(1))), 120) }
-    else if (saved !== undefined) {
-      jumpTo(saved)
-      /* a second and third pass once fonts and images have settled the layout */
-      t1 = window.setTimeout(() => jumpTo(saved), 60)
-      t2 = window.setTimeout(() => { jumpTo(saved); ScrollTrigger.refresh() }, 260)
-    } else jumpTo(0)
-    return () => { window.clearTimeout(t1); window.clearTimeout(t2); writePos(key, window.scrollY) }
+    ScrollTrigger.clearScrollMemory('manual')
+    let timer = 0
+    if (loc.hash && !pop) timer = window.setTimeout(() => goTo(decodeURIComponent(loc.hash.slice(1))), 120)
+    else if (saved !== undefined) jumpTo(saved)
+    else if (!replacingQuery) jumpTo(0)
+    // Capture while this entry is mounted: unmounting a long page can clamp scrollY before cleanup.
+    let y = saved ?? window.scrollY
+    const remember = () => { y = window.scrollY }
+    const persist = () => writePos(key, y)
+    window.addEventListener('scroll', remember, { passive: true })
+    window.addEventListener('pagehide', persist)
+    return () => {
+      window.clearTimeout(timer)
+      window.removeEventListener('scroll', remember)
+      window.removeEventListener('pagehide', persist)
+      persist()
+    }
   }, [loc.key]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /* chrome state: the quick bar on phones once past the first screen */
@@ -1501,7 +1569,7 @@ export default function UmbudagerdinPage() {
     const reduce = still()
     let ctx: gsap.Context | null = null
     let alive = true
-    const pop = popRef.current
+    const pop = popRef.current && !firstLoad
     const build = () => { if (!alive) return; ctx = gsap.context(() => {
       if (reduce || pop) return /* coming Back: the page is already known; it appears exactly as it was, no reveals */
       const travel = isTouch() ? 14 : 24
@@ -1538,7 +1606,7 @@ export default function UmbudagerdinPage() {
       }
       main.addEventListener('focusin', revealFocused)
       return () => { document.removeEventListener('keydown', finish); main.removeEventListener('focusin', revealFocused) }
-    }, el); ScrollTrigger.refresh() }
+    }, el); if (!pop) ScrollTrigger.refresh() }
     if (!document.fonts) build()
     else Promise.all(['400 16px UgS', '500 16px UgD'].map((f) => document.fonts.load(f))).then(() => document.fonts.ready).then(build, build)
     const refresh = () => ScrollTrigger.refresh()
@@ -1597,7 +1665,7 @@ export default function UmbudagerdinPage() {
         </div>
       )}
 
-      <MotionConfig reducedMotion="user"><main id="efni" key={loc.key} className={navType === 'PUSH' && !still() ? 'ug-in' : ''}>{body}</main></MotionConfig>
+      <MotionConfig reducedMotion="user"><main id="efni" key={loc.pathname} className={routeEntry.current.animate && !still() ? 'ug-in' : ''}>{body}</main></MotionConfig>
       {loader && <Loader onDone={loaderDone} />}
 
       <footer className="ug-foot">
