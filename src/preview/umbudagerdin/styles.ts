@@ -260,12 +260,69 @@ html:has(.ug){scroll-behavior:auto!important}
 @media (max-width:899px){.ug .factory{grid-template-columns:minmax(0,1fr)}.ug .f-ph{aspect-ratio:4 / 3}.ug .f-rows > div{grid-template-columns:minmax(0,1fr);gap:4px}}
 
 /* ── trust strip ── */
-.ug .trust{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gutter)}
+.ug .trust{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gutter)}
 .ug .trust li{display:grid;gap:6px;align-content:start;padding:20px;border-radius:var(--r-card);background:var(--sand);min-height:170px}
 .ug .trust li img{width:56px;height:auto;margin-bottom:6px;border-radius:50%}
 .ug .trust b{font-family:var(--f-d);font-weight:500;font-size:var(--t-lg);letter-spacing:-.01em;line-height:1.2}
 .ug .trust span{font-size:var(--t-sm);color:var(--steel);line-height:1.45}
 @media (max-width:999px){.ug .trust{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ── hero cluster: four cutouts drift around the instrument (wide screens only) ── */
+.ug .h2-cluster{position:absolute;inset:0;margin:0;padding:0;list-style:none;pointer-events:none;display:none;z-index:1}
+.ug .h2-cluster li{position:absolute;animation:ug-drift 9s var(--ease) infinite alternate;animation-delay:calc(var(--i) * -2.3s)}
+.ug .h2-cluster img{display:block;width:100%;height:auto;filter:drop-shadow(0 18px 26px rgba(42,35,32,.2))}
+.ug .h2-cluster li:nth-child(1){right:-34px;top:-26px;width:124px}
+.ug .h2-cluster li:nth-child(2){left:-44px;top:150px;width:112px}
+.ug .h2-cluster li:nth-child(3){right:-30px;bottom:132px;width:150px}
+.ug .h2-cluster li:nth-child(4){left:-28px;bottom:70px;width:108px}
+@keyframes ug-drift{from{transform:translateY(-6px) rotate(-1.2deg)}to{transform:translateY(6px) rotate(1.2deg)}}
+@media (min-width:1100px){.ug .h2-cluster{display:block}}
+
+/* ── the film band ── */
+.ug .film-band{margin-top:var(--sp-2xl);border-radius:var(--r-md);background:var(--brown);color:#fff;padding:var(--sp-xl) var(--margin)}
+.ug .film-head{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--gutter);align-items:end;margin-bottom:var(--sp-md)}
+.ug .film-head h2{color:#fff}
+.ug .film-head p{color:rgba(255,255,255,.74);font-size:var(--t-md);line-height:1.5;max-width:44ch}
+.ug .film-ctl{margin-top:14px}
+.ug .film{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gutter)}
+.ug .film figure{margin:0;display:grid;gap:12px;min-width:0}
+.ug .film video{display:block;width:100%;aspect-ratio:4 / 5;object-fit:cover;border-radius:var(--r-md);background:var(--brown-d)}
+.ug .film figcaption{display:grid;gap:2px}
+.ug .film figcaption b{font-family:var(--f-d);font-weight:500;font-size:var(--t-lg);letter-spacing:-.01em;line-height:1.2}
+.ug .film figcaption span{font-size:var(--t-sm);color:rgba(255,255,255,.7)}
+@media (max-width:899px){
+  .ug .film-head{grid-template-columns:minmax(0,1fr)}
+  .ug .film{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:calc((100% - var(--gutter)) / 1.55);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;scrollbar-width:none;margin-inline:calc(-1 * var(--margin));padding-inline:var(--margin)}
+  .ug .film::-webkit-scrollbar{display:none}
+  .ug .film figure{scroll-snap-align:start}
+}
+
+/* ── the Christmas band ── */
+.ug .jol{margin-top:var(--sp-2xl);border-radius:var(--r-md);background:var(--brown-d);color:#fff;padding:var(--sp-lg) var(--margin);display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--sp-md) clamp(24px,4vw,64px);align-items:center}
+.ug .j-ph{width:100%;aspect-ratio:4 / 5;border-radius:var(--r-md)}
+.ug .j-txt{display:grid;gap:20px;align-content:center;justify-items:start}
+.ug .j-txt h2{color:#fff}
+.ug .j-txt > p{color:rgba(255,255,255,.78);font-size:var(--t-lg);line-height:1.45;max-width:46ch}
+.ug .j-prod{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:16px;align-items:center;width:min(100%,520px);padding:10px 16px 10px 10px;border-radius:var(--r-md);background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);color:#fff;transition:background-color var(--t-fast)}
+.ug .j-prod img{width:96px;height:96px;object-fit:contain;padding:6px;background:var(--plate);border-radius:var(--r-sm)}
+.ug .j-prod b{display:block;font-weight:500;line-height:1.25}
+.ug .j-prod small{display:block;margin-top:2px;color:rgba(255,255,255,.7);font-size:var(--t-xs)}
+@media (hover:hover){.ug .j-prod:hover{background:rgba(255,255,255,.12)}}
+.ug .j-acts{display:flex;gap:10px;flex-wrap:wrap}
+@media (max-width:899px){.ug .jol{grid-template-columns:minmax(0,1fr)}.ug .j-ph{aspect-ratio:4 / 3}}
+
+/* ── the people band ── */
+.ug .people{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--sp-md) clamp(24px,4vw,64px);align-items:center}
+.ug .p-txt{display:grid;gap:20px;justify-items:start}
+.ug .p-ph{width:100%;aspect-ratio:4 / 5;border-radius:var(--r-md)}
+.ug .ppl3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%}
+.ug .ppl3 li{display:grid;gap:2px;align-content:start;padding:14px 16px;border-radius:var(--r-card);background:var(--sand)}
+.ug .ppl3 b{font-weight:500;line-height:1.25}
+.ug .ppl3 span{font-size:var(--t-sm);color:var(--steel);line-height:1.4}
+.ug .stand{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gutter);margin-top:var(--sp-md)}
+.ug .stand li{aspect-ratio:4 / 5;border-radius:var(--r-card)}
+.ug .stand-cap{margin-top:12px;font-size:var(--t-sm);color:var(--steel)}
+@media (max-width:899px){.ug .people{grid-template-columns:minmax(0,1fr)}.ug .p-ph{aspect-ratio:4 / 3}.ug .ppl3{grid-template-columns:minmax(0,1fr)}.ug .stand{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:599px){.ug .trust{grid-template-columns:minmax(0,1fr)}.ug .trust li{min-height:0}}
 
 /* ── 2 · intro ── */

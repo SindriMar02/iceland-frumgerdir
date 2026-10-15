@@ -22,6 +22,14 @@ export const PHOTOS = {
   hands: mk('hero-hands', [800, 1400, 2000], 5184, 3888, 'Hendur opna brúnan pappakassa á hvítum fleti'),
   box: mk('28x28-3', [640, 1200], 1920, 2560, 'Opinn brúnn pappakassi á pappa'),
   honey: mk('honeyc1', [640, 1200], 1920, 2560, 'Honeycomb pappaörk, 20 mm þykk'),
+  /* from their public Facebook page (2025–2026 posts), placeholders until they send originals */
+  verslun: mk('fb-verslun', [800, 1400], 1609, 2048, 'Afgreiðslan á Reykjavíkurvegi 70: kassar á borði, hillur með vörum'),
+  jolamenn: mk('fb-jolamenn', [800, 1400], 1536, 2048, 'Tveir starfsmenn halda á rauðum jólakössum í afgreiðslunni'),
+  dagatal: mk('fb-dagatal', [800, 1200], 1536, 2048, 'Jóladagatal úr bylgjupappa með 24 lúgum'),
+  stand1: mk('fb-stand-1', [600, 1000], 1536, 2048, 'Starfsfólk Umbúðagerðarinnar á sýningarbás með stöflum af kössum'),
+  stand2: mk('fb-stand-2', [600, 1000], 1536, 2048, 'Tvö úr starfsfólkinu við kassastafla á sýningarbásnum'),
+  stand3: mk('fb-stand-3', [600, 1000], 1290, 1716, 'Hópur gesta og starfsfólks á sýningarbásnum'),
+  stand4: mk('fb-stand-4', [600, 1000], 1536, 2048, 'Fjögur á sýningarbásnum fyrir framan merkið'),
 }
 
 export const CONTACT = {

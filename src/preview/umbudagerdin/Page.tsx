@@ -15,7 +15,7 @@ import {
   A, BOX_CATS, COLOURS, CONTACT, FAQ, FLUTES, JSON_LD, PHOTOS, PRODUCTS, REQ_LABEL, RHYTHMS, ROUTE, SAMPLE_NOTE, SAMPLE_REQUESTS, SHOP_CATS, SHOP_TOTAL, STYLES, TIERS, TIER_NOTE,
   catLabel, findFits, allFits, MAX_SLACK, kr, loadRequests, mm, productBySlug, routeTo, saveRequest, tierFor, vorur,
   type ColourKey, type FluteKey, type Photo, type Product, type ReqKind, type Request, type StyleKey,
-} from './data'
+ PEOPLE } from './data'
 import { STARTERS, clearList, lineTotal, listCount, listTotals, loadStarter, setQty, toggle, useList } from './store'
 import { answer, CHIPS, GREETING } from './chat'
 import { BROWN, CSS } from './styles'
@@ -374,6 +374,9 @@ function Finder({ size = '' }: { size?: '' | 'lg' }) {
 const num = (s: string | null, d: number) => { const n = Number(s); return n > 0 && n <= 9999 ? n : d }
 const pickKey = <K extends string>(opts: readonly { key: K }[], v: string | null, d: K): K => (opts.some((o) => o.key === v) ? (v as K) : d)
 
+/* four cutouts drift around the instrument on wide screens: the shop is right there behind the numbers */
+const CLUSTER = ['raudur-10-mm-breidur-satin-bordi-aprentadur', 'brefpokar-graenir-m-svortu-snunu-bandi-190x80x210mm-seldir-stakir', 'gjafakassi-svartur-183x156x98mm', 'umhverfisvaent-pappirslimband']
+
 /* the hero IS the instrument: three measurements, the box redraws, the stock boxes that fit appear */
 function HeroInstrument() {
   const nav = useNavigate()
@@ -408,6 +411,9 @@ function HeroInstrument() {
         <p className="h2-meta" data-open="">Framleitt í Hafnarfirði síðan 2021 · Reykjavíkurvegur 70 · {CONTACT.hoursShort}</p>
       </div>
       <div className="h2-draw" data-open="">
+        <ul className="h2-cluster" aria-hidden="true">
+          {CLUSTER.map((s, i) => { const p = productBySlug(s); return p ? <li key={s} style={{ '--i': i } as CSSProperties}><img src={p.img.src} srcSet={p.img.srcSet} sizes="150px" alt="" width={150} height={150} loading="lazy" /></li> : null })}
+        </ul>
         <div className="h2-box">
           <BoxDraw l={L || 300} b={Bv || 200} h={H || 150} colour="bb" />
           <span className="h2-num num">{live ? `${L} × ${Bv} × ${H}` : '300 × 200 × 150'}<small>mm, innri mál</small></span>
@@ -459,6 +465,112 @@ function ShopFirst() {
           {picks.map((sl) => <ProductCard key={sl} p={productBySlug(sl)!} sizes="(min-width: 1000px) 23vw, 46vw" />)}
         </Rail>
       </div>
+      <div style={{ marginTop: 'var(--sp-md)' }}>
+        <Rail label="Litur í pakkann" pr cw="calc((100% - 4 * var(--gutter)) / 5.2)">
+          {COLOUR_PICKS.map((sl) => productBySlug(sl)).filter((p): p is Product => !!p).map((p) => <ProductCard key={p.slug} p={p} sizes="(min-width: 1000px) 18vw, 46vw" />)}
+        </Rail>
+      </div>
+    </section>
+  )
+}
+
+/* the film band: four muted clips from their own reels, played only while in view, posters when motion is off */
+const FILM = [
+  { k: 'bylgja', t: 'Bylgjan', d: 'Arkirnar af skurðarlínunni' },
+  { k: 'brot', t: 'Brotið', d: 'Flatur af lager, brotinn saman á staðnum' },
+  { k: 'pakkad', t: 'Pakkað', d: 'Pappír í kassann, lokið á' },
+  { k: 'lager', t: 'Lagerkassar', d: 'Brúnir, hvítir og svartir' },
+]
+function FilmBand() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [paused, setPaused] = useState(() => still())
+  const pausedRef = useRef(paused)
+  pausedRef.current = paused
+  const seen = useRef(new Set<HTMLVideoElement>())
+  useEffect(() => {
+    const root = ref.current
+    if (!root) return
+    const vids = [...root.querySelectorAll('video')]
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      const v = e.target as HTMLVideoElement
+      if (e.isIntersecting) { seen.current.add(v); if (!pausedRef.current) v.play().catch(() => { /* autoplay refused: the poster stays */ }) }
+      else { seen.current.delete(v); v.pause() }
+    }), { threshold: 0.3 })
+    vids.forEach((v) => io.observe(v))
+    return () => io.disconnect()
+  }, [])
+  const toggle = () => {
+    const next = !paused
+    setPaused(next)
+    seen.current.forEach((v) => { if (next) v.pause(); else v.play().catch(() => { /* poster stays */ }) })
+  }
+  return (
+    <section className="edge" aria-labelledby="h-film">
+      <div className="film-band on-dark">
+        <div className="film-head">
+          <h2 id="h-film" className="h-xl" data-rv="">Úr kassagerðinni á Reykjavíkurvegi 70.</h2>
+          <div data-rv="">
+            <p>Bylgjupappinn er skorinn, brotinn og pakkað í Hafnarfirði. Stutt myndbrot úr framleiðslunni, úr myndböndum Umbúðagerðarinnar.</p>
+            <div className="film-ctl"><Btn label={paused ? 'Spila myndbrotin' : 'Stöðva myndbrotin'} tone="white" size="sm" onClick={toggle} /></div>
+          </div>
+        </div>
+        <div ref={ref} className="film" data-rv-g="" tabIndex={0} aria-label="Myndbrot úr framleiðslunni">
+          {FILM.map((f) => (
+            <figure key={f.k}>
+              <video muted loop playsInline preload="none" poster={A(`film/${f.k}-poster.webp`)} aria-label={f.t} tabIndex={-1}>
+                <source src={A(`film/${f.k}.webm`)} type="video/webm" />
+                <source src={A(`film/${f.k}.mp4`)} type="video/mp4" />
+              </video>
+              <figcaption><b>{f.t}</b><span>{f.d}</span></figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* the Christmas band: their own photo of the red boxes, the calendar product, the one red button */
+function JolBand() {
+  const dag = productBySlug('joladagatal')
+  return (
+    <section className="edge" aria-labelledby="h-jol">
+      <div className="jol on-dark">
+        <div className="ph j-ph" data-rv-img=""><Pic p={PHOTOS.jolamenn} sizes="(min-width: 900px) 40vw, 100vw" pos="50% 40%" /></div>
+        <div className="j-txt">
+          <h2 id="h-jol" className="h-xl" data-rv="">Jólapakkar úr Hafnarfirði.</h2>
+          <p data-rv="">Jóladagatalið, gjafakassar í brúnu, hvítu og svörtu, borðar í átta litum og kassakurl: allt af lager á Reykjavíkurvegi 70, afgreitt flatt og ósamsett.</p>
+          {dag && (
+            <Link className="j-prod" to={to(`verslun/${dag.slug}`)} data-rv="">
+              <img src={dag.img.src} srcSet={dag.img.srcSet} sizes="96px" alt="" width={96} height={96} loading="lazy" />
+              <span><b>{dag.name}</b><small className="num">{kr(dag.price)}{dag.pack ? ` · ${dag.pack} stk.` : ''}{dag.sku ? ` · vnr. ${dag.sku}` : ''}</small></span>
+              <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          )}
+          <div className="j-acts" data-rv=""><Btn to="verslun?flokkur=gjafakassar" label="Skoða gjafakassa" tone="red" icon={ARROW} /><Btn to="verslun?flokkur=bordar-og-bond" label="Borðar og bönd" tone="white" /></div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* the people: the founders' own words, the three names, the shop, the stand */
+function PeopleBand() {
+  return (
+    <section className="wrap sec" id="folkid" aria-labelledby="h-ppl">
+      <div className="people">
+        <div className="p-txt">
+          <h2 id="h-ppl" className="h-xl" data-rv="">Fjölskyldufyrirtæki frá 2014.</h2>
+          <p className="f-lead" data-rv="">Umbúðagerðin er fjölskyldufyrirtæki stofnað af hjónunum Sigrúnu Eddu Eðvarðsdóttur og Eyþóri Páli Haukssyni, út frá starfsemi Prentmiðlunar sem hefur sérhæft sig í bóka- og tímaritaprentun frá 2008. Fyrst um sinn innflutningur umbúða; frá janúar 2021 eigin framleiðsla á pappaumbúðum á Íslandi.</p>
+          <ul className="ppl3" role="list" data-rv-g="">{PEOPLE.map((p) => <li key={p.name}><b>{p.name}</b><span>{p.role}</span></li>)}</ul>
+          <div data-rv=""><Btn to="um-okkur" label="Um okkur" tone="line" icon={ARROW} /></div>
+        </div>
+        <div className="ph p-ph" data-rv-img=""><Pic p={PHOTOS.verslun} sizes="(min-width: 900px) 38vw, 100vw" pos="50% 50%" /></div>
+      </div>
+      <ul className="stand" role="list" data-rv-g="">
+        {[PHOTOS.stand1, PHOTOS.stand2, PHOTOS.stand3, PHOTOS.stand4].map((p, i) => <li key={i} className="ph"><Pic p={p} sizes="(min-width: 900px) 23vw, 46vw" pos="50% 30%" /></li>)}
+      </ul>
+      <p className="stand-cap" data-rv="">Starfsfólkið og kassarnir á sýningarbásnum. Myndir af Facebook-síðu Umbúðagerðarinnar.</p>
     </section>
   )
 }
@@ -490,7 +602,6 @@ function TrustStrip() {
   return (
     <section className="wrap sec" aria-label="Um fyrirtækið">
       <ul className="trust" role="list" data-rv-g="">
-        <li><b>Fjölskyldufyrirtæki</b><span>Stofnað 2014 af hjónunum Sigrúnu Eddu Eðvarðsdóttur og Eyþóri Páli Haukssyni, út frá Prentmiðlun sem hefur prentað bækur frá 2008.</span></li>
         <li><img src={A('resy-400.webp')} alt="RESY-vottun" width={96} height={95} /><b>RESY-vottun</b><span>Bylgjupappi úr sjálfbærum skógum, allur afskurður flokkaður og endurunninn. FSC-vottun í vinnslu.</span></li>
         <li><b className="num">{CONTACT.phone}</b><span>{CONTACT.hours}. <a className="tlink" href={mailHref(CONTACT.email)} style={{ minHeight: 0 }}>{CONTACT.email}</a></span></li>
         <li><b>{CONTACT.street}</b><span>{CONTACT.town}, þar sem kassagerðin fer fram. <a className="tlink" href="https://www.google.com/maps/search/?api=1&query=Reykjav%C3%ADkurvegur+70%2C+220+Hafnarfj%C3%B6r%C3%B0ur" target="_blank" rel="noopener" style={{ minHeight: 0 }}>Opna í kortum</a></span></li>
@@ -502,6 +613,7 @@ function TrustStrip() {
 /* the chooser: what are you packing? (Pebble's use-case carousel on native swipe) */
 type Intent = { k: string; tab: string; t: string; d: string; img: Photo; prod?: boolean; picks: string[]; cta: [string, string] }
 const byCat = (key: string, n: number) => PRODUCTS.filter((p) => p.catKey === key).slice(0, n).map((p) => p.slug)
+const COLOUR_PICKS = ['raudur-10-mm-breidur-satin-bordi-aprentadur', 'graenn-10-mm-breidur-satin-bordi-aprentadur', 'kopar-10-mm-breidur-satin-bordi-aprentadur', 'bleikur-10-mm-breidur-satin-bordi-aprentadur', 'brefpokar-graenir-m-svortu-snunu-bandi-190x80x210mm-seldir-stakir', 'brefpokar-raudir-m-svortu-snunu-bandi-190x80x210mm-seldir-stakir', 'kassakurl-vibrant-blatt-kassakrullu-skreytingarefni', 'kassakurl-matt-gold-kassakrullu-skreytingarefni', 'joladagatal', 'floskufadmur-30cm-a-haed-10-i-bunti']
 const INTENTS: Intent[] = [
   { k: 'vefverslun', tab: 'Vefverslun', t: 'Sendingar úr vefverslun', d: 'Vefverslunarpokar, fylgiseðlaumslög og sendingarkassar í búntum. Minna í senn, oftar, ef þú vilt.', img: firstOf('vefverslunarpokar-og-umslog').img, prod: true, picks: [...byCat('vefverslunarpokar-og-umslog', 2), ...byCat('sendingarkassar', 1)], cta: ['Skoða vefverslunarpoka', 'verslun?flokkur=vefverslunarpokar-og-umslog'] },
   { k: 'gjof', tab: 'Gjafir', t: '61 gjafakassar á lager', d: 'Afgreiddir flatir og ósamsettir, brúnir, hvítir eða svartir. Kassakurl og borðar í sömu pöntun.', img: firstOf('gjafakassar').img, prod: true, picks: [...byCat('gjafakassar', 2), ...byCat('bordar-og-bond', 1)], cta: ['Skoða gjafakassa', 'verslun?flokkur=gjafakassar'] },
@@ -614,9 +726,12 @@ function Home() {
   return (
     <>
       <HeroInstrument />
+      <FilmBand />
       <ShopFirst />
       <Intents />
+      <JolBand />
       <FactoryBand />
+      <PeopleBand />
       <TrustStrip />
       <Faq />
     </>

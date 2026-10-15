@@ -107,3 +107,12 @@ dimension lines (a state transition, motivated). No pinning, no scrubbed paralla
   the tier *mechanism* with the rows labelled "sýnishorn", and the PDF says Umbúðagerðin sets the numbers.
 - Copy is their own (Kassagerð, Kassamál, Þjónusta, Um okkur, Umhverfisábyrgð pages), lightly cut.
 - Nothing is sent: requests and the list live in this browser.
+
+## Life pass (2026-10-15 late)
+
+Sindri: "very well designed… but feels a bit bland". The fix was content, not decoration: their own factory footage (Facebook
+reels, cropped free of captions), their people (founders' text, the three names, the stand photos), their colour (ribbons, bags,
+kassakurl, the Jóladagatal) and their season (the red Christmas boxes). Two dark bands (brown film, dark-brown jól) now break the
+white/sand rhythm; red stays the one signal. Motion budget unchanged except one ambient keyframe: the hero cluster drift.
+Product photos are cutouts on `--plate` (#EFE9DF); every product frame is `object-fit:contain`, never a cover crop.
+
