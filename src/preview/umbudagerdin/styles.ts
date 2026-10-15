@@ -712,18 +712,20 @@ html.ug-menu,html.ug-menu body{overflow:hidden}
 .ug-foot .fbrand img{width:clamp(180px,16vw,240px);height:auto;margin-bottom:6px}
 .ug-foot .fbrand b{font-weight:500;font-family:var(--f-d);font-size:var(--t-lg);letter-spacing:-.01em}
 .ug-foot .fbrand p{font-size:var(--t-sm);color:rgba(255,255,255,.72);max-width:38ch}
-.ug-foot .fdim{font-size:var(--t-xs);letter-spacing:.04em;color:var(--amber)}
-.ug-foot .fart{position:absolute;right:-4%;top:-10%;width:min(46vw,620px);color:rgba(255,255,255,.16);z-index:0;pointer-events:none}
-.ug-foot .fart svg{width:100%;height:auto;overflow:visible}
+.ug-foot .fdim{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:16px;margin-top:var(--sp-xl);font-size:var(--t-xs);letter-spacing:.06em;color:var(--amber);text-transform:uppercase}
+.ug-foot .fdim i{position:relative;height:1px;background:rgba(255,255,255,.28)}
+.ug-foot .fdim i::before,.ug-foot .fdim i::after{content:'';position:absolute;top:-4px;width:1px;height:9px;background:rgba(255,255,255,.45)}
+.ug-foot .fdim i::before{left:0}
+.ug-foot .fdim i::after{right:0}
 .ug-foot .fnav{grid-column:7 / 13;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
 .ug-foot .fnav h3{font-size:var(--t-sm);color:rgba(255,255,255,.6);margin-bottom:6px;font-weight:500}
 .ug-foot .fnav a,.ug-foot .fnav p{display:block;font-size:var(--t-sm);line-height:1.4;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.14);overflow-wrap:anywhere}
 @media (hover:hover){.ug-foot .fnav a:hover{color:var(--amber)}}
-.ug-foot .flegal{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:var(--sp-xl);font-size:var(--t-xs);color:rgba(255,255,255,.6);position:relative;z-index:1}
+.ug-foot .flegal{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:var(--sp-sm);font-size:var(--t-xs);color:rgba(255,255,255,.6);position:relative;z-index:1}
 .ug-foot .flegal a{text-decoration:underline;text-underline-offset:3px}
 .ug-foot .proto{font-size:var(--t-xs);line-height:1.6;color:rgba(255,255,255,.5);margin-top:14px;max-width:120ch;position:relative;z-index:1}
 .ug-foot .fbrand :focus-visible,.ug-foot .fnav :focus-visible,.ug-foot .flegal :focus-visible{outline-color:#fff}
-@media (max-width:899px){.ug-foot .fbrand,.ug-foot .fnav{grid-column:1 / -1}.ug-foot .fnav{grid-template-columns:repeat(2,minmax(0,1fr))}.ug-foot{padding-bottom:calc(96px + env(safe-area-inset-bottom))}.ug-foot .fart{width:70vw;right:-20%;top:auto;bottom:-8%}}
+@media (max-width:899px){.ug-foot .fbrand,.ug-foot .fnav{grid-column:1 / -1}.ug-foot .fnav{grid-template-columns:repeat(2,minmax(0,1fr))}.ug-foot{padding-bottom:calc(96px + env(safe-area-inset-bottom))}.ug-foot .fdim span{text-align:center;line-height:1.5}}
 
 /* ── loader: cream curtain, the mark folds in, lifts away ── */
 .ug-loader{position:fixed;inset:0;z-index:400;background:var(--cream);display:grid;place-items:center;will-change:clip-path}

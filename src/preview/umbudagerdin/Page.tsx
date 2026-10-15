@@ -1607,9 +1607,7 @@ export default function UmbudagerdinPage() {
               <img src={A('brand/logo-white.png')} alt="Umbúðagerðin" width={856} height={203} />
               <b>{CONTACT.slogan}.</b>
               <p>{CONTACT.summary}</p>
-              <p className="fdim num" aria-hidden="true">L × B × H · innri mál í mm</p>
             </div>
-            <div className="fart" aria-hidden="true"><MiniBox kind="0201" line /></div>
             <div className="fnav">
               <div>
                 <h3>{CONTACT.street}</h3>
@@ -1629,6 +1627,7 @@ export default function UmbudagerdinPage() {
               </div>
             </div>
           </div>
+          <div className="fdim" aria-hidden="true"><i /><span className="num">L {CONTACT.street} · B Hafnarfjörður · H síðan 2014</span><i /></div>
           <div className="flegal">
             <p>{CONTACT.legal} · Kt. {CONTACT.kt} · <a href={CONTACT.facebook} target="_blank" rel="noopener">Facebook</a> · <Link to={to('personuvernd')}>Persónuvernd</Link> · <Link to={to('afgreidsla')}>Afgreiðsla</Link></p>
             <SndrBadge />
