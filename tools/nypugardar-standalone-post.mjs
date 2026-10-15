@@ -85,6 +85,8 @@ writeFileSync(
     '/comments/feed / 301',
     '/en / 301',
     '/en/* / 301',
+    '/fr / 301',
+    '/fr/* / 301',
     '/herbergi /rooms 301',
     '# Language roots without the slash',
     '/is /is/ 301',
