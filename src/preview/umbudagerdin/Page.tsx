@@ -1422,8 +1422,9 @@ export default function UmbudagerdinPage() {
   const routeEntry = useRef({ path: loc.pathname, animate: navType === 'PUSH' })
   if (routeEntry.current.path !== loc.pathname) routeEntry.current = { path: loc.pathname, animate: navType === 'PUSH' }
   const [menu, setMenu] = useState(false)
-  const [loader, setLoader] = useState(() => { try { return !still() && sessionStorage.getItem('ug-loaded') !== '1' } catch { return !still() } })
-  const loaderDone = useCallback(() => { setLoader(false); try { sessionStorage.setItem('ug-loaded', '1') } catch { /* private mode */ } }, [])
+  /* the curtain runs on every full load of the front page (a reload shows it again); never on in-app navigation, never on deep links */
+  const [loader, setLoader] = useState(() => !still() && sub === '')
+  const loaderDone = useCallback(() => setLoader(false), [])
   const [banner, setBanner] = useState(() => { try { return sessionStorage.getItem('ug-banner') !== '0' } catch { return true } })
   const chat = useRef<ChatEl | null>(null)
   const page = sub.split('/')[0]
