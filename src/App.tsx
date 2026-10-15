@@ -204,6 +204,7 @@ const HegasPage = lazy(() => import('./preview/hegas/Page'))
 const PrentmidlunPage = lazy(() => import('./preview/prentmidlun/Page'))
 const VelfangPage = lazy(() => import('./preview/velfang/Page'))
 const VikurverkPage = lazy(() => import('./preview/vikurverk/Page'))
+const UmbudagerdinPage = lazy(() => import('./preview/umbudagerdin/Page'))
 const BenniPage = lazy(() => import('./preview/benni/Page'))
 const IsbandPage = lazy(() => import('./preview/isband/Page'))
 const GoaPage = lazy(() => import('./preview/goa/Page'))
@@ -510,6 +511,7 @@ export default function App() {
             <Route path="/preview/prentmidlun/*" element={<PrentmidlunPage />} />
             <Route path="/preview/velfang/*" element={<VelfangPage />} />
             <Route path="/preview/vikurverk/*" element={<VikurverkPage />} />
+            <Route path="/preview/umbudagerdin/*" element={<UmbudagerdinPage />} />
             <Route path="/preview/benni" element={<BenniPage />} />
             <Route path="/preview/isband" element={<IsbandPage />} />
             <Route path="/preview/goa" element={<GoaPage />} />

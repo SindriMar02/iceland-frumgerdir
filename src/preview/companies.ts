@@ -4774,5 +4774,7 @@ import { companyEntry as VELFANG_ENTRY } from './velfang/data'
 PREVIEW_COMPANIES.push(VELFANG_ENTRY)
 import { companyEntry as VIKURVERK_ENTRY } from './vikurverk/data'
 PREVIEW_COMPANIES.push(VIKURVERK_ENTRY)
+import { companyEntry as UMBUDAGERDIN_ENTRY } from './umbudagerdin/data'
+PREVIEW_COMPANIES.push(UMBUDAGERDIN_ENTRY)
 import { companyEntry as XPENG_ENTRY } from './xpeng/data'
 PREVIEW_COMPANIES.push(XPENG_ENTRY)

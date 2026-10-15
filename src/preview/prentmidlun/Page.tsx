@@ -2,7 +2,7 @@
  * Prentmiðlun ehf · "Frá skrá að dyrum" (spec prototype, 2026-10-09).
  *
  * System: Live-up (sndr-teardowns PR #3) through its React port at /preview/hudflur: intro shutter, masked
- * lines on one expo curve, the WebGL lens on the hero photo, a filterable works wall with masked labels, the
+ * lines on one expo curve, a filterable wall of formats and finishes with masked labels, the
  * width-fitted e-mail. Re-aimed for a print broker: Sentient book serif with an English italic gloss, printer's
  * crop marks and signature letters, their logo blue only on marks and rules, and every picture is one of their
  * own studio photos of work they produced. Facts: _docs/PRENTMIDLUN-FACTCHECK-2026-10-09.md.
@@ -117,8 +117,8 @@ function WorkCard({ w, open, onToggle }: { w: Work; open: boolean; onToggle: () 
     >
       <img src={img(w.k)} srcSet={imgSet(w.k)} sizes="(max-width: 768px) 48vw, 24vw" width={w.w} height={w.h} alt={w.alt} loading="lazy" decoding="async" />
       <figcaption className="pm-work__veil">
-        <span className="pm-work__line"><span className="pm-work__title">{w.title}</span></span>
-        <span className="pm-work__line"><span className="pm-work__cat">{CAT_LABEL[w.cat]}{w.spec ? ` · ${w.spec}` : ''}</span></span>
+        <span className="pm-work__line"><span className="pm-work__title">{w.spec ?? CAT_LABEL[w.cat]}</span></span>
+        <span className="pm-work__line"><span className="pm-work__cat">{w.spec ? CAT_LABEL[w.cat] : (CATS.find((c) => c.key === w.cat)?.note ?? '')}</span></span>
       </figcaption>
     </figure>
   )
@@ -160,7 +160,7 @@ function Works({ full = false, only }: { full?: boolean; only?: Cat[] }) {
   return (
     <section className="pm-sec pm-works pm-rule" id="verk" aria-labelledby="verk-t">
       <div className="pm-works__head">
-        <div><Title id="verk-t" sig={full ? undefined : 'C · Verk'} lines={[only ? 'Úr safninu' : 'Verkin']} gloss={only ? 'From the archive' : 'Selected work'} as={full ? 'h1' : 'h2'} /></div>
+        <div><Title id="verk-t" sig={full ? undefined : 'C · Verk'} lines={[only ? 'Útfærslur' : 'Það sem við gerum']} gloss={only ? 'Formats and finishes' : 'Formats, bindings, finishes'} as={full ? 'h1' : 'h2'} /></div>
         {tabs.length > 2 && (
           <div className="pm-works__filters">
             <ul className="pm-tabs" aria-label="Sía verk">
@@ -186,11 +186,11 @@ function Works({ full = false, only }: { full?: boolean; only?: Cat[] }) {
       {tag === 'allt' && !all && picked.length > limit && (
         <div className="pm-works__more">
           {only
-            ? <Btn to={to('verk')} ghost>{`Öll ${WORKS.length} verkin`}</Btn>
-            : <button type="button" className="pm-btn pm-btn--ghost" onClick={() => setAll(true)}><Roll>{`Sýna öll ${picked.length} verkin`}</Roll></button>}
+            ? <Btn to={to('verk')} ghost>Allar útfærslur</Btn>
+            : <button type="button" className="pm-btn pm-btn--ghost" onClick={() => setAll(true)}><Roll>Sýna allar útfærslur</Roll></button>}
         </div>
       )}
-      <p className="pm-works__src">Myndirnar eru úr myndasafni Prentmiðlunar. Titlar eru þeir sem standa á kápunum.</p>
+      <p className="pm-works__src">Myndirnar eru úr myndasafni Prentmiðlunar og sýna útfærslur, bönd og frágang, ekki nýjustu verkin.</p>
     </section>
   )
 }
@@ -285,7 +285,7 @@ function Home() {
           <p className="pm-hero__lead pm-fadein">Prentmiðlun velur prentsmiðjuna sem hentar verkinu, hérlendis, í Evrópu, Asíu eða Ameríku, og sér um allt frá prentskjali að dyrum.</p>
           <div className="pm-hero__ctas pm-fadein">
             <Btn to={to('verdtilbod')}>Biðja um verðtilboð</Btn>
-            <Btn to={to('verk')} ghost>Skoða verkin</Btn>
+            <Btn to={to('verk')} ghost>Skoða útfærslurnar</Btn>
           </div>
         </div>
         <figure className="pm-hero__photo pm-marks pm-unveil">
@@ -777,7 +777,7 @@ const NAV = [
 ]
 const TITLES: Record<string, [string, string]> = {
   '': ['Prentmiðlun | Bókaprentun, borðspil, kort og tímarit', 'Prentmiðlun í Hafnarfirði prentar bækur, borðspil, landakort og tímarit hjá völdum prentsmiðjum í Evrópu, Asíu og Ameríku og afhendir heim að dyrum. Frá 2008.'],
-  verk: ['Verk | Prentmiðlun', 'Sýnishorn af bókum, borðspilum og kortum sem Prentmiðlun hefur framleitt: ljósmyndabækur, barnabækur, handbækur, matreiðslubækur og fleira.'],
+  verk: ['Útfærslur | Prentmiðlun', 'Bókagerðir, bönd og frágangur sem Prentmiðlun framleiðir: innbundið, kilja, harðspjaldabækur, borðspil, kort, fólíuþrykk, upphleypt kápa, askja.'],
   verdtilbod: ['Verðtilboð | Prentmiðlun', 'Lýstu verkinu: vara, stærð, blaðsíður, upplag, pappír, band og afhending. Ein fullbúin beiðni til Prentmiðlunar.'],
   afgreidsla: ['Afgreiðsla | Prentmiðlun', 'Starfsmannahlið: beiðnir af vefnum sem verkseðlar.'],
   'um-okkur': ['Um okkur | Prentmiðlun', 'Eyþór Páll Hauksson, prentari, stofnaði Prentmiðlun árið 2008. Reykjavíkurvegur 70, Hafnarfirði. Sími 554 5800.'],
@@ -950,7 +950,7 @@ export default function PrentmidlunPage() {
           <nav className="pm-drawer__links" aria-label="Valmynd">
             <Link to={to()} aria-current={isHome ? 'page' : undefined}>Forsíða</Link>
             <Link to={`${to()}#thjonusta`}>Þjónusta</Link>
-            <Link to={to('verk')} aria-current={page === 'verk' ? 'page' : undefined}>Verk</Link>
+            <Link to={to('verk')} aria-current={page === 'verk' ? 'page' : undefined}>Útfærslur</Link>
             <Link to={to('verdtilbod')} aria-current={page === 'verdtilbod' ? 'page' : undefined}>Verðtilboð</Link>
             <Link to={to('um-okkur')} aria-current={page === 'um-okkur' ? 'page' : undefined}>Um okkur</Link>
           </nav>
@@ -984,7 +984,7 @@ export default function PrentmidlunPage() {
           </div>
           <div>
             <h2>Vefurinn</h2>
-            <Link to={to('verk')}>Verk</Link>
+            <Link to={to('verk')}>Útfærslur</Link>
             <Link to={to('verdtilbod')}>Verðtilboð</Link>
             <Link to={to('um-okkur')}>Um okkur</Link>
             <Link to={to('personuvernd')}>Persónuvernd</Link>
