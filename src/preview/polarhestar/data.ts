@@ -265,9 +265,9 @@ export const SCHEDULE_COPY = {
     de: 'Bei der Buchung sind 20 % Anzahlung fällig, der Rest zwei Wochen vor Reisebeginn. Wir holen unsere Gäste am ersten Nachmittag am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16 und 18 Uhr. Vollpension ist inbegriffen. Leider können wir keine veganen Gäste oder Menschen mit schweren Lebensmittelallergien aufnehmen.',
   } as L3,
   shortTerms: {
-    is: 'Stuttar ferðir má bóka í tölvupósti eða síma, +354 896 1879 eða +354 893 1879. Greitt er eftir ferðina og við tökum við greiðslukortum. Hámarksþyngd knapa er 95 kg. Henti tímarnir ekki, hafðu samband og við finnum tíma.',
-    en: 'Short rides can be booked by email or phone, +354 896 1879 or +354 893 1879. You pay after the ride, and we take cards. The maximum rider weight is 95 kg. If the times do not suit you, get in touch and we will find one that does.',
-    de: 'Kurze Ritte können per E-Mail oder Telefon gebucht werden, +354 896 1879 oder +354 893 1879. Bezahlt wird nach dem Ritt, Kreditkarten werden akzeptiert. Das Höchstgewicht der Reiter beträgt 95 kg. Passen die Zeiten nicht, melden Sie sich und wir finden eine passende.',
+    is: 'Stuttar ferðir má bóka í tölvupósti eða síma, +354 896 1879. Greitt er eftir ferðina og við tökum við greiðslukortum. Hámarksþyngd knapa er 95 kg. Henti tímarnir ekki, hafðu samband og við finnum tíma.',
+    en: 'Short rides can be booked by email or phone, +354 896 1879. You pay after the ride, and we take cards. The maximum rider weight is 95 kg. If the times do not suit you, get in touch and we will find one that does.',
+    de: 'Kurze Ritte können per E-Mail oder Telefon gebucht werden, +354 896 1879. Bezahlt wird nach dem Ritt, Kreditkarten werden akzeptiert. Das Höchstgewicht der Reiter beträgt 95 kg. Passen die Zeiten nicht, melden Sie sich und wir finden eine passende.',
   } as L3,
 }
 
