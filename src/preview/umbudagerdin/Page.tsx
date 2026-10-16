@@ -10,7 +10,7 @@ import { ArrowLeft, ArrowRight, Check, ChevronDown, Mail, MessageCircle, Minus, 
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { SndrBadge } from '../SndrBadge'
-import { Logo, Mark, Wordmark } from './Logo'
+import { Logo } from './Logo'
 import { setMetaDescription, setNoindex, setThemeColor } from '../../lib/preview'
 import {
   A, BOX_CATS, COLOURS, CONTACT, FAQ, FLUTES, JSON_LD, PHOTOS, PRODUCTS, REQ_LABEL, RHYTHMS, ROUTE, SAMPLE_NOTE, SAMPLE_REQUESTS, SHOP_CATS, SHOP_TOTAL, STYLES, TIERS, TIER_NOTE,
@@ -206,26 +206,25 @@ function MiniBox({ kind, line }: { kind: StyleKey; line?: boolean }) {
 }
 
 
-/* first visit only: the three faces of their mark fold together, the wordmark settles, the curtain lifts */
+/* every full load of the front page: the logo assembles. The lid of the box lands from above, the two sides close in from
+   left and right, then the name closes around the box. The last frame IS the logo, pixel for pixel; then the curtain lifts. */
 function Loader({ onDone }: { onDone: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
     const el = ref.current!
-    /* the mark is a box seen from above: the two sides fold up from the centre line, then the lid drops on, then the name */
-    const tl = gsap.timeline({ onComplete: onDone, defaults: { ease: 'power3.out' } })
-    tl.fromTo(el.querySelector('[data-f="red"]'), { scaleX: 0, transformOrigin: '100% 50%' }, { scaleX: 1, duration: 0.5 }, 0.05)
-      .fromTo(el.querySelector('[data-f="amber"]'), { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, duration: 0.5 }, 0.2)
-      .fromTo(el.querySelector('[data-f="brown"]'), { scaleY: 0, y: -14, transformOrigin: '50% 0%' }, { scaleY: 1, y: 0, duration: 0.4 }, 0.42)
-      .fromTo(el.querySelector('[data-w]'), { y: 10, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.4 }, 0.7)
+    const q = (sel: string) => el.querySelector(sel)
+    const tl = gsap.timeline({ onComplete: onDone, defaults: { ease: 'power3.out', duration: 0.55 } })
+    tl.fromTo(q('[data-f="brown"]'), { y: -110, autoAlpha: 0 }, { y: 0, autoAlpha: 1 }, 0.05)
+      .fromTo(q('[data-f="red"]'), { x: -90, autoAlpha: 0 }, { x: 0, autoAlpha: 1 }, 0.14)
+      .fromTo(q('[data-f="amber"]'), { x: 90, autoAlpha: 0 }, { x: 0, autoAlpha: 1 }, 0.14)
+      .fromTo(q('[data-w="l"]'), { x: -36, autoAlpha: 0 }, { x: 0, autoAlpha: 1 }, 0.34)
+      .fromTo(q('[data-w="r"]'), { x: 36, autoAlpha: 0 }, { x: 0, autoAlpha: 1 }, 0.34)
       .to(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.5, ease: 'ugSmooth' }, LOADER_MS / 1000 - 0.5)
     return () => { tl.kill() }
   }, [onDone])
   return (
     <div ref={ref} className="ug-loader" aria-hidden="true" style={{ clipPath: 'inset(0 0 0% 0)' }}>
-      <div className="ug-loader__in">
-        <Mark size={128} />
-        <div data-w=""><Wordmark width={200} /></div>
-      </div>
+      <div className="ug-loader__in"><Logo height={64} title="" parts /></div>
     </div>
   )
 }
@@ -372,10 +371,8 @@ function Finder({ size = '' }: { size?: '' | 'lg' }) {
 const num = (s: string | null, d: number) => { const n = Number(s); return n > 0 && n <= 9999 ? n : d }
 const pickKey = <K extends string>(opts: readonly { key: K }[], v: string | null, d: K): K => (opts.some((o) => o.key === v) ? (v as K) : d)
 
-/* four cutouts drift around the instrument on wide screens: the shop is right there behind the numbers */
-const CLUSTER = ['raudur-10-mm-breidur-satin-bordi-aprentadur', 'brefpokar-graenir-m-svortu-snunu-bandi-190x80x210mm-seldir-stakir', 'gjafakassi-svartur-183x156x98mm', 'umhverfisvaent-pappirslimband']
-
-/* the hero IS the instrument: three measurements, the box redraws, the stock boxes that fit appear */
+/* the hero: the company on the left (what they make, what the shop holds), the Kassamál tool on the right
+   explained in plain words: three measurements, the box redraws, the stock boxes that fit appear with prices */
 function HeroInstrument() {
   const nav = useNavigate()
   const [l, setL] = useState('')
@@ -396,28 +393,34 @@ function HeroInstrument() {
   return (
     <section className="hero2" aria-labelledby="h-hero">
       <div className="h2-copy">
-        <h1 id="h-hero"><Lines lines={['Kassi í réttri', 'stærð.']} /></h1>
-        <p className="sub" data-open="">Við sérframleiðum pappakassa í Hafnarfirði í þeirri stærð sem þú þarft, og vefverslunin er með {SHOP_TOTAL} vörur. Mældu vöruna að utan, lengd × breidd × hæð: það eru innri mál kassans.</p>
-        <form className="finder" onSubmit={submit} aria-label="Finna kassa eftir málum" data-open="">
-          <span>Ég þarf kassa sem er</span>
-          <span className="dims">
-            {inp(l, setL, 'L', 'Lengd í millimetrum')}<i>×</i>{inp(b, setB, 'B', 'Breidd í millimetrum')}<i>×</i>{inp(h, setH, 'H', 'Hæð í millimetrum')}
-            <span className="u">mm</span>
-          </span>
-          <Btn type="submit" label={live ? 'Opna í Kassamáli' : 'Finna kassa'} icon={ARROW} />
-        </form>
+        <h1 id="h-hero"><Lines lines={['Pappakassar í', 'þinni stærð,', 'umbúðir af lager.']} /></h1>
+        <p className="sub" data-open="">Umbúðagerðin framleiðir kassa úr bylgjupappa í Hafnarfirði í þeirri stærð sem þú þarft, prentar á þá og afhendir í áskrift ef þú vilt. Í vefversluninni eru {SHOP_TOTAL} vörur: sendingarkassar, gjafakassar, pokar, borðar og kassakurl.</p>
+        <div className="h2-acts" data-open="">
+          <Btn to="verslun" label="Skoða vefverslun" tone="red" icon={ARROW} />
+          <Btn to="fyrirspurn" label="Sérframleiðsla" tone="line" />
+        </div>
         <p className="h2-meta" data-open="">Framleitt í Hafnarfirði síðan 2021 · Reykjavíkurvegur 70 · {CONTACT.hoursShort}</p>
       </div>
       <div className="h2-draw" data-open="">
-        <ul className="h2-cluster" aria-hidden="true">
-          {CLUSTER.map((s, i) => { const p = productBySlug(s); return p ? <li key={s} style={{ '--i': i } as CSSProperties}><img src={p.img.src} srcSet={p.img.srcSet} sizes="150px" alt="" width={150} height={150} loading="lazy" /></li> : null })}
-        </ul>
+        <div className="h2-tool">
+          <p className="eyebrow">Kassamál</p>
+          <h2>Finndu kassa sem passar</h2>
+          <p>Mældu vöruna sem á að fara í kassann: lengd, breidd og hæð í millimetrum. Sláðu málin inn hér. Teikningin sýnir kassann í réttum hlutföllum og lagerkassarnir sem passa birtast fyrir neðan með verði. Passi enginn sérframleiðum við kassa í þessari stærð.</p>
+          <form className="finder" onSubmit={submit} aria-label="Finna kassa eftir málum">
+            <span>Ég þarf kassa sem er</span>
+            <span className="dims">
+              {inp(l, setL, 'L', 'Lengd í millimetrum')}<i>×</i>{inp(b, setB, 'B', 'Breidd í millimetrum')}<i>×</i>{inp(h, setH, 'H', 'Hæð í millimetrum')}
+              <span className="u">mm</span>
+            </span>
+            <Btn type="submit" label={live ? 'Opna í Kassamáli' : 'Finna kassa'} icon={ARROW} />
+          </form>
+        </div>
         <div className="h2-box">
           <BoxDraw l={L || 300} b={Bv || 200} h={H || 150} colour="bb" />
           <span className="h2-num num">{live ? `${L} × ${Bv} × ${H}` : '300 × 200 × 150'}<small>mm, innri mál</small></span>
         </div>
         <div className="h2-fits" aria-live="polite">
-          {!live && <p className="muted small">Sláðu inn þrjú mál og lagerkassarnir sem passa birtast hér með verði. Passi enginn sérframleiðum við stærðina.</p>}
+          {!live && <p className="muted small">Lagerkassarnir sem passa birtast hér með verði um leið og þrjú mál eru komin inn.</p>}
           {live && fits.length === 0 && <p className="muted small">Enginn lagerkassi tekur {L} × {Bv} × {H} mm. <Link className="tlink" to={to(`fyrirspurn?l=${L}&b=${Bv}&h=${H}`)}>Senda í sérframleiðslu</Link></p>}
           {live && fits.map((f, i) => (
             <Link key={f.p.slug} className="h2-fit" to={to(`verslun/${f.p.slug}`)}>

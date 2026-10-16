@@ -215,13 +215,17 @@ html:has(.ug){scroll-behavior:auto!important}
 /* ── 1 · the instrument hero: copy + finder left, the live drawing and the fits right (light, airy) ── */
 .ug .hero2{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,6fr);gap:var(--gutter);align-items:stretch;padding:calc(var(--banner) + var(--edge) + var(--hdr) + var(--sp-md) + env(safe-area-inset-top)) var(--margin) var(--sp-xs);min-height:calc(100svh - 8px)}
 .ug .h2-copy{display:grid;align-content:center;gap:22px;padding:clamp(8px,2vw,32px) clamp(0px,3vw,48px) var(--sp-lg) 0}
-.ug .h2-copy h1{font-size:var(--h-2xl);max-width:12ch}
+.ug .h2-copy h1{font-size:var(--h-2xl);max-width:15ch}
 .ug .h2-copy .sub{font-size:var(--t-lg);line-height:1.45;max-width:44ch;color:var(--steel)}
-.ug .h2-copy .finder{background:#fff;box-shadow:0 0 0 1px var(--line),0 30px 60px -40px rgba(42,35,32,.3);-webkit-backdrop-filter:none;backdrop-filter:none}
+.ug .h2-acts{display:flex;flex-wrap:wrap;gap:10px}
+.ug .h2-tool{display:grid;gap:12px;padding:clamp(18px,2.4vw,28px);border-radius:var(--r-lg);background:#fff;box-shadow:0 0 0 1px var(--line)}
+.ug .h2-tool h2{font-family:var(--f-d);font-weight:500;font-size:var(--h-sm);letter-spacing:-.02em;line-height:1.1}
+.ug .h2-tool > p:not(.eyebrow){font-size:var(--t-md);line-height:1.5;color:var(--steel);max-width:56ch}
+.ug .h2-tool .finder{margin-top:6px;padding-left:14px;background:var(--sand);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
 .ug .h2-meta{font-size:var(--t-sm);color:var(--steel)}
-.ug .h2-draw{position:relative;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:8px;min-height:520px}
+.ug .h2-draw{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:8px;min-height:520px}
 .ug .h2-box{position:relative;border-radius:var(--r-lg);background:var(--cream);padding:clamp(16px,2.4vw,32px);display:grid;place-items:center;overflow:hidden}
-.ug .h2-box svg{width:100%;height:auto;max-height:min(58svh,560px)}
+.ug .h2-box svg{width:100%;height:auto;max-height:min(40svh,400px)}
 .ug .h2-num{position:absolute;left:clamp(16px,2.4vw,32px);top:clamp(14px,2vw,26px);font-family:var(--f-d);font-weight:600;font-size:var(--h-xs);letter-spacing:-.02em}
 .ug .h2-num small{font:400 var(--t-sm)/1 var(--f-s);color:var(--steel);margin-left:8px}
 .ug .h2-fits{display:grid;gap:4px;min-height:64px}
@@ -238,6 +242,7 @@ html:has(.ug){scroll-behavior:auto!important}
   .ug .h2-copy{padding:0 0 var(--sp-sm)}
   .ug .h2-copy h1{font-size:clamp(2.6rem,11vw,3.6rem)}
   .ug .h2-draw{min-height:0}
+  .ug .h2-tool{padding:16px}
   .ug .h2-box{padding:16px;grid-template-rows:auto auto;gap:12px}
   .ug .h2-num{position:static;grid-row:1;justify-self:start;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
   .ug .h2-num small{margin-left:0}
@@ -266,17 +271,6 @@ html:has(.ug){scroll-behavior:auto!important}
 .ug .trust b{font-family:var(--f-d);font-weight:500;font-size:var(--t-lg);letter-spacing:-.01em;line-height:1.2}
 .ug .trust span{font-size:var(--t-sm);color:var(--steel);line-height:1.45}
 @media (max-width:999px){.ug .trust{grid-template-columns:repeat(2,minmax(0,1fr))}}
-
-/* ── hero cluster: four cutouts drift around the instrument (wide screens only) ── */
-.ug .h2-cluster{position:absolute;inset:0;margin:0;padding:0;list-style:none;pointer-events:none;display:none;z-index:1}
-.ug .h2-cluster li{position:absolute;animation:ug-drift 9s var(--ease) infinite alternate;animation-delay:calc(var(--i) * -2.3s)}
-.ug .h2-cluster img{display:block;width:100%;height:auto;filter:drop-shadow(0 18px 26px rgba(42,35,32,.2))}
-.ug .h2-cluster li:nth-child(1){right:-34px;top:-26px;width:124px}
-.ug .h2-cluster li:nth-child(2){left:-44px;top:150px;width:112px}
-.ug .h2-cluster li:nth-child(3){right:-30px;bottom:132px;width:150px}
-.ug .h2-cluster li:nth-child(4){left:-28px;bottom:70px;width:108px}
-@keyframes ug-drift{from{transform:translateY(-6px) rotate(-1.2deg)}to{transform:translateY(6px) rotate(1.2deg)}}
-@media (min-width:1100px){.ug .h2-cluster{display:block}}
 
 /* ── the film band ── */
 .ug .film-band{margin-top:var(--sp-2xl);border-radius:var(--r-md);background:var(--brown);color:#fff;padding:var(--sp-xl) var(--margin)}
@@ -794,10 +788,9 @@ html:has(.ug){scroll-behavior:auto!important}
 
 /* ── loader: cream curtain, the mark folds in, lifts away ── */
 .ug-loader{position:fixed;inset:0;z-index:400;background:var(--cream);display:grid;place-items:center;will-change:clip-path}
-.ug-loader__in{display:grid;justify-items:center;gap:14px}
-.ug-loader__in svg{overflow:visible}
-.ug-loader__in [data-w] svg{display:block}
-.ug-loader__in path{will-change:transform}
+.ug-loader__in{display:grid;place-items:center;padding:0 var(--edge)}
+.ug-loader__in svg{display:block;overflow:visible;max-width:min(270px,70vw);height:auto}
+.ug-loader__in path{will-change:transform,opacity}
 
 /* ── page transition on forward navigation only (never on Back) ── */
 .ug main.ug-in{animation:ug-page-in .38s var(--out) backwards}
