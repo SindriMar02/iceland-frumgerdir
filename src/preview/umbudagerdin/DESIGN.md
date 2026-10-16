@@ -24,7 +24,7 @@ on Back (the one thing Heiðar named first on the call).
 
 | What | Value | Source |
 |---|---|---|
-| Logo | "Umbúða gerðin" slab-serif wordmark with a folded-box mark in brown / red / amber, PNG 856×203 | `uploads/2021/03/Umg_logo.png` (header) |
+| Logo | "Umbúða gerðin" slab-serif wordmark with a folded-box mark in brown / red / amber, PNG 856×203; since 10-16 traced to SVG, one path per face (`logo-paths.ts`, `Logo.tsx`) | `uploads/2021/03/Umg_logo.png` (header) |
 | Brand colours | **brown `#4E3D31`** (secondary), **red `#AC2619`** (primary), **amber `#ECB54A`** (accent), text grey `#7A7A7A` | Elementor kit `post-10.css` global colours; the same three colours are the three faces of the logo mark |
 | Fonts on the live site | Poppins (headings), Roboto (text), Roboto Slab (secondary) | Elementor kit. Not reused: Poppins/Roboto carry nothing of the brand; the slab is kept as the idea |
 | Kraft | box flap `#8E7159`, box interior `#826D60`, studio background `#FAF9F7` | measured on their own 2020 shoot `JFM_280520_037.jpg` (5184×3888) |

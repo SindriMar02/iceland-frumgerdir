@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight, Check, ChevronDown, Mail, MessageCircle, Minus, 
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { SndrBadge } from '../SndrBadge'
+import { Logo, Mark, Wordmark } from './Logo'
 import { setMetaDescription, setNoindex, setThemeColor } from '../../lib/preview'
 import {
   A, BOX_CATS, COLOURS, CONTACT, FAQ, FLUTES, JSON_LD, PHOTOS, PRODUCTS, REQ_LABEL, RHYTHMS, ROUTE, SAMPLE_NOTE, SAMPLE_REQUESTS, SHOP_CATS, SHOP_TOTAL, STYLES, TIERS, TIER_NOTE,
@@ -210,23 +211,20 @@ function Loader({ onDone }: { onDone: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
     const el = ref.current!
+    /* the mark is a box seen from above: the two sides fold up from the centre line, then the lid drops on, then the name */
     const tl = gsap.timeline({ onComplete: onDone, defaults: { ease: 'power3.out' } })
-    tl.fromTo(el.querySelector('[data-f="brown"]'), { y: -22, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.45 }, 0.1)
-      .fromTo(el.querySelector('[data-f="red"]'), { x: -26, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.45 }, 0.22)
-      .fromTo(el.querySelector('[data-f="amber"]'), { x: 26, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.45 }, 0.34)
-      .fromTo(el.querySelector('[data-w]'), { y: 10, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.4 }, 0.55)
-      .to(el, { clipPath: 'inset(0 0 100% 0)', duration: LOADER_MS / 1000 - 1, ease: 'ugSmooth' }, 1.0)
+    tl.fromTo(el.querySelector('[data-f="red"]'), { scaleX: 0, transformOrigin: '100% 50%' }, { scaleX: 1, duration: 0.5 }, 0.05)
+      .fromTo(el.querySelector('[data-f="amber"]'), { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, duration: 0.5 }, 0.2)
+      .fromTo(el.querySelector('[data-f="brown"]'), { scaleY: 0, y: -14, transformOrigin: '50% 0%' }, { scaleY: 1, y: 0, duration: 0.4 }, 0.42)
+      .fromTo(el.querySelector('[data-w]'), { y: 10, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.4 }, 0.7)
+      .to(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.5, ease: 'ugSmooth' }, LOADER_MS / 1000 - 0.5)
     return () => { tl.kill() }
   }, [onDone])
   return (
     <div ref={ref} className="ug-loader" aria-hidden="true" style={{ clipPath: 'inset(0 0 0% 0)' }}>
       <div className="ug-loader__in">
-        <svg viewBox="40 50 432 400" width="120" height="111">
-          <polygon data-f="brown" points="100,66 254,66 177,150" fill="#4E3D31" />
-          <polygon data-f="red" points="52,78 232,232 232,432 52,262" fill="#AC2619" />
-          <polygon data-f="amber" points="280,232 460,78 460,262 280,432" fill="#ECB54A" />
-        </svg>
-        <img data-w="" src={A('brand/logo.png')} alt="" width={856} height={203} />
+        <Mark size={128} />
+        <div data-w=""><Wordmark width={200} /></div>
       </div>
     </div>
   )
@@ -292,7 +290,7 @@ function Header({ sub, onMenu }: { sub: string; onMenu: () => void }) {
         ))}
       </nav>
       <Link className="logo" to={to()} aria-label="Umbúðagerðin, forsíða">
-        <img src={A('brand/logo.png')} alt="" width={856} height={203} />
+        <Logo height={28} title="" />
       </Link>
       <div className="acts">
         <Link className="bag" to={to('listinn')} aria-label={`Pöntunarlistinn, ${n} stk.`}>
@@ -1762,7 +1760,7 @@ export default function UmbudagerdinPage() {
       {menu && (
         <div className="ug-menu-panel" ref={menuRef} role="dialog" aria-modal="true" aria-label="Valmynd" data-lenis-prevent="">
           <div className="mtop">
-            <img src={A('brand/logo.png')} alt="Umbúðagerðin" width={856} height={203} />
+            <Logo height={28} />
             <button type="button" className="mx" onClick={() => setMenu(false)} aria-label="Loka valmynd"><X size={20} strokeWidth={1.6} aria-hidden="true" /></button>
           </div>
           <div className="mgroups">
@@ -1788,7 +1786,7 @@ export default function UmbudagerdinPage() {
         <div className="wrap">
           <div className="ftop">
             <div className="fbrand">
-              <img src={A('brand/logo-white.png')} alt="Umbúðagerðin" width={856} height={203} />
+              <Logo height={56} colour="#FFFFFF" className="flogo" />
               <b>{CONTACT.slogan}.</b>
               <p>{CONTACT.summary}</p>
             </div>
