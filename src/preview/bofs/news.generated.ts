@@ -6,14 +6,30 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-10-15T11:28:37.910Z
+ * Last synced: 2026-10-16T11:24:02.345Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 15. október 2026', en: 'Updated 15 October 2026' }
+export const SYNCED_AT = { is: 'Uppfært 16. október 2026', en: 'Updated 16 October 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
+  {
+    "date": "15.10.2026",
+    "source": "BOFS",
+    "topic": "samstarf",
+    "title": {
+      "is": "Traust í fyrirrúmi: ráðstefna um áföll og seiglu í formennskutíð Íslands í Eystrasaltsráðinu",
+      "en": "Traust í fyrirrúmi: ráðstefna um áföll og seiglu í formennskutíð Íslands í Eystrasaltsráðinu"
+    },
+    "href": "https://island.is/s/bofs/frett/traust-i-fyrirrumi-radstefna-um-afoell-og-seiglu-i-formennskutid-islands-i-eystrasaltsradinu",
+    "untranslated": true,
+    "summary": {
+      "is": "Þann 8. október s.l. var haldin ráðstefna í Háskólanum í Reykjavík undir yfirskriftinni „Traust í fyrirrúmi: áfallamiðaðar nálganir“ (e. Starting with Trust: trauma-informed pathways to resilience). Ráðstefnan var liður í formennsku Íslands í Eystrasaltsráðinu.",
+      "en": "Þann 8. október s.l. var haldin ráðstefna í Háskólanum í Reykjavík undir yfirskriftinni „Traust í fyrirrúmi: áfallamiðaðar nálganir“ (e. Starting with Trust: trauma-informed pathways to resilience). Ráðstefnan var liður í formennsku Íslands í Eystrasaltsráðinu."
+    },
+    "summaryUntranslated": true
+  },
   {
     "date": "23.09.2026",
     "source": "Umboðsmaður barna",
@@ -306,19 +322,5 @@ export const SYNCED_NEWS: NewsItem[] = [
       "en": "Gæða- og eftirlitsstofnun velferðarmála (GEV) hefur að beiðni Félags- og húsnæðismálaráðuneytisins stofnað til frumkvæðisathugunar á eftirliti barnaverndarþjónusta með börnum í fóstri."
     },
     "summaryUntranslated": true
-  },
-  {
-    "date": "06.03.2026",
-    "source": "BOFS",
-    "topic": "medferd",
-    "title": {
-      "is": "Nýtt meðferðarheimili í Gunnarsholti hefur störf",
-      "en": "The new treatment home at Gunnarsholt begins work"
-    },
-    "href": "https://island.is/s/bofs/frett/nytt-medferdarheimili-i-gunnarsholti-hefur-stoerf",
-    "summary": {
-      "is": "Meðferðarheimilið Lækjarbakki hóf störf í nýju húsnæði í Gunnarsholti og tók á móti sínu fyrsta barni. Heimilið veitir framhaldsmeðferð fyrir börn með vímuefnavanda.",
-      "en": "The Lækjarbakki treatment home began operating in its new premises at Gunnarsholt and received its first child. The home provides follow-on treatment for children with substance problems."
-    }
   }
 ]
