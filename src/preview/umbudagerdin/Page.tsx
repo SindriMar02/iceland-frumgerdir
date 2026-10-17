@@ -371,8 +371,10 @@ function Finder({ size = '' }: { size?: '' | 'lg' }) {
 const num = (s: string | null, d: number) => { const n = Number(s); return n > 0 && n <= 9999 ? n : d }
 const pickKey = <K extends string>(opts: readonly { key: K }[], v: string | null, d: K): K => (opts.some((o) => o.key === v) ? (v as K) : d)
 
-/* the hero: the company on the left (what they make, what the shop holds), the Kassamál tool on the right
-   explained in plain words: three measurements, the box redraws, the stock boxes that fit appear with prices */
+/* the hero: the company on the left, the Kassamál instrument on the right. The instrument is one sentence with the three
+   measurements typed into it (the finder from the moodboard, pin 85), the box drawn to those measurements under it
+   (pin 66), and the stock boxes that fit listed with prices. Three example sizes make it work in one tap. */
+const EXAMPLES: [number, number, number][] = [[180, 120, 80], [230, 160, 90], [400, 300, 200]]
 function HeroInstrument() {
   const nav = useNavigate()
   const [l, setL] = useState('')
@@ -390,10 +392,11 @@ function HeroInstrument() {
   const inp = (v: string, set: (s: string) => void, ph: string, label: string) => (
     <label><span className="sr">{label}</span><input inputMode="numeric" pattern="[0-9]*" autoComplete="off" placeholder={ph} value={v} onChange={(e) => set(e.target.value.replace(/\D/g, '').slice(0, 4))} /></label>
   )
+  const fill = (d: [number, number, number]) => { setL(String(d[0])); setB(String(d[1])); setH(String(d[2])) }
   return (
     <section className="hero2" aria-labelledby="h-hero">
       <div className="h2-copy">
-        <h1 id="h-hero"><Lines lines={['Pappakassar í', 'þinni stærð,', 'umbúðir af lager.']} /></h1>
+        <h1 id="h-hero"><Lines lines={['Kassar í', 'þinni stærð,', 'umbúðir af lager.']} /></h1>
         <p className="sub" data-open="">Umbúðagerðin framleiðir kassa úr bylgjupappa í Hafnarfirði í þeirri stærð sem þú þarft, prentar á þá og afhendir í áskrift ef þú vilt. Í vefversluninni eru {SHOP_TOTAL} vörur: sendingarkassar, gjafakassar, pokar, borðar og kassakurl.</p>
         <div className="h2-acts" data-open="">
           <Btn to="verslun" label="Skoða vefverslun" tone="red" icon={ARROW} />
@@ -401,26 +404,24 @@ function HeroInstrument() {
         </div>
         <p className="h2-meta" data-open="">Framleitt í Hafnarfirði síðan 2021 · Reykjavíkurvegur 70 · {CONTACT.hoursShort}</p>
       </div>
-      <div className="h2-draw" data-open="">
-        <div className="h2-tool">
-          <p className="eyebrow">Kassamál</p>
-          <h2>Finndu kassa sem passar</h2>
-          <p>Mældu vöruna sem á að fara í kassann: lengd, breidd og hæð í millimetrum. Sláðu málin inn hér. Teikningin sýnir kassann í réttum hlutföllum og lagerkassarnir sem passa birtast fyrir neðan með verði. Passi enginn sérframleiðum við kassa í þessari stærð.</p>
-          <form className="finder" onSubmit={submit} aria-label="Finna kassa eftir málum">
+      <form className="inst" onSubmit={submit} aria-label="Kassamál: finna lagerkassa eftir innri málum" data-open="">
+        <div className="inst-head">
+          <span className="eyebrow">Kassamál · lagerkassar sem passa</span>
+          <p className="inst-line">
             <span>Ég þarf kassa sem er</span>
-            <span className="dims">
-              {inp(l, setL, 'L', 'Lengd í millimetrum')}<i>×</i>{inp(b, setB, 'B', 'Breidd í millimetrum')}<i>×</i>{inp(h, setH, 'H', 'Hæð í millimetrum')}
-              <span className="u">mm</span>
-            </span>
-            <Btn type="submit" label={live ? 'Opna í Kassamáli' : 'Finna kassa'} icon={ARROW} />
-          </form>
+            <span className="dims">{inp(l, setL, 'L', 'Lengd í millimetrum')}<i>×</i>{inp(b, setB, 'B', 'Breidd í millimetrum')}<i>×</i>{inp(h, setH, 'H', 'Hæð í millimetrum')}<span className="u">mm</span></span>
+          </p>
+          <p className="inst-note">
+            <span>Innri mál: mældu vöruna að utan, lengd × breidd × hæð.</span>
+            {!live && <span className="try">Prófaðu {EXAMPLES.map((d) => <button key={d.join()} type="button" className="num" onClick={() => fill(d)}>{d.join(' × ')}</button>)}</span>}
+          </p>
         </div>
-        <div className="h2-box">
+        <div className="inst-draw">
           <BoxDraw l={L || 300} b={Bv || 200} h={H || 150} colour="bb" />
-          <span className="h2-num num">{live ? `${L} × ${Bv} × ${H}` : '300 × 200 × 150'}<small>mm, innri mál</small></span>
+          <span className="h2-num num">{live ? `${L} × ${Bv} × ${H}` : '300 × 200 × 150'}<small>{live ? 'mm, innri mál' : 'mm, dæmi'}</small></span>
         </div>
         <div className="h2-fits" aria-live="polite">
-          {!live && <p className="muted small">Lagerkassarnir sem passa birtast hér með verði um leið og þrjú mál eru komin inn.</p>}
+          {!live && <p className="muted small">Lagerkassarnir sem passa birtast hér með verði. Passi enginn sérframleiðum við stærðina.</p>}
           {live && fits.length === 0 && <p className="muted small">Enginn lagerkassi tekur {L} × {Bv} × {H} mm. <Link className="tlink" to={to(`fyrirspurn?l=${L}&b=${Bv}&h=${H}`)}>Senda í sérframleiðslu</Link></p>}
           {live && fits.map((f, i) => (
             <Link key={f.p.slug} className="h2-fit" to={to(`verslun/${f.p.slug}`)}>
@@ -429,8 +430,10 @@ function HeroInstrument() {
               <span className="num pr">{kr(f.p.price)}{f.p.pack ? <small> · {f.p.pack} stk.</small> : null}</span>
             </Link>
           ))}
+          {live && fits.length > 0 && <Link className="tlink inst-more" to={to(`kassamal?l=${L}&b=${Bv}&h=${H}`)} state={{ keepScroll: true }}>Allir kassar sem passa, bylgja og litur: opna í Kassamáli</Link>}
         </div>
-      </div>
+        <button type="submit" className="sr">Finna kassa</button>
+      </form>
     </section>
   )
 }
@@ -536,7 +539,7 @@ function JolBand() {
   const dag = productBySlug('joladagatal')
   return (
     <section className="edge" aria-labelledby="h-jol">
-      <div className="jol on-dark">
+      <div className="jol">
         <div className="ph j-ph" data-rv-img=""><Pic p={PHOTOS.jolamenn} sizes="(min-width: 900px) 40vw, 100vw" pos="50% 40%" /></div>
         <div className="j-txt">
           <h2 id="h-jol" className="h-xl" data-rv="">Jólapakkar úr Hafnarfirði.</h2>
@@ -548,7 +551,7 @@ function JolBand() {
               <ArrowRight size={16} aria-hidden="true" />
             </Link>
           )}
-          <div className="j-acts" data-rv=""><Btn to="verslun?flokkur=gjafakassar" label="Skoða gjafakassa" tone="red" icon={ARROW} /><Btn to="verslun?flokkur=bordar-og-bond" label="Borðar og bönd" tone="white" /></div>
+          <div className="j-acts" data-rv=""><Btn to="verslun?flokkur=gjafakassar" label="Skoða gjafakassa" tone="red" icon={ARROW} /><Btn to="verslun?flokkur=bordar-og-bond" label="Borðar og bönd" tone="line" /></div>
         </div>
       </div>
     </section>
@@ -727,11 +730,11 @@ function Home() {
   return (
     <>
       <HeroInstrument />
-      <FilmBand />
       <ShopFirst />
       <Intents />
-      <JolBand />
       <FactoryBand />
+      <FilmBand />
+      <JolBand />
       <PeopleBand />
       <TrustStrip />
       <Faq />
