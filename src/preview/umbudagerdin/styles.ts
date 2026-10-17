@@ -171,7 +171,7 @@ html:has(.ug){scroll-behavior:auto!important}
 .ug .ph{position:relative;overflow:hidden;background:var(--cream)}
 .ug .ph > img,.ug .ph > picture img{width:100%;height:100%;object-fit:cover}
 .ug [data-rv-img]{overflow:hidden}
-.ug .zoom img{transition:transform var(--t-slower) var(--out)}
+.ug .zoom img{transition:transform var(--t-slow) var(--out)}
 @media (hover:hover) and (pointer:fine){.ug a:hover > .zoom img,.ug a:hover .zoom img,.ug .zoom:hover img{transform:scale(1.03)}}
 
 /* ── 1 · hero: framed, full height, LIGHT (their photo is white); the finder sentence sits in it ── */
@@ -452,7 +452,7 @@ html:has(.ug){scroll-behavior:auto!important}
 .ug .pcard{position:relative;display:grid;gap:10px;align-content:start}
 .ug .pcard .media{position:relative}
 .ug .pcard .ph{aspect-ratio:1;border-radius:var(--r-sm);background:var(--plate);box-shadow:inset 0 0 0 1px rgba(42,35,32,.05)}
-.ug .pcard .ph img{width:100%;height:100%;object-fit:contain;padding:6%;transition:transform var(--t-slower) var(--out)}
+.ug .pcard .ph img{width:100%;height:100%;object-fit:contain;padding:6%;transition:transform var(--t-slow) var(--out)}
 .ug .pcard .ph .pill{position:absolute;left:10px;top:10px}
 .ug .pcard .add{position:absolute;right:10px;bottom:10px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#fff;color:var(--ink);box-shadow:0 4px 14px -6px rgba(0,0,0,.25);transition:background-color var(--t-fast),color var(--t-fast),transform .12s}
 .ug .pcard .add[aria-pressed="true"]{background:var(--red);color:#fff}
@@ -833,6 +833,57 @@ html:has(.ug){scroll-behavior:auto!important}
   .ug .fbar select{font-size:16px;height:44px}
   .ug-foot .fnav a{min-height:44px;display:flex;align-items:center}
   .ug-foot .flegal a{display:inline-flex;align-items:center;min-height:44px}
+}
+
+/* ── hover motion pass (17 Oct): every clickable surface answers the pointer. Fine pointers only; reduced motion kills it below. ── */
+.ug .pcard .ph{transition:transform var(--t) var(--out)}
+.ug .pcard{isolation:isolate}
+.ug .pcard::before{content:'';position:absolute;z-index:-1;left:0;right:0;top:0;aspect-ratio:1;border-radius:var(--r-sm);box-shadow:0 22px 34px -26px rgba(42,35,32,.5);opacity:0;pointer-events:none;transition:opacity var(--t) var(--out),transform var(--t) var(--out)}
+.ug .pcard .add{opacity:1;transition:background-color var(--t) var(--out),color var(--t) var(--out),transform var(--t) var(--out)}
+.ug .cat .ph img{transition:transform var(--t-slow) var(--out)}
+.ug .cat b svg{transition:transform var(--t) var(--out)}
+.ug .cat b{transition:color var(--t) var(--out)}
+.ug .h2-fit,.ug .j-prod{transition:background-color var(--t-fast),transform var(--t) var(--out)}
+.ug .h2-fit img,.ug .j-prod img{transition:transform var(--t) var(--out)}
+.ug .h2-fit .pr{transition:color var(--t) var(--out)}
+.ug .inst-note button{transition:background-color var(--t-fast),color var(--t-fast),transform var(--t) var(--out)}
+.ug .inst-line input{transition:border-color var(--t-fast),color var(--t-fast)}
+.ug .film video{transition:transform var(--t-slow) var(--out)}
+.ug .film figcaption b{display:inline-block;transition:transform var(--t) var(--out)}
+.ug .trust li,.ug .ppl3 li{transition:transform var(--t) var(--out),background-color var(--t) var(--out)}
+.ug .stand li{overflow:hidden}
+.ug .stand li img{transition:transform var(--t-slow) var(--out)}
+.ug .ifit a span:first-child{display:inline-block;transition:transform var(--t) var(--out)}
+.ug .ifit a{transition:color var(--t) var(--out)}
+.ug .ifit a .num{transition:color var(--t) var(--out)}
+.ug .itabs button{transition:background-color var(--t) var(--out),color var(--t) var(--out)}
+.ug .faq .acc-b{transition:color var(--t) var(--out)}
+.ug .faq .acc-b > span:first-child{display:inline-block;transition:transform var(--t) var(--out)}
+.ug-foot .fnav a{transition:color var(--t) var(--out),transform var(--t) var(--out);display:inline-block}
+@media (hover:hover) and (pointer:fine){
+  .ug .pcard:hover .ph{transform:translateY(-4px)}
+  .ug .pcard:hover::before{opacity:1;transform:translateY(-4px)}
+  .ug .pcard:hover .ph img{transform:scale(1.07) rotate(-1.2deg)}
+  .ug .pcard:hover .add:not([aria-pressed="true"]){background:var(--ink);color:#fff;transform:translateY(-2px)}
+  .ug .cat:hover .ph img{transform:translateY(-6px) scale(1.06)}
+  .ug .cat:hover b{color:var(--red)}
+  .ug .cat:hover b svg{transform:translateX(4px)}
+  .ug .h2-fit:hover,.ug .j-prod:hover{transform:translateX(4px)}
+  .ug .h2-fit:hover img,.ug .j-prod:hover img{transform:scale(1.1) rotate(-2deg)}
+  .ug .h2-fit:hover .pr{color:var(--red)}
+  .ug .inst-note button:hover{background:var(--ink);color:#fff;transform:translateY(-1px)}
+  .ug .inst-line input:hover{border-bottom-color:var(--red)}
+  .ug .film figure:hover video{transform:translateY(-4px) scale(1.02)}
+  .ug .film figure:hover figcaption b{transform:translateX(4px)}
+  .ug .trust li:hover,.ug .ppl3 li:hover{transform:translateY(-3px);background:#fff}
+  .ug .stand li:hover img{transform:scale(1.05)}
+  .ug .ifit a:hover{color:var(--red)}
+  .ug .ifit a:hover span:first-child{transform:translateX(6px)}
+  .ug .ifit a:hover .num{color:var(--ink)}
+  .ug .itabs button:not([aria-selected="true"]):hover{background:rgba(255,255,255,.65)}
+  .ug .faq .acc-b:hover{color:var(--red)}
+  .ug .faq .acc-b:hover > span:first-child{transform:translateX(4px)}
+  .ug-foot .fnav a:hover{transform:translateX(3px)}
 }
 
 @media (prefers-reduced-motion:reduce){
