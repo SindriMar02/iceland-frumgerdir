@@ -22,6 +22,7 @@ import {
   BEDS, LEVEL, NO_DATES, STATUS_LABEL, allDepartures, bookable, formatRange, herdLine, monthShort, monthsLabel,
   nightsLine, priceEur, runsIn, todayIso, upcoming, weekday, type DepartureRow, type Lang,
 } from './schedule'
+import { Horse, horseFor } from './Horse'
 
 const MIST = '#EDF1F7'
 const PAPER = '#F7FAFC'
@@ -85,6 +86,7 @@ function requestHref(email: string, tour: LongTourX, d: DepartureRow | null, lan
 }
 
 function StatusChip({ status, lang }: { status: DepartureRow['status']; lang: Lang }) {
+  const horse = horseFor(status, 'light')
   const style =
     status === 'open'
       ? { background: `${CLAY}14`, color: CLAY_TX }
@@ -92,8 +94,11 @@ function StatusChip({ status, lang }: { status: DepartureRow['status']; lang: La
         ? { background: `${AMBER}40`, color: AMBER_TX }
         : { background: `${INK}0d`, color: SLATE }
   return (
-    <span className="inline-flex items-center rounded-full px-2.5 py-1 font-hanken text-[0.72rem] font-semibold whitespace-nowrap" style={style}>
-      {STATUS_LABEL[status][lang]}
+    <span className="inline-flex items-center gap-2">
+      {horse && <Horse facing={horse.facing} className="w-9" style={{ color: horse.color }} />}
+      <span className="inline-flex items-center rounded-full px-2.5 py-1 font-hanken text-[0.72rem] font-semibold whitespace-nowrap" style={style}>
+        {STATUS_LABEL[status][lang]}
+      </span>
     </span>
   )
 }

@@ -20,6 +20,7 @@ import { setThemeColor } from '../../lib/preview'
 import { SiteContentProvider, useSiteContent, altIs } from './sanity'
 import { monthsLabel, type Lang } from './schedule'
 import { SHORT_TOUR_NOTES, SHORT_TOUR_TEXT, shortTourDescription, shortTourTitle } from './shortTourText'
+import { HorseRule } from './Horse'
 
 const MIST = '#EDF1F7'
 const PAPER = '#F7FAFC'
@@ -318,6 +319,9 @@ function ShortTourInner() {
                 </li>
               ))}
             </ul>
+            <div className="mt-10">
+              <HorseRule color={INK} line="#161B3C1f" />
+            </div>
           </div>
         </section>
       </main>

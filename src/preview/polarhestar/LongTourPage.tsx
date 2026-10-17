@@ -28,6 +28,7 @@ import {
 import { DAY_TITLE, ITINERARIES, MAP_PLACE } from './itineraries'
 import { RegionMap } from './RegionMap'
 import { useGrowingHero, useSmoothScroll } from './motion'
+import { Horse, HorseRule, horseFor } from './Horse'
 
 const MIST = '#EDF1F7'
 const PAPER = '#F7FAFC'
@@ -314,6 +315,7 @@ function TourPageInner() {
             <ul className="mt-6 grid gap-3 md:grid-cols-2">
               {rows.map((d) => {
                 const open = d.status === 'open' || d.status === 'few'
+                const horse = horseFor(d.status, 'dark')
                 return (
                   <li key={d.start} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-4" style={{ background: '#252D5E' }}>
                     <div>
@@ -324,6 +326,7 @@ function TourPageInner() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
+                      {horse && <Horse facing={horse.facing} className="w-10" style={{ color: horse.color }} />}
                       <span className="rounded-full px-2.5 py-1 text-[0.72rem] font-semibold" style={d.status === 'few' ? { background: '#F2C46D', color: AMBER_TX } : d.status === 'open' ? { background: `${ICE}33`, color: ICE } : { background: 'rgba(255,255,255,.1)', color: 'rgba(255,255,255,.7)' }}>
                         {STATUS_LABEL[d.status][lang]}
                       </span>
@@ -344,6 +347,9 @@ function TourPageInner() {
                 {tri(lang, 'Öll dagskráin', 'The whole schedule', 'Der ganze Terminplan')}
               </Link>
             </div>
+          </div>
+          <div className="px-4 pb-6 md:px-8">
+            <HorseRule color={ICE} line="rgba(255,255,255,.14)" />
           </div>
         </section>
       </main>
