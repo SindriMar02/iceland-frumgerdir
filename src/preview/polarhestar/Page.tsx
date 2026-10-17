@@ -25,6 +25,7 @@ import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { COPY, INSTAGRAM, TRIPADVISOR, type Lang } from './data'
 import { stegaClean } from '@sanity/client/stega'
+import { Link } from 'react-router-dom'
 import { SiteContentProvider, useHashLanding, useSiteContent, altIs, type Pic, type TourX } from './sanity'
 import { useHeroParallax, useSmoothScroll } from './motion'
 import { FarmMap } from './FarmMap'
@@ -60,6 +61,10 @@ const NIGHT2 = '#252D5E' // navy card / active tab on night ground
 const ICE = '#9BD8F3' // logo ice-blue (alias of CLAY_HI on night sections)
 
 const LOGO = `${import.meta.env.BASE_URL}polarhestar/logo.png`
+/** The farm shop is off: the owners said on 17 Oct 2026 that they don't need it for
+ *  now (only the buffs are left). Items stay in the CMS; flip this to show it again. */
+const SHOW_SHOP = false
+const RIDE_HREF = '/preview/polarhestar/reidtur'
 const SCHEDULE_HREF = `${import.meta.env.BASE_URL}preview/polarhestar/dagskra`
 
 const LANGS: Lang[] = ['is', 'en', 'de']
@@ -1757,7 +1762,7 @@ function PolarHestarPageInner() {
                   ['#gott', tri(lang, 'Gott að vita', 'Good to know', 'Gut zu wissen')],
                   ['#baer', tri(lang, 'Á bænum', 'At the farm', 'Auf dem Hof')],
                   ['#myndir', tri(lang, 'Myndasafn', 'Gallery', 'Galerie')],
-                  ['#bud', tri(lang, 'Búðin', 'The shop', 'Der Hofladen')],
+                  ...(SHOW_SHOP ? [['#bud', tri(lang, 'Búðin', 'The shop', 'Der Hofladen')]] : []),
                 ] as [string, string][],
               },
               { href: '#heimsokn', label: t.nav.visit },
@@ -1879,7 +1884,7 @@ function PolarHestarPageInner() {
               ['#arstidir', t.nav.seasons],
               ['#gott', t.nav.info],
               ['#myndir', tri(lang, 'Myndasafn', 'Gallery', 'Galerie')],
-              ['#bud', tri(lang, 'Búðin', 'The shop', 'Der Hofladen')],
+              ...(SHOW_SHOP ? [['#bud', tri(lang, 'Búðin', 'The shop', 'Der Hofladen')]] : []),
               ['#heimsokn', t.nav.visit],
             ].map(([href, label], i) => (
               <a
@@ -2449,7 +2454,8 @@ function PolarHestarPageInner() {
         </div>
       </section>
 
-      {/* ── SHOP (photo-light) — fixes the dead-end shop ─────────────────── */}
+      {/* ── SHOP (photo-light) — off until the owners want it back (SHOW_SHOP) */}
+      {SHOW_SHOP && (
       <section id="bud" className="scroll-mt-20 px-5 py-16 md:py-20" style={{ background: PAPER }}>
         <div className="mx-auto max-w-6xl md:px-3">
         <Reveal className="mb-8 max-w-xl">
@@ -2486,6 +2492,7 @@ function PolarHestarPageInner() {
         </div>
         </div>
       </section>
+      )}
 
       {/* ── VISIT / LOCATION ────────────────────────────────────────────── */}
       <section id="heimsokn" className="scroll-mt-20 px-5 pb-20 md:pb-28">
@@ -2721,11 +2728,18 @@ function TourCard({ tour, lang, t, onBook, picked = false }: { tour: TourX; lang
           </span>
         </div>
         <h3 className="mt-3 font-spectral text-xl leading-snug" style={{ color: INK }}>
-          {tour.name[lang]}
+          <Link to={`${RIDE_HREF}/${tour.id}`} className="outline-none focus-visible:underline">
+            {tour.name[lang]}
+          </Link>
         </h3>
         <p className="mt-2 flex-1 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
           {tour.blurb[lang]}
         </p>
+        <Link to={`${RIDE_HREF}/${tour.id}`} className="mt-3 inline-flex items-center gap-1 self-start font-hanken text-sm font-semibold transition-colors" style={{ color: CLAY_TX }}>
+          {tri(lang, 'Nánar um ferðina', 'More about this ride', 'Mehr zu diesem Ritt')}
+          <span className="sr-only">: {tour.name[lang]}</span>
+          <ChevronRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
         <div className="mt-4 flex items-end justify-between">
           <div>
             <p className="font-hanken text-[0.68rem] tracking-wide uppercase" style={{ color: SLATE }}>

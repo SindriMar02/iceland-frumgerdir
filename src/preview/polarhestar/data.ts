@@ -236,8 +236,9 @@ export const LONG_TOURS: LongTour[] = [
   {
     id: 'back-to-roots',
     name: { is: 'Back to the Roots', en: 'Back to the Roots', de: 'Fjörður' },
-    // Only a 2026 date is published (21–27 Aug); it has passed, so the card
-    // says the next date is not out. No 2027 date is invented.
+    // Not offered in 2027 (Juliane, 17 Oct 2026): hidden everywhere, kept for
+    // a later year. The CMS `active` switch does the same on the live site.
+    active: false,
     priceEur: 2200, days: 7, ridingDays: 5, level: 'mixed', minAge: 12, kmMin: 20, kmMax: 35,
     herdDays: 0, beds: 'sleepingBag',
     departures: [{ start: '2026-08-21', status: 'open' }],
