@@ -8,7 +8,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
   IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, ADDRESS, INSTAGRAM, FACEBOOK,
-  NAV, HERO, STATEMENT, DOORS, CHAPTERS, FOURTH_KEY, REVIEWS, BOOKING, DUSK as EVENING, CROSS, STAY, ROOMS, DAY, SCORE, JSON_LD,
+  NAV, HERO, STATEMENT, DOORS, CHAPTERS, FOURTH_KEY, REVIEWS, BOOKING, DUSK as EVENING, CROSS, STAY, ROOMS, STRIP, SCORE, JSON_LD,
 } from './data'
 
 const company = companyEntry
@@ -272,22 +272,42 @@ function RoomIndex() {
   )
 }
 
-/* ── ÁSLUNDUR: A DAY AT THE HOUSE ─────────────────────────────────────────
-   The quiet house told as one day, morning to night, in its own four
-   photographs. Rows alternate sides; each frame drifts like the others. */
-function DayLine() {
+/* ── ÁSLUNDUR: THE FILMSTRIP ─────────────────────────────────────────────
+   Six photographs in one full-width row: native horizontal scroll with snap
+   (swipe, trackpad, keyboard), plus two arrows that step one frame. No scroll
+   hijack, no pinning: the page keeps scrolling down as normal. */
+function Strip({ name }: { name: string }) {
+  const ref = useRef<HTMLOListElement>(null)
+  const step = (d: number) => {
+    const el = ref.current
+    if (!el) return
+    const w = (el.querySelector('li') as HTMLElement | null)?.offsetWidth ?? el.clientWidth
+    el.scrollBy({ left: d * (w + 16), behavior: reduced ? 'auto' : 'smooth' })
+  }
   return (
-    <ol className="ill-day">
-      {DAY.map((d) => (
-        <li className="ill-day-row" key={d.when}>
-          <Frame src={IMG[d.img]} alt={d.alt} drift={9} />
-          <div className="ill-day-copy">
-            <Rise as="p" className="ill-day-when">{d.when}</Rise>
-            <Rise as="p" className="ill-day-line">{d.line}</Rise>
-          </div>
-        </li>
-      ))}
-    </ol>
+    <section className="ill-strip" aria-label={`${name} in photographs`}>
+      <div className="ill-strip-head">
+        <p className="ill-strip-h">{name}, frame by frame</p>
+        <div className="ill-strip-nav">
+          <button type="button" aria-label="Previous photograph" onClick={() => step(-1)}>
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 12L6 8l4-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+          <button type="button" aria-label="Next photograph" onClick={() => step(1)}>
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+        </div>
+      </div>
+      <ol className="ill-strip-row" ref={ref} tabIndex={0} aria-label="Photographs, scroll sideways">
+        {STRIP.map((f, k) => (
+          <li key={f.img}>
+            <figure>
+              <div className="ill-strip-img"><img src={IMG[f.img]} alt={f.alt} loading="lazy" decoding="async" /></div>
+              <figcaption><span>{String(k + 1).padStart(2, '0')}</span>{f.line}</figcaption>
+            </figure>
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
 
@@ -350,7 +370,8 @@ function Cross({ a, b, src, alt }: { a: string; b: string; src: string; alt: str
     </>
   )
   return (
-    <section className="ill-cross" aria-label={`${a} ${b}`}>
+    <section className="ill-cross" aria-label={`${a} ${b}`}
+      style={{ ['--cl' as string]: Math.max(a.length, b.length) }}>
       <figure className="ill-cross-frame">
         <img src={src} alt={alt} loading="lazy" decoding="async" />
       </figure>
@@ -819,7 +840,7 @@ export default function Page({ house }: { house?: string } = {}) {
                   </ul>
                 </div>
                 {HC.id === 'ulfljotsskali' ? <RoomIndex />
-                  : HC.id === 'aslundur' ? <DayLine />
+                  : HC.id === 'aslundur' ? null
                   : (
                     <div className="ill-chapter-photos">
                       {HC.photos.map((p) => (
@@ -838,6 +859,8 @@ export default function Page({ house }: { house?: string } = {}) {
             </div>
           </section>
         )}
+
+        {HC?.id === 'aslundur' && <Strip name={HC.name} />}
 
         {HC && CROSS[HC.id] && (
           <Cross a={CROSS[HC.id].a} b={CROSS[HC.id].b} src={IMG[CROSS[HC.id].img]} alt={CROSS[HC.id].alt} />
@@ -1266,17 +1289,29 @@ const STYLES = `
   .ill-rooms-list{grid-row:3}
 }
 
-/* ── a day at Áslundur ── */
-.ill-day{list-style:none;padding:0;margin:0;display:grid;gap:clamp(40px,7vh,80px)}
-.ill-day-row{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:clamp(18px,3vw,40px);align-items:end}
-.ill-day-row:nth-child(even) .ill-frame{order:2}
-.ill-day-row .ill-frame{aspect-ratio:4/3}
-.ill-day-copy{display:grid;gap:8px;padding-bottom:6px}
-.ill-day-when .ill-rise-in{font-family:var(--serif);font-size:clamp(2rem,4.4vw,3.4rem);line-height:1;color:var(--acc)}
-.ill-day-line .ill-rise-in{color:var(--ink-soft);max-width:30ch}
+/* ── Áslundur filmstrip ── */
+.ill-strip{padding:clamp(20px,4vh,50px) 0 clamp(30px,6vh,70px)}
+.ill-strip-head{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  max-width:1500px;margin:0 auto 18px;padding:18px clamp(20px,5vw,64px) 0;border-top:1px solid var(--hair)}
+.ill-strip-h{font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--acc)}
+.ill-strip-nav{display:flex;gap:8px}
+.ill-strip-nav button{width:44px;height:44px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--hair);display:grid;place-content:center;
+  transition:box-shadow .2s var(--e)}
+@media (hover:hover) and (pointer:fine){.ill-strip-nav button:hover{box-shadow:inset 0 0 0 1px var(--fg)}}
+.ill-strip-row{list-style:none;margin:0;display:flex;gap:16px;overflow-x:auto;overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;scroll-padding-inline:clamp(20px,5vw,64px);
+  padding:0 clamp(20px,5vw,64px) 6px;scrollbar-width:none}
+.ill-strip-row::-webkit-scrollbar{display:none}
+.ill-strip-row li{flex:none;scroll-snap-align:start}
+.ill-strip-row figure{margin:0;display:grid;gap:10px}
+.ill-strip-img{height:clamp(320px,62svh,620px);aspect-ratio:4/3;overflow:hidden;background:var(--ink)}
+.ill-strip-img img{transition:transform .9s var(--e)}
+@media (hover:hover) and (pointer:fine){.ill-strip-row li:hover .ill-strip-img img{transform:scale(1.035)}}
+.ill-strip-row figcaption{display:flex;gap:12px;align-items:baseline;font-size:.86rem;color:var(--ink-soft)}
+.ill-strip-row figcaption span{font-family:var(--serif);color:var(--acc)}
 @media (max-width:640px){
-  .ill-day-row{grid-template-columns:minmax(0,1fr)}
-  .ill-day-row:nth-child(even) .ill-frame{order:0}
+  .ill-strip-img{height:auto;width:84vw}
+  .ill-strip-row figcaption{font-size:13px}
 }
 
 /* ── Álftavík's score, on the night ── */
@@ -1299,13 +1334,16 @@ const STYLES = `
 .ill-cross-frame img{filter:saturate(.88) brightness(.66)}
 .ill-cross-type{position:absolute;inset:0;display:grid;align-content:center;gap:.06em;margin:0;pointer-events:none;
   font-family:var(--serif);font-weight:400;text-transform:uppercase;letter-spacing:.06em;line-height:.98;
-  font-size:min(8.6vw,138px);color:var(--fg);white-space:nowrap}
+  /* sized to the LONGEST line (--cl characters): Gambarino caps at .06em
+     tracking average ~.76em each, so this always fits inside the gutters.
+     A fixed 8.6vw ran "INDOOR AND OUTDOOR" (18) off the right edge. */
+  font-size:min(138px,calc(84vw / (var(--cl,14) * .76)));color:var(--fg);white-space:nowrap}
 .ill-cross-type.is-in{color:#F4F7F8;clip-path:inset(var(--ci));text-shadow:0 2px 30px rgba(6,11,16,.35)}
 .ill-cross-a{justify-self:start;padding-left:7vw;will-change:transform}
 .ill-cross-b{justify-self:end;padding-right:7vw;will-change:transform}
 @media (max-width:640px){
   .ill-cross{height:72svh;--ci:12% 7%}
-  .ill-cross-type{font-size:11.2vw}
+  .ill-cross-type{font-size:min(15vw,calc(92vw / (var(--cl,14) * .76)))}
   .ill-cross-a{padding-left:3vw}.ill-cross-b{padding-right:3vw}
 }
 

@@ -260,12 +260,14 @@ export const ROOMS: { name: string; line: string; img: keyof typeof IMG; alt: st
   { name: 'The gym', line: 'Weights and a bench, mirrored wall', img: 'lodgeGym', alt: 'The gym with a weight bench and mirrors' },
 ]
 
-/** Áslundur: one day at the house, in its own four photographs */
-export const DAY: { when: string; line: string; img: keyof typeof IMG; alt: string }[] = [
-  { when: 'Morning', line: 'Breakfast at the table, Álftavatn through the glass.', img: 'aslundurDining', alt: 'Dining table set beside the glass wall onto the lake' },
-  { when: 'Afternoon', line: 'The covered terrace, the mountain straight across the water.', img: 'aslundurTerrace', alt: 'Covered terrace looking across Álftavatn to the mountain' },
-  { when: 'Evening', line: 'The patio and the hot tub as the light goes blue.', img: 'aslundurPatio', alt: 'The patio at dusk with the hot tub and the lake beyond' },
-  { when: 'Night', line: 'The fire lit under the loft.', img: 'aslundurLiving', alt: 'Living room with the loft above and the fireplace lit' },
+/** Áslundur: a filmstrip of its six photographs, swiped or stepped through */
+export const STRIP: { img: keyof typeof IMG; line: string; alt: string }[] = [
+  { img: 'aslundurHouse', line: 'The house among the spruce', alt: 'Áslundur among the spruce, steps down to the lawn' },
+  { img: 'aslundurPatio', line: 'The patio and hot tub at dusk', alt: 'The patio at dusk with the hot tub and the lake beyond' },
+  { img: 'aslundurTerrace', line: 'The mountain across the water', alt: 'Covered terrace looking across Álftavatn to the mountain' },
+  { img: 'aslundurDining', line: 'The table by the glass', alt: 'Dining table set beside the glass wall onto the lake' },
+  { img: 'aslundurLiving', line: 'The fire lit under the loft', alt: 'Living room with the loft above and the fireplace lit' },
+  { img: 'aslundurMaster', line: 'Robes laid out in the master bedroom', alt: 'Master bedroom with robes laid out on the bed' },
 ]
 
 /** Álftavík: its own score, read on the listing itself 2026-09-02, and its own guest */
