@@ -170,6 +170,10 @@ for (const { route, html } of captured) {
     .replace(/<\/title>/, '</title><meta name="robots" content="noindex, follow">')
     .replace(/<link rel="canonical"[^>]*>/, '')
     .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '')
+    /* the shell links only the SVG icon and Safari ignores SVG favicons, so a
+       stray URL showed a blank tab icon there (favicon-guard rule 3) */
+    .replace(/(<link rel="icon" href="([^"]*)favicon\.svg"[^>]*>)/,
+      '$1<link rel="icon" href="$2favicon-32.png" type="image/png" sizes="32x32"><link rel="icon" href="$2favicon-96.png" type="image/png" sizes="96x96">')
   writeFileSync(join(dist, '404.html'), notFound)
 }
 
