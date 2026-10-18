@@ -5,7 +5,8 @@ name: K6 live (k6veitingar, rub23, bautinn, pizzasmidjan)
 # repository_dispatch here → build → gate → wrangler pages deploy, with this repo's CLOUDFLARE_API_TOKEN.
 # The K6 code is its own private repo (SindriMar02/k6veitingar), read with a read-only deploy key
 # (secret K6VEITINGAR_DEPLOY_KEY). A full build of all four takes seconds, so every publish rebuilds all four.
-# The nightly run deploys only if a host's content stamp differs (notices and closures start and end by date).
+# The nightly run deploys only if a host's content stamp differs (notices and closures start and end by date,
+# the Christmas season flips, a new good Google review arrives).
 #
 # TARGET: until go-live the four sites are the noindexed review hosts (k6veitingar-preview etc.).
 on:
@@ -51,6 +52,12 @@ jobs:
           cache: npm
           cache-dependency-path: k6/package-lock.json
       - run: npm ci
+      - name: Google reviews (Business Profile API; keeps the committed selection when the secrets are absent or Google fails)
+        run: node _tools/reviews-pull.mjs
+        env:
+          GBP_CLIENT_ID: ${{ secrets.GBP_CLIENT_ID }}
+          GBP_CLIENT_SECRET: ${{ secrets.GBP_CLIENT_SECRET }}
+          GBP_REFRESH_TOKEN: ${{ secrets.GBP_REFRESH_TOKEN }}
       - name: Published CMS content (fails if Sanity cannot be read or the content would break a site)
         run: node _tools/cms-pull.mjs
       - name: Anything to deploy?
