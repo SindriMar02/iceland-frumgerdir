@@ -154,3 +154,10 @@ html[data-bm-fonts=fallback] body,html[data-bm-fonts=fallback] h1,html[data-bm-f
  .bm-car-body>.bm-price.bm-price-offer s{font-size:11px;margin-bottom:0}
  .bm-car-body>.bm-price.bm-price-offer em{font-size:10px;padding:2px 6px;margin-top:4px}
 }
+
+/* focus-guard (_tools/focus-guard) */
+/* focus-guard.css: pairs with focus-guard.js. No ring after a tap or a click; every ring for the keyboard.
+   Text fields keep theirs (the user is typing there whatever opened it). */
+html[data-input="pointer"] :focus-visible:not(input):not(textarea):not(select):not([contenteditable="true"]) { outline: none; }
+/* a focus target that is only a container (a menu panel, a dialog, a drawer): never ring it */
+[tabindex="-1"]:focus { outline: none; }

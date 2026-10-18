@@ -14,6 +14,7 @@ document.getElementById('boot-fallback')?.remove()
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import './focus-guard'
 import './index.css'
 import App from './App'
 

@@ -24,3 +24,10 @@ html,body{background-color:var(--bg-ground);color:var(--bg-ink);font-family:BGSp
 @media(prefers-reduced-motion:no-preference){.bg-dialog[open] .bg-dialog-inner{opacity:1;transform:translateY(0);transition:opacity 180ms var(--bg-ease),transform 220ms var(--bg-ease)}@starting-style{.bg-dialog[open] .bg-dialog-inner{opacity:0;transform:translateY(12px)}}}
 
 .bg-dated{font-size:11px;color:var(--bg-muted);margin:18px 0 -10px}
+
+/* focus-guard (_tools/focus-guard) */
+/* focus-guard.css: pairs with focus-guard.js. No ring after a tap or a click; every ring for the keyboard.
+   Text fields keep theirs (the user is typing there whatever opened it). */
+html[data-input="pointer"] :focus-visible:not(input):not(textarea):not(select):not([contenteditable="true"]) { outline: none; }
+/* a focus target that is only a container (a menu panel, a dialog, a drawer): never ring it */
+[tabindex="-1"]:focus { outline: none; }

@@ -1,6 +1,7 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import Page from './Page'
+import '../../focus-guard'
 import './styles.css'
 class Boundary extends React.Component<{children: React.ReactNode},{failed:boolean}> {
  state={failed:false}
