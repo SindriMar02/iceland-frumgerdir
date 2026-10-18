@@ -239,9 +239,42 @@ export const CHAPTERS: Chapter[] = [
  * never a new claim, and the photo is the one that shows it.
  */
 export const CROSS: Record<string, { a: string; b: string; img: keyof typeof IMG; alt: string }> = {
-  ulfljotsskali: { a: 'Ten bedrooms', b: 'one hall', img: 'lodgeWide', alt: 'The high-ceiling hall with the bar and the dining table' },
+  ulfljotsskali: { a: 'Ten bedrooms', b: 'one hall', img: 'lodgeInt4', alt: 'The high-ceiling hall with the gallery above, the dining table and the lounge' },
   alftavik: { a: 'Indoor and outdoor', b: 'fireplaces', img: 'villa6', alt: 'The living room fireplace at Álftavík, the lake through the glass' },
   aslundur: { a: 'The mountain', b: 'across the water', img: 'aslundurTerrace', alt: 'The covered terrace looking across Álftavatn to the mountain' },
+}
+
+/**
+ * ONE SIGNATURE PER HOUSE PAGE, so no two house pages share a section.
+ * Every photo below was checked by eye on 2026-10-18 against what it shows;
+ * every line is the photo's own content or the house's own amenity list.
+ */
+/** Úlfljótsskáli: the house, room by room (hover/tap swaps the photograph) */
+export const ROOMS: { name: string; line: string; img: keyof typeof IMG; alt: string }[] = [
+  { name: 'The dining hall', line: 'One long table for the whole party', img: 'lodgeInt2', alt: 'The long dining table with carved high-backed chairs' },
+  { name: 'The bar', line: 'Stools along a wooden counter', img: 'lodgeWide', alt: 'The bar counter with leather stools' },
+  { name: 'The master suite', line: 'Lake light through the long window', img: 'lodgeSuite', alt: 'Master suite with a wide bed and a window onto the lake' },
+  { name: 'The spa lounge', line: 'Loungers and robes beside the sauna', img: 'lodgeSpa', alt: 'Spa lounge with loungers and folded robes' },
+  { name: 'The sauna', line: 'Wood-lined, benches for a group', img: 'lodgeSauna', alt: 'The wood-lined sauna' },
+  { name: 'The game room', line: 'A full-size pool table', img: 'lodgeGameroom', alt: 'Game room with a pool table' },
+  { name: 'The gym', line: 'Weights and a bench, mirrored wall', img: 'lodgeGym', alt: 'The gym with a weight bench and mirrors' },
+]
+
+/** Áslundur: one day at the house, in its own four photographs */
+export const DAY: { when: string; line: string; img: keyof typeof IMG; alt: string }[] = [
+  { when: 'Morning', line: 'Breakfast at the table, Álftavatn through the glass.', img: 'aslundurDining', alt: 'Dining table set beside the glass wall onto the lake' },
+  { when: 'Afternoon', line: 'The covered terrace, the mountain straight across the water.', img: 'aslundurTerrace', alt: 'Covered terrace looking across Álftavatn to the mountain' },
+  { when: 'Evening', line: 'The patio and the hot tub as the light goes blue.', img: 'aslundurPatio', alt: 'The patio at dusk with the hot tub and the lake beyond' },
+  { when: 'Night', line: 'The fire lit under the loft.', img: 'aslundurLiving', alt: 'Living room with the loft above and the fireplace lit' },
+]
+
+/** Álftavík: its own score, read on the listing itself 2026-09-02, and its own guest */
+export const SCORE = {
+  n: '4.95',
+  of: 'out of 5 from 184 Airbnb reviews',
+  tag: 'Guest favourite',
+  quote: 'Amazing stay at a wonderful property.',
+  who: 'Joshua S. · Álftavík · Vrbo, July 2025',
 }
 
 /** The fourth key: no photography exists for it on their site, so it stays a text card — honest. */

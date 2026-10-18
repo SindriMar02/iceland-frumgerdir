@@ -8,7 +8,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
   IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, ADDRESS, INSTAGRAM, FACEBOOK,
-  NAV, HERO, STATEMENT, DOORS, CHAPTERS, FOURTH_KEY, REVIEWS, BOOKING, DUSK as EVENING, CROSS, STAY, JSON_LD,
+  NAV, HERO, STATEMENT, DOORS, CHAPTERS, FOURTH_KEY, REVIEWS, BOOKING, DUSK as EVENING, CROSS, STAY, ROOMS, DAY, SCORE, JSON_LD,
 } from './data'
 
 const company = companyEntry
@@ -156,11 +156,12 @@ function Frame({ src, alt, drift = 10, wide = false }: { src: string; alt: strin
    `.is-on` moves. Auto-advances, and any click stops the auto-advance for
    good, because a carousel that keeps yanking itself away from a reader who
    has taken control is hostile. */
-function Reviews() {
+function Reviews({ only }: { only?: string } = {}) {
+  const QUOTES = only ? REVIEWS.quotes.filter((q) => q.meta.startsWith(only)) : REVIEWS.quotes
   const [i, setI] = useState(0)
   const [held, setHeld] = useState(false)
   const [film, setFilm] = useState(false)
-  const n = REVIEWS.quotes.length
+  const n = QUOTES.length
 
   useEffect(() => {
     if (reduced || held) return
@@ -176,7 +177,7 @@ function Reviews() {
   }, [])
 
   const go = (d: number) => { setHeld(true); setI((v) => (v + d + n) % n) }
-  const cur = REVIEWS.quotes[i]
+  const cur = QUOTES[i]
 
   return (
     <section className="ill-rev" aria-label="Guest reviews">
@@ -190,7 +191,7 @@ function Reviews() {
 
       <div className="ill-rev-inner">
         <span className="ill-rev-ord" aria-hidden="true">
-          {REVIEWS.quotes.map((q, idx) => (
+          {QUOTES.map((q, idx) => (
             <b key={q.name} className={idx === i ? 'is-on' : ''}>{String(idx + 1).padStart(2, '0')}</b>
           ))}
         </span>
@@ -200,7 +201,7 @@ function Reviews() {
         </p>
 
         <ul className="ill-rev-list">
-          {REVIEWS.quotes.map((q, idx) => (
+          {QUOTES.map((q, idx) => (
             <li key={q.name} className={`ill-rev-q ${idx === i ? 'is-on' : ''}`} aria-hidden={idx !== i}>
               <blockquote>
                 {q.text.split(' ').flatMap((w, k, all) => [
@@ -229,13 +230,99 @@ function Reviews() {
         </div>
 
         <div className="ill-rev-rail" aria-hidden="true">
-          {REVIEWS.quotes.map((q, idx) => (
+          {QUOTES.map((q, idx) => (
             <span key={q.name} className={idx === i ? 'is-on' : ''} />
           ))}
         </div>
 
         <p className="ill-rev-note">{REVIEWS.sourceNote}</p>
       </div>
+    </section>
+  )
+}
+
+/* ── ÚLFLJÓTSSKÁLI: THE HOUSE, ROOM BY ROOM ────────────────────────────────
+   An index of the lodge's spaces; pointing at (or tapping, or tabbing to) a
+   name swaps the large photograph beside it. The lodge is sold on how many
+   rooms it holds, so its gallery is a list of them, not a grid. */
+function RoomIndex() {
+  const [i, setI] = useState(0)
+  return (
+    <div className="ill-rooms">
+      <p className="ill-rooms-h">The house, room by room</p>
+      <ol className="ill-rooms-list">
+        {ROOMS.map((r, k) => (
+          <li key={r.name}>
+            <button type="button" className={k === i ? 'is-on' : ''} aria-pressed={k === i}
+              onMouseEnter={() => setI(k)} onFocus={() => setI(k)} onClick={() => setI(k)}>
+              <span className="ill-rooms-n" aria-hidden="true">{String(k + 1).padStart(2, '0')}</span>
+              <span className="ill-rooms-name">{r.name}</span>
+              <span className="ill-rooms-line">{r.line}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+      <figure className="ill-rooms-view">
+        {ROOMS.map((r, k) => (
+          <img key={r.img} src={IMG[r.img]} alt={k === i ? r.alt : ''} aria-hidden={k !== i}
+            className={k === i ? 'is-on' : ''} loading="lazy" decoding="async" />
+        ))}
+      </figure>
+    </div>
+  )
+}
+
+/* ── ÁSLUNDUR: A DAY AT THE HOUSE ─────────────────────────────────────────
+   The quiet house told as one day, morning to night, in its own four
+   photographs. Rows alternate sides; each frame drifts like the others. */
+function DayLine() {
+  return (
+    <ol className="ill-day">
+      {DAY.map((d) => (
+        <li className="ill-day-row" key={d.when}>
+          <Frame src={IMG[d.img]} alt={d.alt} drift={9} />
+          <div className="ill-day-copy">
+            <Rise as="p" className="ill-day-when">{d.when}</Rise>
+            <Rise as="p" className="ill-day-line">{d.line}</Rise>
+          </div>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+/* ── ÁLFTAVÍK: ITS OWN SCORE ───────────────────────────────────────────────
+   One verified number, set large on the night, counting up once when it
+   arrives, with the one review that is about this house. */
+function Score() {
+  const ref = useRef<HTMLElement>(null)
+  const [n, setN] = useState(SCORE.n)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || reduced) return
+    const target = parseFloat(SCORE.n)
+    setN('4.00')
+    const io = new IntersectionObserver(([en]) => {
+      if (!en.isIntersecting) return
+      io.disconnect()
+      const t0 = performance.now()
+      const tick = (t: number) => {
+        const k = Math.min(1, (t - t0) / 1400)
+        const e = 1 - Math.pow(1 - k, 3)
+        setN((4 + (target - 4) * e).toFixed(2))
+        if (k < 1) requestAnimationFrame(tick)
+      }
+      requestAnimationFrame(tick)
+    }, { threshold: 0.4 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  return (
+    <section className="ill-score" ref={ref} aria-label={`${SCORE.n} ${SCORE.of}`}>
+      <p className="ill-score-n" aria-hidden="true">{n}</p>
+      <p className="ill-score-of">{SCORE.of} <span>· {SCORE.tag}</span></p>
+      <blockquote className="ill-score-q">{SCORE.quote}</blockquote>
+      <p className="ill-score-who">{SCORE.who}</p>
     </section>
   )
 }
@@ -421,8 +508,8 @@ export default function Page({ house }: { house?: string } = {}) {
     if (!seam || !wmL || !wmR || !hero) return
     if (reduced) {
       seam.style.transform = 'scaleY(1)'
-      wmL.style.clipPath = 'inset(0)'
-      wmR.style.clipPath = 'inset(0)'
+      wmL.style.clipPath = 'none'
+      wmR.style.clipPath = 'none'
       return
     }
     /* resting (pre-reveal) state */
@@ -452,6 +539,9 @@ export default function Page({ house }: { house?: string } = {}) {
           seam.style.transition = ''
           wmL.style.transition = ''
           wmR.style.transition = ''
+          /* the reveal is over: drop the clip so nothing can be shaved */
+          wmL.style.clipPath = 'none'
+          wmR.style.clipPath = 'none'
           onScroll()
         }, 1560)
       }, 430)
@@ -728,11 +818,15 @@ export default function Page({ house }: { house?: string } = {}) {
                     {HC.amenities.map((a) => <li key={a}>{a}</li>)}
                   </ul>
                 </div>
-                <div className="ill-chapter-photos">
-                  {HC.photos.map((p) => (
-                    <Frame key={p.img} src={IMG[p.img]} alt={p.alt} wide={p.wide} drift={p.wide ? 12 : 9} />
-                  ))}
-                </div>
+                {HC.id === 'ulfljotsskali' ? <RoomIndex />
+                  : HC.id === 'aslundur' ? <DayLine />
+                  : (
+                    <div className="ill-chapter-photos">
+                      {HC.photos.map((p) => (
+                        <Frame key={p.img} src={IMG[p.img]} alt={p.alt} wide={p.wide} drift={p.wide ? 12 : 9} />
+                      ))}
+                    </div>
+                  )}
               </div>
               <aside className="ill-hp-card" id="bokun" aria-label={`Book ${HC.name}`}>
                 <div className="ill-hp-card-head">
@@ -792,8 +886,10 @@ export default function Page({ house }: { house?: string } = {}) {
           </section>
         ))}
 
-        {/* ── the evening: the band that turns the page from day to night ── */}
-        <section className="ill-dusk" ref={duskRef} aria-labelledby="ill-dusk-h">
+        {/* ── the evening: the band that turns the page from day to night.
+              It is Álftavík's own terrace, so it belongs to the landing and to
+              Álftavík only; the other houses end on their own sections. ── */}
+        {(!house || house === 'alftavik') && <section className="ill-dusk" ref={duskRef} aria-labelledby="ill-dusk-h">
           {/* the opening shot again, later the same day: her terrace at blue
               hour, crossfading to the same frame under the aurora. The page
               canvas turns to night BEHIND the photograph, so no text ever
@@ -810,7 +906,7 @@ export default function Page({ house }: { house?: string } = {}) {
             <h2 className="ill-dusk-h" id="ill-dusk-h">{EVENING.title}</h2>
             <p className="ill-dusk-p">{EVENING.body}</p>
           </div>
-        </section>
+        </section>}
 
         {/* ── fourth key: no photograph of it exists, so it is set as type on
               its own band rather than pretending to be an image tile ── */}
@@ -823,8 +919,12 @@ export default function Page({ house }: { house?: string } = {}) {
           </div>
         </section>}
 
-        {/* ── quote ── */}
-        <Reviews />
+        {/* ── guest words: the collection's on the landing, Úlfljótsskáli's own
+              on its page (every Vrbo review is about that house), Álftavík's
+              single verified score on its page, none invented for Áslundur ── */}
+        {!house && <Reviews />}
+        {house === 'ulfljotsskali' && <Reviews only="Úlfljótsskáli" />}
+        {house === 'alftavik' && <Score />}
 
         {/* ── request-to-book (house pages book in their sticky card) ── */}
         {!house && (
@@ -986,7 +1086,10 @@ const STYLES = `
   margin:0;pointer-events:none;color:#F6F9FA;text-shadow:0 2px 30px rgba(14,22,29,.45);
   font-family:var(--serif);font-size:clamp(30px,7.4vw,112px);line-height:1.02;font-weight:400}
 .ill-wordmark.is-house{font-size:clamp(28px,5.4vw,86px)}
-.ill-wm-word{display:block;white-space:nowrap;letter-spacing:.02em;will-change:clip-path,transform}
+/* the clip box must hold accents (Ú Á) and descenders (the j in Úlfljóts-):
+   the line box at line-height 1.02 does not, so pad it and pull it back */
+.ill-wm-word{display:block;white-space:nowrap;letter-spacing:.02em;will-change:clip-path,transform;
+  padding-top:.22em;padding-bottom:.26em;margin-top:-.22em;margin-bottom:-.26em}
 .ill-wm-l{padding-right:.3em;margin-right:-.08em;text-align:right}
 .ill-wm-r{padding-left:.3em;text-align:left}
 .ill-wm-seam{flex:none;width:1px;height:.94em;background:currentColor;opacity:.85;transform-origin:50% 50%}
@@ -1133,8 +1236,60 @@ const STYLES = `
   .ill-hp-card{position:static;max-width:560px}
   /* on one column the card belongs right after the copy, before the photos */
   .ill-hp-main{display:contents}
-  .ill-hp-copy{order:1}.ill-hp-card{order:2}.ill-hp-main .ill-chapter-photos{order:3}
+  .ill-hp-copy{order:1}.ill-hp-card{order:2}.ill-hp-main > :not(.ill-hp-copy){order:3}
 }
+
+/* ── room by room (Úlfljótsskáli) ── */
+.ill-rooms{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.2fr);gap:clamp(20px,3vw,40px);align-items:start}
+.ill-rooms-h{grid-column:1/-1;font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--acc);
+  border-top:1px solid var(--hair);padding-top:18px}
+.ill-rooms-list{list-style:none;padding:0;margin:0;display:grid}
+.ill-rooms-list button{width:100%;display:grid;grid-template-columns:2.2em minmax(0,1fr);column-gap:10px;row-gap:2px;
+  text-align:left;padding:13px 0;border-bottom:1px solid var(--hair);color:var(--ink-mute);
+  transition:color .3s var(--e)}
+.ill-rooms-n{grid-row:1/3;font-family:var(--serif);font-size:.95rem;padding-top:.2em;color:var(--acc);opacity:.6}
+.ill-rooms-name{font-family:var(--serif);font-size:clamp(1.25rem,2vw,1.6rem);line-height:1.15;
+  transition:transform .35s var(--e)}
+.ill-rooms-line{font-size:.82rem;max-height:0;opacity:0;overflow:hidden;transition:max-height .35s var(--e),opacity .35s var(--e)}
+.ill-rooms-list button.is-on{color:var(--fg)}
+.ill-rooms-list button.is-on .ill-rooms-n{opacity:1}
+.ill-rooms-list button.is-on .ill-rooms-name{transform:translateX(6px)}
+.ill-rooms-list button.is-on .ill-rooms-line{max-height:2.4em;opacity:1;transform:translateX(6px)}
+.ill-rooms-view{position:sticky;top:96px;margin:0;aspect-ratio:4/5;overflow:hidden;background:var(--ink)}
+.ill-rooms-view img{position:absolute;inset:0;opacity:0;transform:scale(1.05);
+  transition:opacity .55s var(--e),transform 1.1s var(--e)}
+.ill-rooms-view img.is-on{opacity:1;transform:none}
+@media (max-width:720px){
+  .ill-rooms{grid-template-columns:minmax(0,1fr)}
+  .ill-rooms-view{position:relative;top:auto;aspect-ratio:4/3;order:-1;grid-row:2}
+  .ill-rooms-h{grid-row:1}
+  .ill-rooms-list{grid-row:3}
+}
+
+/* ── a day at Áslundur ── */
+.ill-day{list-style:none;padding:0;margin:0;display:grid;gap:clamp(40px,7vh,80px)}
+.ill-day-row{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:clamp(18px,3vw,40px);align-items:end}
+.ill-day-row:nth-child(even) .ill-frame{order:2}
+.ill-day-row .ill-frame{aspect-ratio:4/3}
+.ill-day-copy{display:grid;gap:8px;padding-bottom:6px}
+.ill-day-when .ill-rise-in{font-family:var(--serif);font-size:clamp(2rem,4.4vw,3.4rem);line-height:1;color:var(--acc)}
+.ill-day-line .ill-rise-in{color:var(--ink-soft);max-width:30ch}
+@media (max-width:640px){
+  .ill-day-row{grid-template-columns:minmax(0,1fr)}
+  .ill-day-row:nth-child(even) .ill-frame{order:0}
+}
+
+/* ── Álftavík's score, on the night ── */
+.ill-score{display:grid;justify-items:center;text-align:center;gap:10px;
+  padding:clamp(90px,15vh,170px) clamp(20px,6vw,80px) clamp(60px,10vh,120px)}
+.ill-score-n{font-family:var(--serif);font-size:clamp(6rem,19vw,15rem);line-height:.86;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;color:var(--fg)}
+.ill-score-of{font-size:.9rem;letter-spacing:.04em;color:var(--ink-soft)}
+.ill-score-of span{color:var(--acc)}
+.ill-score-q{margin:clamp(26px,5vh,48px) 0 0;font-family:var(--serif);font-size:clamp(1.4rem,3vw,2.2rem);line-height:1.2;max-width:24ch}
+.ill-score-q::before{content:'\\201C'}
+.ill-score-q::after{content:'\\201D'}
+.ill-score-who{font-size:.76rem;letter-spacing:.08em;color:var(--ink-mute)}
 
 /* ── crossing lines ── */
 .ill-cross{position:relative;height:clamp(520px,86svh,900px);margin:clamp(30px,6vh,70px) 0;overflow:clip;
@@ -1327,7 +1482,7 @@ const STYLES = `
 
 /* ── rise mechanism (resting state visible; .js arms the hidden start) ── */
 .ill-rise{overflow:hidden}
-.ill-rise-in{display:block;padding-bottom:.14em;margin-bottom:-.14em}
+.ill-rise-in{display:block;padding-top:.14em;margin-top:-.14em;padding-bottom:.18em;margin-bottom:-.18em}
 .js:not(.reduced) .ill-rise .ill-rise-in{transform:translateY(112%);transition:transform 1s var(--e)}
 .js:not(.reduced) .ill-rise.is-on .ill-rise-in{transform:none}
 
