@@ -18,6 +18,9 @@ export const FACEBOOK = 'https://facebook.com/icelandluxurylodges'
 
 export const IMG = {
   heroEstate: `${B}/hero-estate.jpg`,
+  /* the same Álftavík terrace relit to golden hour (Higgsfield, from her
+     photo; architecture unchanged). Opens the day the evening band ends. */
+  heroGolden: `${B}/hero-golden.jpg`,
   lodgeExterior: `${B}/lodge-exterior.jpg`,
   lodgeWide: `${B}/lodge-wide.jpg`,
   lodgeSuite: `${B}/lodge-suite.jpg`,
@@ -49,6 +52,13 @@ export const IMG = {
      photograph of that night exists. The loop is palindromed, so it has no
      seam; the generated camera drifted despite being asked to stay locked,
      and the reversal turns that drift into a slow breath instead of a jump. */
+  /* THE EVENING: the hero's own frame (Álftavík's pool terrace, her photo)
+     relit by Higgsfield to blue hour, then to night under an aurora. Same
+     camera, same objects; only the hour changes. Generated, so it is used as
+     atmosphere for the evening band only, never as a property fact. */
+  eveBlue: `${B}/evening-blue.jpg`,
+  eveNight: `${B}/evening-night.jpg`,
+  eveFilm: `${B}/evening-night.mp4`,
   auroraStill: `${B}/aurora-night.jpg`,
   auroraFilm: `${B}/aurora-night.mp4`,
 }
@@ -58,7 +68,7 @@ export const NAV = [
   { id: 'ulfljotsskali', label: 'Úlfljótsskáli' },
   { id: 'alftavik', label: 'Álftavík' },
   { id: 'aslundur', label: 'Áslundur' },
-  { id: 'bokun', label: 'Enquire' },
+  { id: 'bokun', label: 'Book' },
 ]
 
 export const HERO = {
@@ -180,13 +190,17 @@ export const CHAPTERS: Chapter[] = [
       '50 minutes from Reykjavík',
     ],
     photos: [
-      { img: 'villa2', alt: 'Álftavík living space with lake view', wide: true },
-      { img: 'villa3', alt: 'The villa interior' },
-      { img: 'villa4', alt: 'Bedroom facing the lake' },
-      { img: 'villa5', alt: 'The deck at dusk' },
-      { img: 'villa6', alt: 'The shore below the villa' },
+      /* alts re-checked against the pictures 2026-10-18: four of five were
+         describing a different photo (villa6 was "the shore", villa4 "a
+         bedroom"). Described from what each image actually shows. */
+      { img: 'villa6', alt: 'Living room with the fireplace lit and the lake through the glass wall', wide: true },
+      { img: 'villa5', alt: 'Kitchen counter facing the deck and the lake' },
+      { img: 'villa2', alt: 'Bedroom with a barn-door headboard' },
+      { img: 'villa4', alt: 'The villa among the spruce, steps down to the lawn' },
+      { img: 'villa3', alt: 'Bathroom shelf with towels and spa stones' },
     ],
-    chip: { score: '4.94 of 5 · 162 reviews', source: 'Airbnb, Top guest favorite' },
+    /* re-read on the listing itself (airbnb.com/rooms/1918233) 2026-09-02 */
+    chip: { score: '4.95 of 5 · 184 reviews', source: 'Airbnb, Guest favourite' },
   },
   {
     id: 'aslundur',
@@ -217,6 +231,18 @@ export const CHAPTERS: Chapter[] = [
     ],
   },
 ]
+
+/**
+ * CROSSING LINES, one per house page: thin capitals that run across a framed
+ * photograph, half on the picture and half on the page (the Grand Emily
+ * device). Each line is one of the house's own amenities from her site,
+ * never a new claim, and the photo is the one that shows it.
+ */
+export const CROSS: Record<string, { a: string; b: string; img: keyof typeof IMG; alt: string }> = {
+  ulfljotsskali: { a: 'Ten bedrooms', b: 'one hall', img: 'lodgeWide', alt: 'The high-ceiling hall with the bar and the dining table' },
+  alftavik: { a: 'Indoor and outdoor', b: 'fireplaces', img: 'villa6', alt: 'The living room fireplace at Álftavík, the lake through the glass' },
+  aslundur: { a: 'The mountain', b: 'across the water', img: 'aslundurTerrace', alt: 'The covered terrace looking across Álftavatn to the mountain' },
+}
 
 /** The fourth key: no photography exists for it on their site, so it stays a text card — honest. */
 export const FOURTH_KEY = {
@@ -287,10 +313,32 @@ export const REVIEWS = {
 }
 
 export const BOOKING = {
-  title: 'Ask for a house',
-  body: 'Tell us which house, your dates and your party. We reply personally with availability and a price. No card, no charge, nothing is booked yet.',
-  properties: ['Úlfljótsskáli — the lodge', 'Álftavík — the lakefront villa', 'Áslundur — the lake house', 'The Art Collector’s Apartment'],
-  success: 'Thank you. Your enquiry is with us and we answer personally, usually within a day.',
+  title: 'Book a house',
+  body: 'Choose the house, then your nights. The calendar is the house’s own, the price is the whole price, and the booking is made with the family who runs it, not with a platform in between.',
+}
+
+/** Evenings band: the hinge where the page turns from day to night. The
+    northern-lights line is Shawn R.'s own Vrbo review of Úlfljótsskáli. */
+export const DUSK = {
+  eyebrow: 'After dark',
+  title: 'Evenings at the lakes',
+  body: 'Every house has its own hot tub under the open sky. At Úlfljótsskáli, guests have watched the northern lights from it.',
+}
+
+/**
+ * The booking engine's sample data. RATES ARE SAMPLES: she publishes none.
+ * Álftavík's sits under its own verified Airbnb rate (5 nights 7–12 Oct 2026
+ * for $6,086, i.e. $1,217 a night incl. fees, read 2026-09-02); the other two
+ * are scaled by size and say so in the note. Capacity is her own site's.
+ */
+export const STAY = {
+  currency: '€',
+  houses: [
+    { id: 'ulfljotsskali', name: 'Úlfljótsskáli', rate: 1600, max: 19, minStay: 2, img: 'lodgeExterior' as const },
+    { id: 'alftavik', name: 'Álftavík', rate: 1050, max: 12, minStay: 2, img: 'villa1' as const },
+    { id: 'aslundur', name: 'Áslundur', rate: 690, max: 8, minStay: 2, img: 'aslundurHouse' as const },
+  ],
+  note: 'Prototype: sample rates and availability. On the live site you set every price, season and minimum stay, payment goes through Teya, and the calendar stays in step with Airbnb and Booking.com.',
 }
 
 export const JSON_LD = {
@@ -316,7 +364,7 @@ export const JSON_LD = {
       '@type': 'LodgingBusiness',
       name: 'Álftavík Lakefront Villa',
       description: '170 m² lakefront villa on Álftavatn with infinity hot tub, panorama sauna and private black sand beach. Sleeps up to 12.',
-      aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.94', reviewCount: '162', bestRating: '5' },
+      aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.95', reviewCount: '184', bestRating: '5' },
       address: { '@type': 'PostalAddress', addressLocality: 'Grímsnes- og Grafningshreppur', addressCountry: 'IS' },
       parentOrganization: { '@type': 'Organization', name: 'Iceland Luxury Lodges' },
     },

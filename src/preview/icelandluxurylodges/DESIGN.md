@@ -65,3 +65,38 @@ property it wasn't harvested from; the four `fullsizeoutput_17*` estate shots
 with lost provenance are NOT used in property chapters. Apartment has no
 photography → text card. JSON-LD: Organization + 3 LodgingBusiness with the
 one verified aggregateRating (Álftavík 4.94/162).
+
+## Round 4 (2026-10-18): one evening, a page per house, booking that takes the booking
+Sindri asked for "even better, something to really grab her", reusing a free design where it fits.
+Only declined stay design free was Klettar (2 buildings, darker); chose a hybrid instead:
+- **One evening** (Mirror House device 1, localised): the `.ill-dusk` band (210svh) pins the
+  HERO'S OWN FRAME (Álftavík pool terrace) relit by Higgsfield Nano Banana 2.1 to blue hour,
+  crossfading (`--dn`) to the same frame at night under an aurora, which carries a Kling 3.0 4K
+  locked-off loop. The page canvas turns ICE → INK BEHIND the photo (`--bg/--fg/--acc`), so no
+  text ever crosses mid-grey; nav + menu never scrub, they snap day/night on `.is-night` (Codex
+  finding). First pass used CSS stars on a flat scrub; Sindri: "very generic" → replaced.
+  Generated frames are atmosphere only, never a property fact.
+- **A page per house**: `/preview/icelandluxurylodges/{ulfljotsskali,alftavik,aslundur}` =
+  same `Page` with `house` prop (House.tsx keys it): own hero + lockup, its chapter, evening,
+  reviews, booking preselected, the other two houses as doors. Landing doors and nav link there.
+- **StayBook** (Book.tsx) replaces the enquiry form: house tiles → two-month calendar (taken
+  nights struck, check-out-only day after a free run, min stay) → guests + total → details →
+  "Pay securely" (Teya page on the live site; no card fields in the prototype) → reference.
+  Rates/availability are SAMPLES and the note says so.
+- Films re-rendered Kling 3.0 `4k` (60 cr each): hero from the empty Álftavík pool (push-in),
+  aurora deck (aurora + steam + fire). Palindromed, 1920w, 8.7 MB / 5.0 MB.
+- Scroll walkthrough frames deleted (Sindri: no scroll walkthroughs, they rarely work).
+
+## Round 5 (2026-10-18, after a logged-in Pinterest pass; see ROUND5-MAP.md)
+- Landing hero = the Álftavík terrace relit to GOLDEN HOUR (Nano Banana 2.1 4K, from her photo) +
+  Kling 3.0 4K push-in loop. With the evening band it is one day: golden hour → blue hour → aurora.
+- Dates pill in the hero (house + guests → that house's page at #bokun, guests carried over).
+- House pages: copy + photos left, the house's own calendar in a sticky card right (room-detail
+  pattern); bottom booking section only on the landing.
+- Crossing lines (Grand Emily device): two lines of capitals across a framed photo, ink outside,
+  ice inside (second layer clipped to the frame's exact inset), parting sideways on scroll. Lines are
+  her own amenities only.
+- Opening reveal: wordmark fills → one waterline draws across → the ICE page parts along it →
+  hero settles from 1.07 while the lockup opens from its seam.
+- Fixes: nav scrim/weight over the hero; `.ill-root button` reset was stripping every CTA fill
+  (now `.ill-root .ill-cta`); Álftavík photo alts were describing other photos (re-checked by eye).

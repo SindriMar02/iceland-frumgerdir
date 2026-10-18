@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import Lenis from 'lenis'
+import { StayBook, BOOK_STYLES, stayPrefill } from './Book'
 import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
   IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, ADDRESS, INSTAGRAM, FACEBOOK,
-  NAV, HERO, STATEMENT, DOORS, CHAPTERS, FOURTH_KEY, REVIEWS, BOOKING, JSON_LD,
+  NAV, HERO, STATEMENT, DOORS, CHAPTERS, FOURTH_KEY, REVIEWS, BOOKING, DUSK as EVENING, CROSS, STAY, JSON_LD,
 } from './data'
 
 const company = companyEntry
@@ -31,13 +33,18 @@ const INK = '#0E161D'
 const DUSK = '#41607A'
 
 const SEEN_KEY = 'ill_seen'
+const ROOT = '/preview/icelandluxurylodges'
+/* night ends on these: INK is the night canvas, so the ink bands below the
+   dusk band (fourth key, footer) melt into the page instead of sitting on it */
+const NIGHT_ACC = '#9DB7CB'
+const DUSK_BG = [ICE, '#C9D3DA', '#2E3E4C', INK]
 
 /* smooth scroll. Lenis scrolls the window for real, so the drift loop's
    getBoundingClientRect reads and the frame-sequence scrubber's native
    'scroll' listener both stay correct — no extra plumbing needed. */
 let pageLenis: Lenis | null = null
 
-type DriftKind = 'img' | 'refl' | 'text'
+type DriftKind = 'img' | 'refl' | 'text' | 'x' | 'xr'
 interface DriftNode { el: HTMLElement; d: number; kind: DriftKind }
 
 /* module-scope so all frames share ONE loop (heklusyn spec) */
@@ -60,6 +67,12 @@ function driftLoop() {
   /* write pass */
   for (const { n, p, vis } of reads) {
     if (!vis) continue
+    if (n.kind === 'x' || n.kind === 'xr') {
+      /* the crossing lines part sideways, in opposite directions */
+      const sx = n.kind === 'xr' ? -1 : 1
+      n.el.style.transform = `translate3d(${(sx * p * n.d).toFixed(3)}%, 0, 0)`
+      continue
+    }
     const dir = n.kind === 'refl' ? 1 : -1
     n.el.style.transform = `translate3d(0, ${(dir * -p * n.d).toFixed(3)}%, 0)`
   }
@@ -227,6 +240,73 @@ function Reviews() {
   )
 }
 
+/* ── CROSSING LINES (round 5, Grand Emily device) ─────────────────────────
+   A framed photograph in the middle of the page and two lines of thin
+   capitals running straight across it. One text layer in ink sits on the
+   page; an identical layer in ice is clipped to exactly the photo's box, so
+   each letter changes colour where it crosses the frame. The frame's inset
+   and the clip are the SAME percentages, which is what keeps them aligned at
+   every width. The two lines part sideways on scroll. */
+function Cross({ a, b, src, alt }: { a: string; b: string; src: string; alt: string }) {
+  const la = useRef<HTMLSpanElement>(null)
+  const lb = useRef<HTMLSpanElement>(null)
+  const la2 = useRef<HTMLSpanElement>(null)
+  const lb2 = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    const offs = [armDrift(la.current, 3, 'x'), armDrift(la2.current, 3, 'x'), armDrift(lb.current, 3, 'xr'), armDrift(lb2.current, 3, 'xr')]
+    return () => offs.forEach((f) => f())
+  }, [])
+  const lines = (ra: React.RefObject<HTMLSpanElement>, rb: React.RefObject<HTMLSpanElement>) => (
+    <>
+      <span className="ill-cross-a" ref={ra}>{a}</span>
+      <span className="ill-cross-b" ref={rb}>{b}</span>
+    </>
+  )
+  return (
+    <section className="ill-cross" aria-label={`${a} ${b}`}>
+      <figure className="ill-cross-frame">
+        <img src={src} alt={alt} loading="lazy" decoding="async" />
+      </figure>
+      <p className="ill-cross-type" aria-hidden="true">{lines(la, lb)}</p>
+      <p className="ill-cross-type is-in" aria-hidden="true">{lines(la2, lb2)}</p>
+    </section>
+  )
+}
+
+/* ── THE DATES PILL (round 5): the offer on the first screen. House + guests,
+   then straight to that house's own calendar with the guests carried over.
+   No fake date field: the dates are chosen on the real calendar. ── */
+function HeroPill() {
+  const navigate = useNavigate()
+  const [h, setH] = useState(STAY.houses[1].id)
+  const max = STAY.houses.find((x) => x.id === h)!.max
+  const [g, setG] = useState(4)
+  const go = (e: React.FormEvent) => {
+    e.preventDefault()
+    stayPrefill.guests = Math.min(g, max)
+    navigate(`${ROOT}/${h}#bokun`)
+  }
+  return (
+    <form className="ill-pill" onSubmit={go} aria-label="Check dates">
+      <label className="ill-pill-f">
+        <span>House</span>
+        <select value={h} onChange={(e) => { setH(e.target.value); setG((v) => Math.min(v, STAY.houses.find((x) => x.id === e.target.value)!.max)) }}>
+          {STAY.houses.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+        </select>
+      </label>
+      <div className="ill-pill-f ill-pill-g">
+        <span id="ill-pill-gl">Guests</span>
+        <div role="group" aria-labelledby="ill-pill-gl">
+          <button type="button" aria-label="Fewer guests" disabled={g <= 1} onClick={() => setG((v) => v - 1)}>−</button>
+          <output>{g}</output>
+          <button type="button" aria-label="More guests" disabled={g >= max} onClick={() => setG((v) => v + 1)}>+</button>
+        </div>
+      </div>
+      <button className="ill-pill-go" type="submit">Dates and prices <i aria-hidden="true">→</i></button>
+    </form>
+  )
+}
+
 /* ── Mask-reveal text helpers ───────────────────────────────────────────── */
 function Rise({ as: Tag = 'div', className = '', children }: { as?: 'div' | 'h2' | 'h3' | 'p' | 'span'; className?: string; children: React.ReactNode }) {
   return (
@@ -239,6 +319,9 @@ function Rise({ as: Tag = 'div', className = '', children }: { as?: 'div' | 'h2'
 /* ── Preloader — real progress, Heklusýn spec ───────────────────────────── */
 function Preloader({ onDone }: { onDone: () => void }) {
   const [pct, setPct] = useState(0)
+  /* load → line (the waterline draws across, the mark lets go) → open (the
+     page parts along the line) → unmount */
+  const [phase, setPhase] = useState<'load' | 'line' | 'open'>('load')
   const doneRef = useRef(false)
   useEffect(() => {
     const t0 = performance.now()
@@ -258,10 +341,14 @@ function Preloader({ onDone }: { onDone: () => void }) {
       setPct(Math.round(p * 100))
       if (p >= 1 && !doneRef.current) {
         doneRef.current = true
+        window.setTimeout(() => setPhase('line'), 160)
         window.setTimeout(() => {
-          onDone()
-          window.dispatchEvent(new CustomEvent('ill:revealed'))
-        }, 240)
+          setPhase('open')
+          /* the hero lockup opens out of its own seam while the curtain is
+             still parting, so the two seams read as one line */
+          window.setTimeout(() => window.dispatchEvent(new CustomEvent('ill:revealed')), 260)
+        }, 760)
+        window.setTimeout(onDone, 2000)
         return
       }
       raf = requestAnimationFrame(tick)
@@ -270,79 +357,48 @@ function Preloader({ onDone }: { onDone: () => void }) {
     return () => cancelAnimationFrame(raf)
   }, [onDone])
   return (
-    <div className="ill-loader" role="status" aria-label="Loading">
-      <div className="ill-loader-mark" style={{ ['--p' as string]: `${100 - pct}%` }}>
-        <span>Iceland</span>
-        <span>Luxury Lodges</span>
+    <div className={`ill-loader is-${phase}`} role="status" aria-label="Loading">
+      <div className="ill-loader-half is-top" aria-hidden="true" />
+      <div className="ill-loader-half is-bot" aria-hidden="true" />
+      <div className="ill-loader-core">
+        <div className="ill-loader-mark" style={{ ['--p' as string]: `${100 - pct}%` }}>
+          <span>Iceland</span>
+          <span>Luxury Lodges</span>
+        </div>
+        <div className="ill-loader-line" aria-hidden="true" />
       </div>
-      <div className="ill-loader-line" aria-hidden="true" />
+      <div className="ill-loader-water" aria-hidden="true" />
     </div>
   )
 }
 
-/* ── Booking demo (request-to-book, localStorage, no card) ──────────────── */
-function BookingForm() {
-  const [sent, setSent] = useState(false)
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const fd = new FormData(e.currentTarget)
-    const rec = Object.fromEntries(fd.entries())
-    try {
-      const key = 'ill_demo_requests'
-      const prev = JSON.parse(localStorage.getItem(key) || '[]')
-      prev.push({ ...rec, at: new Date().toISOString() })
-      localStorage.setItem(key, JSON.stringify(prev))
-    } catch { /* storage may throw in private mode — the demo still succeeds */ }
-    setSent(true)
-  }
-  if (sent) {
-    return (
-      <div className="ill-book-done" role="status">
-        <div className="ill-book-done-seam" aria-hidden="true" />
-        <p>{BOOKING.success}</p>
-      </div>
-    )
-  }
-  return (
-    <form className="ill-book-form" onSubmit={onSubmit}>
-      <div className="ill-field">
-        <label htmlFor="ill-house">House</label>
-        <select id="ill-house" name="house" required defaultValue={BOOKING.properties[0]}>
-          {BOOKING.properties.map((p) => <option key={p} value={p}>{p}</option>)}
-        </select>
-      </div>
-      <div className="ill-field-row">
-        <div className="ill-field">
-          <label htmlFor="ill-in">Arrival</label>
-          <input id="ill-in" name="arrival" type="date" required />
-        </div>
-        <div className="ill-field">
-          <label htmlFor="ill-out">Departure</label>
-          <input id="ill-out" name="departure" type="date" required />
-        </div>
-        <div className="ill-field">
-          <label htmlFor="ill-guests">Guests</label>
-          <input id="ill-guests" name="guests" type="number" min="1" max="19" defaultValue="4" required />
-        </div>
-      </div>
-      <div className="ill-field-row is-two">
-        <div className="ill-field">
-          <label htmlFor="ill-name">Name</label>
-          <input id="ill-name" name="name" type="text" autoComplete="name" required />
-        </div>
-        <div className="ill-field">
-          <label htmlFor="ill-email">Email</label>
-          <input id="ill-email" name="email" type="email" autoComplete="email" required />
-        </div>
-      </div>
-      <button className="ill-cta" type="submit">Send the enquiry</button>
-      <p className="ill-book-note">Demo prototype: the enquiry is stored only in this browser.</p>
-    </form>
-  )
+/* ═════════════════════════════ PAGE ═════════════════════════════════════ */
+/* scroll-is-one-evening helpers ([[mirrorhouse-design-system]] device 1) */
+const hexRgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+const mixHex = (a: string, b: string, t: number) => {
+  const A = hexRgb(a), B = hexRgb(b)
+  return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})`
+}
+const smooth = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)))
+  return t * t * (3 - 2 * t)
 }
 
-/* ═════════════════════════════ PAGE ═════════════════════════════════════ */
-export default function Page() {
+export default function Page({ house }: { house?: string } = {}) {
+  /* house mode: the same page, scoped to one house — its own hero, its own
+     chapter, its own calendar, and the other houses as doors at the end */
+  const HC = house ? CHAPTERS.find((c) => c.id === house) : undefined
+  const HD = house ? DOORS.find((d) => d.id === house) : undefined
+  const heroSrc = HD && HD.id !== 'alftavik' ? IMG[HD.img as keyof typeof IMG] : IMG.heroGolden
+  const heroFilm = heroSrc === IMG.heroGolden ? `${import.meta.env.BASE_URL}icelandluxurylodges/hero-film.mp4` : undefined
+  const wm = HC && HD ? [HC.name, HC.water] : ['Iceland', 'Luxury Lodges']
+  const duskRef = useRef<HTMLElement>(null)
+  const [eveFilm, setEveFilm] = useState(false)
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if ((navigator as { connection?: { saveData?: boolean } }).connection?.saveData) return
+    setEveFilm(true)
+  }, [])
   const [booted, setBooted] = useState(false)
   const [showLoader, setShowLoader] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -432,7 +488,9 @@ export default function Page() {
   useEffect(() => {
     reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     setThemeColor(ICE)
-    document.title = 'Iceland Luxury Lodges — Four private houses on the lakes of the Golden Circle'
+    document.title = HC && HD
+      ? `${HC.name} — ${HD.kind.replace(/^The /, 'the ')} ${HC.water} · Iceland Luxury Lodges`
+      : 'Iceland Luxury Lodges — Four private houses on the lakes of the Golden Circle'
     const forced = new URLSearchParams(window.location.search).has('loader')
     let seen = false
     try { seen = sessionStorage.getItem(SEEN_KEY) === '1' } catch { seen = true }
@@ -443,6 +501,9 @@ export default function Page() {
       setBooted(true)
       window.setTimeout(() => window.dispatchEvent(new CustomEvent('ill:revealed')), 60)
     }
+    /* HC/HD come from the house prop, and House.tsx keys the page by house,
+       so they cannot change inside one mount */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   /* reveals: IO arms .is-on; resting CSS state is the visible one without .js */
@@ -480,6 +541,47 @@ export default function Page() {
     return () => window.removeEventListener('ill:revealed', onReveal)
   }, [])
 
+  /* ── ONE EVENING. The page is day until the dusk band, and the band turns
+       it to night: canvas ICE → blue-grey → blue hour → INK, the ink flips
+       to ice only once the band covers the whole viewport (so no paragraph
+       ever sits on the mid-grey crossover), stars come out, then the band's
+       own line arrives. ONE writer: three vars on the route root, every
+       section inherits. Reverses on the way back up. ── */
+  useEffect(() => {
+    const root = rootRef.current
+    const band = duskRef.current
+    if (!root || !band) return
+    let raf = 0
+    let night = false
+    const write = () => {
+      raf = 0
+      const r = band.getBoundingClientRect()
+      const p = Math.min(1, Math.max(0, (window.innerHeight - r.top) / Math.max(1, r.height)))
+      const q = smooth(0.5, 0.9, p)
+      const seg = Math.min(2, Math.floor(q * 3))
+      root.style.setProperty('--bg', mixHex(DUSK_BG[seg], DUSK_BG[seg + 1], q * 3 - seg))
+      const f = smooth(0.7, 0.8, p)
+      root.style.setProperty('--fg', mixHex(INK, ICE, f))
+      root.style.setProperty('--acc', mixHex(DUSK, NIGHT_ACC, f))
+      root.style.setProperty('--dn', smooth(0.52, 0.82, p).toFixed(3))
+      root.style.setProperty('--nt', smooth(0.8, 0.95, p).toFixed(3))
+      if ((f > 0.5) !== night) {
+        night = f > 0.5
+        root.classList.toggle('is-night', night)
+        setThemeColor(night ? INK : ICE)
+      }
+    }
+    const on = () => { if (!raf) raf = requestAnimationFrame(write) }
+    write()
+    window.addEventListener('scroll', on, { passive: true })
+    window.addEventListener('resize', on)
+    return () => {
+      window.removeEventListener('scroll', on)
+      window.removeEventListener('resize', on)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
+
   /* nav: smooth anchor scroll (native; no Lenis on this page) */
   /* the nav swaps register at the foot of the hero instead of inverting */
   useEffect(() => {
@@ -505,21 +607,55 @@ export default function Page() {
 
   const [menuOpen, setMenuOpen] = useState(false)
 
+  /* house names are pages now, not anchors */
+  type NavItem = { label: string; anchor?: string; to?: string }
+  const navItems: NavItem[] = house
+    ? [
+        { label: 'All houses', to: ROOT },
+        ...DOORS.filter((d) => d.id !== house).map((d) => ({ label: d.name, to: `${ROOT}/${d.id}` })),
+        { label: 'Book', anchor: 'bokun' },
+      ]
+    : NAV.map((n) => (DOORS.some((d) => d.id === n.id)
+      ? { label: n.label, to: `${ROOT}/${n.id}` }
+      : { label: n.label, anchor: n.id }))
+  const navLink = (n: NavItem, extra: { style?: React.CSSProperties; after?: () => void } = {}) => (n.to
+    ? <Link key={n.label} to={n.to} style={extra.style} onClick={() => extra.after?.()}>{n.label}</Link>
+    : <a key={n.label} href={`#${n.anchor}`} style={extra.style}
+        onClick={(e) => { extra.after?.(); goTo(n.anchor!)(e) }}>{n.label}</a>)
+
+  const doorList = house ? DOORS.filter((d) => d.id !== house) : DOORS
+  const doors = (
+    <section className={`ill-doors ${doorList.length === 2 ? 'is-two' : ''}`} id={house ? undefined : 'husin'}
+      aria-label={house ? 'The other houses' : 'The houses'}>
+      {doorList.map((d, i) => (
+        <Link className="ill-door" key={d.id} to={`${ROOT}/${d.id}`} style={{ transitionDelay: `${i * 90}ms` }}>
+          <div className="ill-door-media">
+            <img src={IMG[d.img as keyof typeof IMG]} alt={d.alt} loading="lazy" decoding="async" />
+          </div>
+          <div className="ill-door-copy">
+            <span className="ill-door-kind">{d.kind}</span>
+            <span className="ill-door-name">{d.name}</span>
+            <span className="ill-door-sleeps">{d.sleeps}</span>
+            <span className="ill-door-go">See the house <i aria-hidden="true">→</i></span>
+          </div>
+        </Link>
+      ))}
+    </section>
+  )
+
   return (
     <div className="ill-root" ref={rootRef}>
-      <style dangerouslySetInnerHTML={{ __html: STYLES }} />
+      <style dangerouslySetInnerHTML={{ __html: STYLES + BOOK_STYLES }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       {showLoader && !booted && <Preloader onDone={() => setBooted(true)} />}
 
       {/* ── chrome ── */}
       <header className="ill-nav">
-        <a className="ill-nav-mark" href="#top" onClick={goTo('top')}>
-          <span>Iceland</span> <span>Luxury Lodges</span>
-        </a>
+        {house
+          ? <Link className="ill-nav-mark" to={ROOT}><span>Iceland</span> <span>Luxury Lodges</span></Link>
+          : <a className="ill-nav-mark" href="#top" onClick={goTo('top')}><span>Iceland</span> <span>Luxury Lodges</span></a>}
         <nav className="ill-nav-links" aria-label="Sections">
-          {NAV.map((n) => (
-            <a key={n.id} href={`#${n.id}`} onClick={goTo(n.id)}>{n.label}</a>
-          ))}
+          {navItems.map((n) => navLink(n))}
         </nav>
         <button
           className={`ill-burger ${menuOpen ? 'is-x' : ''}`}
@@ -531,53 +667,89 @@ export default function Page() {
         </button>
       </header>
       <div className={`ill-sheet ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
-        {NAV.map((n, i) => (
-          <a key={n.id} href={`#${n.id}`} style={{ transitionDelay: `${80 + i * 55}ms` }}
-            onClick={(e) => { setMenuOpen(false); goTo(n.id)(e) }}>
-            {n.label}
-          </a>
-        ))}
+        {navItems.map((n, i) => navLink(n, { style: { transitionDelay: `${80 + i * 55}ms` }, after: () => setMenuOpen(false) }))}
       </div>
 
       <main id="top">
         {/* ── HERO: the seam-reveal lockup over the living terrace ──
              ICELAND | LUXURY LODGES parted by a hairline (mirrorhouse spec). */}
         <section className="ill-hero" ref={heroRef}>
-          <Stage src={IMG.heroEstate} videoSrc={`${import.meta.env.BASE_URL}icelandluxurylodges/hero-film.mp4`} alt="The infinity pool on the terrace above the lake, mountains across the water" drift={7} className="is-hero" priority />
-          <h1 className="ill-wordmark" aria-label={HERO.word}>
-            <span className="ill-wm-word ill-wm-l" ref={wmLRef}>Iceland</span>
+          <Stage src={heroSrc} videoSrc={heroFilm} alt={HD && HD.id !== 'alftavik' ? HD.alt : 'The infinity pool on the terrace above the lake, mountains across the water'} drift={7} className="is-hero" priority />
+          <h1 className={`ill-wordmark ${house ? 'is-house' : ''}`} aria-label={house ? `${wm[0]}, ${wm[1]}` : HERO.word}>
+            <span className="ill-wm-word ill-wm-l" ref={wmLRef}>{wm[0]}</span>
             <span className="ill-wm-seam" aria-hidden="true" ref={seamRef} />
-            <span className="ill-wm-word ill-wm-r" ref={wmRRef}>Luxury Lodges</span>
+            <span className="ill-wm-word ill-wm-r" ref={wmRRef}>{wm[1]}</span>
           </h1>
-          <p className="ill-hero-sub">
-            <span className="ill-hero-sub-in">{HERO.sub}</span>
+          <p className={`ill-hero-sub ${house ? '' : 'has-pill'}`}>
+            <span className="ill-hero-sub-in">{HD ? `${HD.kind} · ${HD.sleeps.toLowerCase()} · Iceland Luxury Lodges` : HERO.sub}</span>
           </p>
+          {!house && <div className="ill-pill-wrap"><HeroPill /></div>}
         </section>
 
-        {/* ── statement ── */}
-        <section className="ill-statement">
-          <Rise as="h2" className="ill-statement-lead">{STATEMENT.lead}</Rise>
-          <Rise as="p" className="ill-statement-body">{STATEMENT.body}</Rise>
-        </section>
+        {!house && (
+          <>
+            {/* ── statement ── */}
+            <section className="ill-statement">
+              <Rise as="h2" className="ill-statement-lead">{STATEMENT.lead}</Rise>
+              <Rise as="p" className="ill-statement-body">{STATEMENT.body}</Rise>
+            </section>
 
-        {/* ── THE FORK: doors ── */}
-        <section className="ill-doors" id="husin" aria-label="The houses">
-          {DOORS.map((d, i) => (
-            <a className="ill-door" key={d.id} href={`#${d.id}`} onClick={goTo(d.id)} style={{ transitionDelay: `${i * 90}ms` }}>
-              <div className="ill-door-media">
-                <img src={IMG[d.img as keyof typeof IMG]} alt={d.alt} loading="lazy" decoding="async" />
-              </div>
-              <div className="ill-door-copy">
-                <span className="ill-door-kind">{d.kind}</span>
-                <span className="ill-door-name">{d.name}</span>
-                <span className="ill-door-sleeps">{d.sleeps}</span>
-              </div>
-            </a>
-          ))}
-        </section>
+            {/* ── THE FORK: doors, each opening the house's own page ── */}
+            {doors}
+          </>
+        )}
 
         {/* ── chapters ── */}
-        {CHAPTERS.map((c) => (
+        {HC && (
+          /* ── HOUSE PAGE: copy and photographs on the left, the house's own
+               calendar in a sticky card on the right (room-detail pattern) ── */
+          <section className="ill-chapter is-house" id={HC.id}>
+            <header className="ill-chapter-head">
+              <div className="ill-chapter-ord" aria-hidden="true">{HC.ord}</div>
+              <div>
+                <Rise as="h2" className="ill-chapter-name">{HC.name}</Rise>
+                <Rise as="p" className="ill-chapter-water">{HC.water}</Rise>
+              </div>
+            </header>
+            <div className="ill-hp-grid">
+              <div className="ill-hp-main">
+                <div className="ill-hp-copy">
+                  <Rise as="h3" className="ill-chapter-lead">{HC.lead}</Rise>
+                  <Rise as="p" className="ill-chapter-body">{HC.body}</Rise>
+                  <div className="ill-facts" role="list">
+                    {HC.facts.map((f) => (
+                      <div className="ill-fact" role="listitem" key={f.l}>
+                        <span className="ill-fact-n">{f.n}</span>
+                        <span className="ill-fact-l">{f.l}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <ul className="ill-amen">
+                    {HC.amenities.map((a) => <li key={a}>{a}</li>)}
+                  </ul>
+                </div>
+                <div className="ill-chapter-photos">
+                  {HC.photos.map((p) => (
+                    <Frame key={p.img} src={IMG[p.img]} alt={p.alt} wide={p.wide} drift={p.wide ? 12 : 9} />
+                  ))}
+                </div>
+              </div>
+              <aside className="ill-hp-card" id="bokun" aria-label={`Book ${HC.name}`}>
+                <div className="ill-hp-card-head">
+                  <p><b>{STAY.currency}{STAY.houses.find((x) => x.id === HC.id)!.rate.toLocaleString('en-GB')}</b> a night</p>
+                  {HC.chip && <p className="ill-hp-card-score">{HC.chip.score}</p>}
+                </div>
+                <StayBook initial={HC.id} compact />
+              </aside>
+            </div>
+          </section>
+        )}
+
+        {HC && CROSS[HC.id] && (
+          <Cross a={CROSS[HC.id].a} b={CROSS[HC.id].b} src={IMG[CROSS[HC.id].img]} alt={CROSS[HC.id].alt} />
+        )}
+
+        {!HC && CHAPTERS.map((c) => (
           <section className="ill-chapter" id={c.id} key={c.id}>
             <header className="ill-chapter-head">
               <div className="ill-chapter-ord" aria-hidden="true">{c.ord}</div>
@@ -607,6 +779,9 @@ export default function Page() {
                     <span>{c.chip.source}</span>
                   </p>
                 )}
+                <Link className="ill-chapter-go" to={`${ROOT}/${c.id}`}>
+                  {c.name}: dates and booking <span aria-hidden="true">→</span>
+                </Link>
               </div>
               <div className="ill-chapter-photos">
                 {c.photos.map((p) => (
@@ -617,28 +792,57 @@ export default function Page() {
           </section>
         ))}
 
+        {/* ── the evening: the band that turns the page from day to night ── */}
+        <section className="ill-dusk" ref={duskRef} aria-labelledby="ill-dusk-h">
+          {/* the opening shot again, later the same day: her terrace at blue
+              hour, crossfading to the same frame under the aurora. The page
+              canvas turns to night BEHIND the photograph, so no text ever
+              sits on a mid-grey crossover. */}
+          <div className="ill-dusk-stage" aria-hidden="true">
+            <img className="ill-dusk-a" src={IMG.eveBlue} alt="" loading="lazy" decoding="async" />
+            <div className="ill-dusk-b">
+              <img src={IMG.eveNight} alt="" loading="lazy" decoding="async" />
+              {eveFilm && <video src={IMG.eveFilm} poster={IMG.eveNight} autoPlay muted loop playsInline />}
+            </div>
+          </div>
+          <div className="ill-dusk-in">
+            <p className="ill-dusk-eye">{EVENING.eyebrow}</p>
+            <h2 className="ill-dusk-h" id="ill-dusk-h">{EVENING.title}</h2>
+            <p className="ill-dusk-p">{EVENING.body}</p>
+          </div>
+        </section>
+
         {/* ── fourth key: no photograph of it exists, so it is set as type on
               its own band rather than pretending to be an image tile ── */}
-        <section className="ill-fourth">
+        {!house && <section className="ill-fourth">
           <div className="ill-fourth-card">
             <span className="ill-fourth-rule" aria-hidden="true" />
             <Rise as="p" className="ill-fourth-place">{FOURTH_KEY.place}</Rise>
             <Rise as="h2" className="ill-fourth-name">{FOURTH_KEY.name}</Rise>
             <Rise as="p" className="ill-fourth-body">{FOURTH_KEY.body}</Rise>
           </div>
-        </section>
+        </section>}
 
         {/* ── quote ── */}
         <Reviews />
 
-        {/* ── request-to-book ── */}
-        <section className="ill-book" id="bokun">
-          <div className="ill-book-copy">
-            <Rise as="h2">{BOOKING.title}</Rise>
-            <Rise as="p">{BOOKING.body}</Rise>
-          </div>
-          <BookingForm />
-        </section>
+        {/* ── request-to-book (house pages book in their sticky card) ── */}
+        {!house && (
+          <section className="ill-book" id="bokun">
+            <div className="ill-book-copy">
+              <Rise as="h2">{BOOKING.title}</Rise>
+              <Rise as="p">{BOOKING.body}</Rise>
+            </div>
+            <StayBook />
+          </section>
+        )}
+
+        {house && (
+          <>
+            <p className="ill-others-h">The other houses</p>
+            {doors}
+          </>
+        )}
 
         {/* ── footer ── */}
         <footer className="ill-footer">
@@ -669,24 +873,42 @@ const STYLES = `
 
 .ill-root{
   --ice:${ICE}; --ink:${INK}; --dusk:${DUSK};
-  --ink-soft:rgba(14,22,29,.78); --ink-mute:rgba(14,22,29,.6);
+  /* --bg/--fg/--acc are the evening: the dusk band's scrub rewrites them, and
+     every token that tints text or hairlines derives from --fg */
+  --bg:${ICE}; --fg:${INK}; --acc:${DUSK};
+  --ink-soft:color-mix(in srgb,var(--fg) 78%,transparent); --ink-mute:color-mix(in srgb,var(--fg) 62%,transparent);
   --ice-soft:rgba(239,243,245,.85); --ice-mute:rgba(239,243,245,.6);
-  --hair:rgba(14,22,29,.14); --hair-ice:rgba(239,243,245,.2);
+  --hair:color-mix(in srgb,var(--fg) 15%,transparent); --hair-ice:rgba(239,243,245,.2);
   --serif:'Gambarino','Cormorant Garamond',Georgia,serif;
   --sans:'SwitzerIll','Helvetica Neue',Arial,sans-serif;
   --e:cubic-bezier(.22,.9,.28,1);
-  background:var(--ice); color:var(--ink);
+  background:var(--bg); color:var(--fg);
   font-family:var(--sans); font-weight:300; line-height:1.6;
   overflow-x:clip;
 }
 .ill-root *{box-sizing:border-box;margin:0}
 .ill-root img{display:block;width:100%;height:100%;object-fit:cover}
 .ill-root a{color:inherit;text-decoration:none}
-.ill-root :focus-visible{outline:2px solid var(--dusk);outline-offset:3px}
+.ill-root :focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.ill-root.is-night{color-scheme:dark}
 .ill-root button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ── loader ── */
-.ill-loader{position:fixed;inset:0;z-index:80;background:var(--ice);display:grid;place-content:center;gap:18px;text-align:center}
+/* the loader is two ICE halves that part along a full-width waterline */
+.ill-loader{position:fixed;inset:0;z-index:80;display:grid;place-content:center;text-align:center}
+.ill-loader.is-open{pointer-events:none}
+.ill-loader-half{position:fixed;left:0;right:0;background:var(--ice);transition:transform 1.2s cubic-bezier(.76,0,.24,1)}
+.ill-loader-half.is-top{top:0;bottom:calc(50% - 1px)}
+.ill-loader-half.is-bot{top:calc(50% - 1px);bottom:0}
+.ill-loader.is-open .ill-loader-half.is-top{transform:translateY(-101%)}
+.ill-loader.is-open .ill-loader-half.is-bot{transform:translateY(101%)}
+.ill-loader-core{position:relative;z-index:1;display:grid;gap:18px;
+  transition:opacity .5s var(--e),transform .7s var(--e),filter .5s var(--e)}
+.ill-loader.is-line .ill-loader-core,.ill-loader.is-open .ill-loader-core{opacity:0;transform:scale(.97);filter:blur(6px)}
+.ill-loader-water{position:fixed;left:0;right:0;top:calc(50% - .5px);height:1px;z-index:2;background:var(--ink);
+  transform:scaleX(0);transition:transform .6s cubic-bezier(.65,0,.35,1),opacity .5s var(--e) .35s}
+.ill-loader.is-line .ill-loader-water{transform:scaleX(1)}
+.ill-loader.is-open .ill-loader-water{transform:scaleX(1);opacity:0}
 .ill-loader-mark{font-family:var(--serif);font-size:clamp(1.6rem,4.6vw,3rem);line-height:1.14;letter-spacing:.01em;display:grid;
   background:linear-gradient(90deg,var(--ink) 50%,rgba(14,22,29,.22) 50%);background-size:200% 100%;background-position-x:var(--p,100%);
   -webkit-background-clip:text;background-clip:text;color:transparent}
@@ -703,15 +925,25 @@ const STYLES = `
    mid-tone photograph it inverts to muddy olive/brown instead of reading as
    chrome. */
 .ill-nav::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
-  background:linear-gradient(to bottom,rgba(14,22,29,.42),transparent);
+  inset:0 0 -64px 0;
+  background:linear-gradient(to bottom,rgba(8,13,18,.72) 0%,rgba(8,13,18,.42) 55%,transparent);
   opacity:1;transition:opacity .45s var(--e)}
+.ill-nav:not(.is-past){text-shadow:0 1px 16px rgba(6,11,16,.6)}
+/* chrome never scrubs: it holds the day palette, then snaps to night with the
+   .is-night flag, so it is never mid-grey on mid-grey during the crossover */
+.ill-root.is-night .ill-nav.is-past{color:var(--ice);background:rgba(14,22,29,.86)}
 .ill-nav.is-past{color:var(--ink);background:rgba(239,243,245,.86);backdrop-filter:blur(10px);
   box-shadow:0 1px 0 var(--hair)}
 .ill-nav.is-past::before{opacity:0}
 .ill-nav-mark{font-family:var(--serif);font-size:1.02rem;letter-spacing:.02em;display:flex;gap:.4em}
-.ill-nav-links{display:flex;gap:clamp(14px,2vw,26px);font-size:.82rem;font-weight:400;letter-spacing:.04em}
-.ill-nav-links a{opacity:.82;transition:opacity .3s var(--e)}
-.ill-nav-links a:hover{opacity:1}
+.ill-nav-links{display:flex;gap:clamp(14px,2vw,26px);font-size:.84rem;font-weight:500;letter-spacing:.04em}
+.ill-nav-links a{position:relative;opacity:.92;transition:opacity .3s var(--e)}
+.ill-nav-links a::after{content:'';position:absolute;left:0;right:0;bottom:-5px;height:1px;background:currentColor;
+  transform:scaleX(0);transform-origin:right;transition:transform .32s var(--e)}
+@media (hover:hover) and (pointer:fine){
+  .ill-nav-links a:hover{opacity:1}
+  .ill-nav-links a:hover::after{transform:scaleX(1);transform-origin:left}
+}
 .ill-burger{display:none;width:44px;height:44px;position:relative}
 /* The bars close to the X on transform alone. They used to animate top from
    18/26px to 22px as well, which is a layout property on a control that is
@@ -721,7 +953,8 @@ const STYLES = `
 .ill-burger i:last-child{top:26px}
 .ill-burger.is-x i:first-child{transform:translateY(4px) rotate(45deg)}
 .ill-burger.is-x i:last-child{transform:translateY(-4px) rotate(-45deg)}
-.ill-sheet{position:fixed;inset:0;z-index:55;background:var(--ice);display:grid;place-content:center;gap:2px;text-align:center;
+.ill-root.is-night .ill-sheet{background:var(--ink);color:var(--ice)}
+.ill-sheet{position:fixed;inset:0;z-index:55;background:var(--ice);color:var(--ink);display:grid;place-content:center;gap:2px;text-align:center;
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity .5s var(--e),visibility 0s linear .5s}
 .ill-sheet.is-open{opacity:1;visibility:visible;pointer-events:auto;
@@ -739,9 +972,11 @@ const STYLES = `
 /* ── hero: seam-reveal lockup over the living terrace ── */
 .ill-hero{position:relative;min-height:100svh;display:grid}
 .ill-hero .ill-stage.is-hero{position:absolute;inset:0}
+.js:not(.reduced) .ill-hero .ill-stage.is-hero .ill-stage-frame{transform:scale(1.07);transition:transform 2.4s cubic-bezier(.16,1,.3,1)}
+.js:not(.reduced).is-revealed .ill-hero .ill-stage.is-hero .ill-stage-frame{transform:none}
 /* the difference-blend wordmark needs a calmer, darker ground to read against
    a busy mid-tone photograph (mirrorhouse ran its hero at saturate(.78)) */
-.ill-hero .ill-stage.is-hero img,.ill-hero .ill-stage.is-hero video{filter:saturate(.78) brightness(.94)}
+.ill-hero .ill-stage.is-hero img,.ill-hero .ill-stage.is-hero video{filter:saturate(.94) brightness(.9)}
 .ill-hero .ill-stage.is-hero::after{content:'';position:absolute;inset:0;z-index:1;
   background:
     radial-gradient(120% 62% at 50% 50%,rgba(14,22,29,.46) 0%,rgba(14,22,29,.16) 55%,transparent 78%),
@@ -750,11 +985,50 @@ const STYLES = `
 .ill-wordmark{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;
   margin:0;pointer-events:none;color:#F6F9FA;text-shadow:0 2px 30px rgba(14,22,29,.45);
   font-family:var(--serif);font-size:clamp(30px,7.4vw,112px);line-height:1.02;font-weight:400}
+.ill-wordmark.is-house{font-size:clamp(28px,5.4vw,86px)}
 .ill-wm-word{display:block;white-space:nowrap;letter-spacing:.02em;will-change:clip-path,transform}
 .ill-wm-l{padding-right:.3em;margin-right:-.08em;text-align:right}
 .ill-wm-r{padding-left:.3em;text-align:left}
 .ill-wm-seam{flex:none;width:1px;height:.94em;background:currentColor;opacity:.85;transform-origin:50% 50%}
 .ill-hero-sub{position:absolute;left:0;right:0;bottom:clamp(30px,7vh,74px);z-index:3;text-align:center;padding:0 20px;overflow:hidden}
+.ill-hero-sub.has-pill{bottom:calc(clamp(26px,5vh,56px) + 96px)}
+/* ── the dates pill ── */
+.ill-pill-wrap{position:absolute;left:0;right:0;bottom:clamp(26px,5vh,56px);z-index:4;display:flex;justify-content:center;padding:0 16px;
+  opacity:0;transform:translateY(14px);transition:opacity .9s var(--e) 1.1s,transform .9s var(--e) 1.1s}
+.is-revealed .ill-pill-wrap{opacity:1;transform:none}
+.ill-pill{display:flex;align-items:stretch;color:#F3F7F8;background:rgba(10,16,22,.46);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);
+  box-shadow:inset 0 0 0 1px rgba(239,243,245,.22)}
+.ill-pill-f{display:grid;gap:2px;padding:12px 22px;min-width:0}
+.ill-pill-f + .ill-pill-f{box-shadow:inset 1px 0 0 rgba(239,243,245,.18)}
+.ill-pill-f > span{font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(239,243,245,.7)}
+.ill-pill select{font:inherit;font-family:var(--serif);font-size:1.12rem;color:inherit;background:transparent;border:0;padding:0 20px 0 0;
+  appearance:none;-webkit-appearance:none;cursor:pointer;min-height:30px;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:calc(100% - 9px) 55%,calc(100% - 4px) 55%;background-size:5px 5px;background-repeat:no-repeat}
+.ill-pill select option{color:#0E161D}
+.ill-pill-g > div{display:flex;align-items:center;gap:4px}
+.ill-pill-g button{width:30px;height:30px;font-size:1.05rem;line-height:1;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(239,243,245,.3)}
+.ill-pill-g button:disabled{opacity:.35;cursor:default}
+.ill-pill-g output{min-width:2.2ch;text-align:center;font-family:var(--serif);font-size:1.12rem}
+.ill-root .ill-pill-go{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;gap:.6em;padding:0 26px;
+  background:#F3F7F8;color:#0E161D;font-size:.9rem;letter-spacing:.03em;white-space:nowrap}
+.ill-pill-go i{font-style:normal;transition:transform .3s var(--e)}
+.ill-pill-go::before{content:'';position:absolute;inset:0;z-index:-1;background:#C9D9E4;transform:scaleX(0);transform-origin:right;transition:transform .36s var(--e)}
+@media (hover:hover) and (pointer:fine){
+  .ill-pill-go:hover::before{transform:scaleX(1);transform-origin:left}
+  .ill-pill-go:hover i{transform:translateX(4px)}
+}
+.ill-pill-go:active{transform:scale(.98)}
+@media (max-width:640px){
+  .ill-hero-sub.has-pill{bottom:calc(clamp(20px,4vh,40px) + 150px)}
+  .ill-pill-wrap{bottom:clamp(20px,4vh,40px)}
+  .ill-pill{display:grid;grid-template-columns:minmax(0,1fr) auto;width:100%}
+  .ill-pill-go{grid-column:1/-1;justify-content:center;min-height:50px}
+  .ill-pill-f{padding:10px 16px}
+  .ill-pill-g button{width:40px;height:40px}
+  .ill-pill-f > span{font-size:13px;letter-spacing:.12em}
+}
 .ill-hero-sub-in{display:inline-block;color:#EDF1F2;font-size:clamp(.92rem,1.6vw,1.05rem);max-width:44ch;
   text-shadow:0 1px 16px rgba(14,22,29,.5);
   opacity:0;transform:translateY(16px);transition:opacity .9s var(--e) .9s,transform .9s var(--e) .9s}
@@ -781,8 +1055,17 @@ const STYLES = `
 /* Gated: on touch, a tap latches :hover and the door photo stays pushed in
    until the visitor happens to tap something else. 1.2s also read as lag
    rather than luxury on the way in. */
+.ill-door{background:var(--ink)}
+.ill-door-media{transition:opacity .4s var(--e)}
+.ill-door-go{display:inline-flex;gap:.5em;align-items:center;margin-top:10px;font-size:.84rem;letter-spacing:.04em;color:var(--ice)}
+.ill-door-go i{font-style:normal;transition:transform .3s var(--e)}
 @media (hover:hover) and (pointer:fine){
   .ill-door:hover .ill-door-media img{transform:scale(1.11)}
+  /* the doors you are NOT pointing at step back */
+  .ill-doors:hover .ill-door:not(:hover) .ill-door-media{opacity:.5}
+  .ill-door-go{opacity:0;transform:translateY(8px);transition:opacity .3s var(--e),transform .3s var(--e)}
+  .ill-door:hover .ill-door-go{opacity:1;transform:none}
+  .ill-door:hover .ill-door-go i{transform:translateX(4px)}
 }
 .ill-door::after{content:'';position:absolute;inset:0;z-index:-1;
   background:linear-gradient(to top,rgba(14,22,29,.86) 0%,rgba(14,22,29,.44) 40%,rgba(14,22,29,.1) 100%)}
@@ -791,7 +1074,10 @@ const STYLES = `
 .ill-door-kind{font-size:.78rem;letter-spacing:.08em;color:var(--ice-mute);font-weight:400}
 .ill-door-name{font-family:var(--serif);font-size:clamp(1.7rem,3.2vw,2.7rem);line-height:1.06}
 .ill-door-sleeps{font-size:.86rem;color:var(--ice-soft)}
-@media (max-width:900px){.ill-doors{grid-template-columns:1fr}.ill-door{min-height:64svh}.ill-door + .ill-door{box-shadow:inset 0 1px 0 var(--hair-ice)}}
+.ill-doors.is-two{grid-template-columns:repeat(2,1fr);min-height:74svh}
+.ill-others-h{max-width:1500px;margin:0 auto;padding:0 clamp(20px,5vw,64px) 22px;font-size:.72rem;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--acc)}
+@media (max-width:900px){.ill-doors,.ill-doors.is-two{grid-template-columns:1fr}.ill-door{min-height:64svh}.ill-door + .ill-door{box-shadow:inset 0 1px 0 var(--hair-ice)}}
 
 /* ── chapters ── */
 .ill-chapter{padding:clamp(90px,15vh,170px) clamp(20px,5vw,64px);max-width:1500px;margin:0 auto}
@@ -826,14 +1112,73 @@ const STYLES = `
   opacity:0;transform:translateY(30px);transition:opacity 1s var(--e),transform 1s var(--e)}
 .ill-frame.is-on{opacity:1;transform:none}
 .ill-frame.is-wide{grid-column:1/-1;aspect-ratio:16/8.4}
-.ill-frame img{filter:saturate(.92)}
+.ill-frame img{filter:saturate(.92);transition:transform .7s var(--e)}
+@media (hover:hover) and (pointer:fine){.ill-frame:hover img{transform:scale(1.04)}}
 @media (max-width:1020px){.ill-chapter-grid{grid-template-columns:1fr}.ill-chapter-copy{position:static}}
 @media (max-width:640px){.ill-chapter-photos{grid-template-columns:1fr}.ill-frame{aspect-ratio:4/3}}
 
-/* ── THE WALKTHROUGH ── */
-/* four welded moves need more travel than one clip did */
-@media (prefers-reduced-motion:reduce){
+/* ── house page: content left, the house's calendar in a sticky card ── */
+.ill-hp-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,400px);gap:clamp(28px,4.5vw,70px);align-items:start}
+.ill-hp-main{display:grid;gap:clamp(40px,7vh,72px);min-width:0}
+.ill-hp-copy{display:grid;gap:22px;max-width:620px}
+.ill-hp-card{position:sticky;top:84px;display:grid;gap:14px;padding:22px 22px 18px;
+  background:color-mix(in srgb,var(--fg) 4%,var(--bg));box-shadow:inset 0 0 0 1px var(--hair)}
+.ill-hp-card-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  border-bottom:1px solid var(--hair);padding-bottom:12px}
+.ill-hp-card-head b{font-family:var(--serif);font-weight:400;font-size:1.7rem}
+.ill-hp-card-head p{color:var(--ink-mute);font-size:.88rem}
+.ill-hp-card-score{font-size:.78rem !important;text-align:right}
+@media (max-width:1020px){
+  .ill-hp-grid{grid-template-columns:minmax(0,1fr)}
+  .ill-hp-card{position:static;max-width:560px}
+  /* on one column the card belongs right after the copy, before the photos */
+  .ill-hp-main{display:contents}
+  .ill-hp-copy{order:1}.ill-hp-card{order:2}.ill-hp-main .ill-chapter-photos{order:3}
 }
+
+/* ── crossing lines ── */
+.ill-cross{position:relative;height:clamp(520px,86svh,900px);margin:clamp(30px,6vh,70px) 0;overflow:clip;
+  --ci:9% 17%}
+.ill-cross-frame{position:absolute;inset:var(--ci);overflow:hidden;margin:0}
+/* the frame is darkened so the ice letters read over any photograph */
+.ill-cross-frame img{filter:saturate(.88) brightness(.66)}
+.ill-cross-type{position:absolute;inset:0;display:grid;align-content:center;gap:.06em;margin:0;pointer-events:none;
+  font-family:var(--serif);font-weight:400;text-transform:uppercase;letter-spacing:.06em;line-height:.98;
+  font-size:min(8.6vw,138px);color:var(--fg);white-space:nowrap}
+.ill-cross-type.is-in{color:#F4F7F8;clip-path:inset(var(--ci));text-shadow:0 2px 30px rgba(6,11,16,.35)}
+.ill-cross-a{justify-self:start;padding-left:7vw;will-change:transform}
+.ill-cross-b{justify-self:end;padding-right:7vw;will-change:transform}
+@media (max-width:640px){
+  .ill-cross{height:72svh;--ci:12% 7%}
+  .ill-cross-type{font-size:11.2vw}
+  .ill-cross-a{padding-left:3vw}.ill-cross-b{padding-right:3vw}
+}
+
+/* the chapter's way into its own page */
+.ill-chapter-go{justify-self:start;display:inline-flex;gap:.5em;align-items:center;font-size:.92rem;letter-spacing:.02em;
+  padding:12px 0 6px;border-bottom:1px solid currentColor}
+.ill-chapter-go span{transition:transform .3s var(--e)}
+@media (hover:hover) and (pointer:fine){.ill-chapter-go:hover span{transform:translateX(4px)}}
+
+/* ── the evening band: the hero's terrace later the same day, pinned for one
+   viewport while blue hour crossfades to the aurora night ── */
+/* overflow:clip, not hidden: it clips the sticky stage, whose margin-box
+   (margin-bottom:-100svh) otherwise lets it hang one viewport below the band
+   and show through under the next transparent section, without creating a
+   scroll container that would break the sticky itself */
+.ill-dusk{position:relative;height:210svh;background:var(--ink);overflow:clip}
+.ill-dusk-stage,.ill-dusk-in{position:sticky;top:0;height:100svh}
+.ill-dusk-stage{margin-bottom:-100svh;overflow:hidden}
+.ill-dusk-stage img,.ill-dusk-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:66% 50%}
+.ill-dusk-b{position:absolute;inset:0;opacity:var(--dn,0)}
+.ill-dusk-stage::after{content:'';position:absolute;inset:0;opacity:var(--nt,0);
+  background:linear-gradient(to top,rgba(6,11,16,.82) 0%,rgba(6,11,16,.42) 34%,transparent 62%)}
+.ill-dusk-in{display:grid;align-content:end;justify-items:center;gap:14px;text-align:center;
+  padding:0 20px clamp(56px,13vh,130px);color:#F3F7F8;text-shadow:0 2px 28px rgba(4,8,12,.55)}
+.js .ill-dusk-in{opacity:var(--nt,0);transform:translateY(calc((1 - var(--nt,0)) * 18px))}
+.ill-dusk-eye{font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:#B9CEDC}
+.ill-dusk-h{font-family:var(--serif);font-weight:400;font-size:clamp(2.3rem,6.4vw,5.4rem);line-height:1.02;letter-spacing:-.01em}
+.ill-dusk-p{color:rgba(239,243,245,.88);max-width:40ch;font-size:clamp(1rem,1.7vw,1.15rem)}
 
 /* ── fourth key ── */
 /* A dark box floating on a light page, with the page showing down both sides,
@@ -853,16 +1198,24 @@ const STYLES = `
 
 /* ── quote ── */
 /* ══ guest words, on the night they describe ══ */
-.ill-rev{position:relative;isolation:isolate;overflow:hidden;background:#080d12;
+.ill-rev{position:relative;isolation:isolate;overflow:hidden;background:var(--ink);
   padding:clamp(80px,14vh,150px) clamp(20px,6vw,80px) clamp(74px,12vh,130px)}
+/* the photograph fades into the night canvas at both edges, so the section
+   reads as a scene inside the night rather than a box stacked on it */
 .ill-rev-bed{position:absolute;inset:0;z-index:0}
-.ill-rev-bed img,.ill-rev-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* masked on the media themselves: a <video> is its own compositor layer and
+   Chrome does not reliably clip it by a parent's mask, which left a hard edge */
+.ill-rev-bed img,.ill-rev-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 78%,transparent);
+  mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 78%,transparent)}
 .ill-rev-film{z-index:1}
 /* the type sits on the film, so the film needs a floor */
 /* two scrims, not one: a lateral wash so the column always has a dark ground,
    and a top band because the quote's first line sits against open sky, which
    is the brightest part of the frame */
 .ill-rev::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 78%,transparent);
+  mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 78%,transparent);
   background:
     linear-gradient(to bottom,rgba(6,11,16,.72),rgba(6,11,16,.18) 42%,transparent 62%),
     linear-gradient(to right,rgba(6,11,16,.88),rgba(6,11,16,.6) 48%,rgba(6,11,16,.2) 82%)}
@@ -919,7 +1272,7 @@ const STYLES = `
 }
 
 /* ── booking ── */
-.ill-book{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,64px) clamp(100px,15vh,180px);
+.ill-book{max-width:1280px;margin:0 auto;padding:clamp(96px,15vh,170px) clamp(20px,5vw,64px) clamp(100px,15vh,180px);
   display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.2fr);gap:clamp(30px,5vw,70px);align-items:start}
 /* the hairline has to run across BOTH columns. The form carried a border-top
    and the copy did not, so the two halves of the section started on different
@@ -928,22 +1281,23 @@ const STYLES = `
   border-top:1px solid var(--hair);padding-top:26px}
 .ill-book-copy h2 .ill-rise-in{font-family:var(--serif);font-size:clamp(1.9rem,4vw,3.1rem);line-height:1.1}
 .ill-book-copy p .ill-rise-in{color:var(--ink-soft);max-width:44ch}
-.ill-book-form{display:grid;gap:18px;border-top:1px solid var(--hair);padding-top:26px}
 .ill-field{display:grid;gap:7px}
 .ill-field label{font-size:.78rem;letter-spacing:.06em;color:var(--ink-mute);font-weight:400}
-.ill-field input,.ill-field select{font:inherit;color:var(--ink);background:transparent;border:1px solid var(--hair);
+.ill-field input,.ill-field select{font:inherit;color:var(--fg);background:transparent;border:1px solid var(--hair);
   padding:12px 14px;border-radius:0;min-height:46px;width:100%}
-.ill-field input:focus,.ill-field select:focus{outline:2px solid var(--dusk);outline-offset:1px;border-color:transparent}
+.ill-field input:focus,.ill-field select:focus{outline:2px solid var(--acc);outline-offset:1px;border-color:transparent}
 .ill-field-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 .ill-field-row.is-two{grid-template-columns:1fr 1fr}
-.ill-cta{background:var(--ink);color:var(--ice);padding:15px 30px;font-weight:400;letter-spacing:.04em;font-size:.94rem;
-  min-height:48px;transition:transform .25s var(--e),background .3s var(--e)}
-.ill-cta:hover{background:var(--dusk)}
-.ill-cta:active{transform:translateY(1px) scale(.99)}
-.ill-book-note{font-size:.78rem;color:var(--ink-mute)}
-.ill-book-done{display:grid;gap:18px;padding-top:26px}
-.ill-book-done-seam{height:1px;background:var(--dusk)}
-.ill-book-done p{font-family:var(--serif);font-size:clamp(1.2rem,2.2vw,1.6rem);line-height:1.4;max-width:34ch}
+/* .ill-root prefix: the base .ill-root button{background:none} reset is
+   (0,1,1) and was silently stripping the fill off every CTA */
+.ill-root .ill-cta{position:relative;isolation:isolate;overflow:hidden;background:var(--fg);color:var(--bg);padding:15px 30px;
+  font-weight:400;letter-spacing:.04em;font-size:.94rem;min-height:48px;transition:transform .16s var(--e)}
+.ill-cta::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--acc);
+  transform:scaleX(0);transform-origin:right;transition:transform .36s var(--e)}
+@media (hover:hover) and (pointer:fine){
+  .ill-cta:not(:disabled):hover::before{transform:scaleX(1);transform-origin:left}
+}
+.ill-cta:not(:disabled):active{transform:scale(.98)}
 /* A 1fr track is minmax(auto,1fr), and that auto floor is the column's CONTENT
    width — so this track resolved to 350px inside a 320px content box on a
    360px phone and the section hung 30px off the edge. It never showed up as a
@@ -952,7 +1306,7 @@ const STYLES = `
    children stop propagating their own content floor. */
 @media (max-width:860px){
   .ill-book{grid-template-columns:minmax(0,1fr)}
-  .ill-book-copy,.ill-book-form{min-width:0}
+  .ill-book-copy,.ill-sb{min-width:0}
   .ill-book-copy{position:static}
   .ill-field-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .ill-field-row .ill-field:last-child{grid-column:1/-1}
@@ -982,6 +1336,7 @@ const STYLES = `
   .ill-stage-in{position:absolute;inset:0;transform:none !important}
   .ill-hero-line-in,.ill-hero-sub-in{transform:none;opacity:1;transition:none}
   .ill-door,.ill-fact,.ill-amen li,.ill-frame{opacity:1;transform:none;transition:none}
+  .js .ill-dusk-in{transform:none}
   .ill-loader-line::after{animation:none}
   /* no auto-advance and no film: every quote is shown at once, so every WORD
      must show too — the per-word reveal keys off .is-on, which only one <li>
@@ -1044,7 +1399,7 @@ const STYLES = `
 @media (max-width:640px){
   .ill-eyebrow,.ill-door-kind,.ill-fact-l,.ill-rev-note,.ill-book-note,
   .ill-rev-badge,.ill-chip,.ill-chip span,.ill-fourth-place .ill-rise-in,.ill-footer-dl dt,
-  .ill-field label,.ill-book label{font-size:13px}
+  .ill-field label,.ill-book label,.ill-dusk-eye,.ill-others-h{font-size:13px}
   .ill-rev-nav button{width:44px;height:44px}
   .ill-nav-mark{padding:9px 0}
   /* the shared disclaimer is dressed by this page at .76rem — 12.2px, under
