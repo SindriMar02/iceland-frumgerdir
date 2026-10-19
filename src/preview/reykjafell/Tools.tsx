@@ -399,7 +399,13 @@ export function Efnislisti() {
 
       <aside className="out" aria-label="Tilboðsbeiðnin">
         <p className="rfl-label"><svg className="rfl-dot" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4.5" /></svg><span>Tilboðsbeiðnin</span></p>
-        <p className="total"><span className="rfl-num">{fundnar.length}<sup>/{listi.length}</sup></span><small>línur fundust í vörulistanum</small></p>
+        {/* a plain count, not a fraction with a superscript: the raised "/9" rode up
+            into the label above, and an empty list said "0/0" */}
+        {listi.length ? (
+          <p className="total"><span className="rfl-num">{fundnar.length}</span><small>af {listi.length} {listi.length === 1 ? 'línu fannst' : 'línum fundust'} í vörulistanum</small></p>
+        ) : (
+          <p className="total empty"><small>Listinn er tómur. Límdu inn línur hér til vinstri eða settu vörur á hann úr vöruleitinni.</small></p>
+        )}
         {ekki.length ? <p className="fine">{ekki.length} {ekki.length === 1 ? 'lína' : 'línur'} fylgja með óbreyttar svo ekkert týnist.</p> : null}
         {leidir.length ? (
           <div className="route">
@@ -814,7 +820,9 @@ export const TOOLS_CSS = `
 .rfl-tool .out{position:sticky;top:calc(var(--band) / 2 + 3vw);border:1px solid ${C.hairline};border-radius:var(--rad);background:#fff;padding:calc(var(--col) * 1.4)}
 .rfl-band.white .rfl-tool .out{background:${C.paper}}
 @media (max-width:900px){.rfl-tool .out{position:static}}
-.rfl-tool .total{display:flex;flex-direction:column;gap:.3em;padding:.4em 0 .6em}
+.rfl-tool .total{display:flex;flex-direction:column;gap:.4em;padding:.6em 0 .9em;margin-top:.4rem;border-bottom:1px solid ${C.hairline};margin-bottom:1rem}
+.rfl-tool .total .rfl-num{line-height:1}
+.rfl-tool .total.empty small{font-size:var(--t-body);opacity:.72;line-height:1.5;letter-spacing:0}
 .rfl-tool .total small{font-size:var(--t-tag);letter-spacing:.04em;opacity:.7}
 .rfl-tool .fine,.rfl-req .fine,.rfl-triage .fine{font-size:var(--t-tag);line-height:1.5;opacity:.72;margin-top:.6em}
 .rfl-tool .act{margin-top:1.2rem}
