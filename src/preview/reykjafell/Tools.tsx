@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { C, Btn, Label, step } from './ui'
+import { C, Btn, Label, ask, step, usePanelFocus } from './ui'
 import {
   CONTACT, FLOKKAR, KLASAR, SKILMALAR, STARFSFOLK, THJONUSTA, VIDBURDIR, VORUR, starfsmadur, vorumynd,
   type Starfsmadur, type Vara,
@@ -46,13 +46,18 @@ export function useBrief() {
 
 const smooth = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth') as ScrollBehavior
 
+// Route changes unmount the provider. Keep the unfinished draft in memory only;
+// contact details are never written to browser storage.
+let briefDraft: Pick<Ctx, 'listi' | 'tab' | 'tengilidur' | 'adgangur' | 'mal' | 'tilbod'> | undefined
+
 export function BriefProvider({ children }: { children: ReactNode }) {
-  const [listi, setListi] = useState<Lina[]>([])
-  const [tab, setTab] = useState<Tab>('tilbod')
-  const [tengilidur, setT] = useState<Tengilidur>({ nafn: '', fyrirtaeki: '', simi: '', netfang: '', athugasemd: '' })
-  const [adgangur, setA] = useState<Adgangur>({ kennitala: '', tegund: 'Rafverktaki', notendur: 1 })
-  const [mal, setM] = useState<Mal>({ lina: THJONUSTA[0].id, sku: '', lysing: '' })
-  const [tilbod, setTb] = useState<Tilbod>({ verk: '', afhending: 'RVK' })
+  const [listi, setListi] = useState<Lina[]>(() => briefDraft?.listi ?? [])
+  const [tab, setTab] = useState<Tab>(() => briefDraft?.tab ?? 'tilbod')
+  const [tengilidur, setT] = useState<Tengilidur>(() => briefDraft?.tengilidur ?? { nafn: '', fyrirtaeki: '', simi: '', netfang: '', athugasemd: '' })
+  const [adgangur, setA] = useState<Adgangur>(() => briefDraft?.adgangur ?? { kennitala: '', tegund: 'Rafverktaki', notendur: 1 })
+  const [mal, setM] = useState<Mal>(() => briefDraft?.mal ?? { lina: THJONUSTA[0].id, sku: '', lysing: '' })
+  const [tilbod, setTb] = useState<Tilbod>(() => briefDraft?.tilbod ?? { verk: '', afhending: 'RVK' })
+  useEffect(() => { briefDraft = { listi, tab, tengilidur, adgangur, mal, tilbod } }, [listi, tab, tengilidur, adgangur, mal, tilbod])
   const baeta = useCallback((sku: string, magn = 1) => setListi((l) => {
     const i = l.findIndex((x) => x.sku === sku)
     if (i >= 0) return l.map((x, n) => (n === i ? { ...x, magn: x.magn + magn } : x))
@@ -161,6 +166,7 @@ export function Catalog() {
   const [open, setOpen] = useState<Vara | null>(null)
   const [added, setAdded] = useState<string | null>(null)
   const opener = useRef<HTMLElement | null>(null)
+  const keyboard = useRef(false)
 
   const syna = useMemo(() => {
     const base = q.trim() ? leita(q, 24).map((x) => x.v) : VORUR.filter((v) => v.fam === f)
@@ -175,6 +181,7 @@ export function Catalog() {
   }
   const show = (v: Vara, e: React.MouseEvent<HTMLElement>) => {
     opener.current = e.currentTarget
+    keyboard.current = e.detail === 0
     setOpen(v)
   }
 
@@ -189,7 +196,7 @@ export function Catalog() {
         <label className="rfl-search">
           <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path fillRule="evenodd" d="M7.07 12.27a5.2 5.2 0 1 0 0-10.4 5.2 5.2 0 0 0 0 10.4Zm4.1-.33a6.3 6.3 0 1 1 .88-.88l3.37 3.37-.88.88-3.37-3.37Z" fill="currentColor" /></svg>
           <span className="sr">Leita að vörunúmeri, gerð eða heiti</span>
-          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Eða vörunúmer, gerð eða heiti, t.d. UT9260M…" autoComplete="off" spellCheck={false} enterKeyHint="search" />
+          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Eða vörunúmer, gerð eða heiti…" autoComplete="off" spellCheck={false} enterKeyHint="search" />
         </label>
       </div>
 
@@ -223,29 +230,27 @@ export function Catalog() {
       ) : (
         <div className="rfl-empty">
           <p>Engin vara í sýnishorninu passar. Í lifandi útgáfu leitar þetta í öllum vörulistanum.</p>
-          <Btn href="#spyrja" variant="ghost" onClick={() => window.dispatchEvent(new CustomEvent('rfl-ask', { detail: q }))}>Spyrja Reykjafell</Btn>
+          <Btn href="#spyrja" variant="ghost" onClick={(e) => ask(q, e.detail === 0)}>Spyrja Reykjafell</Btn>
         </div>
       )}
       <p className="rfl-note">Sýnishorn: {VORUR.length} vörur úr vörulista Reykjafells með lagerstöðu eins og vörusíðurnar birtu hana 19. október 2026. Verð birtist fyrirtækjum í reikningsviðskiptum við innskráningu.</p>
 
-      <ProductSheet v={open} onClose={() => { setOpen(null); opener.current?.focus({ preventScroll: true }) }} onAdd={add} />
+      <ProductSheet v={open} keyboard={keyboard} onClose={() => { setOpen(null); opener.current?.focus({ preventScroll: true }) }} onAdd={add} />
     </div>
   )
 }
 
 /* a side sheet, not a modal page: it opens with the panel itself focused (never
    its first control) so no focus ring is painted on a tap, see _tools/focus-guard */
-function ProductSheet({ v, onClose, onAdd }: { v: Vara | null; onClose: () => void; onAdd: (v: Vara) => void }) {
+function ProductSheet({ v, keyboard, onClose, onAdd }: { v: Vara | null; keyboard: React.RefObject<boolean>; onClose: () => void; onAdd: (v: Vara) => void }) {
   const ref = useRef<HTMLDivElement | null>(null)
+  usePanelFocus(!!v, ref, keyboard, onClose)
   useEffect(() => {
     if (!v) return
-    ref.current?.focus({ preventScroll: true })
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', esc)
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', esc); document.body.style.overflow = prev }
-  }, [v, onClose])
+    return () => { document.body.style.overflow = prev }
+  }, [v])
   const k = v ? klasiFyrir(v.fam) : null
   const p = k ? starfsmadur(k.abyrgd) : null
   return (
@@ -851,7 +856,7 @@ export const TOOLS_CSS = `
 .rfl-lines-t li.ekki .flag{color:#b3261e}
 .rfl-lines-t .q{font-size:var(--t-smaller);font-variant-numeric:tabular-nums;text-align:right;min-width:2.5ch}
 .rfl-lines-t .rm{width:44px;height:44px;display:grid;place-items:center;border:0;background:transparent;cursor:pointer;color:${C.ink};opacity:.55;border-radius:var(--rad)}
-@media (max-width:480px){.rfl-lines-t li{grid-template-columns:44px minmax(0,1fr) auto 40px;gap:.6rem}.rfl-lines-t img,.rfl-lines-t .ph{width:44px;height:44px}}
+@media (max-width:480px){.rfl-lines-t li{grid-template-columns:44px minmax(0,1fr) auto 44px;gap:.6rem}.rfl-lines-t img,.rfl-lines-t .ph{width:44px;height:44px}}
 
 /* fields and chips (as on Ægir) */
 .rfl-field{display:block;border:0;margin:0 0 1.4rem;min-width:0}
@@ -922,6 +927,9 @@ export const TOOLS_CSS = `
 .rfl-triage .who .tel{margin:.6em 0;overflow-wrap:anywhere}
 .rfl-triage .who .tel a{text-decoration:underline;text-decoration-color:rgba(255,255,255,.45);text-underline-offset:.2em}
 .rfl-triage .who .rfl-btn{margin-top:.8rem;color:#fff;border-color:rgba(255,255,255,.6)}
+
+@media (max-width:400px){.rfl-triage .who{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.rfl-triage .who .tel a,.rfl-sheet .facts a{display:inline-flex;align-items:center;min-height:44px}}
 
 /* request form, on the dark band */
 .rfl-req .tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:calc(var(--col) * 1.6)}

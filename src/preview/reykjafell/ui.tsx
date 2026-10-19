@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react'
+import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { CONTACT } from './data'
 
 /* ── REYKJAFELL · "HEILDARLAUSNIR FYRIR FAGFÓLK OG FYRIRTÆKI Í RAFIÐNAÐI" ──
@@ -166,6 +166,9 @@ html:has(.rfl-root), body:has(.rfl-root){background-color:${C.paper}}
 .rfl-lines.drawn circle{opacity:.55}
 .rfl-band.dark .rfl-lines path{stroke:#fff;opacity:.18}
 .rfl-band.dark .rfl-lines circle{fill:#fff}
+/* on a phone the text column is the full width, so the bundles cross body copy
+   and read as strikethrough (seen on the iOS simulator); there they stay texture */
+@media (max-width:760px){.rfl-lines{opacity:.4}}
 
 /* ── intro: the reference's logo moment, once per session ────────────────
    Cream field, the mark draws its square and its wordmark, then the whole
@@ -268,7 +271,10 @@ html:has(.rfl-root), body:has(.rfl-root){background-color:${C.paper}}
 .rfl-sticky{position:fixed;left:0;right:0;bottom:0;z-index:34;display:none;gap:8px;padding:10px 12px;
   padding-bottom:calc(10px + env(safe-area-inset-bottom));background:rgba(237,239,240,.94);
   backdrop-filter:blur(8px);border-top:1px solid ${C.hairline}}
-@media (max-width:760px){.rfl-sticky{display:flex}}
+@media (max-width:760px){.rfl-sticky{display:flex}
+  html:has(.rfl-root){scroll-padding-bottom:calc(91px + env(safe-area-inset-bottom))}
+  .rfl-foot a{display:inline-flex;align-items:center;min-height:44px}
+}
 .rfl-sticky a{flex:1;text-align:center;padding:14px 10px;border-radius:var(--rad);font-size:15px;font-weight:600;
   text-transform:uppercase;letter-spacing:0.05em}
 .rfl-sticky a.call{background:transparent;color:${C.ink};border:1px solid ${C.ink}}
@@ -399,7 +405,7 @@ export function Btn({ href, to, children, variant = '', onClick, ...rest }: {
   to?: string
   children: ReactNode
   variant?: '' | 'ghost' | 'light' | 'brand'
-  onClick?: () => void
+  onClick?: (e: React.MouseEvent<HTMLElement>) => void
   className?: string
 }) {
   const inner = (
@@ -413,7 +419,7 @@ export function Btn({ href, to, children, variant = '', onClick, ...rest }: {
   if (to) return <Link className={cls} to={to} onClick={onClick}>{inner}</Link>
   /* an in-page jump hands over to the caller's smooth scroll, so the default
      hash navigation must not also fire */
-  const click = onClick ? (e: { preventDefault: () => void }) => { e.preventDefault(); onClick() } : undefined
+  const click = onClick ? (e: React.MouseEvent<HTMLAnchorElement>) => { e.preventDefault(); onClick(e) } : undefined
   return <a className={cls} href={href} onClick={click}>{inner}</a>
 }
 
@@ -684,7 +690,82 @@ const NAV: { label: string; hash: string; children?: { label: string; hash: stri
 ]
 
 /** Opens the assistant from anywhere on the page (header, sticky bar, hero). */
-export const ask = (q?: string) => window.dispatchEvent(new CustomEvent('rfl-ask', { detail: q ?? '' }))
+export const ask = (q = '', keyboard = false) => window.dispatchEvent(new CustomEvent('rfl-ask', { detail: { q, keyboard } }))
+
+/** Keep overlay focus inside its controls, without highlighting a tap-open. */
+export function usePanelFocus(open: boolean, panel: RefObject<HTMLDivElement>, keyboard: RefObject<boolean>, onClose: () => void, initial = 'button,a[href],input', extra = '', modal = true) {
+  const close = useRef(onClose)
+  close.current = onClose
+  useEffect(() => {
+    const el = panel.current
+    if (!open || !el) return
+    const trigger = document.activeElement as HTMLElement | null
+    const controls = () => [...el.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input,select,textarea,[tabindex="0"]'),
+      ...(extra ? document.querySelectorAll<HTMLElement>(extra) : [])].filter((e) => !e.matches(':disabled') && e.tabIndex >= 0 && e.getClientRects().length)
+    const first = keyboard.current ? el.querySelector<HTMLElement>(initial) : el
+    first?.focus({ preventScroll: true })
+    const inside = (target: Node | null) => !!target && (el.contains(target) || controls().includes(target as HTMLElement))
+    const focus = (e: FocusEvent) => { if (modal && !inside(e.target as Node)) el.focus({ preventScroll: true }) }
+    const key = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); close.current(); return }
+      if (!modal || e.key !== 'Tab') return
+      const items = controls(), at = items.indexOf(document.activeElement as HTMLElement)
+      if (at < 0 || (!e.shiftKey && at === items.length - 1) || (e.shiftKey && at === 0)) {
+        e.preventDefault(); (e.shiftKey ? items[items.length - 1] : items[0])?.focus()
+      }
+    }
+    document.addEventListener('keydown', key)
+    document.addEventListener('focusin', focus)
+    return () => {
+      document.removeEventListener('keydown', key)
+      document.removeEventListener('focusin', focus)
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true })
+    }
+  }, [open, panel, keyboard, initial, extra, modal])
+}
+
+const scrollPositions = new Map<string, number>()
+let priorScrollRestoration: 'auto' | 'manual' | undefined
+/** React route swaps do not get Safari's document-level scroll restoration. */
+export function useRouteScroll() {
+  const loc = useLocation()
+  const navigation = useNavigationType()
+  const restoreAfterShell = useRef<() => void>()
+  useLayoutEffect(() => {
+    priorScrollRestoration ??= history.scrollRestoration
+    history.scrollRestoration = 'manual'
+    const saved = navigation === 'POP' ? scrollPositions.get(loc.key) : undefined
+    const hash = (loc.state as { hash?: string } | null)?.hash || loc.hash
+    const restore = () => {
+      if (saved !== undefined) window.scrollTo({ top: saved, behavior: 'instant' })
+      else if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start', behavior: 'instant' })
+      else window.scrollTo({ top: 0, behavior: 'instant' })
+    }
+    restore()
+    let y = window.scrollY
+    restoreAfterShell.current = () => { restore(); y = window.scrollY }
+    const remember = () => { if (window.location.pathname === loc.pathname) y = window.scrollY }
+    window.addEventListener('scroll', remember, { passive: true })
+    return () => {
+      scrollPositions.set(loc.key, y)
+      window.removeEventListener('scroll', remember)
+      // Keep manual restoration through a local route swap. Restoring auto in
+      // the gap lets Safari overwrite the saved position during history POP.
+      requestAnimationFrame(() => {
+        if (!document.querySelector('.rfl-root')) {
+          history.scrollRestoration = priorScrollRestoration ?? 'auto'
+          priorScrollRestoration = undefined
+        }
+      })
+    }
+  }, [loc.key, loc.hash, loc.state, loc.pathname, navigation])
+  // The shared shell resets scroll in a passive effect. Restore after that
+  // effect has finished, in production as well as StrictMode development.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => restoreAfterShell.current?.())
+    return () => cancelAnimationFrame(frame)
+  }, [loc.key])
+}
 
 /** Their mark, as served from their own header (one path, coloured here). */
 export const LOGO = `${B}reykjafell/brand/logo.svg`
@@ -708,6 +789,9 @@ export function Header({ light = false }: { light?: boolean }) {
   const setDrop = (v: string | null | false) => setDropName(v || null)
   const sentinel = useRef<HTMLSpanElement | null>(null)
   const navRef = useRef<HTMLUListElement | null>(null)
+  const menuRef = useRef<HTMLDivElement | null>(null)
+  const keyboard = useRef(false)
+  usePanelFocus(open, menuRef, keyboard, () => setOpen(false), 'a[href]', '.rfl-head .burger')
   const goto = useGoto()
   /* the plate used to be driven by a frame loop that compared scrollY to 20 for
      the whole session; a 20px sentinel at the top of the document says the same
@@ -768,20 +852,20 @@ export function Header({ light = false }: { light?: boolean }) {
           </nav>
           <div className="acts">
             <Btn href={CONTACT.simiHref} variant="ghost" className="tel">{CONTACT.simi}</Btn>
-            <Btn href="#spyrja" variant="brand" onClick={() => { setOpen(false); ask() }}>Spyrja Reykjafell</Btn>
+            <Btn href="#spyrja" variant="brand" onClick={(e) => { setOpen(false); ask('', e.detail === 0) }}>Spyrja Reykjafell</Btn>
             <button
               type="button"
               className="burger"
               aria-expanded={open}
               aria-label={open ? 'Loka valmynd' : 'Opna valmynd'}
-              onClick={() => setOpen((o) => !o)}
+              onClick={(e) => { keyboard.current = e.detail === 0; setOpen((o) => !o) }}
             >
               <i />
             </button>
           </div>
         </div>
       </header>
-      <div className={`rfl-menu${open ? ' open' : ''}`} aria-hidden={!open}>
+      <div ref={menuRef} tabIndex={-1} style={{ outline: 'none' }} className={`rfl-menu${open ? ' open' : ''}`} aria-hidden={!open}>
         {NAV.map((n) => (
           <div key={n.label} className="grp">
             <a href={n.hash} onClick={(e) => { e.preventDefault(); go(n.hash) }} tabIndex={open ? 0 : -1}>{n.label}</a>
@@ -796,7 +880,7 @@ export function Header({ light = false }: { light?: boolean }) {
         ))}
         <div className="foot">
           <Btn href={CONTACT.simiHref} variant="light">{CONTACT.simi}</Btn>
-          <Btn href="#spyrja" variant="light" onClick={() => { setOpen(false); ask() }}>Spyrja Reykjafell</Btn>
+          <Btn href="#spyrja" variant="light" onClick={(e) => { setOpen(false); ask('', e.detail === 0) }}>Spyrja Reykjafell</Btn>
         </div>
       </div>
     </>
@@ -867,7 +951,7 @@ export function StickyBar() {
   return (
     <div className="rfl-sticky">
       <a className="call" href={CONTACT.simiHref}>Hringja</a>
-      <a className="mail" href="#spyrja" onClick={(e) => { e.preventDefault(); ask() }} aria-label="Spyrja Reykjafell">Spyrja</a>
+      <a className="mail" href="#spyrja" onClick={(e) => { e.preventDefault(); ask('', e.detail === 0) }} aria-label="Spyrja Reykjafell">Spyrja</a>
     </div>
   )
 }

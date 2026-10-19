@@ -6,7 +6,7 @@ import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import { BriefProvider, TOOLS_CSS } from './Tools'
 import { ASSIST_CSS, Assistant } from './Assistant'
-import { Btn, C, Chapter, CSS, Cursor, Header, Intro, Label, LineField, Reveal, StickyBar, Words, step, useGoto, useInview, useScrollFx } from './ui'
+import { Btn, C, Chapter, CSS, Cursor, Header, Intro, Label, LineField, Reveal, StickyBar, Words, step, useGoto, useInview, useRouteScroll, useScrollFx } from './ui'
 import { CONTACT, KLASAR, PHOTO_CREDIT, VERK, starfsmadur, type Verk } from './data'
 import { Media } from './Page'
 
@@ -36,8 +36,8 @@ const CSS_VERK = `
 .rfl-vnext .rfl-media{aspect-ratio:3 / 2}
 .rfl-vnext h3{margin-top:.6em}
 .rfl-back{display:inline-flex;align-items:center;gap:.5em;font-size:var(--t-label);text-transform:uppercase;
-  letter-spacing:.06em;font-weight:600;opacity:.7}
-.rfl-back:hover{opacity:1}
+  letter-spacing:.06em;font-weight:600;opacity:.7;min-height:44px}
+@media (hover:hover) and (pointer:fine){.rfl-back:hover{opacity:1}}
 `
 
 /** the section of the home page that carries the tool for this kind of job */
@@ -48,6 +48,7 @@ export default function ReykjafellProject() {
   const goto = useGoto()
   const verk = VERK.find((v) => v.slug === slug)
   useScrollFx()
+  useRouteScroll()
   const heroRef = useInview<HTMLDivElement>()
 
   useEffect(() => {
@@ -60,7 +61,6 @@ export default function ReykjafellProject() {
     const prevDesc = meta?.getAttribute('content') ?? ''
     meta?.setAttribute('content', verk.lina)
     setThemeColor(C.paper)
-    window.scrollTo(0, 0)
     return () => {
       document.title = prevTitle
       document.documentElement.lang = prevLang

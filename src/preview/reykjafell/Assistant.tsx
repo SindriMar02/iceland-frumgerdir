@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { C, reduced } from './ui'
+import { C, reduced, useGoto, usePanelFocus } from './ui'
 import { CONTACT, KLASAR, SKILMALAR, TEXTI, VIDBURDIR, folkmynd, starfsmadur, vorumynd, type Starfsmadur, type Vara } from './data'
 import { Lager, klasiFyrir, leita, norm, useBrief } from './Tools'
 
@@ -131,6 +131,9 @@ export function Assistant() {
   const input = useRef<HTMLInputElement | null>(null)
   const log = useRef<HTMLDivElement | null>(null)
   const viaKeyboard = useRef(false)
+  const goto = useGoto()
+  const phone = window.matchMedia('(max-width:760px)').matches
+  usePanelFocus(open, panel, viaKeyboard, () => setOpen(false), 'input', '', phone)
 
   const spyrja = (q: string) => {
     const t = q.trim()
@@ -148,7 +151,9 @@ export function Assistant() {
   /* opened from the header, the sticky bar, the hero or the catalogue */
   useEffect(() => {
     const on = (e: Event) => {
-      const q = (e as CustomEvent<string>).detail
+      const detail = (e as CustomEvent<string | { q: string; keyboard: boolean }>).detail
+      const q = typeof detail === 'string' ? detail : detail.q
+      viaKeyboard.current = typeof detail === 'string' ? false : detail.keyboard
       setOpen(true)
       if (q) spyrja(q)
     }
@@ -156,17 +161,36 @@ export function Assistant() {
     return () => window.removeEventListener('rfl-ask', on)
   }, [])
 
-  /* focus the panel itself on a pointer open, the field only on a keyboard open,
-     so a tap never paints a ring on the first control (_tools/focus-guard) */
+  // The full-screen phone panel owns scrolling; keep the document at its
+  // original position, including when Safari pans a focused field.
   useEffect(() => {
-    if (!open) return
-    if (viaKeyboard.current) input.current?.focus({ preventScroll: true })
-    else panel.current?.focus({ preventScroll: true })
-    viaKeyboard.current = false
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('keydown', esc)
-    return () => document.removeEventListener('keydown', esc)
-  }, [open])
+    if (!open || !phone) return
+    const y = window.scrollY
+    const body = document.body
+    const prev = { position: body.style.position, top: body.style.top, width: body.style.width, overflow: body.style.overflow }
+    Object.assign(body.style, { position: 'fixed', top: `-${y}px`, width: '100%', overflow: 'hidden' })
+    return () => { Object.assign(body.style, prev); window.scrollTo({ top: y, behavior: 'instant' }) }
+  }, [open, phone])
+  /* With the on-screen keyboard up, iOS Safari shrinks the visual viewport and
+     pans it down (measured on the simulator: 614 px tall, 100 px down), while a
+     100svh panel stays 714 px tall from the top, so its title and close button
+     left the screen while typing. On phones the panel follows the visual
+     viewport instead. */
+  useEffect(() => {
+    const vv = window.visualViewport
+    const el = panel.current
+    if (!open || !phone || !vv || !el) return
+    const sync = () => { el.style.top = `${vv.offsetTop}px`; el.style.height = `${vv.height}px` }
+    sync()
+    vv.addEventListener('resize', sync)
+    vv.addEventListener('scroll', sync)
+    return () => {
+      vv.removeEventListener('resize', sync)
+      vv.removeEventListener('scroll', sync)
+      el.style.top = ''
+      el.style.height = ''
+    }
+  }, [open, phone])
   useEffect(() => {
     const el = log.current
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: reduced() ? 'auto' : 'smooth' })
@@ -174,7 +198,7 @@ export function Assistant() {
 
   const fara = (hash: string) => {
     setOpen(false)
-    document.querySelector(hash)?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' })
+    requestAnimationFrame(() => goto(hash))
   }
   const sidastaSpurning = [...msgs].reverse().find((m) => m.fra === 'notandi')?.texti ?? ''
 
@@ -230,7 +254,7 @@ export function Assistant() {
         <span className="dot" aria-hidden="true" />Spyrja Reykjafell
       </button>
       <div className={`rfl-ask${open ? ' open' : ''}`} id="rfl-ask" aria-hidden={!open}>
-        <div className="panel" role="dialog" aria-label="Spyrja Reykjafell" tabIndex={-1} ref={panel}>
+        <div className="panel" role="dialog" aria-modal={phone || undefined} aria-label="Spyrja Reykjafell" tabIndex={-1} ref={panel}>
           <header>
             <div>
               <p className="ttl">Spyrja Reykjafell</p>
@@ -297,6 +321,9 @@ export const ASSIST_CSS = `
   opacity:0;transform:translateY(12px) scale(.97);transform-origin:bottom right;transition:opacity .2s ease-out,transform .3s cubic-bezier(.23,1,.32,1)}
 .rfl-ask.open .panel{opacity:1;transform:none}
 @media (max-width:760px){.rfl-ask .panel{inset:0;width:auto;height:100svh;border-radius:0;right:0;bottom:0;transform:translateY(24px)}}
+/* the panel follows the visual viewport while the keyboard is up; the strip it
+   leaves above the keyboard must not show the page (its sticky bar) behind */
+@media (max-width:760px){.rfl-ask.open{background:#fff}}
 .rfl-ask header{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem 1.1rem;border-bottom:1px solid ${C.hairline};
   padding-top:max(1rem,env(safe-area-inset-top))}
 .rfl-ask .ttl{font-weight:600;font-size:var(--t-lead)}
@@ -308,7 +335,7 @@ export const ASSIST_CSS = `
   box-shadow:0 10px 30px -8px rgba(0,147,208,.6)}
 .rfl-ask .hello .h{font-size:var(--t-small);font-weight:500;letter-spacing:-.02em}
 .rfl-ask .tillogur{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:center}
-.rfl-ask .tillogur button{font:inherit;font-size:var(--t-tag);color:${C.ink};background:${C.paper};border:1px solid transparent;border-radius:999px;padding:.6em .95em;cursor:pointer;min-height:40px;touch-action:manipulation}
+.rfl-ask .tillogur button{font:inherit;font-size:var(--t-tag);color:${C.ink};background:${C.paper};border:1px solid transparent;border-radius:999px;padding:.6em .95em;cursor:pointer;min-height:44px;touch-action:manipulation}
 .rfl-ask .m{max-width:88%;display:grid;gap:.6rem}
 .rfl-ask .m p{line-height:1.5;font-size:var(--t-body)}
 .rfl-ask .m.notandi{align-self:flex-end;background:${C.ink};color:#fff;border-radius:14px 14px 4px 14px;padding:.65em .95em}
@@ -326,10 +353,11 @@ export const ASSIST_CSS = `
 .rfl-ask .k .nm{font-weight:600;font-size:var(--t-tag);line-height:1.35;overflow-wrap:anywhere}
 .rfl-ask .k .sku{font-size:11px;opacity:.6}
 .rfl-ask .k a{text-decoration:underline;text-underline-offset:.15em}
-.rfl-ask .k .add{width:40px;height:40px;border-radius:10px;border:1px solid ${C.hairline};background:#fff;font-size:20px;cursor:pointer;color:${C.ink}}
+@media (max-width:760px){.rfl-ask .k a{display:inline-flex;align-items:center;min-height:44px}}
+.rfl-ask .k .add{width:44px;height:44px;border-radius:10px;border:1px solid ${C.hairline};background:#fff;font-size:20px;cursor:pointer;color:${C.ink}}
 .rfl-ask .go{justify-self:start;font:inherit;font-size:var(--t-tag);font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:${C.blueInk};background:none;border:0;
-  text-decoration:underline;text-underline-offset:.3em;cursor:pointer;padding:.5em 0;min-height:40px}
-.rfl-ask .handoff{justify-self:start;font-size:var(--t-tag);font-weight:600;color:${C.blueInk};text-decoration:underline;text-underline-offset:.3em;padding:.3em 0}
+  text-decoration:underline;text-underline-offset:.3em;cursor:pointer;padding:.5em 0;min-height:44px}
+.rfl-ask .handoff{justify-self:start;font-size:var(--t-tag);font-weight:600;color:${C.blueInk};text-decoration:underline;text-underline-offset:.3em;padding:.3em 0;min-height:44px;display:inline-flex;align-items:center}
 .rfl-ask .bar{display:flex;gap:.5rem;padding:.8rem;border-top:1px solid ${C.hairline}}
 .rfl-ask .bar input{flex:1;min-width:0;font:inherit;font-size:max(16px,var(--t-body));border:1px solid rgba(17,21,24,.22);border-radius:12px;padding:.7em .9em;background:${C.paper};color:${C.ink}}
 .rfl-ask .bar input:focus-visible{outline:2px solid ${C.blue};outline-offset:1px}

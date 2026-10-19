@@ -1,12 +1,12 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
 import {
   ArrowButton, Btn, C, Chapter, CSS, Cursor, Header, Label, LineField, Reveal, StickyBar,
-  Intro, Words, ask, reduced, step, useGoto, useInview, useScrollFx,
+  Intro, Words, ask, reduced, step, useGoto, useInview, useRouteScroll, useScrollFx,
 } from './ui'
 import {
   CONTACT, JSON_LD, KLASAR, PHOTO, PHOTO_CREDIT, STADREYNDIR, TEXTI, VERK_GRID, VIDURKENNINGAR, folkmynd, starfsmadur, type Photo,
@@ -221,7 +221,15 @@ const RFL_CSS = `
 .rfl-heroask button{flex:none;height:44px;padding:0 1.1em;border:0;border-radius:var(--rad);background:#fff;color:${C.blueDeep};font:inherit;font-size:var(--t-label);
   font-weight:600;text-transform:uppercase;letter-spacing:.06em;cursor:pointer}
 .rfl-hero .chipsrow{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.8rem}
-.rfl-hero .chipsrow button{font:inherit;font-size:var(--t-tag);color:#fff;background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:.45em .85em;cursor:pointer;min-height:36px}
+.rfl-hero .chipsrow button{font:inherit;font-size:var(--t-tag);color:#fff;background:transparent;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:.45em .85em;cursor:pointer;min-height:44px}
+
+/* Reserve the floating chrome's space even when the hero is taller than a
+   short phone viewport. The chips must remain clear of the contact dock. */
+@media (max-width:760px){
+  .rfl-hero{padding-top:calc(60px + 10.648vw + env(safe-area-inset-top))}
+  .rfl-hero .base{padding-bottom:max(calc(var(--band) / 1.6),calc(91px + env(safe-area-inset-bottom)))}
+  .rfl-folk .c a,.rfl-c2a .facts a{display:inline-flex;align-items:center;min-height:44px}
+}
 
 /* about: the stats column */
 .rfl-stats{list-style:none;display:grid;gap:0}
@@ -319,7 +327,7 @@ function Hero() {
             <button type="submit">Spyrja</button>
           </form>
           <div className="chipsrow">
-            {['Er UT9260M til?', 'Næsta námskeið'].map((t) => <button key={t} type="button" onClick={() => ask(t)}>{t}</button>)}
+            {['Er UT9260M til?', 'Næsta námskeið'].map((t) => <button key={t} type="button" onClick={(e) => ask(t, e.detail === 0)}>{t}</button>)}
           </div>
         </div>
       </div>
@@ -708,7 +716,7 @@ function HomeBody() {
 
 export default function ReykjafellPage() {
   useScrollFx()
-  const loc = useLocation()
+  useRouteScroll()
   useEffect(() => {
     const prevTitle = document.title
     const prevLang = document.documentElement.lang
@@ -724,15 +732,6 @@ export default function ReykjafellPage() {
       meta?.setAttribute('content', prevDesc)
     }
   }, [])
-
-  useEffect(() => {
-    const hash = (loc.state as { hash?: string } | null)?.hash
-    if (!hash) return
-    const id = window.setTimeout(() => {
-      document.querySelector(hash)?.scrollIntoView({ behavior: 'auto', block: 'start' })
-    }, 60)
-    return () => window.clearTimeout(id)
-  }, [loc])
 
   return (
     <div className="rfl-root">
