@@ -400,7 +400,7 @@ export function RequestForm({ start, lock }: { start?: FormStart; lock?: Branch 
         <>
           <div className="sh-grid2">
             <div className="sh-fld"><label htmlFor="shf-maker">Framleiðandi, ef þú veist</label><input id="shf-maker" value={d.maker} onChange={(e) => set('maker', e.target.value)} placeholder="Til dæmis Sealpac eða Ilapak" /></div>
-            <div className="sh-fld"><label htmlFor="shf-model">Gerð vélar</label><input {...field('model')} value={d.model} onChange={(e) => set('model', e.target.value)} placeholder="Gerðarheitið á skilti vélarinnar" spellCheck={false} autoComplete="off" /><Err id="model" /></div>
+            <div className="sh-fld"><label htmlFor="shf-model">Gerð vélar</label><input {...field('model')} value={d.model} onChange={(e) => set('model', e.target.value)} placeholder="Af skilti vélarinnar" spellCheck={false} autoComplete="off" /><Err id="model" /></div>
           </div>
           <div className="sh-grid2">
             <div className="sh-fld"><label htmlFor="shf-serial">Raðnúmer, ef þú hefur það</label><input id="shf-serial" value={d.serial} onChange={(e) => set('serial', e.target.value)} autoCapitalize="characters" spellCheck={false} autoComplete="off" /></div>

@@ -19,12 +19,12 @@ export const C = {
    Grotesk, Standard for text and Wide for display (the width system Univers is known for, the
    face their brand uses), with Martian Mono for labels; all open licence, Icelandic checked. */
 export const CSS = `
-@font-face{font-family:'ShSans';src:url('${B}samhentir/fonts/mg-std-400.woff2') format('woff2');font-weight:400;font-display:swap}
-@font-face{font-family:'ShSans';src:url('${B}samhentir/fonts/mg-std-500.woff2') format('woff2');font-weight:500;font-display:swap}
-@font-face{font-family:'ShSans';src:url('${B}samhentir/fonts/mg-std-700.woff2') format('woff2');font-weight:700;font-display:swap}
-@font-face{font-family:'ShWide';src:url('${B}samhentir/fonts/mg-wd-500.woff2') format('woff2');font-weight:500;font-display:swap}
-@font-face{font-family:'ShWide';src:url('${B}samhentir/fonts/mg-wd-700.woff2') format('woff2');font-weight:700;font-display:swap}
-@font-face{font-family:'ShMono';src:url('${B}samhentir/fonts/martian-mono-400.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'ShSans';src:url('${B}samhentir/fonts/mg-std-400.woff2') format('woff2');font-weight:400;font-display:block}
+@font-face{font-family:'ShSans';src:url('${B}samhentir/fonts/mg-std-500.woff2') format('woff2');font-weight:500;font-display:block}
+@font-face{font-family:'ShSans';src:url('${B}samhentir/fonts/mg-std-700.woff2') format('woff2');font-weight:700;font-display:block}
+@font-face{font-family:'ShWide';src:url('${B}samhentir/fonts/mg-wd-500.woff2') format('woff2');font-weight:500;font-display:block}
+@font-face{font-family:'ShWide';src:url('${B}samhentir/fonts/mg-wd-700.woff2') format('woff2');font-weight:700;font-display:block}
+@font-face{font-family:'ShMono';src:url('${B}samhentir/fonts/martian-mono-400.woff2') format('woff2');font-weight:400;font-display:block}
 
 html:has(.sh), body:has(.sh){background-color:${C.board}}
 
@@ -171,6 +171,7 @@ html:has(.sh), body:has(.sh){background-color:${C.board}}
 .sh-hero{position:relative;overflow:hidden;background:var(--board);min-height:100svh;display:flex;flex-flow:column}
 .sh-hero__in{position:relative;z-index:2;display:flex;flex-flow:column;align-items:flex-start;gap:1.4em;padding-top:12em;padding-bottom:2.5em}
 .sh-hero__eyebrow{color:var(--blue)}
+.sh-hero__title>span{display:block;white-space:nowrap}
 .sh-hero__title{font-family:'ShWide','ShSans',sans-serif;font-weight:700;font-size:4.6em;line-height:1;letter-spacing:-.04em;max-width:12.5em;text-wrap:balance}
 .sh-hero__sub{font-size:max(16px,1.25em);line-height:1.4;max-width:30em;color:var(--ink-80);text-wrap:pretty}
 .sh-doors{display:flex;gap:.6em;flex-wrap:wrap;margin-top:.6em}
@@ -619,6 +620,8 @@ html:has(.sh), body:has(.sh){background-color:${C.board}}
   .sh-doors .sh-btn{width:100%}
   .sh-btn{padding-inline:1.1em;max-width:100%}
   .sh-banner{padding-inline:1em 2.6em;font-size:max(13.5px,.875em);justify-content:flex-start;text-align:left}
+  .sh-banner__lead{display:block}
+  .sh-hero__eyebrow{min-height:2.7em}
   .sh-h2{font-size:1.75em}
   .sh-stack__stage{padding-top:6.4em;padding-bottom:0}
   .sh-stack__panel{padding:2em 1em 1.2em;gap:.7em}

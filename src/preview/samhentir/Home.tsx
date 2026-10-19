@@ -21,8 +21,8 @@ export function Hero() {
     <section className="sh-hero" aria-labelledby="sh-h1">
       <div className="sh-wrap sh-hero__in">
         <p className="mono sh-hero__eyebrow">Samhentir · Vörumerking · Plastco · Formar</p>
-        <h1 id="sh-h1" className="sh-hero__title" data-lines>Allt fyrir framleiðsluna, á einum stað</h1>
-        <p className="sh-hero__sub" data-lines>Umbúðir, merkingar og vélar, frá vinnslulínunni að brettinu sem fer á bílinn.</p>
+        <h1 id="sh-h1" className="sh-hero__title">{/* fixed lines: the wrap must not depend on which font has arrived, or the hero shifts when the wide face loads */}<span>Allt fyrir</span> <span>framleiðsluna,</span> <span>á einum stað</span></h1>
+        <p className="sh-hero__sub">Umbúðir, merkingar og vélar, frá vinnslulínunni að brettinu sem fer á bílinn.</p>
         <div className="sh-doors">
           <Btn tone="blue" to={to('/fyrirspurn')}>Senda fyrirspurn</Btn>
           <Btn tone="white" href={SHOP} external>Vefverslun</Btn>
@@ -148,7 +148,7 @@ function Sectors() {
       <div className="sh-wrap sh-sectors__grid">
         <div className="sh-sectors__top">
           <h2 id="geirar-h" className="sh-sectors__title" data-lines>Breiður hópur viðskiptavina</h2>
-          <p className="sh-sectors__sub" data-lines>Starfsemin hófst í kringum sjávarútveginn, sem stendur enn undir tæplega helmingi teknanna. Í dag þjónum við átta greinum.</p>
+          <p className="sh-sectors__sub" data-lines>Starfsemin hófst í kringum sjávarútveginn, sem stendur enn undir tæplega helmingi teknanna, og í dag þjónum við fjölmörgum öðrum greinum atvinnulífsins.</p>
           <div className="sh-sectors__art"><CubeDrop /></div>
         </div>
         <ul className="sh-sectors__list" data-grid-reveal>

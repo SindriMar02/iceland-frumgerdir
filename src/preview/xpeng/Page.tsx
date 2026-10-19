@@ -155,7 +155,7 @@ function RingMap({ plan, drawn = false, labels = true, stopLabels = false, useUn
         {RING.chargers.map((c) => c.tier === 'dc' && !stopIds.has(c.id) && <circle key={c.id} className="fast" cx={c.x} cy={c.y} r={3.2} />)}
         {useUnk && RING.chargers.map((c) => c.tier === 'unk' && !stopIds.has(c.id) && <circle key={c.id} className="unk" cx={c.x} cy={c.y} r={4.2} />)}
         {labels && RING.places.filter((p) => SHOWN_PLACES.includes(p.name)).map((p) => (
-          <text key={p.name} className="place" x={p.x + (p.name === 'Akureyri' || p.name === 'Egilsstaðir' ? 14 : p.name === 'Reykjavík' ? -14 : 14)} y={p.y + (p.name === 'Reykjavík' ? 18 : p.name === 'Vík' ? 20 : 4)} textAnchor={p.name === 'Reykjavík' ? 'end' : 'start'}>{p.name}</text>
+          <text key={p.name} className="place" x={p.x + (p.name === 'Akureyri' ? 0 : p.name === 'Reykjavík' || p.name === 'Egilsstaðir' ? -14 : 14)} y={p.y + (p.name === 'Reykjavík' ? 18 : p.name === 'Vík' ? 20 : p.name === 'Akureyri' ? -14 : p.name === 'Egilsstaðir' ? 20 : 4)} textAnchor={p.name === 'Akureyri' ? 'middle' : p.name === 'Reykjavík' || p.name === 'Egilsstaðir' ? 'end' : 'start'}>{p.name}</text>
         ))}
       </svg>
       <svg className="rmap-svg rmap-live" viewBox={`0 0 ${RING.w} ${RING.h}`} role="img" aria-label={label}>

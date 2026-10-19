@@ -129,7 +129,7 @@ export function Family() {
         crumbs={[{ to: to(''), label: 'Forsíða' }, { to: to('/velar'), label: 'Vélar' }, { label: f.name }]}
       >
         <div className="sh-phead__act">
-          <Btn tone="blue" onClick={ask} arrow>Fyrirspurn um {f.ask}</Btn>
+          <Btn tone="blue" onClick={ask} arrow>Senda fyrirspurn</Btn>
           <AddButton item={familyItem(f)} />
         </div>
       </PageHead>
@@ -205,7 +205,7 @@ export function Sector() {
         crumbs={[{ to: to(''), label: 'Forsíða' }, { to: `${to('')}#atvinnugreinar`, label: 'Atvinnugreinar' }, { label: s.name }]}
       >
         <div className="sh-phead__act">
-          <Btn tone="blue" to={`${to('/fyrirspurn')}?leid=umbudir&geiri=${s.slug}`} arrow>Fyrirspurn fyrir {s.for}</Btn>
+          <Btn tone="blue" to={`${to('/fyrirspurn')}?leid=umbudir&geiri=${s.slug}`} arrow>Senda fyrirspurn</Btn>
           <Who ids={s.who} />
         </div>
       </PageHead>
@@ -263,7 +263,7 @@ export function Merkingar() {
         crumbs={[{ to: to(''), label: 'Forsíða' }, { label: 'Merkingar' }]}
       >
         <div className="sh-phead__act">
-          <Btn tone="blue" to={`${to('/fyrirspurn')}?leid=merkingar`} arrow>Fyrirspurn um merkingar</Btn>
+          <Btn tone="blue" to={`${to('/fyrirspurn')}?leid=merkingar`} arrow>Senda fyrirspurn</Btn>
           <a className="sh-textlink" href={vm.phoneHref}>Vörumerking {vm.phone}</a>
         </div>
       </PageHead>

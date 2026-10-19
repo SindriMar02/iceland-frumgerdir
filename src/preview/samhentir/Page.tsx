@@ -42,6 +42,9 @@ function Doc({ view }: { view: SamhentirView }) {
 export default function SamhentirPage({ view = 'home' }: { view?: SamhentirView }) {
   return (
     <div className="sh">
+      {/* the two faces the hero paints with start downloading with the first render */}
+      <link rel="preload" as="font" type="font/woff2" href={`${import.meta.env.BASE_URL}samhentir/fonts/mg-wd-700.woff2`} crossOrigin="" />
+      <link rel="preload" as="font" type="font/woff2" href={`${import.meta.env.BASE_URL}samhentir/fonts/mg-std-400.woff2`} crossOrigin="" />
       <style>{CSS}</style>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <Doc view={view} />

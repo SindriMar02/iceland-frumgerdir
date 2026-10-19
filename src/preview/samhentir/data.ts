@@ -391,7 +391,7 @@ export const SECTORS: Sector[] = [
       { k: 'Fóðurframleiðendur', v: 'Sekkjunarlínur og brettastaflarar.' },
     ],
     photo: PHOTO.almennur, families: ['brettavelar'], who: ['plastco', 'samhentir'],
-    source: 'Þjónusta, plastco.is (síðan er ekki til á samhentir.is: hlekkurinn í valmyndinni vísar á „#“)',
+    source: 'Þjónusta, plastco.is',
   },
   {
     slug: 'lyfjaframleidsla', name: 'Lyfjaframleiðsla', for: 'lyfjaframleiðslu',
@@ -402,7 +402,7 @@ export const SECTORS: Sector[] = [
       { k: 'Vogir og teljarar', v: 'Fyrir lyfjaiðnað, frá Plastco.' },
     ],
     photo: PHOTO.sigurplast, families: ['vogir', 'prentarar'], who: ['vorumerking', 'plastco'],
-    source: 'Állok og álfilmur, vorumerking.is, og Þjónusta, plastco.is (síðan er ekki til á samhentir.is: hlekkurinn í valmyndinni vísar á „#“)',
+    source: 'Állok og álfilmur, vorumerking.is, og Þjónusta, plastco.is',
   },
 ]
 
@@ -509,9 +509,8 @@ export const companyEntry: PreviewCompany = {
       'BRCGS vottun fyrir innflutning og heildsölu umbúða, og BRC vottaður prentsalur hjá Vörumerkingu',
     ],
     weaknesses: [
-      'Fjórar af átta atvinnugreinum í valmyndinni vísa hvergi (hlekkurinn er „#“) og hlekkurinn „Ráðgjöf og hönnun“ skilar villusíðu',
       'Vélar eru orðalisti og þjónustan er „sendu tölvupóst“, á meðan Plastco er með sitt eigið þjónustueyðublað á öðrum vef',
-      'Samstæðan sést ekki sem samstæða: þrjú dótturfélög á þremur vefjum í þremur vefkerfum, og á samhentir.is aðeins sem merki',
+      'Samstæðan sést ekki sem samstæða: Vörumerking birtist á samhentir.is sem eitt merki í röð birgja, og hvorki Plastco né Formar eiga þar hlekk',
       'Vörumerking keyrir á vefkerfi frá 2013 og lýsingin fyrir leitarvélar er enn sjálfgefni textinn „Hér setur þú lýsinguna á vefnum“',
     ],
     opportunities: [
