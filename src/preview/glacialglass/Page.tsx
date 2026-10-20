@@ -784,6 +784,7 @@ export default function GlacialGlassPage() {
       {loading && <Preloader onDone={() => { setLoading(false); window.dispatchEvent(new Event('gg:revealed')) }} />}
 
       {/* nav */}
+      <div className="gg-nav-fade" aria-hidden="true" />
       <div className="gg-nav-scrim" aria-hidden="true" />
       <header className="gg-nav">
         <a className="gg-nav-mark" translate="no" href="#top" onClick={anchor('top')}>GLACIAL&nbsp;GLASS</a>
@@ -1078,6 +1079,17 @@ const CSS = `
 .gg-chrome-solid .gg-nav, .gg-chrome-solid .gg-wordmark { mix-blend-mode: normal; color: ${BASALT}; }
 .gg-chrome-solid.gg-chrome-light .gg-nav, .gg-chrome-solid.gg-chrome-light .gg-wordmark { color: #F2F6F8; }
 .gg-chrome-film .gg-nav, .gg-chrome-film .gg-wordmark { mix-blend-mode: normal; color: #F2F6F8; }
+/* On the flat page sections, copy scrolling under a fill-less header collided
+   with it (seen on iPhone). A short fade in the page's own live colour sits
+   behind the chrome, invisible against the canvas, following the ice-to-night
+   palette. Off over the hero photo and the film, where the scrim does the job. */
+.gg-nav-fade {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 38; height: 120px;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--gg-c) 0%, var(--gg-c) 52%, color-mix(in srgb, var(--gg-c) 0%, transparent) 100%);
+  opacity: 0; transition: opacity .3s cubic-bezier(.25,1,.5,1);
+}
+.gg-js:not(.gg-chrome-solid):not(.gg-chrome-film) .gg-nav-fade { opacity: 1; }
 .gg-nav-scrim {
   position: fixed; top: 0; left: 0; right: 0; z-index: 39; height: 160px;
   pointer-events: none; opacity: 0;
