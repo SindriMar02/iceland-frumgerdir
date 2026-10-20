@@ -3,8 +3,9 @@ import type { PreviewCompany } from '../companies'
 /**
  * Glacial Glass Cabin — Svínhagi, near Hella (Rangárþing ytra).
  * Operator Kyrjun ehf. (410324-1210); responsible person on the operating
- * licence REK-2025-003475 is Birta Ísey Brynjarsdóttir. On Airbnb the hosts
- * show only as "Glacial Glass Cabin", a couple from Iceland. Research trail:
+ * licence REK-2025-003475 is Birta Ísey Brynjarsdóttir; the register lists her
+ * and Atli Eyberg Örlygsson as 50/50 owners (read 2026-10-20). On Airbnb the
+ * hosts show only as "Glacial Glass Cabin", a couple from Iceland. Research trail:
  * `_harvest/glacialglass/FACTS.md` and the Codex premium sweep
  * `_docs/premium-prospect-sweep-2026-10-20/SHORTLIST.md` §3.
  *
@@ -55,26 +56,33 @@ export const companyEntry: PreviewCompany = {
   positioning:
     'Glacial Glass Cabin er eitt fallegasta einstaka gistirými landsins en á enga eigin síðu. Frumgerðin er ein nótt í kofanum: síðan byrjar í dagsbirtu og endar í norðurljósum, skrunið færir útsýnið af pallinum frá degi til nætur, og bókunarbeiðni fer beint til gestgjafanna í stað þess að kosta þóknun.',
   outreach: {
-    subject: 'Glacial Glass Cabin á eigin síðu',
+    subject: 'Glacial Glass Cabin á eigin vef',
+    // Gmail draft r6046465761571335762 (no recipient: no email is published).
+    // Owners per the register: Kyrjun ehf., Birta Ísey Brynjarsdóttir (sole
+    // board member) 50 % and Atli Eyberg Örlygsson 50 %.
     body: `Sæl Birta,
 
-Ég heiti Sindri og hanna vefsíður. Ég rakst á Glacial Glass Cabin og sat lengi yfir myndunum. 4,94 í einkunn af 112 umsögnum segir sína sögu.
+Ég heiti Sindri Már og smíða vefi og bókunarkerfi fyrir íslenska gististaði, meðal annars Villa North, Akureyri Lodge og Riverbank.
 
-Ég tók eftir einu: kofinn á enga eigin síðu, svo hver bókun fer í gegnum Airbnb eða Booking og þóknunin fylgir hverri nótt.
+Ég rakst á Glacial Glass Cabin og sat lengi yfir myndunum. 4,94 í einkunn af 112 umsögnum á Airbnb segir sína sögu.
 
-Ég bjó til frumgerð af því hvernig ykkar eigin síða gæti litið út. Því fylgir engin skuldbinding, kíktu endilega á hana:
+Eitt vakti athygli mína: kofinn á engan eigin vef og hlekkurinn á Instagram vísar beint á Airbnb. Gestur sem finnur kofann þar bókar því í gegnum Airbnb og þóknunin fylgir hverri nótt.
+
+Ég setti saman frumgerð að eigin vef fyrir kofann. Því fylgir engin skuldbinding, kíktu endilega á hana:
 
 https://sindrimar02.github.io/iceland-frumgerdir/preview/glacialglass
 
-Þar eru ykkar eigin myndir, umsagnirnar, og bókunarform sem sendir fyrirspurn beint til ykkar. Útsýnið af pallinum fer frá degi til norðurljósa eftir því sem lesandinn skrunar.
+Þar eru myndirnar úr skráningunni, stutt kvikmynd þar sem kofinn fer frá degi yfir í norðurljós eftir því sem gesturinn skrunar, og bókunarform sem sendir fyrirspurnina beint til þín. Hér sérðu hvernig beiðnin birtist þér og hvernig þú staðfestir hana:
 
-Ef þér líst á, þá er þetta það sem ég geri: sjálf síðan, Google-leitin svo fólk finni kofann án bókunarsíðna, og umsagnakerfi sem safnar umsögnum á ykkar eigin síðu.
+https://sindrimar02.github.io/iceland-frumgerdir/preview/glacialglass/stjornbord
+
+Mig langar að heyra hvernig bókanirnar ganga fyrir sig hjá þér í dag, hvaða síður þú notar og hver svarar gestunum. Út frá því sendi ég þér stutta kynningu í PDF.
 
 Þú mátt endilega segja mér hvað þér finnst, hvort sem það er já eða nei.
 
 Bestu kveðjur,
 Sindri Már
-845 1758
+845-1758
 sndrstudio.is`,
   },
 }
