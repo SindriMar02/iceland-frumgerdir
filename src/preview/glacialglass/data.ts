@@ -9,9 +9,9 @@ import type { PreviewCompany } from '../companies'
  * `_harvest/glacialglass/FACTS.md` and the Codex premium sweep
  * `_docs/premium-prospect-sweep-2026-10-20/SHORTLIST.md` §3.
  *
- * ownerEmail is deliberately EMPTY: no public email was verified. The only
- * verified channels are the Google Travel phone (+354 768 4224) and the
- * Instagram account @glacialglasscabin. Never invent a contact.
+ * ownerEmail: kyrjunehf@gmail.com, printed on the cabin's own Facebook page
+ * (facebook.com/61574080466173, About, read 2026-10-20) with phone 768 4224
+ * and Svínhagi L6A. Instagram @glacialglasscabin is the other channel.
  *
  * No own website exists, so currentUrl points at the Airbnb listing.
  */
@@ -24,7 +24,7 @@ export const companyEntry: PreviewCompany = {
   region: 'Suðurland',
   established: 'Ofurgestgjafi í 2 ár',
   currentUrl: 'https://www.airbnb.com/rooms/1367246566538586964',
-  ownerEmail: '',
+  ownerEmail: 'kyrjunehf@gmail.com',
   noOwnSite: true,
   concept: 'Ein nótt',
   conceptTagline:
@@ -57,7 +57,7 @@ export const companyEntry: PreviewCompany = {
     'Glacial Glass Cabin er eitt fallegasta einstaka gistirými landsins en á enga eigin síðu. Frumgerðin er ein nótt í kofanum: síðan byrjar í dagsbirtu og endar í norðurljósum, skrunið færir útsýnið af pallinum frá degi til nætur, og bókunarbeiðni fer beint til gestgjafanna í stað þess að kosta þóknun.',
   outreach: {
     subject: 'Glacial Glass Cabin á eigin vef',
-    // Gmail draft r6046465761571335762 (no recipient: no email is published).
+    // Gmail draft r6046465761571335762, to kyrjunehf@gmail.com (from their Facebook page).
     // Owners per the register: Kyrjun ehf., Birta Ísey Brynjarsdóttir (sole
     // board member) 50 % and Atli Eyberg Örlygsson 50 %.
     body: `Sæl Birta,
@@ -66,7 +66,7 @@ export const companyEntry: PreviewCompany = {
 
 Ég rakst á Glacial Glass Cabin og sat lengi yfir myndunum. 4,94 í einkunn af 112 umsögnum á Airbnb segir sína sögu.
 
-Eitt vakti athygli mína: kofinn á engan eigin vef og hlekkurinn á Instagram vísar beint á Airbnb. Gestur sem finnur kofann þar bókar því í gegnum Airbnb og þóknunin fylgir hverri nótt.
+Eitt vakti athygli mína: kofinn á engan eigin vef og bæði Facebook-síðan og Instagram vísa beint á Airbnb. Gestur sem finnur kofann þar bókar því í gegnum Airbnb og þóknunin fylgir hverri nótt.
 
 Ég setti saman frumgerð að eigin vef fyrir kofann. Því fylgir engin skuldbinding, kíktu endilega á hana:
 
