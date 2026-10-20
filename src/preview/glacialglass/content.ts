@@ -74,14 +74,15 @@ export const PHOTO = {
  * mode, 720p) were discarded: flat, and soft on a wide screen.
  *
  * FRAME SEQUENCE on a canvas, never a scrubbed <video> (see mirrorhouse).
- * Three tiers by viewport: 828w phones, 1200w desktop, 1440w for >=1400px
- * screens (565MB decoded, acceptable only where the screen is that wide).
+ * Tiers by viewport: frames-p (506x900 centre strip) for portrait phones,
+ * 828w landscape phones, 1200w desktop, 1440w for >=1400px screens (565MB
+ * decoded, acceptable only where the screen is that wide).
  */
 export const SCRUB = {
   day: PHOTO.filmDay,
   night: PHOTO.auroraMirror,
   frameCount: 121,
-  frameSrc: (i: number, dir: 'frames-828' | 'frames' | 'frames-1440') =>
+  frameSrc: (i: number, dir: 'frames-p' | 'frames-828' | 'frames' | 'frames-1440') =>
     `${B}${dir}/f${String(i + 1).padStart(3, '0')}.jpg`,
 }
 

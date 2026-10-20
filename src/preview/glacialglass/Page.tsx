@@ -86,10 +86,14 @@ const paletteAt = (p: number) => {
  */
 const shots: (HTMLImageElement | null)[] = new Array(SCRUB.frameCount).fill(null)
 let framesStarted = false
-/** decided once: a phone pulls the 828w set, a wide screen the 1440w set */
-const frameDir: 'frames-828' | 'frames' | 'frames-1440' =
-  typeof window === 'undefined' || window.innerWidth < 768 ? 'frames-828'
-    : window.innerWidth >= 1400 ? 'frames-1440' : 'frames'
+/** Decided once. A portrait phone gets frames-p: the centre strip a phone's
+    cover-fit shows anyway, cut from the 1080p source at 506x900, so it is drawn
+    at ~1.3x instead of the ~2.8x the 828w landscape set needed (measured soft
+    on an iPhone 17). A wide screen gets 1440w. */
+const frameDir: 'frames-p' | 'frames-828' | 'frames' | 'frames-1440' =
+  typeof window === 'undefined' ? 'frames'
+    : window.innerWidth < 768 ? (window.innerHeight > window.innerWidth ? 'frames-p' : 'frames-828')
+      : window.innerWidth >= 1400 ? 'frames-1440' : 'frames'
 
 function loadFrames(onFirst?: () => void) {
   if (framesStarted) return
@@ -471,6 +475,11 @@ function useMotion(ready: boolean) {
         cleanups.push(() => window.removeEventListener('resize', sizeCanvas))
         if (capDay && capNight) {
           // hand over early enough that the middle of the pin is never captionless
+          // The timeline must span exactly 1, or these positions compress into
+          // its real length (0.54): the day line left at 56% of the pin and the
+          // night line only reached full strength in the final quarter
+          // (measured on iPhone: 9% opacity at 78%). Inherited from Mirror House.
+          tl.set({}, {}, 1)
           tl.to(capDay, { opacity: 0, duration: 0.12 }, 0.18)
             .fromTo(capNight, { opacity: 0 }, { opacity: 1, duration: 0.14 }, 0.4)
         }
