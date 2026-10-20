@@ -4457,6 +4457,8 @@ PREVIEW_COMPANIES.push(SIGTRYGGUR_ENTRY)
 
 import { companyEntry as MIRRORHOUSE_ENTRY } from './mirrorhouse/data'
 PREVIEW_COMPANIES.push(MIRRORHOUSE_ENTRY)
+import { companyEntry as GLACIALGLASS_ENTRY } from './glacialglass/data'
+PREVIEW_COMPANIES.push(GLACIALGLASS_ENTRY)
 
 // Solo-professional batch: photographer, interior architect, photographer
 import { companyEntry as HULDAMARGRET_ENTRY } from './huldamargret/data'

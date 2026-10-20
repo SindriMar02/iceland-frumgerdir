@@ -178,6 +178,7 @@ const AslaugSajaPage = lazy(() => import('./preview/aslaugsaja/Page'))
 const SossaPage = lazy(() => import('./preview/sossa/Page'))
 const SigtryggurPage = lazy(() => import('./preview/sigtryggur/Page'))
 const MirrorHousePage = lazy(() => import('./preview/mirrorhouse/Page'))
+const GlacialGlassPage = lazy(() => import('./preview/glacialglass/Page'))
 const HuldaMargretPage = lazy(() => import('./preview/huldamargret/Page'))
 const KatrinIsfeldPage = lazy(() => import('./preview/katrinisfeld/Page'))
 const HbhPage = lazy(() => import('./preview/hbh/Page'))
@@ -222,6 +223,7 @@ const ChrisLundPage = lazy(() => import('./preview/chrislund/Page'))
 const ChrisLundSafnPage = lazy(() => import('./preview/chrislund/Safn'))
 const ChrisLundServicePage = lazy(() => import('./preview/chrislund/Thjonusta'))
 const MirrorHouseDashboard = lazy(() => import('./preview/mirrorhouse/Dashboard'))
+const GlacialGlassDashboard = lazy(() => import('./preview/glacialglass/Dashboard'))
 const LakeviewPage = lazy(() => import('./preview/lakeview/Page'))
 const LakeviewDashboard = lazy(() => import('./preview/lakeview/Dashboard'))
 const MysticLightPage = lazy(() => import('./preview/mysticlight/Page'))
@@ -479,6 +481,7 @@ export default function App() {
             <Route path="/preview/sossa" element={<SossaPage />} />
             <Route path="/preview/sigtryggur" element={<SigtryggurPage />} />
             <Route path="/preview/mirrorhouse" element={<MirrorHousePage />} />
+            <Route path="/preview/glacialglass" element={<GlacialGlassPage />} />
             <Route path="/preview/huldamargret" element={<HuldaMargretPage />} />
             <Route path="/preview/katrinisfeld" element={<KatrinIsfeldPage />} />
             <Route path="/preview/hbh" element={<HbhPage />} />
@@ -535,6 +538,7 @@ export default function App() {
             <Route path="/preview/chrislund/skonnun" element={<ChrisLundServicePage slug="skonnun" />} />
             <Route path="/preview/chrislund/litgreining" element={<ChrisLundServicePage slug="litgreining" />} />
             <Route path="/preview/mirrorhouse/stjornbord" element={<MirrorHouseDashboard />} />
+            <Route path="/preview/glacialglass/stjornbord" element={<GlacialGlassDashboard />} />
             <Route path="/preview/lakeview" element={<LakeviewPage />} />
             <Route path="/preview/lakeview/stjornbord" element={<LakeviewDashboard />} />
             <Route path="/preview/mysticlight" element={<MysticLightPage />} />
