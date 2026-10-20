@@ -269,30 +269,39 @@ function useMotion(ready: boolean) {
           gsap.delayedCall(0.12, openFromTheLine)
         }
 
-        /* THE HAND-OFF: the hero wordmark IS the header mark. It is fixed from
-           the start (resting in the sky band), and the scroll carries it up and
-           scales it down until it sits dead centre in the header at the header's
-           own type size. One element, so there is no swap and nothing to jump.
-           It travels over 1.6x its distance, so it drifts up slower than the page
-           rather than riding it. The seam, which only means something at hero
-           scale, fades on the way. Geometry is re-read on every refresh. */
+        /* The scroll takes over the opening gesture, exactly as Mirror House:
+           the two halves keep parting, the rule grows past them, and the
+           lockup dissolves into the landscape it was standing on. */
+        const driveOn = { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 0.6 }
+        gsap.to(wmL, { xPercent: -14, opacity: 0.08, ease: 'none', scrollTrigger: driveOn })
+        gsap.to(wmR, { xPercent: 14, opacity: 0.08, ease: 'none', scrollTrigger: driveOn })
+        gsap.to(seam, { scaleY: 3.4, opacity: 0, ease: 'none', scrollTrigger: driveOn })
+
+        /* THE HEADER MARK: absent while the hero name is on screen, then, once
+           that name has fully scrolled out of view, GLACIAL and GLASS drop
+           down from nothing into the centre column behind a clip, 70ms apart.
+           Scrolling back above it lifts them out again (faster, so the hero
+           name never meets a second copy of itself). A toggle, not a scrub:
+           the arrival is a moment, not something to hold half-way. */
         const lock = root.querySelector<HTMLElement>('.gg-wordmark')
         const nav = root.querySelector<HTMLElement>('.gg-nav')
-        const navMark = root.querySelector<HTMLElement>('.gg-nav-mark')
-        if (lock && nav && navMark) {
-          const geo = () => {
-            const cs = getComputedStyle(lock)
-            const restC = parseFloat(cs.top) + lock.offsetHeight / 2
-            const navC = nav.offsetHeight / 2
-            const s = parseFloat(getComputedStyle(navMark).fontSize) / parseFloat(cs.fontSize)
-            return { d: Math.max(1, restC - navC), s }
-          }
-          gsap.timeline({
-            scrollTrigger: { start: 0, end: () => geo().d * 1.6, scrub: true, invalidateOnRefresh: true },
+        const markWords = root.querySelectorAll<HTMLElement>('.gg-nav-mark-w')
+        if (lock && nav && markWords.length) {
+          const drop = gsap.fromTo(markWords,
+            { yPercent: -112, opacity: 0 },
+            { yPercent: 0, opacity: 1, duration: 1.05, ease: 'expo.out', stagger: 0.07, paused: true })
+          ScrollTrigger.create({
+            trigger: lock,
+            // only once the hero name has fully left the top of the screen, so
+            // the two never show at the same time
+            start: 'bottom top',
+            end: 'max',
+            invalidateOnRefresh: true,
+            onToggle: (self) => {
+              if (self.isActive) drop.timeScale(1).play()
+              else drop.timeScale(1.8).reverse()
+            },
           })
-            .fromTo(lock, { y: 0, scale: 1 },
-              { y: () => -geo().d, scale: () => geo().s, ease: 'power2.inOut', duration: 1 }, 0)
-            .to(seam, { opacity: 0, ease: 'none', duration: 0.4 }, 0)
         }
 
         /* Difference-blended chrome cancels out over mid-grey: once the sky has
@@ -787,7 +796,12 @@ export default function GlacialGlassPage() {
       <div className="gg-nav-fade" aria-hidden="true" />
       <div className="gg-nav-scrim" aria-hidden="true" />
       <header className="gg-nav">
-        <a className="gg-nav-mark" translate="no" href="#top" onClick={anchor('top')}>GLACIAL&nbsp;GLASS</a>
+        <a className="gg-nav-mark" translate="no" href="#top" onClick={anchor('top')} aria-label="Glacial Glass Cabin, back to top">
+          <span className="gg-nav-mark-clip" aria-hidden="true">
+            <span className="gg-nav-mark-w">GLACIAL</span>{' '}
+            <span className="gg-nav-mark-w">GLASS</span>
+          </span>
+        </a>
         <nav className="gg-nav-links" aria-label="Page">
           <a href="#husid" onClick={anchor('husid')}>The house</a>
           <a href="#nottin" onClick={anchor('nottin')}>The night</a>
@@ -1077,8 +1091,9 @@ const CSS = `
 }
 .gg-nav, .gg-wordmark { transition: color .3s cubic-bezier(.25,1,.5,1); }
 .gg-chrome-solid .gg-nav, .gg-chrome-solid .gg-wordmark { mix-blend-mode: normal; color: ${BASALT}; }
-.gg-chrome-solid.gg-chrome-light .gg-nav, .gg-chrome-solid.gg-chrome-light .gg-wordmark { color: #F2F6F8; }
-.gg-chrome-film .gg-nav, .gg-chrome-film .gg-wordmark { mix-blend-mode: normal; color: #F2F6F8; }
+/* the hero name stays basalt over its sky; only the header goes light */
+.gg-chrome-solid.gg-chrome-light .gg-nav { color: #F2F6F8; }
+.gg-chrome-film .gg-nav { mix-blend-mode: normal; color: #F2F6F8; }
 /* On the flat page sections, copy scrolling under a fill-less header collided
    with it (seen on iPhone). A short fade in the page's own live colour sits
    behind the chrome, invisible against the canvas, following the ice-to-night
@@ -1100,9 +1115,8 @@ const CSS = `
   font-weight: 300; letter-spacing: .1em; margin-right: -.1em; text-decoration: none;
   font-size: ${fluid(16, 15)};
 }
-/* with motion on, the visible header mark is the hero wordmark itself, landed;
-   this link stays as its click target and accessible name */
-.gg-js .gg-nav-mark { color: transparent; }
+.gg-nav-mark-clip { display: inline-block; overflow: hidden; white-space: nowrap; padding: .14em .02em; vertical-align: middle; }
+.gg-nav-mark-w { display: inline-block; }
 .gg-nav-links { grid-column: 1; grid-row: 1; justify-self: start; display: flex; gap: calc(var(--u) * 28); }
 .gg-nav-links a {
   text-decoration: none; font-size: ${fluid(14, 15)}; color: inherit;
@@ -1172,8 +1186,6 @@ const CSS = `
    is what sits centred */
 .gg-wm-glacial { padding-right: .34em; margin-right: -.1em; }
 .gg-wm-glass { padding-left: .34em; margin-right: -.1em; }
-/* fixed once motion is on: it rides up into the header (see the hand-off) */
-.gg-js .gg-wordmark { position: fixed; z-index: 41; will-change: transform; }
 .gg-wm-seam {
   flex: none; width: 1px; height: .96em; background: currentColor;
   opacity: .85; transform-origin: 50% 50%;
