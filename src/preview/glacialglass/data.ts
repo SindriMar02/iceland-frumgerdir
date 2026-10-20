@@ -56,29 +56,32 @@ export const companyEntry: PreviewCompany = {
   positioning:
     'Glacial Glass Cabin er eitt fallegasta einstaka gistirými landsins en á enga eigin síðu. Frumgerðin er ein nótt í kofanum: síðan byrjar í dagsbirtu og endar í norðurljósum, skrunið færir útsýnið af pallinum frá degi til nætur, og bókunarbeiðni fer beint til gestgjafanna í stað þess að kosta þóknun.',
   outreach: {
-    subject: 'Glacial Glass Cabin á eigin vef',
-    // Gmail draft r6046465761571335762, to kyrjunehf@gmail.com (from their Facebook page).
-    // Owners per the register: Kyrjun ehf., Birta Ísey Brynjarsdóttir (sole
-    // board member) 50 % and Atli Eyberg Örlygsson 50 %.
+    subject: 'Hugmynd að vefsíðu fyrir Glacial Glass Cabin',
+    // Gmail draft s:4203738882580142694 (search the subject, the id changes), to kyrjunehf@gmail.com
+    // (from their Facebook page). Rewritten 2026-10-20 around her guests' map-pin trouble, Airbnb fees and
+    // findability. Owners per the register: Kyrjun ehf., Birta Ísey Brynjarsdóttir (sole board member) 50 %
+    // and Atli Eyberg Örlygsson 50 %.
     body: `Sæl Birta,
 
-Ég heiti Sindri Már og smíða vefi og bókunarkerfi fyrir íslenska gististaði, meðal annars Villa North, Akureyri Lodge og Riverbank.
+Ég heiti Sindri Már og rek SNDR Studio, þar sem ég hanna og smíða nútímalegar, stílhreinar vefsíður og bókunarkerfi fyrir íslensk fyrirtæki. Ég sé jafnframt um hýsingu, viðhald og reglulegar uppfærslur, svo vefurinn haldist hraður og öruggur.
 
-Ég rakst á Glacial Glass Cabin og sat lengi yfir myndunum. 4,94 í einkunn af 112 umsögnum á Airbnb segir sína sögu.
+Ég rakst á Glacial Glass Cabin og sat lengi yfir myndunum. Hekla í glugganum, áin fyrir neðan og potturinn á pallinum. Gestirnir eru sammála, 4,94 í einkunn af 112 umsögnum, og útsýnið og heiti potturinn eru það sem flestir nefna.
 
-Eitt vakti athygli mína: kofinn á engan eigin vef og bæði Facebook-síðan og Instagram vísa beint á Airbnb. Gestur sem finnur kofann þar bókar því í gegnum Airbnb og þóknunin fylgir hverri nótt.
+Ég tók samt eftir tvennu þegar ég las umsagnirnar. Nokkrir gestir segja að Google Maps hafi skilað þeim út á þjóðveg og að þeir hafi þurft leiðbeiningarnar frá þér til að finna kofann. Svo vísa bæði Facebook og Instagram beint á Airbnb, þannig að hver einasta bókun fer þar í gegn með þóknun.
 
-Ég setti saman frumgerð að eigin vef fyrir kofann. Því fylgir engin skuldbinding, kíktu endilega á hana:
+Mér fannst það synd, svo ég settist niður og hannaði frumgerð að vef fyrir kofann. Þetta kostar þig ekki neitt og því fylgir engin skuldbinding.
 
+Hana má skoða hér hvenær sem er, og hún virkar vel í síma:
 https://sindrimar02.github.io/iceland-frumgerdir/preview/glacialglass
 
-Þar eru myndirnar úr skráningunni, stutt kvikmynd þar sem kofinn fer frá degi yfir í norðurljós eftir því sem gesturinn skrunar, og bókunarform sem sendir fyrirspurnina beint til þín. Hér sérðu hvernig beiðnin birtist þér og hvernig þú staðfestir hana:
-
+Þar eru þínar eigin myndir, umsagnir gestanna og bókunarform sem sendir beiðnina beint til þín, án þóknunar. Þú sérð allar beiðnir á einum stað og staðfestir þær þar:
 https://sindrimar02.github.io/iceland-frumgerdir/preview/glacialglass/stjornbord
 
-Mig langar að heyra hvernig bókanirnar ganga fyrir sig hjá þér í dag, hvaða síður þú notar og hver svarar gestunum. Út frá því sendi ég þér stutta kynningu í PDF.
+Í kaflanum um komuna stendur strax að fylgja leiðbeiningunum frá þér en ekki pinnanum á kortinu. Næsta skref væri komusíða sem þú sendir hverjum gesti fyrir fram, með leiðinni síðasta spölinn, lyklaboxinu og því hvernig potturinn virkar. Þá þarftu ekki að skrifa það sama aftur og aftur, og færri villast á leiðinni.
 
-Þú mátt endilega segja mér hvað þér finnst, hvort sem það er já eða nei.
+Svo er það leitin. Kofinn á engan eigin vef í dag, svo þegar fólk leitar að honum á Google eða spyr gervigreind eins og ChatGPT er ekkert frá þér sjálfri til að vísa á, bara Airbnb og bókunarsíður. Airbnb heldur áfram eins og áður, vefurinn bætist bara við.
+
+Ef þér líst vel á þetta gæti ég klárað vefinn í heild, en ef ekki vona ég samt að þú hafir gaman af því að skoða hugmyndina. Endilega láttu mig vita hvað þér finnst.
 
 Bestu kveðjur,
 Sindri Már
