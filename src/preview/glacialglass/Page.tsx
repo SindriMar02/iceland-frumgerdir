@@ -139,6 +139,9 @@ const fluid = (n: number, floor: number) =>
 
 /* ── motion engine: one Lenis clock drives drift + reveals + palette ───── */
 
+/* The menu holds the page still while it is open, so it needs the clock. */
+let lenisRef: Lenis | null = null
+
 function useMotion(ready: boolean) {
   useEffect(() => {
     if (!ready) return
@@ -160,6 +163,7 @@ function useMotion(ready: boolean) {
     // without this a pinned ScrollTrigger can refresh and jump mid-gesture.
     ScrollTrigger.config({ ignoreMobileResize: true })
     const lenis = new Lenis({ duration: 1.1, smoothWheel: true })
+    lenisRef = lenis
 
     /* drift: Heklusýn spec, batched reads then writes, off-screen skipped */
     const frames = Array.from(root.querySelectorAll<HTMLElement>('.gg-frame-in'))
@@ -507,6 +511,7 @@ function useMotion(ready: boolean) {
       cleanups.forEach((fn) => fn())
       ctx.revert()
       lenis.destroy()
+      lenisRef = null
     }
   }, [ready])
 }
@@ -756,6 +761,135 @@ function Preloader({ onDone }: { onDone: () => void }) {
 
 /* ── the page ──────────────────────────────────────────────────────────── */
 
+/* ── menu: every section plus the hosts' own number, one panel ─────────────
+   The panel wipes down from the header (clip-path, expo out) and the rows
+   follow on a short stagger; closing runs the same wipe back up, quicker, so
+   it never feels like it is in the way. The page is held still underneath
+   (Lenis stopped). A tap opens onto the panel itself, a key onto the first
+   link, so nothing is ringed on a phone (focus-guard README). */
+
+const MENU = [
+  { id: 'husid', label: 'The house' },
+  { id: 'komid', label: 'Arriving' },
+  { id: 'inni', label: 'Inside' },
+  { id: 'kvold', label: 'Evening' },
+  { id: 'nottin', label: 'The night' },
+  { id: 'gestir', label: 'Guests' },
+  { id: 'svaedid', label: 'The area' },
+  { id: 'boka', label: 'Enquire' },
+] as const
+
+function useSiteMenu() {
+  const [open, setOpen] = useState(false)
+  const viaKey = useRef(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const root = document.querySelector<HTMLElement>('.gg-root')
+    const panel = panelRef.current
+    if (!panel) return
+    panel.inert = !open
+    root?.classList.toggle('gg-menu-open', open)
+    if (open) {
+      lenisRef?.stop()
+      document.documentElement.style.overflow = 'hidden'
+      const first = panel.querySelector<HTMLElement>('.gg-menu-link')
+      ;(viaKey.current && first ? first : panel).focus({ preventScroll: true })
+    } else {
+      lenisRef?.start()
+      document.documentElement.style.overflow = ''
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false)
+        triggerRef.current?.focus({ preventScroll: true })
+        return
+      }
+      if (e.key !== 'Tab' || !panelRef.current) return
+      // keep Tab inside the panel and its own close button
+      const stops = [triggerRef.current, ...panelRef.current.querySelectorAll<HTMLElement>('a[href]')]
+        .filter(Boolean) as HTMLElement[]
+      const i = stops.indexOf(document.activeElement as HTMLElement)
+      const next = e.shiftKey ? (i <= 0 ? stops.length - 1 : i - 1) : (i === -1 || i === stops.length - 1 ? 0 : i + 1)
+      e.preventDefault()
+      stops[next].focus()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
+
+  // leaving the page with the menu open must not leave the document locked
+  useEffect(() => () => { document.documentElement.style.overflow = '' }, [])
+
+  const toggle = (e: React.MouseEvent) => {
+    viaKey.current = e.detail === 0
+    setOpen((o) => !o)
+  }
+  /** Close first, then travel: the page starts moving under the closing wipe. */
+  const go = (id: string) => (e: React.MouseEvent) => {
+    e.preventDefault()
+    setOpen(false)
+    requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' })
+      history.replaceState(null, '', `#${id}`)
+    })
+  }
+  return { open, toggle, go, triggerRef, panelRef }
+}
+
+function MenuButton({ menu }: { menu: ReturnType<typeof useSiteMenu> }) {
+  return (
+    <button ref={menu.triggerRef} type="button" className="gg-menu-btn"
+      aria-expanded={menu.open} aria-controls="gg-menu" onClick={menu.toggle}
+      aria-label={menu.open ? 'Close menu' : 'Open menu'}>
+      <span className="gg-menu-icon" aria-hidden="true"><i /><i /></span>
+      <span className="gg-menu-label">{menu.open ? 'Close' : 'Menu'}</span>
+    </button>
+  )
+}
+
+function MenuPanel({ menu }: { menu: ReturnType<typeof useSiteMenu> }) {
+  return (
+    <div ref={menu.panelRef} id="gg-menu" className="gg-menu" tabIndex={-1} data-lenis-prevent
+      role="dialog" aria-modal="true" aria-label="Menu" data-open={menu.open || undefined}>
+      <nav className="gg-menu-nav" aria-label="Sections">
+        <ol className="gg-menu-list">
+          {MENU.map((m, i) => (
+            <li key={m.id} className="gg-menu-row" style={{ '--i': i } as React.CSSProperties}>
+              <a className="gg-menu-link" href={`#${m.id}`} onClick={menu.go(m.id)}>
+                <span className="gg-menu-num">{String(i + 1).padStart(2, '0')}</span>
+                <span className="gg-menu-word">{m.label}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+      <div className="gg-menu-side" style={{ '--i': MENU.length } as React.CSSProperties}>
+        <div className="gg-menu-block">
+          <p className="gg-menu-kicker">Call the hosts</p>
+          <a className="gg-menu-big" href={`tel:${HOST.tel}`}>{HOST.phone}</a>
+          <p className="gg-menu-small">They answer within the hour, in English, Icelandic or Norwegian.</p>
+        </div>
+        <div className="gg-menu-block">
+          <p className="gg-menu-kicker">Instagram</p>
+          <a className="gg-menu-mid" href={`https://www.instagram.com/${HOST.instagram}/`}
+            target="_blank" rel="noopener noreferrer">@{HOST.instagram}</a>
+        </div>
+        <div className="gg-menu-block">
+          <p className="gg-menu-kicker">Find the cabin</p>
+          <p className="gg-menu-small">Svínhagi, near Hella, South Iceland. Follow the hosts' directions, not the map pin.</p>
+          <p className="gg-menu-small">Check in {FACTS.checkIn.replace(', self check-in with a lockbox', '')}. Check out {FACTS.checkOut.toLowerCase()}.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function GlacialGlassPage() {
   const [ready, setReady] = useState(false)
   const [loading, setLoading] = useState(shouldShowLoader)
@@ -777,6 +911,7 @@ export default function GlacialGlassPage() {
   }, [])
 
   useMotion(ready)
+  const menu = useSiteMenu()
 
   const anchor = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault()
@@ -795,6 +930,7 @@ export default function GlacialGlassPage() {
       {/* nav */}
       <div className="gg-nav-fade" aria-hidden="true" />
       <div className="gg-nav-scrim" aria-hidden="true" />
+      <MenuPanel menu={menu} />
       <header className="gg-nav">
         <a className="gg-nav-mark" translate="no" href="#top" onClick={anchor('top')} aria-label="Glacial Glass Cabin, back to top">
           <span className="gg-nav-mark-clip" aria-hidden="true">
@@ -802,11 +938,14 @@ export default function GlacialGlassPage() {
             <span className="gg-nav-mark-w">GLASS</span>
           </span>
         </a>
-        <nav className="gg-nav-links" aria-label="Page">
-          <a href="#husid" onClick={anchor('husid')}>The house</a>
-          <a href="#nottin" onClick={anchor('nottin')}>The night</a>
-          <a href="#gestir" onClick={anchor('gestir')}>Guests</a>
-        </nav>
+        <div className="gg-nav-left">
+          <MenuButton menu={menu} />
+          <nav className="gg-nav-links" aria-label="Page">
+            <a href="#husid" onClick={anchor('husid')}>The house</a>
+            <a href="#nottin" onClick={anchor('nottin')}>The night</a>
+            <a href="#gestir" onClick={anchor('gestir')}>Guests</a>
+          </nav>
+        </div>
         <a className="gg-nav-cta" href="#boka" onClick={anchor('boka')}>
           <span className="gg-cta-long">Enquire about your stay</span>
           <span className="gg-cta-short">Enquire</span>
@@ -858,7 +997,7 @@ export default function GlacialGlassPage() {
       </section>
 
       {/* 03 · arrival */}
-      <section className="gg-arrival">
+      <section className="gg-arrival" id="komid">
         <div className="gg-arrival-copy">
           <Phase is="Síðdegi" en="Afternoon" />
           <Headline text="Off the highway, onto the moor." size={64} floor={32} measure={560} />
@@ -881,7 +1020,7 @@ export default function GlacialGlassPage() {
       </section>
 
       {/* 04 · interior */}
-      <section className="gg-interior">
+      <section className="gg-interior" id="inni">
         <Frame photo={PHOTO.bedView} drift={12} className="gg-interior-hero" />
         <div className="gg-interior-row">
           <div className="gg-interior-copy">
@@ -898,7 +1037,7 @@ export default function GlacialGlassPage() {
       </section>
 
       {/* 05 · evening, hot tub */}
-      <section className="gg-evening">
+      <section className="gg-evening" id="kvold">
         <div className="gg-evening-head">
           <Phase is="Kvöld" en="Evening" />
           <Headline text="Evening comes straight through the glass." size={64} floor={32} measure={640} />
@@ -970,7 +1109,7 @@ export default function GlacialGlassPage() {
       </section>
 
       {/* 08 · the place */}
-      <section className="gg-place">
+      <section className="gg-place" id="svaedid">
         <div className="gg-place-copy">
           <Headline text="South Iceland, from a quiet ridge." size={56} floor={30} measure={540} />
           <ul className="gg-place-list gg-rv">
@@ -994,6 +1133,10 @@ export default function GlacialGlassPage() {
             Requests go straight to the hosts, a couple from Iceland who answer
             within the hour, in English, Icelandic or Norwegian.
           </p>
+          <p className="gg-call gg-rv">
+            Rather talk? Call them on{' '}
+            <a className="gg-a gg-call-num" href={`tel:${HOST.tel}`}>{HOST.phone}</a>
+          </p>
           <div className="gg-owner-note gg-rv">
             <p className="gg-owner-note-label">The owner's dashboard</p>
             <p className="gg-owner-note-body">
@@ -1015,6 +1158,12 @@ export default function GlacialGlassPage() {
           <div>
             <p className="gg-foot-mark" translate="no">GLACIAL GLASS CABIN</p>
             <p className="gg-foot-line">Svínhagi, near Hella, South Iceland</p>
+            <p className="gg-foot-line">
+              <a className="gg-a" href={`tel:${HOST.tel}`}>{HOST.phone}</a>
+              {' · '}
+              <a className="gg-a" href={`https://www.instagram.com/${HOST.instagram}/`}
+                target="_blank" rel="noopener noreferrer">@{HOST.instagram}</a>
+            </p>
           </div>
           <div>
             <p className="gg-foot-line">Licence nr. {HOST.licenceNr}</p>
@@ -1117,7 +1266,96 @@ const CSS = `
 }
 .gg-nav-mark-clip { display: inline-block; overflow: hidden; white-space: nowrap; padding: .14em .02em; vertical-align: middle; }
 .gg-nav-mark-w { display: inline-block; }
-.gg-nav-links { grid-column: 1; grid-row: 1; justify-self: start; display: flex; gap: calc(var(--u) * 28); }
+.gg-nav-left {
+  grid-column: 1; grid-row: 1; justify-self: start;
+  display: flex; align-items: center; gap: calc(var(--u) * 36);
+}
+.gg-nav-links { display: flex; gap: calc(var(--u) * 28); }
+
+/* menu trigger: two hairlines that cross into an X, the word beside them */
+.gg-menu-btn {
+  display: inline-flex; align-items: center; gap: 12px;
+  min-height: 44px; padding: 0; margin: 0;
+  background: none; border: 0; color: inherit; cursor: pointer;
+  font: inherit; font-size: ${fluid(14, 15)}; font-weight: 500; letter-spacing: .02em;
+}
+.gg-menu-icon { position: relative; width: 22px; height: 10px; flex: none; }
+.gg-menu-icon i {
+  position: absolute; left: 0; right: 0; height: 1.5px; background: currentColor; border-radius: 1px;
+  transition: transform .55s cubic-bezier(.16,1,.3,1), top .55s cubic-bezier(.16,1,.3,1);
+}
+.gg-menu-icon i:first-child { top: 0; }
+.gg-menu-icon i:last-child { top: calc(100% - 1.5px); }
+.gg-menu-open .gg-menu-icon i:first-child { top: calc(50% - .75px); transform: rotate(45deg); }
+.gg-menu-open .gg-menu-icon i:last-child { top: calc(50% - .75px); transform: rotate(-45deg); }
+
+/* while the menu is open the chrome sits on basalt: plain light ink, no blend */
+.gg-menu-open .gg-nav { mix-blend-mode: normal; color: #F2F6F8; }
+.gg-menu-open .gg-nav-links { opacity: 0; pointer-events: none; }
+.gg-nav-links { transition: opacity .3s ease; }
+.gg-menu-open .gg-nav-cta { border-color: color-mix(in srgb, currentColor 38%, transparent); }
+
+/* the panel: basalt, wiped down from the top edge and back up */
+.gg-menu {
+  position: fixed; inset: 0; z-index: 39;
+  display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: calc(var(--u) * 64); align-items: end;
+  padding: calc(var(--u) * 132) calc(var(--u) * 48) calc(var(--u) * 56);
+  background: ${BASALT}; color: #F2F6F8;
+  overflow-y: auto; overscroll-behavior: contain;
+  clip-path: inset(0 0 100% 0);
+  visibility: hidden;
+  transition: clip-path .5s cubic-bezier(.7,0,.84,0), visibility 0s linear .5s;
+}
+.gg-menu[data-open] {
+  clip-path: inset(0 0 0 0);
+  visibility: visible;
+  transition: clip-path .85s cubic-bezier(.16,1,.3,1), visibility 0s;
+}
+.gg-menu-list { list-style: none; margin: 0; padding: 0; }
+.gg-menu-row, .gg-menu-side {
+  opacity: 0; transform: translateY(18px);
+  transition: opacity .2s ease, transform .3s cubic-bezier(.7,0,.84,0);
+}
+.gg-menu[data-open] .gg-menu-row, .gg-menu[data-open] .gg-menu-side {
+  opacity: 1; transform: none;
+  transition: opacity .6s cubic-bezier(.25,1,.5,1), transform .8s cubic-bezier(.16,1,.3,1);
+  transition-delay: calc(140ms + var(--i) * 45ms);
+}
+.gg-menu-link {
+  display: flex; align-items: baseline; gap: calc(var(--u) * 22);
+  padding: calc(var(--u) * 6) 0; text-decoration: none; color: inherit;
+}
+.gg-menu-num {
+  font-family: ${MONO}; font-size: 12px; letter-spacing: .06em; opacity: .5;
+  min-width: 2.2em;
+}
+.gg-menu-word {
+  font-weight: 300; font-size: ${fluid(60, 34)}; line-height: 1.12; letter-spacing: -.01em;
+  transition: color .25s ease, transform .45s cubic-bezier(.16,1,.3,1);
+}
+.gg-menu-link:hover .gg-menu-word { color: ${AURORA}; transform: translateX(8px); }
+.gg-menu-side { display: grid; gap: calc(var(--u) * 36); padding-bottom: calc(var(--u) * 10); }
+.gg-menu-kicker {
+  font-family: ${MONO}; font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  opacity: .55; margin: 0 0 10px;
+}
+.gg-menu-big {
+  display: inline-block; font-weight: 300; font-size: ${fluid(36, 26)}; line-height: 1.15;
+  text-decoration: none; color: inherit; transition: color .25s ease;
+}
+.gg-menu-mid {
+  display: inline-block; font-weight: 300; font-size: ${fluid(22, 19)};
+  text-decoration: none; color: inherit; transition: color .25s ease;
+}
+.gg-menu-big:hover, .gg-menu-mid:hover { color: ${AURORA}; }
+.gg-menu-small {
+  font-weight: 300; font-size: ${fluid(15, 15)}; line-height: 1.55;
+  color: rgba(242,246,248,.68); margin: 8px 0 0; max-width: 36ch;
+}
+
+.gg-call { font-weight: 300; font-size: ${fluid(17, 16)}; margin: calc(var(--u) * 18) 0 0; }
+.gg-call-num { font-weight: 500; white-space: nowrap; }
 .gg-nav-links a {
   text-decoration: none; font-size: ${fluid(14, 15)}; color: inherit;
   opacity: .68; transition: opacity .25s ease;
@@ -1136,6 +1374,9 @@ const CSS = `
 @media (max-width: 480px) {
   .gg-cta-long { display: none; }
   .gg-cta-short { display: inline; }
+  /* the icon alone on a phone, so the centred mark keeps its room */
+  .gg-menu-label { display: none; }
+  .gg-menu-btn { min-width: 44px; }
 }
 
 /* hero: the nav is FIXED and out of flow, so the image starts at true y=0 with
@@ -1544,6 +1785,15 @@ const CSS = `
   .gg-cta { min-height: 44px; padding: 12px 22px; }
   .gg-ghost { min-height: 44px; padding: 10px 18px; }
   .gg-nav-links { display: none; }
+  .gg-menu-btn { min-height: 44px; }
+  .gg-menu {
+    grid-template-columns: 1fr; align-items: start; align-content: start;
+    gap: 30px; padding: 84px 20px 28px;
+  }
+  .gg-menu-link { min-height: 44px; align-items: center; padding: 0; }
+  .gg-menu-word { font-size: clamp(30px, 8.4vw, 44px); }
+  .gg-menu-side { gap: 20px; }
+  .gg-menu-small { margin-top: 6px; }
   /* the landed hero mark scales to this size; 13px keeps it clear of the CTA at 375 */
   .gg-nav-mark { font-size: 13px; }
   .gg-nav-cta { white-space: nowrap; }

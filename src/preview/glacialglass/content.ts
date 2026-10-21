@@ -20,6 +20,12 @@ export const HOST = {
   languages: ['English', 'Icelandic', 'Norwegian'],
   /** Operating licence register (Sýslumaðurinn á Suðurlandi), Kyrjun ehf. */
   licenceNr: 'REK-2025-003475',
+  /** The owners' own number and handle, as printed on the cabin's Facebook
+      page (About → Contact info) and Google Travel; the handle is the one in
+      their Instagram bio. Read 2026-10-20. */
+  phone: '+354 768 4224',
+  tel: '+3547684224',
+  instagram: 'glacialglasscabin',
 }
 
 const B = import.meta.env.BASE_URL + 'glacialglass/'
