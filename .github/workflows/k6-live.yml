@@ -8,11 +8,19 @@ name: K6 live (k6veitingar, rub23, bautinn, pizzasmidjan)
 # The nightly run deploys only if a host's content stamp differs (notices and closures start and end by date,
 # the Christmas season flips, a new good Google review arrives).
 #
-# TARGET: until go-live the four sites are the noindexed review hosts (k6veitingar-preview etc.).
+# TARGET: until go-live the four sites are the noindexed review hosts (k6veitingar-preview etc., deploy-preview.sh).
+# On switch day (_docs/K6-GOLIVE-2026-10-18.md part D, after the custom domains are attached) set TARGET: live:
+# deploy-live.sh builds the indexable live sites, runs gate --release, and deploys to the production branch of the
+# four live projects (k6veitingar, rub23, bautinn, pizzasmidjan); the stamp checks then read the real domains.
 on:
   repository_dispatch:
     types: [sanity-publish-k6]
   workflow_dispatch:
+    inputs:
+      check_only:
+        description: 'Only read the four hosts and compare stamps; deploy nothing unless the content differs (like the nightly run)'
+        type: boolean
+        default: false
   schedule:
     - cron: '7 0 * * *'
 
@@ -35,11 +43,11 @@ jobs:
       run:
         working-directory: k6
     steps:
-      - name: Target is wired
-        if: env.TARGET != 'preview'
+      - name: Target is known
+        if: env.TARGET != 'preview' && env.TARGET != 'live'
         working-directory: .
         run: |
-          echo "TARGET=$TARGET has no deploy path yet: go-live needs the live build, gate --release, deploys to the four live projects and stamp checks on the live domains."
+          echo "TARGET=$TARGET is neither preview nor live"
           exit 1
       - uses: actions/checkout@v4
         with:
@@ -60,14 +68,19 @@ jobs:
           GBP_REFRESH_TOKEN: ${{ secrets.GBP_REFRESH_TOKEN }}
       - name: Published CMS content (fails if Sanity cannot be read or the content would break a site)
         run: node _tools/cms-pull.mjs
+      - name: The four hosts this target serves
+        run: |
+          if [ "$TARGET" = live ]; then H="https://k6veitingar.is https://rub23.is https://bautinn.is https://pizzasmidjan.is"
+          else H="https://k6veitingar-preview.pages.dev https://rub23-preview.pages.dev https://bautinn-preview.pages.dev https://pizzasmidjan-preview.pages.dev"; fi
+          echo "HOSTS=$H" >> "$GITHUB_ENV"
       - name: Anything to deploy?
         id: check
         run: |
           STAMP=$(cat src/content/cms/stamp.txt)
           GO=0
-          [ "${{ github.event_name }}" != "schedule" ] && GO=1
-          for h in k6veitingar-preview rub23-preview bautinn-preview pizzasmidjan-preview; do
-            LIVE=$(curl -sf "https://$h.pages.dev/cms-stamp.txt?$(date +%s)" || echo none)
+          [ "${{ github.event_name }}" != "schedule" ] && [ "${{ inputs.check_only }}" != "true" ] && GO=1
+          for h in $HOSTS; do
+            LIVE=$(curl -sf "$h/cms-stamp.txt?$(date +%s)" || echo none)
             echo "$h: live $LIVE, content $STAMP"
             [ "$LIVE" = "$STAMP" ] || GO=1
           done
@@ -80,13 +93,18 @@ jobs:
         run: K6_SKIP_PULL=1 bash _tools/deploy-preview.sh
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - if: steps.check.outputs.go == '1' && env.TARGET == 'live'
+        name: Build, gate --release and deploy the four live sites (production branch)
+        run: K6_SKIP_PULL=1 K6_LIVE_BRANCH=main bash _tools/deploy-live.sh
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - if: steps.check.outputs.go == '1'
         name: The four hosts serve this content
         run: |
           STAMP=$(cat src/content/cms/stamp.txt)
-          for h in k6veitingar-preview rub23-preview bautinn-preview pizzasmidjan-preview; do
+          for h in $HOSTS; do
             for i in 1 2 3 4 5 6; do
-              LIVE=$(curl -sf "https://$h.pages.dev/cms-stamp.txt?$(date +%s)" || true)
+              LIVE=$(curl -sf "$h/cms-stamp.txt?$(date +%s)" || true)
               [ "$LIVE" = "$STAMP" ] && break
               sleep 10
             done
