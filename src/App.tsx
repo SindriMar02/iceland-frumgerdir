@@ -219,6 +219,7 @@ const FjarfestingPage = lazy(() => import('./preview/fjarfesting/Page'))
 const HaborgPage = lazy(() => import('./preview/haborg/Page'))
 const InstaprentPage = lazy(() => import('./preview/instaprent/Page'))
 const SetPage = lazy(() => import('./preview/set/Page'))
+const SkipavikPage = lazy(() => import('./preview/skipavik/Page'))
 const ChrisLundPage = lazy(() => import('./preview/chrislund/Page'))
 const ChrisLundSafnPage = lazy(() => import('./preview/chrislund/Safn'))
 const ChrisLundServicePage = lazy(() => import('./preview/chrislund/Thjonusta'))
@@ -532,6 +533,7 @@ export default function App() {
             <Route path="/preview/haborg" element={<HaborgPage />} />
             <Route path="/preview/instaprent/*" element={<InstaprentPage />} />
             <Route path="/preview/set/*" element={<SetPage />} />
+            <Route path="/preview/skipavik/*" element={<SkipavikPage />} />
             <Route path="/preview/chrislund" element={<ChrisLundPage />} />
             <Route path="/preview/chrislund/safn" element={<ChrisLundSafnPage />} />
             <Route path="/preview/chrislund/prentun" element={<ChrisLundServicePage slug="prentun" />} />

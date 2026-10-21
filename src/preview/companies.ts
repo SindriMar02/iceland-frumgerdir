@@ -4758,6 +4758,8 @@ import { companyEntry as BYGG_ENTRY } from './bygg/data'
 PREVIEW_COMPANIES.push(BYGG_ENTRY)
 import { companyEntry as SET_ENTRY } from './set/data'
 PREVIEW_COMPANIES.push(SET_ENTRY)
+import { companyEntry as SKIPAVIK_ENTRY } from './skipavik/data'
+PREVIEW_COMPANIES.push(SKIPAVIK_ENTRY)
 import { companyEntry as MATVELAR_ENTRY } from './matvelar/data'
 PREVIEW_COMPANIES.push(MATVELAR_ENTRY)
 import { companyEntry as SAMHENTIR_ENTRY } from './samhentir/data'
