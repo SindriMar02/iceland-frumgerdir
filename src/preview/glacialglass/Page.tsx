@@ -1354,6 +1354,10 @@ const CSS = `
   color: rgba(242,246,248,.68); margin: 8px 0 0; max-width: 36ch;
 }
 
+/* these four open straight on their heading, so a jump would park it under
+   the fixed header: land them clear of it (measured -28 to -49px without) */
+#komid, #kvold, #svaedid, #boka { scroll-margin-top: 96px; }
+
 .gg-call { font-weight: 300; font-size: ${fluid(17, 16)}; margin: calc(var(--u) * 18) 0 0; }
 .gg-call-num { font-weight: 500; white-space: nowrap; }
 .gg-nav-links a {
