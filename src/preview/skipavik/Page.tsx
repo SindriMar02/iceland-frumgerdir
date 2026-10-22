@@ -48,7 +48,7 @@ function Header({ route, onList, menu, setMenu, spy, logoIn }: { route: Route; o
         {[...links, ['list', t.list, path(route.lang, 'list')] as [string, string, string]].map(([id, l, h], i) => (
           <Link key={id} to={h} onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}><small className="skv-tnum">0{i + 1}</small>{l}</Link>
         ))}
-        <a href={`tel:${CONTACT.tel}`} onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}><small>☎</small>{CONTACT.phone}</a>
+        <a href={`tel:${CONTACT.tel}`} onClick={() => setMenu(false)} tabIndex={menu ? 0 : -1}><small aria-hidden="true"><svg className="skv-tel" viewBox="0 0 16 16"><path d="M4.2 1.8 6 4.6 4.8 6c.7 1.6 1.9 2.9 3.5 3.6l1.4-1.2 2.8 1.8-.6 2.4c-.2.6-.8.9-1.4.8C6.4 12.8 3.2 9.6 2.6 5.5c-.1-.6.2-1.2.8-1.4z" /></svg></small>{CONTACT.phone}</a>
       </nav>
     </>
   )

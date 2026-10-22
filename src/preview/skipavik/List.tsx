@@ -81,6 +81,10 @@ export function Overlay({ open, onClose, labelledBy, children, kind, returnSel }
 }
 
 /* ------------------------------------------------------------------ one line of the list */
+/* 2026-10-29 → 29. október 2026 (iOS showed the raw ISO date in the summary) */
+const MONTHS = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember']
+const isDate = (iso: string) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso); return m ? `${Number(m[3])}. ${MONTHS[Number(m[2]) - 1]} ${m[1]}` : iso }
+
 const divisionOf = (sku: string) => {
   const p = PRODUCTS.find((x) => x.sku === sku)
   const f = p ? FAMILIES.find((x) => x.n === p.fam) : undefined
@@ -202,6 +206,7 @@ export function ListPage({ lang }: { lang: Lang }) {
               {fld('ton', L.ton, { inputMode: 'decimal', name: 'skv-ton', autoComplete: 'off' })}
             </div>
             {fld('date', L.date, { type: 'date', name: 'skv-date', autoComplete: 'off' })}
+            {!m.date && <small className="skv-help" style={{ display: 'block', marginTop: -8, marginBottom: 16 }}>Ýttu á reitinn til að velja dag.</small>}
             <div className="skv-fld" role="radiogroup" aria-label={L.place}>
               <span>{L.place}</span>
               {(['selfoss', 'rvk', 'ship'] as const).map((k) => (
@@ -254,7 +259,7 @@ export function ListPage({ lang }: { lang: Lang }) {
         <div className="skv-modal__head"><h2 id="skv-ack-h">{L.ack.title}</h2><button type="button" className="skv-x" onClick={() => setStep('none')} aria-label={L.ack.close}><X /></button></div>
         <div className="skv-modal__body">
           <div className="skv-ack">
-            <svg className="skv-ack__ring" viewBox="0 0 72 72" aria-hidden="true"><circle className="a" cx="36" cy="36" r="31" pathLength={1} transform="rotate(-90 36 36)" /><circle className="b" cx="36" cy="36" r="31" pathLength={1} transform="rotate(-90 36 36)" /></svg>
+            <svg className="skv-ack__ring" viewBox="0 0 72 72" aria-hidden="true"><circle className="a" cx="36" cy="36" r="31" pathLength={1} transform="rotate(-90 36 36)" /><circle className="b" cx="36" cy="36" r="31" pathLength={1} transform="rotate(-90 36 36)" /><path className="c" d="M24 37l8 8 16-17" /></svg>
             <p><strong>{L.ack.num} {sent?.no}</strong></p>
             <p>{L.ack.body}</p>
             <p className="skv-help">{L.ack.note}</p>
@@ -280,7 +285,7 @@ function Summary({ lang, s, place, missing }: { lang: Lang; s: ListState; place:
         {row('name', L.name, s.meta.name)}
         {row('ref', L.ref, s.meta.ref, missing.includes('ref'))}
         {row('size', `${L.len} / ${L.ton}`, [s.meta.len && `${s.meta.len} m`, s.meta.ton && `${s.meta.ton} t`].filter(Boolean).join(' · '), missing.includes('size'))}
-        {row('date', L.date, s.meta.date, missing.includes('date'))}
+        {row('date', L.date, isDate(s.meta.date), missing.includes('date'))}
         {row('place', L.place, place, missing.includes('place'))}
         {row('who', L.contact, [s.meta.cname, s.meta.company, s.meta.email, s.meta.phone].filter(Boolean).join(' · '))}
         {s.meta.file ? row('file', L.file, s.meta.file) : null}
@@ -302,7 +307,7 @@ export function ReviewPage({ lang }: { lang: Lang }) {
   const { sent } = useList()
   const [status, setStatus] = useState<Record<string, Row['status']>>({})
   const rows: Row[] = useMemo(() => [
-    ...sent.map((s) => ({ no: s.no, from: [s.state.meta.cname, s.state.meta.company].filter(Boolean).join(', '), ref: s.state.meta.ref, lines: s.state.lines.length, date: s.state.meta.date, status: 'new' as const, flags: missingOf(s.state), mine: s })),
+    ...sent.map((s) => ({ no: s.no, from: [s.state.meta.cname, s.state.meta.company].filter(Boolean).join(', '), ref: [s.state.meta.name, s.state.meta.ref].filter(Boolean).join(' · '), lines: s.state.lines.length, date: s.state.meta.date, status: 'new' as const, flags: missingOf(s.state), mine: s })),
     ...SAMPLE_QUEUE,
   ], [sent])
   const [sel, setSel] = useState<string>(rows[0]?.no ?? '')
@@ -338,7 +343,7 @@ export function ReviewPage({ lang }: { lang: Lang }) {
                     <td className="c-from">{r.from || '–'}</td>
                     <td>{r.ref || <em style={{ color: 'var(--muted)', fontStyle: 'normal' }}>–</em>}</td>
                     <td className="skv-tnum">{r.lines}</td>
-                    <td className="c-date skv-tnum">{r.date || '–'}</td>
+                    <td className="c-date skv-tnum">{r.date ? isDate(r.date) : '–'}</td>
                     <td><span className={`skv-st skv-st--${st(r)}`}>{R.status[st(r)]}</span></td>
                   </tr>
                 ))}

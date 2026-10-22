@@ -513,4 +513,14 @@ html:has(.skv),body:has(.skv){background-color:#FFFFFF}
 /* focus-guard.css, scoped: no ring after a tap or click, every ring for the keyboard; containers never ring */
 html[data-input="pointer"] .skv :focus-visible:not(input):not(textarea):not(select){outline:none}
 .skv [tabindex="-1"]:focus{outline:none}
+.skv .skv-tel{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.3;stroke-linejoin:round;vertical-align:-2px}
+/* the menu button becomes a close mark while the menu is open (Set kept three lines) */
+.skv .skv-burger i,.skv .skv-burger i::before,.skv .skv-burger i::after{transition:transform .22s var(--ease),background-color .15s}
+.skv .skv-burger[aria-expanded="true"] i{background:transparent}
+.skv .skv-burger[aria-expanded="true"] i::before{transform:translateY(7px) rotate(45deg)}
+.skv .skv-burger[aria-expanded="true"] i::after{transform:translateY(-7px) rotate(-45deg)}
+/* iOS Safari: a date input keeps its own intrinsic width and ran past the gutter; pin it to the field */
+.skv input[type="date"].skv-inp{display:block;width:100%;max-width:100%;min-width:0;-webkit-appearance:none;appearance:none;text-align:left}
+.skv input[type="date"].skv-inp::-webkit-date-and-time-value{text-align:left}
+.skv .skv-ack__ring .c{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 `
