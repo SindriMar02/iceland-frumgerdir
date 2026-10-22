@@ -1419,7 +1419,7 @@ const STYLES = `
 .ill-hero-go i{font-style:normal;transition:transform .3s var(--e)}
 .is-revealed .ill-hero-go{opacity:1}
 @media (hover:hover) and (pointer:fine){.ill-root .ill-hero-go:hover{background:rgba(246,249,250,.92);color:var(--ink);text-shadow:none}.ill-hero-go:hover i{transform:translateX(4px)}}
-@media (max-width:640px){.ill-hero-go{top:calc(50% + clamp(150px,44vw,190px))}}
+@media (max-width:640px){.ill-root .ill-hero-go{top:calc(50% + clamp(150px,44vw,190px))}}
 @media (max-width:640px){
   .ill-wordmark{grid-template-columns:minmax(0,1fr);grid-auto-rows:min-content;align-content:center;justify-items:center;gap:.16em;font-size:clamp(30px,10.4vw,60px);transform:translateY(-.9em)}
   .ill-wm-l,.ill-wm-r{padding:0;margin:0;text-align:center;justify-self:center}
