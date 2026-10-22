@@ -894,14 +894,13 @@ function Preloader({ onDone }: { onDone: () => void }) {
    (Lenis stopped). A tap opens onto the panel itself, a key onto the first
    link, so nothing is ringed on a phone (focus-guard README). */
 
+// Sindri 10-22: eight chapters read as "too many random pages". The menu
+// carries only what a guest comes looking for; the rest is met by scrolling.
 const MENU = [
-  { id: 'husid', label: 'The house' },
-  { id: 'komid', label: 'Arriving' },
-  { id: 'inni', label: 'Inside' },
-  { id: 'kvold', label: 'Evening' },
+  { id: 'husid', label: 'The cabin' },
   { id: 'nottin', label: 'The night' },
-  { id: 'gestir', label: 'Guests' },
-  { id: 'svaedid', label: 'The area' },
+  { id: 'komid', label: 'Getting here' },
+  { id: 'gestir', label: 'Reviews' },
   { id: 'boka', label: 'Enquire' },
 ] as const
 
@@ -1006,11 +1005,6 @@ function MenuPanel({ menu }: { menu: ReturnType<typeof useSiteMenu> }) {
           <a className="gg-menu-mid" href={`https://www.instagram.com/${HOST.instagram}/`}
             target="_blank" rel="noopener noreferrer">@{HOST.instagram}</a>
         </div>
-        <div className="gg-menu-block">
-          <p className="gg-menu-kicker">Find the cabin</p>
-          <p className="gg-menu-small">Svínhagi, near Hella, South Iceland. Follow the hosts' directions, not the map pin.</p>
-          <p className="gg-menu-small">Check in {FACTS.checkIn.replace(', self check-in with a lockbox', '')}. Check out {FACTS.checkOut.toLowerCase()}.</p>
-        </div>
       </div>
     </div>
   )
@@ -1067,9 +1061,9 @@ export default function GlacialGlassPage() {
         <div className="gg-nav-left">
           <MenuButton menu={menu} />
           <nav className="gg-nav-links" aria-label="Page">
-            <a href="#husid" onClick={anchor('husid')}>The house</a>
+            <a href="#husid" onClick={anchor('husid')}>The cabin</a>
             <a href="#nottin" onClick={anchor('nottin')}>The night</a>
-            <a href="#gestir" onClick={anchor('gestir')}>Guests</a>
+            <a href="#gestir" onClick={anchor('gestir')}>Reviews</a>
           </nav>
         </div>
         <a className="gg-nav-cta" href="#boka" onClick={anchor('boka')}>
