@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from 'react'
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 
 // Eager (not lazy): the universal fallback must always be available, even if a
@@ -224,7 +224,6 @@ const ChrisLundPage = lazy(() => import('./preview/chrislund/Page'))
 const ChrisLundSafnPage = lazy(() => import('./preview/chrislund/Safn'))
 const ChrisLundServicePage = lazy(() => import('./preview/chrislund/Thjonusta'))
 const MirrorHouseDashboard = lazy(() => import('./preview/mirrorhouse/Dashboard'))
-const GlacialGlassDashboard = lazy(() => import('./preview/glacialglass/Dashboard'))
 const LakeviewPage = lazy(() => import('./preview/lakeview/Page'))
 const LakeviewDashboard = lazy(() => import('./preview/lakeview/Dashboard'))
 const MysticLightPage = lazy(() => import('./preview/mysticlight/Page'))
@@ -540,7 +539,7 @@ export default function App() {
             <Route path="/preview/chrislund/skonnun" element={<ChrisLundServicePage slug="skonnun" />} />
             <Route path="/preview/chrislund/litgreining" element={<ChrisLundServicePage slug="litgreining" />} />
             <Route path="/preview/mirrorhouse/stjornbord" element={<MirrorHouseDashboard />} />
-            <Route path="/preview/glacialglass/stjornbord" element={<GlacialGlassDashboard />} />
+            <Route path="/preview/glacialglass/stjornbord" element={<Navigate to="/preview/glacialglass" replace />} />
             <Route path="/preview/lakeview" element={<LakeviewPage />} />
             <Route path="/preview/lakeview/stjornbord" element={<LakeviewDashboard />} />
             <Route path="/preview/mysticlight" element={<MysticLightPage />} />

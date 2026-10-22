@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
@@ -577,43 +576,184 @@ function Frame({ photo, drift = 9, priority = false, className = '' }: {
   )
 }
 
-/* ── booking form ──────────────────────────────────────────────────────── */
+/* ── booking: stay calendar + enquiry ──────────────────────────────────────
+   Sindri 10-22: no owner-dashboard demo on the guest page ("not unless they
+   say yes"); the page carries a well-made calendar instead. The nights below
+   were read off the cabin's own Airbnb calendar on 21 Oct 2026 (it showed up
+   to 19 Dec), so the owners recognise their real season. Live, this list is
+   the iCal pull, every 15 minutes. Dates are handled as UTC day strings so a
+   guest's time zone can never shift a night. */
 
 const NIGHT_MS = 86400000
-const plusDays = (d: string, n: number) => {
-  const t = new Date(`${d}T12:00:00`)
-  return new Date(t.getTime() + n * NIGHT_MS).toISOString().slice(0, 10)
+const plusDays = (d: string, n: number) =>
+  new Date(Date.parse(`${d}T00:00:00Z`) + n * NIGHT_MS).toISOString().slice(0, 10)
+const nightsBetween = (a: string, b: string) =>
+  Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / NIGHT_MS)
+
+const BOOKED = new Set<string>([
+  ...Array.from({ length: 28 }, (_, i) => plusDays('2026-11-01', i)),
+  '2026-12-01', '2026-12-05', '2026-12-11', '2026-12-12', '2026-12-16', '2026-12-17', '2026-12-18',
+])
+
+const WEEK = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+const fmtDay = (d: string, weekday = true) =>
+  new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', {
+    ...(weekday ? { weekday: 'short' as const } : {}), day: 'numeric', month: 'short', timeZone: 'UTC',
+  })
+const fmtLong = (d: string) =>
+  new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC',
+  })
+const monthKey = (y: number, m: number) => {
+  const t = new Date(Date.UTC(y, m, 1))
+  return { y: t.getUTCFullYear(), m: t.getUTCMonth() }
+}
+
+function StayCalendar({ start, end, onChange }: {
+  start: string | null
+  end: string | null
+  onChange: (start: string | null, end: string | null) => void
+}) {
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
+  const first = useMemo(() => {
+    const t = new Date(`${today}T00:00:00Z`)
+    return { y: t.getUTCFullYear(), m: t.getUTCMonth() }
+  }, [today])
+  const [offset, setOffset] = useState(0)
+  const [hover, setHover] = useState<string | null>(null)
+  const MAX_OFFSET = 11
+
+  // a departure is valid when every night from arrival up to it is free;
+  // the first booked night after the arrival is still a fine morning to leave
+  const canLeave = (d: string) => {
+    if (!start || d <= start) return false
+    for (let n = start; n < d; n = plusDays(n, 1)) if (BOOKED.has(n)) return false
+    return true
+  }
+  const canArrive = (d: string) => d >= today && !BOOKED.has(d)
+  const choosingEnd = !!start && !end
+
+  function pick(d: string) {
+    if (choosingEnd && canLeave(d)) { onChange(start, d); setHover(null); return }
+    if (canArrive(d)) onChange(d, null)
+  }
+
+  const rangeEnd = end ?? (choosingEnd && hover && canLeave(hover) ? hover : null)
+
+  const months = [0, 1].map((k) => monthKey(first.y, first.m + offset + k))
+
+  return (
+    <div className="gg-cal">
+      <div className="gg-cal-head">
+        <p className="gg-cal-hint" aria-live="polite">
+          {!start && 'Choose your arrival.'}
+          {choosingEnd && <>Arriving {fmtDay(start)}. Now choose your departure.</>}
+          {start && end && (
+            <>
+              <span className="gg-cal-sum">{fmtDay(start)} <span aria-hidden="true">→</span> {fmtDay(end)}</span>
+              <span className="gg-cal-n">{nightsBetween(start, end)} {nightsBetween(start, end) === 1 ? 'night' : 'nights'}</span>
+            </>
+          )}
+        </p>
+        <div className="gg-cal-navs">
+          <button type="button" className="gg-cal-nav" aria-label="Previous month"
+            disabled={offset === 0} onClick={() => setOffset((o) => Math.max(0, o - 1))}>
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+          </button>
+          <button type="button" className="gg-cal-nav" aria-label="Next month"
+            disabled={offset === MAX_OFFSET} onClick={() => setOffset((o) => Math.min(MAX_OFFSET, o + 1))}>
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg>
+          </button>
+        </div>
+      </div>
+
+      <div className="gg-cal-months" onMouseLeave={() => setHover(null)}>
+        {months.map(({ y, m }) => {
+          const lead = (new Date(Date.UTC(y, m, 1)).getUTCDay() + 6) % 7
+          const count = new Date(Date.UTC(y, m + 1, 0)).getUTCDate()
+          const title = new Date(Date.UTC(y, m, 1)).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+          return (
+            <div className="gg-cal-month" key={`${y}-${m}`} role="group" aria-label={title}>
+              <p className="gg-cal-title">{title}</p>
+              <div className="gg-cal-grid">
+                {WEEK.map((w) => <span key={w} className="gg-cal-wd" aria-hidden="true">{w}</span>)}
+                {Array.from({ length: lead }, (_, i) => <span key={`l${i}`} />)}
+                {Array.from({ length: count }, (_, i) => {
+                  const d = new Date(Date.UTC(y, m, i + 1)).toISOString().slice(0, 10)
+                  const past = d < today
+                  const booked = BOOKED.has(d)
+                  const leaveOnly = choosingEnd && booked && canLeave(d)
+                  const enabled = choosingEnd ? (canLeave(d) || canArrive(d)) : canArrive(d)
+                  const edge = d === start || d === rangeEnd
+                  const inside = !!start && !!rangeEnd && d > start && d < rangeEnd
+                  return (
+                    <button
+                      key={d} type="button" className="gg-cal-day"
+                      disabled={!enabled}
+                      aria-pressed={edge}
+                      aria-label={`${fmtLong(d)}${booked && !leaveOnly ? ', booked' : ''}${leaveOnly ? ', departure only' : ''}`}
+                      data-edge={edge || undefined}
+                      data-start={d === start || undefined}
+                      data-end={d === rangeEnd || undefined}
+                      data-in={inside || undefined}
+                      data-booked={(booked && !past && !leaveOnly) || undefined}
+                      data-today={d === today || undefined}
+                      onClick={() => pick(d)}
+                      onMouseEnter={() => choosingEnd && setHover(d)}
+                    >
+                      {i + 1}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="gg-cal-foot">
+        <span className="gg-cal-key"><i aria-hidden="true">12</i> Booked</span>
+        {start && (
+          <button type="button" className="gg-cal-clear" onClick={() => { onChange(null, null); setHover(null) }}>
+            Clear dates
+          </button>
+        )}
+      </div>
+    </div>
+  )
 }
 
 function BookingForm() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [date, setDate] = useState('')
-  const [nights, setNights] = useState(1)
+  const [start, setStart] = useState<string | null>(null)
+  const [end, setEnd] = useState<string | null>(null)
   const [people, setPeople] = useState(2)
   const [note, setNote] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<DemoBooking | null>(null)
 
-  const minDate = useMemo(() => new Date().toISOString().slice(0, 10), [])
-
   function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim() || !email.trim() || !date) {
-      setError('Name, email and an arrival date are needed to send a request.')
+    if (!start || !end) {
+      setError('Choose your arrival and departure in the calendar first.')
+      return
+    }
+    if (!name.trim() || !email.trim()) {
+      setError('Name and email are needed to send a request.')
       return
     }
     setError(null)
     const b: DemoBooking = {
       id: `gg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
       resourceId: 'glacialglass',
-      date,
-      endDate: plusDays(date, nights),
+      date: start,
+      endDate: end,
       people,
       customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
       note: note.trim() || undefined,
-      quote: { lines: [], total: 0, deposit: 0, units: nights, estimate: true },
+      quote: { lines: [], total: 0, deposit: 0, units: nightsBetween(start, end), estimate: true },
       status: 'REQUESTED',
       createdAt: new Date().toISOString(),
     }
@@ -626,15 +766,11 @@ function BookingForm() {
       <div className="gg-book-done" role="status">
         <p className="gg-book-done-title">Your request is on its way.</p>
         <p className="gg-book-done-body">
-          {done.date} to {done.endDate}, {done.people} {done.people === 1 ? 'guest' : 'guests'}.
-          The hosts confirm each request personally. The price for your dates comes with their reply
-          to {done.customer.email}.
+          {fmtDay(done.date)} to {fmtDay(done.endDate ?? done.date)}, {done.people} {done.people === 1 ? 'guest' : 'guests'}.
+          The hosts confirm each request personally. The price for your dates and a secure
+          payment link come with their reply to {done.customer.email}.
         </p>
-        <p className="gg-book-note">
-          This is a prototype. The request lives only in this browser.{' '}
-          <Link className="gg-a" to="/preview/glacialglass/stjornbord">View the owner's dashboard</Link>{' '}
-          to watch it arrive.
-        </p>
+        <p className="gg-book-note">This is a prototype, so nothing was sent.</p>
         <button type="button" className="gg-ghost" onClick={() => setDone(null)}>
           Make another request
         </button>
@@ -644,17 +780,17 @@ function BookingForm() {
 
   return (
     <form className="gg-book-form" onSubmit={submit} noValidate>
+      <StayCalendar start={start} end={end} onChange={(s, e) => { setStart(s); setEnd(e); setError(null) }} />
       <div className="gg-book-grid">
-        <label className="gg-field">
-          <span className="gg-field-label">Arrival</span>
-          <input type="date" name="arrival" min={minDate} value={date} required
-            onChange={(e) => setDate(e.target.value)} />
+        <label className="gg-field gg-field-wide">
+          <span className="gg-field-label">Name</span>
+          <input type="text" name="name" autoComplete="name" value={name} required
+            onChange={(e) => setName(e.target.value)} />
         </label>
-        <label className="gg-field">
-          <span className="gg-field-label">Nights</span>
-          <select name="nights" value={nights} onChange={(e) => setNights(Number(e.target.value))}>
-            {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
+        <label className="gg-field gg-field-two">
+          <span className="gg-field-label">Email</span>
+          <input type="email" name="email" autoComplete="email" inputMode="email" spellCheck={false} value={email} required
+            onChange={(e) => setEmail(e.target.value)} />
         </label>
         <label className="gg-field">
           <span className="gg-field-label">Guests</span>
@@ -662,16 +798,6 @@ function BookingForm() {
             <option value={1}>1</option>
             <option value={2}>2</option>
           </select>
-        </label>
-        <label className="gg-field gg-field-wide">
-          <span className="gg-field-label">Name</span>
-          <input type="text" name="name" autoComplete="name" value={name} required
-            onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label className="gg-field gg-field-wide">
-          <span className="gg-field-label">Email</span>
-          <input type="email" name="email" autoComplete="email" inputMode="email" spellCheck={false} value={email} required
-            onChange={(e) => setEmail(e.target.value)} />
         </label>
         <label className="gg-field gg-field-wide">
           <span className="gg-field-label">Phone <span className="gg-optional">(optional)</span></span>
@@ -686,8 +812,8 @@ function BookingForm() {
       {error && <p className="gg-field-error" role="alert">{error}</p>}
       <button type="submit" className="gg-cta">Enquire about your stay</button>
       <p className="gg-book-note">
-        No card, no charge. The guest asks, the owner confirms, and payment is
-        settled on arrival. The nightly price for your dates comes with the reply.
+        No card now. The hosts confirm your dates personally, then send the price
+        and a secure payment link.
       </p>
     </form>
   )
@@ -1137,17 +1263,6 @@ export default function GlacialGlassPage() {
             Rather talk? Call them on{' '}
             <a className="gg-a gg-call-num" href={`tel:${HOST.tel}`}>{HOST.phone}</a>
           </p>
-          <div className="gg-owner-note gg-rv">
-            <p className="gg-owner-note-label">The owner's dashboard</p>
-            <p className="gg-owner-note-body">
-              Every request lands in a dashboard built for this house: confirm or
-              decline in one tap, watch the week fill up.{' '}
-              <Link className="gg-a" to="/preview/glacialglass/stjornbord">
-                See how direct bookings would work
-              </Link>{' '}
-              beside this tab and send yourself a request.
-            </p>
-          </div>
         </div>
         <BookingForm />
       </section>
@@ -1707,17 +1822,67 @@ const CSS = `
 .gg-field textarea { min-height: 0; resize: vertical; }
 .gg-night { --gg-accent-text: ${AURORA}; }
 .gg-night .gg-field input, .gg-night .gg-field select, .gg-night .gg-field textarea { color-scheme: dark; }
-.gg-owner-note {
-  margin-top: calc(var(--u) * 48); padding-top: calc(var(--u) * 24);
-  border-top: 1px solid var(--gg-hair);
+.gg-field-two { grid-column: span 2; }
+
+/* stay calendar */
+.gg-cal { margin-bottom: calc(var(--u) * 34); padding-bottom: calc(var(--u) * 28); border-bottom: 1px solid var(--gg-hair); }
+.gg-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: calc(var(--u) * 22); min-height: 44px; }
+.gg-cal-hint { margin: 0; font-size: ${fluid(16, 15)}; font-weight: 300; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.gg-cal-sum { font-weight: 400; }
+.gg-cal-n { font-family: ${MONO}; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--gg-accent-text); }
+.gg-cal-navs { display: flex; gap: 6px; flex: none; }
+.gg-cal-nav {
+  width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer;
+  background: none; color: var(--gg-ink); border: 1px solid var(--gg-hair); border-radius: 2px;
+  transition: transform 160ms cubic-bezier(.23, 1, .32, 1), border-color 160ms ease;
 }
-.gg-owner-note-label {
-  font-family: ${MONO}; font-size: ${fluid(11, 12)}; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--gg-accent-text); margin: 0 0 calc(var(--u) * 10);
+.gg-cal-nav svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+.gg-cal-nav:active:not(:disabled) { transform: scale(.97); }
+.gg-cal-nav:disabled { opacity: .28; cursor: default; }
+.gg-cal-months { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 36); }
+.gg-cal-title {
+  margin: 0 0 12px; font-family: ${MONO}; font-size: 12px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--gg-ink);
 }
-.gg-owner-note-body {
-  font-size: ${fluid(14, 13)}; font-weight: 300; line-height: 1.65;
-  color: var(--gg-mute); margin: 0; max-width: 44ch;
+.gg-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 2px; }
+.gg-cal-wd {
+  font-family: ${MONO}; font-size: 11px; letter-spacing: .06em; color: var(--gg-mute);
+  text-align: center; padding-bottom: 8px;
+}
+.gg-cal-day {
+  position: relative; aspect-ratio: 1; min-height: 38px; padding: 0; border: 0; border-radius: 0;
+  font: inherit; font-size: 15px; font-weight: 300; font-variant-numeric: tabular-nums;
+  color: var(--gg-ink); background: transparent; cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.gg-cal-day[data-in] { background: color-mix(in srgb, var(--gg-aurora) 18%, transparent); }
+.gg-cal-day[data-edge] { background: var(--gg-ink); color: var(--gg-c); font-weight: 400; }
+.gg-cal-day[data-start]:not([data-end]) { border-radius: 2px 0 0 2px; }
+.gg-cal-day[data-end]:not([data-start]) { border-radius: 0 2px 2px 0; }
+.gg-cal-day:disabled { cursor: default; color: color-mix(in srgb, var(--gg-ink) 30%, transparent); }
+.gg-cal-day[data-booked] { text-decoration: line-through; text-decoration-thickness: 1px; }
+.gg-cal-day[data-today]::after {
+  content: ""; position: absolute; left: 50%; bottom: 18%; width: 3px; height: 3px;
+  margin-left: -1.5px; border-radius: 50%; background: currentColor;
+}
+.gg-cal-day:focus-visible { outline: 2px solid var(--gg-aurora); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) {
+  .gg-cal-day:not(:disabled):not([data-edge]):hover { box-shadow: inset 0 0 0 1px var(--gg-ink); }
+  .gg-cal-nav:not(:disabled):hover { border-color: var(--gg-ink); }
+}
+.gg-cal-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: calc(var(--u) * 16); min-height: 44px; }
+.gg-cal-key { font-family: ${MONO}; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--gg-mute); }
+.gg-cal-key i {
+  font-style: normal; font-family: inherit; margin-right: 8px; letter-spacing: 0;
+  text-decoration: line-through; color: color-mix(in srgb, var(--gg-ink) 30%, transparent);
+}
+.gg-cal-clear {
+  font: inherit; font-size: ${fluid(14, 13)}; cursor: pointer; min-height: 44px;
+  background: none; border: 0; padding: 0 2px; color: var(--gg-ink);
+  text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gg-cal-day, .gg-cal-nav { transition: none; }
 }
 .gg-field-error { color: #C86A5A; font-size: ${fluid(14, 13)}; margin: calc(var(--u) * 18) 0 0; }
 .gg-book-form .gg-cta { margin-top: calc(var(--u) * 28); width: 100%; text-align: center; }
@@ -1816,6 +1981,7 @@ const CSS = `
   .gg-evening-bleed { aspect-ratio: 4 / 3 !important; }
   .gg-quotes { grid-template-columns: 1fr; gap: 36px; }
   .gg-book-grid { grid-template-columns: 1fr; }
+  .gg-field-two { grid-column: auto; }
   .gg-place-list li { grid-template-columns: 1fr; gap: 6px; }
   .gg-foot-grid { grid-template-columns: 1fr; gap: 24px; padding: 40px 20px; }
 }
@@ -1827,6 +1993,9 @@ const CSS = `
 @media (max-width: 767px) {
   .gg-scrub-caps { left: 20px; bottom: 32px; }
   .gg-scrub-cap { font-size: clamp(22px, 6.4vw, 30px); max-width: 20ch; }
+  .gg-cal-months { grid-template-columns: 1fr; }
+  .gg-cal-month + .gg-cal-month { display: none; }
+  .gg-cal-head { align-items: flex-start; }
 }
 
 /* ── reduced motion: every device collapses to its resting state ── */
