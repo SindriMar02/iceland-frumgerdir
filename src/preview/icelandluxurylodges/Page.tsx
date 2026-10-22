@@ -1309,10 +1309,12 @@ const STYLES = `
     radial-gradient(120% 62% at 50% 50%,rgba(14,22,29,.46) 0%,rgba(14,22,29,.16) 55%,transparent 78%),
     linear-gradient(200deg,transparent 40%,rgba(14,22,29,.5) 100%)}
 /* ICELAND | LUXURY LODGES, mirrored about a hairline (mirrorhouse spec) */
-/* the hairline sits on the page's own centre axis: ICELAND fills the left
-   half right-aligned, LUXURY LODGES the right half left-aligned, so the seam,
-   the line under it and the bar below all share one axis */
-.ill-wordmark{position:absolute;inset:0;z-index:3;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;
+/* round 7 (Sindri: "things not centred"): the LOCKUP is centred as one block,
+   so its visual middle sits on the page axis with the line and the bar below;
+   the seam falls where the two words meet, a little left of centre, which is
+   where the eye expects it. (6b had the seam on the axis, which left the long
+   right-hand word hanging and read right-heavy.) */
+.ill-wordmark{position:absolute;inset:0;z-index:3;display:grid;grid-template-columns:auto auto auto;justify-content:center;align-items:center;
   margin:0;padding:0 clamp(16px,3vw,40px);pointer-events:none;color:#F6F9FA;text-shadow:0 2px 30px rgba(14,22,29,.45);
   font-family:var(--serif);font-size:clamp(30px,6.1vw,96px);line-height:1.02;font-weight:300;letter-spacing:-.005em;
   transform:translateY(-.3em)}
@@ -1321,8 +1323,8 @@ const STYLES = `
    the line box at line-height 1.02 does not, so pad it and pull it back */
 .ill-wm-word{display:block;white-space:nowrap;letter-spacing:.02em;will-change:clip-path,transform;
   padding-top:.22em;padding-bottom:.26em;margin-top:-.22em;margin-bottom:-.26em}
-.ill-wm-l{padding-right:.32em;text-align:right;justify-self:end}
-.ill-wm-r{padding-left:.32em;text-align:left;justify-self:start}
+.ill-wm-l{padding-right:.32em;text-align:right}
+.ill-wm-r{padding-left:.32em;text-align:left}
 .ill-wm-seam{flex:none;width:1px;height:.94em;background:currentColor;opacity:.85;transform-origin:50% 50%}
 .ill-hero-sub{position:absolute;left:0;right:0;top:calc(50% + clamp(30px,4.2vw,66px));z-index:3;text-align:center;padding:0 20px;overflow:hidden}
 .ill-hero-sub.has-pill{top:calc(50% + clamp(30px,4.2vw,66px))}

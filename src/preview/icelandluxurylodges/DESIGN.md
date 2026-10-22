@@ -167,3 +167,7 @@ under the copy/card grid.
 - **Phone hero.** The wordmark grid rows were stretching across the whole hero (`align-content` default);
   now `grid-auto-rows:min-content; align-content:center`, so Iceland / seam / Luxury Lodges stand as one
   stack with the line under them.
+- **Hero lockup centred as one block** (Sindri, 22 Oct late: "things not centred"). 6b put the seam on the
+  page axis, which left the long right-hand word hanging and the title reading right-heavy against the
+  centred line and bar. Now `grid-template-columns:auto auto auto; justify-content:center`: the title's
+  visual middle is on the axis, the seam falls where the words meet. Same on the house pages.
