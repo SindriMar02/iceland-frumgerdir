@@ -36,6 +36,11 @@ const DUSK = '#41607A'
 
 const SEEN_KEY = 'ill_seen'
 const ROOT = '/preview/icelandluxurylodges'
+/* round 7: the hero carries no form. Velaa, White Desert and Mont Rural put
+   nothing but the photograph and the word in the hero; booking is one word in
+   the bar and its own section. The sentence bar (HeroPill) stays in the code
+   behind this flag in case Sindri wants it back. */
+const HERO_BAR = false
 
 /* ── responsive pictures ──────────────────────────────────────────────────
    Every photograph ships as AVIF + WebP + JPEG at three widths from
@@ -931,10 +936,13 @@ export default function Page({ house }: { house?: string } = {}) {
             <span className="ill-wm-seam" aria-hidden="true" ref={seamRef} />
             <span className="ill-wm-word ill-wm-r" ref={wmRRef}>{wm[1]}</span>
           </h1>
-          <p className={`ill-hero-sub ${house ? '' : 'has-pill'}`}>
+          <p className={`ill-hero-sub ${house || !HERO_BAR ? '' : 'has-pill'}`}>
             <span className="ill-hero-sub-in">{HD ? `${HD.kind} · ${HD.sleeps.toLowerCase()} · Iceland Luxury Lodges` : HERO.sub}</span>
           </p>
-          {!house && <div className="ill-pill-wrap"><HeroPill /></div>}
+          {!house && HERO_BAR && <div className="ill-pill-wrap"><HeroPill /></div>}
+          {!house && !HERO_BAR && (
+            <a className="ill-hero-go" href="#bokun" onClick={goTo('bokun')}>Check dates <i aria-hidden="true">→</i></a>
+          )}
         </section>
 
         {!house && (
@@ -1256,7 +1264,7 @@ const STYLES = `
   box-shadow:0 1px 0 var(--hair)}
 .ill-nav.is-past::before{opacity:0}
 .ill-nav-mark{font-family:var(--serif);font-size:1.02rem;letter-spacing:.02em;display:flex;gap:.4em}
-.ill-nav-links{display:flex;gap:clamp(14px,2vw,26px);font-size:.84rem;font-weight:500;letter-spacing:.04em}
+.ill-nav-links{display:flex;align-items:center;gap:clamp(14px,2vw,26px);font-size:.84rem;font-weight:500;letter-spacing:.04em}
 .ill-nav-links a{position:relative;opacity:.92;transition:opacity .3s var(--e)}
 .ill-nav-links a.is-book{padding:7px 15px;box-shadow:inset 0 0 0 1px currentColor;opacity:1;margin-left:6px;
   transition:background-color .3s var(--e),color .3s var(--e)}
@@ -1403,6 +1411,15 @@ const STYLES = `
   text-shadow:0 1px 16px rgba(14,22,29,.5);
   opacity:0;transform:translateY(16px);transition:opacity .9s var(--e) .35s,transform .9s var(--e) .35s}
 .is-revealed .ill-hero-sub-in{opacity:1;transform:none}
+/* the one quiet entry in the hero: tracked caps on a hairline that fills on hover */
+.ill-root .ill-hero-go{position:absolute;left:50%;top:calc(50% + clamp(84px,9.4vw,150px));transform:translateX(-50%);z-index:3;
+  display:inline-flex;align-items:center;gap:.7em;padding:13px 24px 12px;color:#F6F9FA;font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;font-weight:500;
+  white-space:nowrap;box-shadow:inset 0 0 0 1px rgba(246,249,250,.7);background:rgba(14,22,29,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  text-shadow:0 1px 10px rgba(14,22,29,.5);opacity:0;transition:opacity .9s var(--e) .7s,background .3s var(--e),color .3s var(--e)}
+.ill-hero-go i{font-style:normal;transition:transform .3s var(--e)}
+.is-revealed .ill-hero-go{opacity:1}
+@media (hover:hover) and (pointer:fine){.ill-root .ill-hero-go:hover{background:rgba(246,249,250,.92);color:var(--ink);text-shadow:none}.ill-hero-go:hover i{transform:translateX(4px)}}
+@media (max-width:640px){.ill-hero-go{top:calc(50% + clamp(150px,44vw,190px))}}
 @media (max-width:640px){
   .ill-wordmark{grid-template-columns:minmax(0,1fr);grid-auto-rows:min-content;align-content:center;justify-items:center;gap:.16em;font-size:clamp(30px,10.4vw,60px);transform:translateY(-.9em)}
   .ill-wm-l,.ill-wm-r{padding:0;margin:0;text-align:center;justify-self:center}

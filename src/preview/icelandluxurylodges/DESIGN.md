@@ -171,3 +171,10 @@ under the copy/card grid.
   page axis, which left the long right-hand word hanging and the title reading right-heavy against the
   centred line and bar. Now `grid-template-columns:auto auto auto; justify-content:center`: the title's
   visual middle is on the axis, the seam falls where the words meet. Same on the house pages.
+- **No form in the hero** (Sindri on the sentence bar: "almost as if it's getting worse with every new
+  design"). Velaa, White Desert and Mont Rural carry nothing but the photograph and the word in the hero;
+  booking is one word in the bar and its own section. So: hero = picture, lockup, line, one hairline-boxed
+  "Check dates" ghost button (ice on a 6 px blurred ink tint, fills ice on hover) that scrolls to #bokun.
+  Nav "Book", the landing booking section and the house cards carry the booking. The sentence bar
+  (`HeroPill`) stays in the code behind `HERO_BAR = false`.
+- **Map pins on phones**: a pin past 45 % of the stage puts its label on the left, so it never leaves the stage.

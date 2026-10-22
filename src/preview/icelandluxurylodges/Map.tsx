@@ -66,6 +66,9 @@ function useNarrow(q = '(max-width: 640px)') {
 
 export function LakeMap({ crop, focus, legend = false }: { crop: Crop; focus?: string; legend?: boolean }) {
   const [cx, cy, cw, ch] = crop
+  const narrow = useNarrow()
+  /* on a phone a label to the right of a pin past mid-stage would leave the stage */
+  const sideOf = (p: { c: Pt; side: 'l' | 'r' }) => (narrow && (p.c[0] - cx) / cw > 0.45 ? 'l' : p.side)
   const pct = (p: Pt) => ({ left: `${((p[0] - cx) / cw) * 100}%`, top: `${((p[1] - cy) / ch) * 100}%` })
   const inside = (p: Pt, pad = 0) => p[0] > cx + pad && p[0] < cx + cw - pad && p[1] > cy + pad && p[1] < cy + ch - pad
   const off = PINS.filter((p) => !inside(p.c, 6))
@@ -93,7 +96,7 @@ export function LakeMap({ crop, focus, legend = false }: { crop: Crop; focus?: s
           const isFocus = focus ? PIN_OF[focus] === p.id : false
           const dim = focus ? !isFocus : false
           return (
-            <div key={p.id} className={`ill-map-pin is-${p.side} ${isFocus ? 'is-focus' : ''} ${dim ? 'is-dim' : ''} ${p.id === 'reykjavik' ? 'is-key' : ''}`} style={pct(p.c)}>
+            <div key={p.id} className={`ill-map-pin is-${sideOf(p)} ${isFocus ? 'is-focus' : ''} ${dim ? 'is-dim' : ''} ${p.id === 'reykjavik' ? 'is-key' : ''}`} style={pct(p.c)}>
               <i aria-hidden="true" />
               <span className="ill-map-pin-l">
                 <b>{p.names.map((n, i) => {
