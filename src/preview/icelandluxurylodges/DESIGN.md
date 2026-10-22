@@ -100,3 +100,70 @@ Only declined stay design free was Klettar (2 buildings, darker); chose a hybrid
   hero settles from 1.07 while the lockup opens from its seam.
 - Fixes: nav scrim/weight over the hero; `.ill-root button` reset was stripping every CTA fill
   (now `.ill-root .ill-cta`); Álftavík photo alts were describing other photos (re-checked by eye).
+
+## Round 6 (2026-10-22, the evening before the Fri 23 Oct 13:00 meeting): premium + speed
+Sindri: "can look a lot more premium, especially the booking button on the landing page and the
+overall layout; the loading screen is slow, the pages take too long to load; the movement on the
+landing page is poor, use a perfected generated still instead." Vault read first
+(`_docs/DESIGN-VAULT-2026-10-19.md`): the waterline umbrella is ILL's own; borrowed from the
+Velaa teardown (`_docs/mountain-villa-references-2026-10-22/velaa`) the paired tall villa
+portraits on a pale ground, each a link to its page, and from Mont Rural the inset-photograph
+rule (the ground stays the brand). Nothing dark-and-gold (memory: no dark-luxury reflex).
+- **Hero = a still.** The Kling push-in loop is gone (8 MB, and it read as poor motion). The
+  frame is her Álftavík terrace relit by Nano Banana 2.1 at 5056 px (3 credits, job
+  `362c8999`; its sibling `159d6bf3` is the warmer/pinker alternative in the scratchpad), served
+  as `r/hero-golden-{1000,1600,2400}.{avif,webp,jpg}` with `fetchpriority=high`. The 1.07 → 1
+  settle on reveal and the drift on scroll are the only motion on it.
+- **Loader keyed to what matters.** Progress = the hero picture decoded + `document.fonts.ready`;
+  floor 0.6 s, cap 1.3 s, line +0.1, open +0.5, halves part in 1 s. The old loader counted every
+  `document.images` entry, and a lazy image below the fold never reports `complete`, so it ran to
+  its 2.4 s cap every visit and the booking pill arrived ~5 s in. Hero seam .6 s, words 1.1 s,
+  sub +.35 s, bar +.5 s.
+- **Responsive pictures.** Every photograph is `<picture>` AVIF + WebP + JPEG at 640/1000/1600
+  (hero 1000/1600/2400) from `public/icelandluxurylodges/r/` (sips → cwebp q80 → avifenc q58
+  s6; `Pic` in Page.tsx, `picSrc` derives the set from the file name). A 1600 original was
+  300–950 KB; the AVIF a phone downloads is 40–110 KB. Aurora + evening loops re-encoded to
+  1600 w, CRF 27 (4.8 → 2.9 MB, 1.7 → 1.25 MB) and mounted only when their section is within
+  900 px (`useNear`), never on page load.
+- **Booking bar.** The dark glass pill became an ice slab resting on the hero's bottom edge,
+  half over the water and half on the page (Aman / Velaa placement): House · Guests in serif,
+  caps labels in DUSK, one hairline between fields, the one ink button on the page ("Dates and
+  prices", hover fills DUSK from the left). Nav "Book" is a hairline-boxed link.
+- **Doors.** Three tall 3:4 portraits inset on the ICE with the collection's gutters, the middle
+  one hung lower, caption on a hairline beneath (kind · name · sleeps · "See the house →"); hover
+  settles the photograph from 1.045 to 1 instead of pushing in. No gradient scrim, no white type
+  over a darkened photograph.
+- **Statement.** Editorial split: the sentence at up to 4.1 rem left, the body set low right.
+- **Chapters.** Ordinal calmed to 1.7 rem; the middle chapter mirrors (photographs left, copy
+  right) so the three do not repeat one layout.
+
+## Round 6b (same evening): doors accordion, Sentient, booking sentence, footer waterline, reviews, map data
+Full state and Sindri's verbatim brief: `_docs/ILL-ROUND6-HANDOFF-2026-10-22.md`. Display face is now
+**Sentient Light** (+ LightItalic, Regular for small sizes) everywhere `--serif` is used; Gambarino retired.
+Hero: seam on the page's centre axis (grid 1fr | 1px | 1fr), tracked-caps line under it. Doors: full-bleed
+flex accordion (hover 1.9 / others .72, .85s). Booking: `RangeCal` + `pickNight` + `stayPrefill` in Book.tsx
+shared by the hero sentence bar's sheet, the landing section (two months + sticky summary) and the house
+card (one month); the bar reads "A stay at [house], [dates], for [n guests]". Footer: index + Waterword
+reflection. Reviews from `reviews.ts` (review-sync standard) with `review-sync.json`. Map geometry in
+`geo.ts` (generated, OSM ODbL), component still to build. Lodge page: room index and photos full width
+under the copy/card grid.
+
+## Round 7 (2026-10-22, late; side session): the map, door names, phone wordmark
+- **The lakes (`Map.tsx`).** Real OSM geometry from `geo.ts` drawn in the three brand colours only: the
+  ICE page is the ground, Faxaflói and the lakes are DUSK at 7 % / 14 %, roads INK hairlines with
+  1/35/36/37/38/360 at .9 px, coast and rivers between. Geometry is SVG (`vector-effect:
+  non-scaling-stroke`, one crop per use: landing 30/110/960/610, phones 420/150/560/520 with
+  "← Reykjavík" pointing off the edge, house pages 540/255/340/280); every label is HTML laid over by
+  percentage so type keeps its rem size, with an ICE text-shadow halo so hairlines never cut through it.
+  Pins are a ring on the LAKE (Úlfljótsvatn 690/372, Álftavatn 724/483, Reykjavík), never a parcel: the
+  houses' positions are unverified and the lake is what is sold. Álftavík and Áslundur share one pin.
+  Landing: `MapSection` between the chapters and the evening, 8/4 grid with an index of the four keys
+  (hovering a row lights its pin, the others dim to .42). House pages: `HouseMap` at the top of
+  `.ill-hp-below`, that house's pin pulsing (DUSK ring, 2.8 s, off under `.reduced`), "Where it stands"
+  copy, the pin note. Layers fade in staggered on the stage's `is-on`. Credit line "Map data ©
+  OpenStreetMap contributors" on every stage (ODbL).
+- **Doors.** A narrowed door keeps its whole name: the size steps down (clamp 1.5rem/2.1vw/2.1rem) with
+  the width; the ellipsis is gone.
+- **Phone hero.** The wordmark grid rows were stretching across the whole hero (`align-content` default);
+  now `grid-auto-rows:min-content; align-content:center`, so Iceland / seam / Luxury Lodges stand as one
+  stack with the line under them.

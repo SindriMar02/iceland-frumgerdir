@@ -1,0 +1,10 @@
+{
+  "_note": "Iceland Luxury Lodges, prototype. At go-live this file moves to the site folder named in _hq/sites/sites.json and the Monday run takes over the figures below. Airbnb listing 1918233 = Álftavík (Signý's own, read 2026-09-02). Úlfljótsskáli and Áslundur: ask Signý for their Airbnb listing ids; Vrbo and Booking.com have no free door.",
+  "airbnb": ["1918233"],
+  "minRating": 5,
+  "expect": [{ "route": "/preview/icelandluxurylodges", "text": "{rating} from {count} Airbnb reviews" }],
+  "live": { "kind": "gh-pages", "repo": "SindriMar02/iceland-frumgerdir" },
+  "build": ["npm", "run", "build"],
+  "deploysFromCommit": true,
+  "commit": { "push": true }
+}

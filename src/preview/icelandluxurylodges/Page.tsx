@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Lenis from 'lenis'
-import { StayBook, BOOK_STYLES, stayPrefill } from './Book'
+import { StayBook, BOOK_STYLES, stayPrefill, RangeCal, takenFor, pickNight, fmtShort, iso, nightsBetween, type D } from './Book'
 import { companyEntry } from './company'
+import { REVIEW_DATA } from './reviews'
+import { MapSection, HouseMap, MAP_STYLES } from './Map'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -34,6 +36,61 @@ const DUSK = '#41607A'
 
 const SEEN_KEY = 'ill_seen'
 const ROOT = '/preview/icelandluxurylodges'
+
+/* ── responsive pictures ──────────────────────────────────────────────────
+   Every photograph ships as AVIF + WebP + JPEG at three widths from
+   public/icelandluxurylodges/r/ (made by sips + cwebp + avifenc, see the
+   DESIGN.md perf note). The 1600px originals were 300–950 KB each; the
+   AVIF a phone actually downloads is 40–110 KB. */
+const RDIR = `${import.meta.env.BASE_URL}icelandluxurylodges/r/`
+const picSrc = (src: string) => {
+  const m = src.match(/\/([a-z0-9-]+)\.jpg$/i)
+  if (!m) return null
+  const n = m[1]
+  const widths = n.startsWith('hero-') ? [1000, 1600, 2400] : [640, 1000, 1600]
+  const set = (ext: string) => widths.map((w) => `${RDIR}${n}-${w}.${ext} ${w}w`).join(', ')
+  /* no JPEG srcset: every browser that reads srcset reads WebP, so the plain
+     src (the original file) is the only JPEG fallback that is ever fetched */
+  return { avif: set('avif'), webp: set('webp') }
+}
+function Pic({ src, alt, sizes = '100vw', priority = false, className }: {
+  src: string; alt: string; sizes?: string; priority?: boolean; className?: string
+}) {
+  const s = picSrc(src)
+  const img = (
+    <img
+      src={src} alt={alt} className={className}
+      loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'sync' : 'async'}
+      // @ts-expect-error React 18 types lag the attribute; the DOM takes it
+      fetchpriority={priority ? 'high' : undefined}
+    />
+  )
+  if (!s) return img
+  return (
+    <picture>
+      <source type="image/avif" srcSet={s.avif} sizes={sizes} />
+      <source type="image/webp" srcSet={s.webp} sizes={sizes} />
+      {img}
+    </picture>
+  )
+}
+
+/* mounts heavy media (the ambient films) only once its section is near */
+function useNear<T extends HTMLElement>(ref: React.RefObject<T | null>, margin = '900px') {
+  const [near, setNear] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || near) return
+    if (reduced) return
+    if ((navigator as { connection?: { saveData?: boolean } }).connection?.saveData) return
+    const io = new IntersectionObserver(([en]) => {
+      if (en.isIntersecting) { setNear(true); io.disconnect() }
+    }, { rootMargin: `${margin} 0px` })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [ref, near, margin])
+  return near
+}
 /* night ends on these: INK is the night canvas, so the ink bands below the
    dusk band (fourth key, footer) melt into the page instead of sitting on it */
 const NIGHT_ACC = '#9DB7CB'
@@ -99,20 +156,15 @@ function Stage({
   src: string; alt: string; drift?: number; className?: string; priority?: boolean; videoSrc?: string
 }) {
   const imgRef = useRef<HTMLDivElement>(null)
-  const [film, setFilm] = useState(false)
+  const figRef = useRef<HTMLElement>(null)
   useEffect(() => armDrift(imgRef.current, drift, 'img'), [drift])
-  useEffect(() => {
-    if (!videoSrc || reduced) return
-    const con = (navigator as { connection?: { saveData?: boolean } }).connection
-    if (con?.saveData) return
-    setFilm(true)
-  }, [videoSrc])
+  const film = useNear(figRef) && !!videoSrc
   const dz = Math.max(9, drift * 1.35)
   return (
-    <figure className={`ill-stage ${className}`}>
+    <figure className={`ill-stage ${className}`} ref={figRef}>
       <div className="ill-stage-frame" style={{ ['--dz' as string]: `${dz}%` }}>
         <div className="ill-stage-in" ref={imgRef}>
-          <img src={src} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding="async" />
+          <Pic src={src} alt={alt} priority={priority} sizes={priority ? '100vw' : '(max-width: 900px) 100vw, 60vw'} />
           {film && (
             <video
               className="ill-stage-film"
@@ -139,7 +191,7 @@ function Frame({ src, alt, drift = 10, wide = false }: { src: string; alt: strin
   return (
     <figure className={`ill-frame ${wide ? 'is-wide' : ''}`} style={{ ['--dz' as string]: `${dz}%` }}>
       <div className="ill-stage-in" ref={ref}>
-        <img src={src} alt={alt} loading="lazy" decoding="async" />
+        <Pic src={src} alt={alt} sizes={wide ? '(max-width: 1020px) 100vw, 58vw' : '(max-width: 640px) 100vw, (max-width: 1020px) 50vw, 29vw'} />
       </div>
     </figure>
   )
@@ -160,7 +212,9 @@ function Reviews({ only }: { only?: string } = {}) {
   const QUOTES = only ? REVIEWS.quotes.filter((q) => q.meta.startsWith(only)) : REVIEWS.quotes
   const [i, setI] = useState(0)
   const [held, setHeld] = useState(false)
-  const [film, setFilm] = useState(false)
+  const secRef = useRef<HTMLElement>(null)
+  /* the aurora loop is fetched only when the section is near, never on mount */
+  const film = useNear(secRef)
   const n = QUOTES.length
 
   useEffect(() => {
@@ -169,20 +223,13 @@ function Reviews({ only }: { only?: string } = {}) {
     return () => window.clearInterval(t)
   }, [n, held])
 
-  useEffect(() => {
-    if (reduced) return
-    const con = (navigator as { connection?: { saveData?: boolean } }).connection
-    if (con?.saveData) return
-    setFilm(true)
-  }, [])
-
   const go = (d: number) => { setHeld(true); setI((v) => (v + d + n) % n) }
   const cur = QUOTES[i]
 
   return (
-    <section className="ill-rev" aria-label="Guest reviews">
+    <section className="ill-rev" aria-label="Guest reviews" ref={secRef}>
       <div className="ill-rev-bed" aria-hidden="true">
-        <img src={IMG.auroraStill} alt="" loading="lazy" decoding="async" />
+        <Pic src={IMG.auroraStill} alt="" />
         {film && (
           <video className="ill-rev-film" src={IMG.auroraFilm} poster={IMG.auroraStill}
             autoPlay muted loop playsInline aria-hidden="true" />
@@ -196,9 +243,17 @@ function Reviews({ only }: { only?: string } = {}) {
           ))}
         </span>
 
-        <p className="ill-rev-badge">
-          <span aria-hidden="true" />{REVIEWS.score} · {REVIEWS.count} · verified on {REVIEWS.source}
-        </p>
+        {/* the figures come from reviews.ts, the review-sync standard shape:
+            Airbnb's number rewrites itself every Monday on the live site */}
+        <div className="ill-rev-scores" aria-label="Ratings">
+          {REVIEW_DATA.sources.map((s) => (
+            <p key={s.platform}>
+              <b>{s.rating}<i>/{s.of}</i></b>
+              <span>{s.count} {s.platform} reviews · {s.house}</span>
+            </p>
+          ))}
+          <p className="ill-rev-sync"><span aria-hidden="true" />Airbnb figures update themselves every Monday</p>
+        </div>
 
         <ul className="ill-rev-list">
           {QUOTES.map((q, idx) => (
@@ -301,7 +356,7 @@ function Strip({ name }: { name: string }) {
         {STRIP.map((f, k) => (
           <li key={f.img}>
             <figure>
-              <div className="ill-strip-img"><img src={IMG[f.img]} alt={f.alt} loading="lazy" decoding="async" /></div>
+              <div className="ill-strip-img"><Pic src={IMG[f.img]} alt={f.alt} sizes="(max-width: 640px) 84vw, 60vh" /></div>
               <figcaption><span>{String(k + 1).padStart(2, '0')}</span>{f.line}</figcaption>
             </figure>
           </li>
@@ -384,34 +439,114 @@ function Cross({ a, b, src, alt }: { a: string; b: string; src: string; alt: str
 /* ── THE DATES PILL (round 5): the offer on the first screen. House + guests,
    then straight to that house's own calendar with the guests carried over.
    No fake date field: the dates are chosen on the real calendar. ── */
+/* ── the hero bar: House · Dates · Guests · Check availability ───────────
+   Dates open the real calendar in a sheet under the bar (two months, that
+   house's own taken nights); the choice travels to the house page's card. */
 function HeroPill() {
   const navigate = useNavigate()
+  const today = useMemo(() => iso(new Date()), [])
   const [h, setH] = useState(STAY.houses[1].id)
-  const max = STAY.houses.find((x) => x.id === h)!.max
+  const house = STAY.houses.find((x) => x.id === h)!
   const [g, setG] = useState(4)
+  const [start, setStart] = useState<D | null>(null)
+  const [end, setEnd] = useState<D | null>(null)
+  const [hint, setHint] = useState('')
+  const [open, setOpen] = useState(false)
+  const [kbd, setKbd] = useState(false)
+  const taken = useMemo(() => takenFor(h, today), [h, today])
+  const popRef = useRef<HTMLDivElement>(null)
+  const barRef = useRef<HTMLFormElement>(null)
+  const nights = start && end ? nightsBetween(start, end) : 0
+
+  /* outside click / Escape close the sheet; pointer-open focuses the sheet
+     itself, keyboard-open the first free day (focus-guard rule) */
+  useEffect(() => {
+    if (!open) return
+    if (!kbd) popRef.current?.focus({ preventScroll: true })
+    const onDoc = (e: MouseEvent) => { if (!barRef.current?.contains(e.target as Node)) setOpen(false) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey) }
+  }, [open, kbd])
+
+  const tap = (d: D) => {
+    const r = pickNight({ start, end }, d, taken, house.minStay, house.name)
+    setStart(r.start); setEnd(r.end); setHint(r.hint)
+  }
   const go = (e: React.FormEvent) => {
     e.preventDefault()
-    stayPrefill.guests = Math.min(g, max)
+    stayPrefill.house = h
+    stayPrefill.guests = Math.min(g, house.max)
+    stayPrefill.start = start
+    stayPrefill.end = end
     navigate(`${ROOT}/${h}#bokun`)
   }
+  const dateLabel = start && end ? `${fmtShort(start)} → ${fmtShort(end)}` : start ? `${fmtShort(start)} → ?` : 'add dates'
   return (
-    <form className="ill-pill" onSubmit={go} aria-label="Check dates">
+    /* the bar reads as one sentence in the house's own serif: "A stay at
+       Álftavík, 2 Nov → 5 Nov, for 4 guests" — each blank is the control */
+    <form className={`ill-pill ${open ? 'is-open' : ''}`} onSubmit={go} aria-label="Check availability" ref={barRef}>
+      <span className="ill-pill-w">A stay at</span>
       <label className="ill-pill-f">
-        <span>House</span>
-        <select value={h} onChange={(e) => { setH(e.target.value); setG((v) => Math.min(v, STAY.houses.find((x) => x.id === e.target.value)!.max)) }}>
+        <span className="ill-sr">House</span>
+        <select name="house" value={h} onChange={(e) => {
+          const id = e.target.value
+          setH(id); setStart(null); setEnd(null); setHint('')
+          setG((v) => Math.min(v, STAY.houses.find((x) => x.id === id)!.max))
+        }}>
           {STAY.houses.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
         </select>
       </label>
-      <div className="ill-pill-f ill-pill-g">
-        <span id="ill-pill-gl">Guests</span>
-        <div role="group" aria-labelledby="ill-pill-gl">
-          <button type="button" aria-label="Fewer guests" disabled={g <= 1} onClick={() => setG((v) => v - 1)}>−</button>
-          <output>{g}</output>
-          <button type="button" aria-label="More guests" disabled={g >= max} onClick={() => setG((v) => v + 1)}>+</button>
-        </div>
+      <span className="ill-pill-w">,</span>
+      <button type="button" className={`ill-pill-f ill-pill-d ${start ? 'has-dates' : ''}`} aria-expanded={open} aria-controls="ill-pill-pop"
+        onClick={(e) => { setKbd(e.detail === 0); setOpen((v) => !v) }}>
+        <span className="ill-sr">Dates</span>
+        <b>{dateLabel}</b>
+      </button>
+      <span className="ill-pill-w">, for</span>
+      <label className="ill-pill-f">
+        <span className="ill-sr">Guests</span>
+        <select name="guests" value={g} onChange={(e) => setG(Number(e.target.value))}>
+          {Array.from({ length: house.max }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n} {n === 1 ? 'guest' : 'guests'}</option>)}
+        </select>
+      </label>
+      <button className="ill-pill-go" type="submit">{nights ? `Book ${nights} nights` : 'Check availability'} <i aria-hidden="true">→</i></button>
+
+      <div className={`ill-pill-pop ${open ? 'is-open' : ''}`} id="ill-pill-pop" ref={popRef} tabIndex={-1} aria-hidden={!open}
+        aria-label={`Choose nights at ${house.name}`}>
+        {open && (
+          <>
+            <RangeCal key={h} count={2} today={today} taken={taken} start={start} end={end} onTap={tap} autoFocusFirst={kbd} />
+            <div className="ill-pill-pop-foot">
+              <p>{hint || (nights ? `${nights} nights at ${house.name}` : start ? 'Now choose your check-out day' : `${house.minStay}-night minimum at ${house.name}`)}</p>
+              <div>
+                {start && <button type="button" className="ill-sb-link" onClick={() => { setStart(null); setEnd(null); setHint('') }}>Clear</button>}
+                <button type="button" className="ill-pill-pop-done" onClick={() => setOpen(false)}>Done</button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
-      <button className="ill-pill-go" type="submit">Dates and prices <i aria-hidden="true">→</i></button>
     </form>
+  )
+}
+
+/* ── the footer's waterline: the closing line and its reflection ───────── */
+function Waterword() {
+  const wRef = useRef<HTMLDivElement>(null)
+  const rRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const a = armDrift(wRef.current, 5, 'text')
+    const b = armDrift(rRef.current, 5, 'refl')
+    return () => { a(); b() }
+  }, [])
+  return (
+    <div className="ill-water" aria-hidden="true">
+      <div className="ill-water-word" ref={wRef}>Sjáumst við vatnið</div>
+      <span className="ill-water-seam" />
+      <div className="ill-water-refl"><div ref={rRef}>Sjáumst við vatnið</div></div>
+    </div>
   )
 }
 
@@ -435,28 +570,36 @@ function Preloader({ onDone }: { onDone: () => void }) {
     const t0 = performance.now()
     let raf = 0
     let real = 0
-    const imgs = Array.from(document.images)
-    const total = Math.max(1, imgs.length)
-    let loaded = imgs.filter((i) => i.complete).length
-    const onOne = () => { loaded += 1 }
-    imgs.forEach((i) => { if (!i.complete) { i.addEventListener('load', onOne); i.addEventListener('error', onOne) } })
+    /* progress = the hero picture decoded + the fonts in, nothing else. The
+       old loader counted every lazy photograph on the page, and a lazy image
+       below the fold never reports complete, so it ran to its 2.4 s cap on
+       every visit and the booking bar arrived five seconds in. */
+    const hero = document.querySelector<HTMLImageElement>('.ill-hero img')
+    const parts: Promise<unknown>[] = [
+      hero && !hero.complete
+        ? new Promise<void>((r) => { hero.addEventListener('load', () => r(), { once: true }); hero.addEventListener('error', () => r(), { once: true }) })
+        : Promise.resolve(),
+      'fonts' in document ? document.fonts.ready : Promise.resolve(),
+    ]
+    let done = 0
+    parts.forEach((p) => { p.then(() => { done += 1 }) })
     const tick = () => {
       const el = performance.now() - t0
-      real = Math.max(real, Math.min(1, loaded / total))
-      const floorP = Math.min(1, el / 1100)
-      const capP = el / 2400
+      real = Math.max(real, done / parts.length)
+      const floorP = Math.min(1, el / 600)
+      const capP = el / 1300
       const p = Math.min(1, Math.max(capP, Math.min(real, floorP)))
       setPct(Math.round(p * 100))
       if (p >= 1 && !doneRef.current) {
         doneRef.current = true
-        window.setTimeout(() => setPhase('line'), 160)
+        window.setTimeout(() => setPhase('line'), 100)
         window.setTimeout(() => {
           setPhase('open')
           /* the hero lockup opens out of its own seam while the curtain is
              still parting, so the two seams read as one line */
-          window.setTimeout(() => window.dispatchEvent(new CustomEvent('ill:revealed')), 260)
-        }, 760)
-        window.setTimeout(onDone, 2000)
+          window.setTimeout(() => window.dispatchEvent(new CustomEvent('ill:revealed')), 160)
+        }, 500)
+        window.setTimeout(onDone, 1500)
         return
       }
       raf = requestAnimationFrame(tick)
@@ -497,16 +640,14 @@ export default function Page({ house }: { house?: string } = {}) {
      chapter, its own calendar, and the other houses as doors at the end */
   const HC = house ? CHAPTERS.find((c) => c.id === house) : undefined
   const HD = house ? DOORS.find((d) => d.id === house) : undefined
+  /* round 6: the hero is a still. The Kling push-in loop read as poor motion
+     and cost 8 MB before anything else could load; the relit terrace
+     (Nano Banana 2.1, 5056px, from her own photograph) carries it alone. */
   const heroSrc = HD && HD.id !== 'alftavik' ? IMG[HD.img as keyof typeof IMG] : IMG.heroGolden
-  const heroFilm = heroSrc === IMG.heroGolden ? `${import.meta.env.BASE_URL}icelandluxurylodges/hero-film.mp4` : undefined
   const wm = HC && HD ? [HC.name, HC.water] : ['Iceland', 'Luxury Lodges']
   const duskRef = useRef<HTMLElement>(null)
-  const [eveFilm, setEveFilm] = useState(false)
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    if ((navigator as { connection?: { saveData?: boolean } }).connection?.saveData) return
-    setEveFilm(true)
-  }, [])
+  /* the evening loop is fetched only once the band is near */
+  const eveFilm = useNear(duskRef)
   const [booted, setBooted] = useState(false)
   const [showLoader, setShowLoader] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -543,11 +684,11 @@ export default function Page({ house }: { house?: string } = {}) {
        var-based transform alongside an inline one silently loses. */
     let revealDone = false
     const open = () => {
-      seam.style.transition = 'transform .85s cubic-bezier(.16,1,.3,1)'
+      seam.style.transition = 'transform .6s cubic-bezier(.16,1,.3,1)'
       seam.style.transform = 'scaleY(1)'
       window.setTimeout(() => {
         for (const [el, from] of [[wmL, 26], [wmR, -26]] as const) {
-          el.style.transition = 'clip-path 1.5s cubic-bezier(.16,1,.3,1), transform 1.5s cubic-bezier(.16,1,.3,1)'
+          el.style.transition = 'clip-path 1.1s cubic-bezier(.16,1,.3,1), transform 1.1s cubic-bezier(.16,1,.3,1)'
           el.style.transform = `translateX(${from}px)`
           requestAnimationFrame(() => {
             el.style.clipPath = 'inset(0% 0% 0% 0%)'
@@ -564,8 +705,8 @@ export default function Page({ house }: { house?: string } = {}) {
           wmL.style.clipPath = 'none'
           wmR.style.clipPath = 'none'
           onScroll()
-        }, 1560)
-      }, 430)
+        }, 1150)
+      }, 300)
     }
     window.addEventListener('ill:revealed', open, { once: true })
 
@@ -592,7 +733,6 @@ export default function Page({ house }: { house?: string } = {}) {
     }
     /* mount-once: re-running this on `booted` would re-arm the hidden resting
        state AFTER the reveal had already played, blanking the wordmark. */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   /* boot: loader decision + reveal wiring */
@@ -641,7 +781,7 @@ export default function Page({ house }: { house?: string } = {}) {
       }),
       { threshold: 0.22 },
     )
-    root.querySelectorAll('.ill-rise, .ill-rule, .ill-door, .ill-fact, .ill-amen li, .ill-frame').forEach((el) => io.observe(el))
+    root.querySelectorAll('.ill-rise, .ill-rule, .ill-door, .ill-fact, .ill-amen li, .ill-frame, .ill-map-stage').forEach((el) => io.observe(el))
     return () => io.disconnect()
   }, [booted])
 
@@ -731,7 +871,7 @@ export default function Page({ house }: { house?: string } = {}) {
       : { label: n.label, anchor: n.id }))
   const navLink = (n: NavItem, extra: { style?: React.CSSProperties; after?: () => void } = {}) => (n.to
     ? <Link key={n.label} to={n.to} style={extra.style} onClick={() => extra.after?.()}>{n.label}</Link>
-    : <a key={n.label} href={`#${n.anchor}`} style={extra.style}
+    : <a key={n.label} href={`#${n.anchor}`} style={extra.style} className={n.anchor === 'bokun' ? 'is-book' : undefined}
         onClick={(e) => { extra.after?.(); goTo(n.anchor!)(e) }}>{n.label}</a>)
 
   const doorList = house ? DOORS.filter((d) => d.id !== house) : DOORS
@@ -741,7 +881,7 @@ export default function Page({ house }: { house?: string } = {}) {
       {doorList.map((d, i) => (
         <Link className="ill-door" key={d.id} to={`${ROOT}/${d.id}`} style={{ transitionDelay: `${i * 90}ms` }}>
           <div className="ill-door-media">
-            <img src={IMG[d.img as keyof typeof IMG]} alt={d.alt} loading="lazy" decoding="async" />
+            <Pic src={IMG[d.img as keyof typeof IMG]} alt={d.alt} sizes="(max-width: 900px) 100vw, 33vw" />
           </div>
           <div className="ill-door-copy">
             <span className="ill-door-kind">{d.kind}</span>
@@ -756,7 +896,7 @@ export default function Page({ house }: { house?: string } = {}) {
 
   return (
     <div className="ill-root" ref={rootRef}>
-      <style dangerouslySetInnerHTML={{ __html: STYLES + BOOK_STYLES }} />
+      <style dangerouslySetInnerHTML={{ __html: STYLES + BOOK_STYLES + MAP_STYLES }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       {showLoader && !booted && <Preloader onDone={() => setBooted(true)} />}
 
@@ -785,7 +925,7 @@ export default function Page({ house }: { house?: string } = {}) {
         {/* ── HERO: the seam-reveal lockup over the living terrace ──
              ICELAND | LUXURY LODGES parted by a hairline (mirrorhouse spec). */}
         <section className="ill-hero" ref={heroRef}>
-          <Stage src={heroSrc} videoSrc={heroFilm} alt={HD && HD.id !== 'alftavik' ? HD.alt : 'The infinity pool on the terrace above the lake, mountains across the water'} drift={7} className="is-hero" priority />
+          <Stage src={heroSrc} alt={HD && HD.id !== 'alftavik' ? HD.alt : 'The infinity pool on the terrace above the lake, mountains across the water'} drift={7} className="is-hero" priority />
           <h1 className={`ill-wordmark ${house ? 'is-house' : ''}`} aria-label={house ? `${wm[0]}, ${wm[1]}` : HERO.word}>
             <span className="ill-wm-word ill-wm-l" ref={wmLRef}>{wm[0]}</span>
             <span className="ill-wm-seam" aria-hidden="true" ref={seamRef} />
@@ -811,6 +951,18 @@ export default function Page({ house }: { house?: string } = {}) {
         )}
 
         {/* ── chapters ── */}
+        {HC && HD && (
+          /* ── the house's line under its hero: what it is, how many, from
+               what, and its own verified score (room-detail top line) ── */
+          <div className="ill-hp-strip" aria-label={`${HC.name} at a glance`}>
+            <span>{HD.kind}</span>
+            <span>{HD.sleeps}</span>
+            <span>from {STAY.currency}{STAY.houses.find((x) => x.id === HC.id)!.rate.toLocaleString('en-GB')} a night</span>
+            {HC.chip ? <span>{HC.chip.score} · {HC.chip.source.split(',')[0]}</span> : <span>{HC.water}</span>}
+            <a href="#bokun" onClick={goTo('bokun')} className="ill-hp-strip-go">Check dates <i aria-hidden="true">→</i></a>
+          </div>
+        )}
+
         {HC && (
           /* ── HOUSE PAGE: copy and photographs on the left, the house's own
                calendar in a sticky card on the right (room-detail pattern) ── */
@@ -839,15 +991,6 @@ export default function Page({ house }: { house?: string } = {}) {
                     {HC.amenities.map((a) => <li key={a}>{a}</li>)}
                   </ul>
                 </div>
-                {HC.id === 'ulfljotsskali' ? <RoomIndex />
-                  : HC.id === 'aslundur' ? null
-                  : (
-                    <div className="ill-chapter-photos">
-                      {HC.photos.map((p) => (
-                        <Frame key={p.img} src={IMG[p.img]} alt={p.alt} wide={p.wide} drift={p.wide ? 12 : 9} />
-                      ))}
-                    </div>
-                  )}
               </div>
               <aside className="ill-hp-card" id="bokun" aria-label={`Book ${HC.name}`}>
                 <div className="ill-hp-card-head">
@@ -856,6 +999,21 @@ export default function Page({ house }: { house?: string } = {}) {
                 </div>
                 <StayBook initial={HC.id} compact />
               </aside>
+            </div>
+            {/* the house in pictures runs the full width under the copy and
+                the card, so the room index and the photographs get the room
+                they need instead of the copy column's 540px */}
+            <div className="ill-hp-below">
+              <HouseMap id={HC.id} />
+              {HC.id === 'ulfljotsskali' ? <RoomIndex />
+                : HC.id === 'aslundur' ? null
+                : (
+                  <div className="ill-chapter-photos is-house">
+                    {HC.photos.map((p) => (
+                      <Frame key={p.img} src={IMG[p.img]} alt={p.alt} wide={p.wide} drift={p.wide ? 12 : 9} />
+                    ))}
+                  </div>
+                )}
             </div>
           </section>
         )}
@@ -866,8 +1024,8 @@ export default function Page({ house }: { house?: string } = {}) {
           <Cross a={CROSS[HC.id].a} b={CROSS[HC.id].b} src={IMG[CROSS[HC.id].img]} alt={CROSS[HC.id].alt} />
         )}
 
-        {!HC && CHAPTERS.map((c) => (
-          <section className="ill-chapter" id={c.id} key={c.id}>
+        {!HC && CHAPTERS.map((c, ci) => (
+          <section className={`ill-chapter ${ci % 2 ? 'is-alt' : ''}`} id={c.id} key={c.id}>
             <header className="ill-chapter-head">
               <div className="ill-chapter-ord" aria-hidden="true">{c.ord}</div>
               <div>
@@ -909,6 +1067,10 @@ export default function Page({ house }: { house?: string } = {}) {
           </section>
         ))}
 
+        {/* ── the lakes: the collection on one map, between the chapters
+              and the evening (round 7) ── */}
+        {!house && <MapSection />}
+
         {/* ── the evening: the band that turns the page from day to night.
               It is Álftavík's own terrace, so it belongs to the landing and to
               Álftavík only; the other houses end on their own sections. ── */}
@@ -918,9 +1080,9 @@ export default function Page({ house }: { house?: string } = {}) {
               canvas turns to night BEHIND the photograph, so no text ever
               sits on a mid-grey crossover. */}
           <div className="ill-dusk-stage" aria-hidden="true">
-            <img className="ill-dusk-a" src={IMG.eveBlue} alt="" loading="lazy" decoding="async" />
+            <Pic className="ill-dusk-a" src={IMG.eveBlue} alt="" />
             <div className="ill-dusk-b">
-              <img src={IMG.eveNight} alt="" loading="lazy" decoding="async" />
+              <Pic src={IMG.eveNight} alt="" />
               {eveFilm && <video src={IMG.eveFilm} poster={IMG.eveNight} autoPlay muted loop playsInline />}
             </div>
           </div>
@@ -933,7 +1095,7 @@ export default function Page({ house }: { house?: string } = {}) {
 
         {/* ── fourth key: no photograph of it exists, so it is set as type on
               its own band rather than pretending to be an image tile ── */}
-        {!house && <section className="ill-fourth">
+        {!house && <section className="ill-fourth" id="apartment">
           <div className="ill-fourth-card">
             <span className="ill-fourth-rule" aria-hidden="true" />
             <Rise as="p" className="ill-fourth-place">{FOURTH_KEY.place}</Rise>
@@ -968,16 +1130,46 @@ export default function Page({ house }: { house?: string } = {}) {
         )}
 
         {/* ── footer ── */}
+        {/* ── footer (round 6b): the collection's own closing. A four-column
+              index on one hairline, then the signature: the closing line
+              standing above its own live reflection, parted by the waterline,
+              the two drifting in counter-phase like the estate photographs. ── */}
         <footer className="ill-footer">
-          <Stage src={IMG.lodgeExterior} alt="Úlfljótsskáli at dusk" drift={6} className="is-footer" />
-          <div className="ill-footer-grid">
-            <div className="ill-footer-word" aria-hidden="true">Sjáumst við vatnið</div>
-            <dl className="ill-footer-dl">
-              <div><dt>Email</dt><dd><a href={EMAIL_HREF}>{EMAIL}</a></dd></div>
-              <div><dt>Phone</dt><dd><a href={PHONE_HREF}>{PHONE_DISPLAY}</a></dd></div>
-              <div><dt>Address</dt><dd>{ADDRESS}</dd></div>
-              <div><dt>Follow</dt><dd><a href={INSTAGRAM} rel="noreferrer" target="_blank">Instagram</a> · <a href={FACEBOOK} rel="noreferrer" target="_blank">Facebook</a></dd></div>
-            </dl>
+          <div className="ill-footer-top">
+            <div className="ill-footer-brand">
+              {house
+                ? <Link className="ill-footer-mark" to={ROOT}><span>Iceland</span> <span>Luxury Lodges</span></Link>
+                : <a className="ill-footer-mark" href="#top" onClick={goTo('top')}><span>Iceland</span> <span>Luxury Lodges</span></a>}
+              <p>{HERO.sub}</p>
+              <p className="ill-footer-addr">{ADDRESS}</p>
+            </div>
+            <nav className="ill-footer-col" aria-label="The houses">
+              <h3>The houses</h3>
+              <ul>
+                {DOORS.map((d) => <li key={d.id}><Link to={`${ROOT}/${d.id}`}>{d.name}</Link></li>)}
+                <li><Link to={`${ROOT}#apartment`}>{FOURTH_KEY.place}: the apartment</Link></li>
+              </ul>
+            </nav>
+            <div className="ill-footer-col">
+              <h3>Contact</h3>
+              <ul>
+                <li><a href={EMAIL_HREF}>{EMAIL}</a></li>
+                <li><a href={PHONE_HREF}>{PHONE_DISPLAY}</a></li>
+              </ul>
+            </div>
+            <div className="ill-footer-col">
+              <h3>Follow</h3>
+              <ul>
+                <li><a href={INSTAGRAM} rel="noreferrer" target="_blank">Instagram</a></li>
+                <li><a href={FACEBOOK} rel="noreferrer" target="_blank">Facebook</a></li>
+              </ul>
+              <a className="ill-footer-book" href="#bokun" onClick={goTo('bokun')}>Book a house <i aria-hidden="true">→</i></a>
+            </div>
+          </div>
+          <Waterword />
+          <div className="ill-footer-base">
+            <span>© {new Date().getFullYear()} Luxuria ehf. · Iceland Luxury Lodges</span>
+            <span>Úlfljótsvatn · Álftavatn · Reykjavík</span>
           </div>
           <PreviewFooter company={company} />
         </footer>
@@ -989,7 +1181,9 @@ export default function Page({ house }: { house?: string } = {}) {
 
 /* ═════════════════════════════ STYLES ═══════════════════════════════════ */
 const STYLES = `
-@font-face{font-family:'Gambarino';src:url('${import.meta.env.BASE_URL}fonts/gambarino/Gambarino-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'SentientIll';src:url('${import.meta.env.BASE_URL}fonts/sentient/Sentient-Light.woff2') format('woff2');font-weight:300;font-display:swap}
+@font-face{font-family:'SentientIll';src:url('${import.meta.env.BASE_URL}fonts/sentient/Sentient-LightItalic.woff2') format('woff2');font-weight:300;font-style:italic;font-display:swap}
+@font-face{font-family:'SentientIll';src:url('${import.meta.env.BASE_URL}fonts/sentient/Sentient-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:'SwitzerIll';src:url('${import.meta.env.BASE_URL}fonts/switzer/Switzer-Light.woff2') format('woff2');font-weight:300;font-display:swap}
 @font-face{font-family:'SwitzerIll';src:url('${import.meta.env.BASE_URL}fonts/switzer/Switzer-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:'SwitzerIll';src:url('${import.meta.env.BASE_URL}fonts/switzer/Switzer-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
@@ -1002,7 +1196,7 @@ const STYLES = `
   --ink-soft:color-mix(in srgb,var(--fg) 78%,transparent); --ink-mute:color-mix(in srgb,var(--fg) 62%,transparent);
   --ice-soft:rgba(239,243,245,.85); --ice-mute:rgba(239,243,245,.6);
   --hair:color-mix(in srgb,var(--fg) 15%,transparent); --hair-ice:rgba(239,243,245,.2);
-  --serif:'Gambarino','Cormorant Garamond',Georgia,serif;
+  --serif:'SentientIll','Cormorant Garamond',Georgia,serif;
   --sans:'SwitzerIll','Helvetica Neue',Arial,sans-serif;
   --e:cubic-bezier(.22,.9,.28,1);
   background:var(--bg); color:var(--fg);
@@ -1010,17 +1204,20 @@ const STYLES = `
   overflow-x:clip;
 }
 .ill-root *{box-sizing:border-box;margin:0}
+/* the serif is Sentient Light everywhere; its regular cut is for small sizes only */
+.ill-root h1,.ill-root h2,.ill-root h3{font-weight:300}
 .ill-root img{display:block;width:100%;height:100%;object-fit:cover}
+.ill-root picture{display:contents}
 .ill-root a{color:inherit;text-decoration:none}
 .ill-root :focus-visible{outline:2px solid var(--acc);outline-offset:3px}
 .ill-root.is-night{color-scheme:dark}
-.ill-root button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.ill-root button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
 
 /* ── loader ── */
 /* the loader is two ICE halves that part along a full-width waterline */
 .ill-loader{position:fixed;inset:0;z-index:80;display:grid;place-content:center;text-align:center}
 .ill-loader.is-open{pointer-events:none}
-.ill-loader-half{position:fixed;left:0;right:0;background:var(--ice);transition:transform 1.2s cubic-bezier(.76,0,.24,1)}
+.ill-loader-half{position:fixed;left:0;right:0;background:var(--ice);transition:transform 1s cubic-bezier(.76,0,.24,1)}
 .ill-loader-half.is-top{top:0;bottom:calc(50% - 1px)}
 .ill-loader-half.is-bot{top:calc(50% - 1px);bottom:0}
 .ill-loader.is-open .ill-loader-half.is-top{transform:translateY(-101%)}
@@ -1061,6 +1258,13 @@ const STYLES = `
 .ill-nav-mark{font-family:var(--serif);font-size:1.02rem;letter-spacing:.02em;display:flex;gap:.4em}
 .ill-nav-links{display:flex;gap:clamp(14px,2vw,26px);font-size:.84rem;font-weight:500;letter-spacing:.04em}
 .ill-nav-links a{position:relative;opacity:.92;transition:opacity .3s var(--e)}
+.ill-nav-links a.is-book{padding:7px 15px;box-shadow:inset 0 0 0 1px currentColor;opacity:1;margin-left:6px;
+  transition:background-color .3s var(--e),color .3s var(--e)}
+.ill-nav-links a.is-book::after{display:none}
+@media (hover:hover) and (pointer:fine){
+  .ill-nav-links a.is-book:hover{background:rgba(246,249,250,.16)}
+  .ill-nav.is-past .ill-nav-links a.is-book:hover{background:var(--fg);color:var(--bg)}
+}
 .ill-nav-links a::after{content:'';position:absolute;left:0;right:0;bottom:-5px;height:1px;background:currentColor;
   transform:scaleX(0);transform-origin:right;transition:transform .32s var(--e)}
 @media (hover:hover) and (pointer:fine){
@@ -1105,113 +1309,172 @@ const STYLES = `
     radial-gradient(120% 62% at 50% 50%,rgba(14,22,29,.46) 0%,rgba(14,22,29,.16) 55%,transparent 78%),
     linear-gradient(200deg,transparent 40%,rgba(14,22,29,.5) 100%)}
 /* ICELAND | LUXURY LODGES, mirrored about a hairline (mirrorhouse spec) */
-.ill-wordmark{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;
-  margin:0;pointer-events:none;color:#F6F9FA;text-shadow:0 2px 30px rgba(14,22,29,.45);
-  font-family:var(--serif);font-size:clamp(30px,7.4vw,112px);line-height:1.02;font-weight:400}
-.ill-wordmark.is-house{font-size:clamp(28px,5.4vw,86px)}
+/* the hairline sits on the page's own centre axis: ICELAND fills the left
+   half right-aligned, LUXURY LODGES the right half left-aligned, so the seam,
+   the line under it and the bar below all share one axis */
+.ill-wordmark{position:absolute;inset:0;z-index:3;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;
+  margin:0;padding:0 clamp(16px,3vw,40px);pointer-events:none;color:#F6F9FA;text-shadow:0 2px 30px rgba(14,22,29,.45);
+  font-family:var(--serif);font-size:clamp(30px,6.1vw,96px);line-height:1.02;font-weight:300;letter-spacing:-.005em;
+  transform:translateY(-.3em)}
+.ill-wordmark.is-house{font-size:clamp(28px,5vw,80px)}
 /* the clip box must hold accents (Ú Á) and descenders (the j in Úlfljóts-):
    the line box at line-height 1.02 does not, so pad it and pull it back */
 .ill-wm-word{display:block;white-space:nowrap;letter-spacing:.02em;will-change:clip-path,transform;
   padding-top:.22em;padding-bottom:.26em;margin-top:-.22em;margin-bottom:-.26em}
-.ill-wm-l{padding-right:.3em;margin-right:-.08em;text-align:right}
-.ill-wm-r{padding-left:.3em;text-align:left}
+.ill-wm-l{padding-right:.32em;text-align:right;justify-self:end}
+.ill-wm-r{padding-left:.32em;text-align:left;justify-self:start}
 .ill-wm-seam{flex:none;width:1px;height:.94em;background:currentColor;opacity:.85;transform-origin:50% 50%}
-.ill-hero-sub{position:absolute;left:0;right:0;bottom:clamp(30px,7vh,74px);z-index:3;text-align:center;padding:0 20px;overflow:hidden}
-.ill-hero-sub.has-pill{bottom:calc(clamp(26px,5vh,56px) + 96px)}
-/* ── the dates pill ── */
-.ill-pill-wrap{position:absolute;left:0;right:0;bottom:clamp(26px,5vh,56px);z-index:4;display:flex;justify-content:center;padding:0 16px;
-  opacity:0;transform:translateY(14px);transition:opacity .9s var(--e) 1.1s,transform .9s var(--e) 1.1s}
-.is-revealed .ill-pill-wrap{opacity:1;transform:none}
-.ill-pill{display:flex;align-items:stretch;color:#F3F7F8;background:rgba(10,16,22,.46);
-  -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);
-  box-shadow:inset 0 0 0 1px rgba(239,243,245,.22)}
-.ill-pill-f{display:grid;gap:2px;padding:12px 22px;min-width:0}
-.ill-pill-f + .ill-pill-f{box-shadow:inset 1px 0 0 rgba(239,243,245,.18)}
-.ill-pill-f > span{font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(239,243,245,.7)}
-.ill-pill select{font:inherit;font-family:var(--serif);font-size:1.12rem;color:inherit;background:transparent;border:0;padding:0 20px 0 0;
-  appearance:none;-webkit-appearance:none;cursor:pointer;min-height:30px;
+.ill-hero-sub{position:absolute;left:0;right:0;top:calc(50% + clamp(30px,4.2vw,66px));z-index:3;text-align:center;padding:0 20px;overflow:hidden}
+.ill-hero-sub.has-pill{top:calc(50% + clamp(30px,4.2vw,66px))}
+/* ── the booking bar (round 6b): one sentence in the house's serif, on an
+      ice slab resting on the hero's bottom edge. "A stay at Álftavík, add
+      dates, for 4 guests" — every blank is a control, underlined by its own
+      hairline, and the one ink button on the page ends the line. ── */
+.ill-pill-wrap{position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;justify-content:center;padding:0 16px;
+  transform:translateY(50%);opacity:0;transition:opacity .8s var(--e) .5s}
+.is-revealed .ill-pill-wrap{opacity:1}
+.ill-pill{display:flex;flex-wrap:wrap;align-items:center;gap:6px 0;width:min(100%,1040px);color:var(--ink);background:var(--ice);
+  padding:22px clamp(22px,3vw,40px);font-family:var(--serif);font-weight:300;font-size:clamp(1.15rem,1.8vw,1.55rem);line-height:1.3;
+  box-shadow:0 34px 60px -34px rgba(14,22,29,.55);
+  transform:translateY(12px);transition:transform .8s var(--e) .5s}
+.is-revealed .ill-pill{transform:none}
+.ill-pill-w{color:var(--ink-mute);font-style:italic;white-space:pre}
+.ill-pill-w + .ill-pill-f{margin-left:.32em}
+.ill-pill-f{display:inline-grid;min-width:0;position:relative;color:var(--ink)}
+.ill-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ill-pill select{font:inherit;color:var(--ink);background-color:var(--ice);border:0;border-bottom:1px solid var(--ink);border-radius:0;
+  padding:2px 1.05em 3px .1em;appearance:none;-webkit-appearance:none;cursor:pointer;line-height:1.3;
   background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
-  background-position:calc(100% - 9px) 55%,calc(100% - 4px) 55%;background-size:5px 5px;background-repeat:no-repeat}
-.ill-pill select option{color:#0E161D}
-.ill-pill-g > div{display:flex;align-items:center;gap:4px}
-.ill-pill-g button{width:30px;height:30px;font-size:1.05rem;line-height:1;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(239,243,245,.3)}
-.ill-pill-g button:disabled{opacity:.35;cursor:default}
-.ill-pill-g output{min-width:2.2ch;text-align:center;font-family:var(--serif);font-size:1.12rem}
-.ill-root .ill-pill-go{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;gap:.6em;padding:0 26px;
-  background:#F3F7F8;color:#0E161D;font-size:.9rem;letter-spacing:.03em;white-space:nowrap}
+  background-position:calc(100% - 9px) 60%,calc(100% - 4px) 60%;background-size:5px 5px;background-repeat:no-repeat;
+  transition:border-color .25s var(--e)}
+.ill-pill select option{color:#0E161D;font-family:var(--sans)}
+@media (hover:hover) and (pointer:fine){.ill-pill select:hover{border-color:var(--dusk)}}
+/* the Dates field and its calendar sheet */
+.ill-root .ill-pill-d{text-align:left;cursor:pointer;padding:2px .1em 3px;margin-left:.32em;border-bottom:1px solid var(--ink);
+  font:inherit;transition:border-color .25s var(--e)}
+.ill-pill-d b{font-weight:300;color:var(--ink-mute);white-space:nowrap}
+.ill-pill-d.has-dates b{color:var(--ink)}
+.ill-pill-d[aria-expanded="true"]{border-color:var(--dusk)}
+@media (hover:hover) and (pointer:fine){.ill-pill-d:hover{border-color:var(--dusk)}}
+.ill-pill-pop{position:absolute;left:0;right:0;top:100%;margin-top:1px;z-index:5;background:var(--ice);color:var(--ink);
+  padding:clamp(18px,2.4vw,30px) clamp(18px,2.4vw,32px) clamp(16px,2vw,24px);
+  box-shadow:0 34px 60px -30px rgba(14,22,29,.5);
+  opacity:0;transform:translateY(-6px);visibility:hidden;pointer-events:none;
+  transition:opacity .22s var(--e),transform .22s var(--e),visibility 0s .22s}
+.ill-pill-pop.is-open{opacity:1;transform:none;visibility:visible;pointer-events:auto;transition:opacity .22s var(--e),transform .22s var(--e)}
+.ill-pill-pop:focus{outline:none}
+.ill-pill-pop .ill-sb-cal{gap:clamp(18px,3vw,48px)}
+.ill-pill-pop-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  border-top:1px solid var(--hair);margin-top:18px;padding-top:14px}
+.ill-pill-pop-foot p{font-size:.86rem;color:var(--ink-soft)}
+.ill-pill-pop-foot > div{display:flex;align-items:center;gap:18px}
+.ill-root .ill-pill-pop-done{padding:10px 20px;background:var(--ink);color:var(--ice);font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;font-weight:500;
+  transition:background-color .25s var(--e),transform .16s var(--e)}
+.ill-pill-pop-done:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){.ill-pill-pop-done:hover{background:var(--dusk)}}
+.ill-pill{position:relative}
+.ill-root .ill-pill-go{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;gap:.8em;margin-left:auto;
+  padding:0 28px;min-height:50px;background:var(--ink);color:var(--ice);
+  font-family:var(--sans);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;font-weight:500;white-space:nowrap;
+  transition:transform .16s var(--e)}
 .ill-pill-go i{font-style:normal;transition:transform .3s var(--e)}
-.ill-pill-go::before{content:'';position:absolute;inset:0;z-index:-1;background:#C9D9E4;transform:scaleX(0);transform-origin:right;transition:transform .36s var(--e)}
+.ill-pill-go::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--dusk);transform:scaleX(0);transform-origin:right;transition:transform .36s var(--e)}
 @media (hover:hover) and (pointer:fine){
   .ill-pill-go:hover::before{transform:scaleX(1);transform-origin:left}
   .ill-pill-go:hover i{transform:translateX(4px)}
 }
 .ill-pill-go:active{transform:scale(.98)}
 @media (max-width:640px){
-  .ill-hero-sub.has-pill{bottom:calc(clamp(20px,4vh,40px) + 150px)}
-  .ill-pill-wrap{bottom:clamp(20px,4vh,40px)}
-  .ill-pill{display:grid;grid-template-columns:minmax(0,1fr) auto;width:100%}
-  .ill-pill-go{grid-column:1/-1;justify-content:center;min-height:50px}
-  .ill-pill-f{padding:10px 16px}
+  .ill-hero-sub,.ill-hero-sub.has-pill{top:calc(50% + clamp(62px,19vw,84px))}
+  .ill-hero-sub-in{font-size:12px;letter-spacing:.16em;max-width:30ch}
+  .ill-pill-wrap{transform:translateY(40%)}
+  .ill-pill{width:100%;padding:18px 20px 20px;font-size:1.2rem;gap:8px 0}
+  .ill-root .ill-pill-go{width:100%;justify-content:center;min-height:52px;margin:12px 0 0}
+  .ill-pill-pop{position:fixed;left:12px;right:12px;top:auto;bottom:12px;margin:0;max-height:min(78svh,640px);overflow:auto;overscroll-behavior:contain;z-index:70;transform:translateY(10px)}
+  .ill-pill-pop.is-open{transform:none}
+  .ill-pill-pop .ill-sb-cal{grid-template-columns:minmax(0,1fr)}
+  .ill-pill-pop .ill-sb-month.is-second{display:none}
   .ill-pill-g button{width:40px;height:40px}
-  .ill-pill-f > span{font-size:13px;letter-spacing:.12em}
+  .ill-pill-f > span{font-size:12px;letter-spacing:.14em}
 }
-.ill-hero-sub-in{display:inline-block;color:#EDF1F2;font-size:clamp(.92rem,1.6vw,1.05rem);max-width:44ch;
+.ill-hero-sub-in{display:inline-block;color:rgba(246,249,250,.88);font-size:clamp(.66rem,.9vw,.78rem);letter-spacing:.2em;text-transform:uppercase;font-weight:500;max-width:70ch;text-wrap:balance;line-height:1.7;
   text-shadow:0 1px 16px rgba(14,22,29,.5);
-  opacity:0;transform:translateY(16px);transition:opacity .9s var(--e) .9s,transform .9s var(--e) .9s}
+  opacity:0;transform:translateY(16px);transition:opacity .9s var(--e) .35s,transform .9s var(--e) .35s}
 .is-revealed .ill-hero-sub-in{opacity:1;transform:none}
 @media (max-width:640px){
-  .ill-wordmark{flex-direction:column;gap:.16em;font-size:clamp(30px,10.4vw,60px)}
-  .ill-wm-l,.ill-wm-r{padding:0;margin:0;text-align:center}
+  .ill-wordmark{grid-template-columns:minmax(0,1fr);grid-auto-rows:min-content;align-content:center;justify-items:center;gap:.16em;font-size:clamp(30px,10.4vw,60px);transform:translateY(-.9em)}
+  .ill-wm-l,.ill-wm-r{padding:0;margin:0;text-align:center;justify-self:center}
   .ill-wm-seam{width:.86em;height:1px}
 }
 
-/* ── statement ── */
-.ill-statement{padding:clamp(90px,16vh,180px) clamp(20px,6vw,72px);max-width:900px;margin:0 auto;text-align:center}
-.ill-statement-lead .ill-rise-in{font-family:var(--serif);font-size:clamp(1.7rem,4vw,3rem);line-height:1.2;font-weight:400}
-.ill-statement-body{margin-top:26px}
-.ill-statement-body .ill-rise-in{color:var(--ink-soft);font-size:clamp(1rem,1.8vw,1.15rem);max-width:60ch;margin:0 auto}
+/* ── statement (round 6): an editorial split, the sentence large on the
+      left, the body set low on the right, instead of a centred block ── */
+.ill-statement{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(28px,6vw,110px);align-items:end;
+  max-width:1500px;margin:0 auto;padding:clamp(130px,20vh,240px) clamp(20px,5vw,64px) clamp(70px,11vh,130px);text-align:left}
+.ill-statement-lead .ill-rise-in{font-family:var(--serif);font-size:clamp(2rem,4.8vw,4.1rem);line-height:1.06;font-weight:300;
+  letter-spacing:-.005em;text-wrap:balance}
+.ill-statement-body{padding-bottom:.6em}
+.ill-statement-body .ill-rise-in{color:var(--ink-soft);font-size:clamp(1rem,1.5vw,1.12rem);max-width:40ch}
+@media (max-width:900px){
+  .ill-statement{grid-template-columns:1fr;gap:26px;padding-top:clamp(150px,22vh,200px)}
+  .ill-statement-body{padding-bottom:0}
+}
 
-/* ── doors ── */
-.ill-doors{display:grid;grid-template-columns:repeat(3,1fr);min-height:88svh}
-.ill-door{position:relative;display:grid;align-content:end;overflow:hidden;isolation:isolate;min-height:340px;
-  opacity:0;transform:translateY(26px);transition:opacity .9s var(--e),transform .9s var(--e)}
+/* ── doors (round 6): three tall portraits inset on the ice (Velaa's paired
+      villa portraits, on our stone), the middle one hung lower, the caption
+      typeset beneath on a hairline. No white type over a darkened photo. ── */
+/* round 6b (Sindri: "similar to before but with expansion on hover and
+   pushing the others"): full-bleed doors again, now an accordion. The door
+   under the pointer grows to almost twice its share and the other two give
+   way; the photograph settles from 1.04 to 1 as the door opens, the name
+   stays put, the line of copy and the link rise in. */
+.ill-doors{display:flex;min-height:92svh}
+.ill-door{position:relative;flex:1 1 0;min-width:0;display:grid;align-content:end;overflow:hidden;isolation:isolate;
+  background:var(--ink);opacity:0;transform:translateY(26px);
+  transition:flex-grow .85s cubic-bezier(.22,.9,.28,1),opacity .9s var(--e),transform .9s var(--e)}
 .ill-door.is-on{opacity:1;transform:none}
-.ill-door-media{position:absolute;inset:0;z-index:-1}
-.ill-door-media img{transform:scale(1.05);transition:transform .4s var(--e);filter:saturate(.86)}
-/* Gated: on touch, a tap latches :hover and the door photo stays pushed in
-   until the visitor happens to tap something else. 1.2s also read as lag
-   rather than luxury on the way in. */
-.ill-door{background:var(--ink)}
-.ill-door-media{transition:opacity .4s var(--e)}
+.ill-door-media{position:absolute;inset:0;z-index:-1;transition:filter .6s var(--e)}
+.ill-door-media img{transform:scale(1.04);transition:transform 1.1s var(--e);filter:saturate(.88)}
+.ill-door::after{content:'';position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(to top,rgba(14,22,29,.78) 0%,rgba(14,22,29,.34) 38%,rgba(14,22,29,.06) 70%,transparent 100%)}
+.ill-door + .ill-door{box-shadow:inset 1px 0 0 var(--hair-ice)}
+.ill-door-copy{padding:clamp(22px,3vw,44px);color:var(--ice);display:grid;gap:5px}
+.ill-door-kind{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ice-mute);font-weight:500}
+.ill-door-name{font-family:var(--serif);font-size:clamp(1.8rem,3.1vw,3rem);line-height:1.04;white-space:nowrap;transform-origin:0 100%;transition:transform .85s var(--e)}
+.ill-door-sleeps{font-size:.86rem;color:var(--ice-soft)}
 .ill-door-go{display:inline-flex;gap:.5em;align-items:center;margin-top:10px;font-size:.84rem;letter-spacing:.04em;color:var(--ice)}
 .ill-door-go i{font-style:normal;transition:transform .3s var(--e)}
 @media (hover:hover) and (pointer:fine){
-  .ill-door:hover .ill-door-media img{transform:scale(1.11)}
-  /* the doors you are NOT pointing at step back */
-  .ill-doors:hover .ill-door:not(:hover) .ill-door-media{opacity:.5}
-  .ill-door-go{opacity:0;transform:translateY(8px);transition:opacity .3s var(--e),transform .3s var(--e)}
-  .ill-door:hover .ill-door-go{opacity:1;transform:none}
-  .ill-door:hover .ill-door-go i{transform:translateX(4px)}
+  .ill-doors:hover .ill-door{flex-grow:.72}
+  .ill-doors .ill-door:hover{flex-grow:1.9}
+  /* a narrowed door keeps its whole name: the size steps down with the width, never an ellipsis */
+  .ill-doors:hover .ill-door:not(:hover) .ill-door-name{transform:scale(.68)}
+  .ill-door:hover .ill-door-media img{transform:scale(1)}
+  .ill-doors:hover .ill-door:not(:hover) .ill-door-media{filter:brightness(.72) saturate(.7)}
+  .ill-door-sleeps,.ill-door-go{opacity:0;transform:translateY(8px);transition:opacity .4s var(--e),transform .4s var(--e)}
+  .ill-door:hover .ill-door-sleeps,.ill-door:hover .ill-door-go{opacity:1;transform:none}
+  .ill-door:hover .ill-door-go{transition-delay:.06s}
+  .ill-door:hover .ill-door-go i{transform:translateX(5px)}
 }
-.ill-door::after{content:'';position:absolute;inset:0;z-index:-1;
-  background:linear-gradient(to top,rgba(14,22,29,.86) 0%,rgba(14,22,29,.44) 40%,rgba(14,22,29,.1) 100%)}
-.ill-door + .ill-door{box-shadow:inset 1px 0 0 var(--hair-ice)}
-.ill-door-copy{padding:clamp(20px,3vw,38px);color:var(--ice);display:grid;gap:6px}
-.ill-door-kind{font-size:.78rem;letter-spacing:.08em;color:var(--ice-mute);font-weight:400}
-.ill-door-name{font-family:var(--serif);font-size:clamp(1.7rem,3.2vw,2.7rem);line-height:1.06}
-.ill-door-sleeps{font-size:.86rem;color:var(--ice-soft)}
-.ill-doors.is-two{grid-template-columns:repeat(2,1fr);min-height:74svh}
+.ill-doors.is-two{min-height:76svh}
 .ill-others-h{max-width:1500px;margin:0 auto;padding:0 clamp(20px,5vw,64px) 22px;font-size:.72rem;letter-spacing:.24em;
   text-transform:uppercase;color:var(--acc)}
-@media (max-width:900px){.ill-doors,.ill-doors.is-two{grid-template-columns:1fr}.ill-door{min-height:64svh}.ill-door + .ill-door{box-shadow:inset 0 1px 0 var(--hair-ice)}}
+@media (max-width:900px){
+  .ill-doors,.ill-doors.is-two{flex-direction:column;min-height:0}
+  .ill-door{flex:none;min-height:64svh}
+  .ill-door + .ill-door{box-shadow:inset 0 1px 0 var(--hair-ice)}
+}
 
 /* ── chapters ── */
 .ill-chapter{padding:clamp(90px,15vh,170px) clamp(20px,5vw,64px);max-width:1500px;margin:0 auto}
 .ill-chapter-head{display:flex;align-items:baseline;gap:clamp(16px,3vw,34px);border-top:1px solid var(--hair);padding-top:26px;margin-bottom:clamp(34px,6vh,64px)}
-.ill-chapter-ord{font-family:var(--serif);font-size:clamp(2.4rem,6vw,4.6rem);line-height:1;color:var(--dusk)}
+.ill-chapter-ord{font-family:var(--serif);font-size:clamp(1.3rem,2vw,1.7rem);line-height:1;color:var(--acc);opacity:.8}
+/* the middle chapter mirrors: photographs left, copy right */
+.ill-chapter.is-alt .ill-chapter-grid{grid-template-columns:7fr minmax(300px,5fr)}
+.ill-chapter.is-alt .ill-chapter-copy{order:2}
 .ill-chapter-name .ill-rise-in{font-family:var(--serif);font-size:clamp(2.2rem,5.4vw,4.2rem);line-height:1.04}
 .ill-chapter-water{margin-top:6px}
-.ill-chapter-water .ill-rise-in{color:var(--ink-mute);font-size:.95rem;letter-spacing:.03em}
+.ill-chapter-water .ill-rise-in{color:var(--ink-mute);font-family:var(--serif);font-style:italic;font-size:1.15rem;letter-spacing:0}
 .ill-chapter-grid{display:grid;grid-template-columns:minmax(300px,5fr) 7fr;gap:clamp(28px,4.5vw,64px);align-items:start}
 .ill-chapter-copy{position:sticky;top:96px;display:grid;gap:22px}
 .ill-chapter-lead .ill-rise-in{font-family:var(--serif);font-size:clamp(1.3rem,2.4vw,1.8rem);line-height:1.3}
@@ -1240,10 +1503,23 @@ const STYLES = `
 .ill-frame.is-wide{grid-column:1/-1;aspect-ratio:16/8.4}
 .ill-frame img{filter:saturate(.92);transition:transform .7s var(--e)}
 @media (hover:hover) and (pointer:fine){.ill-frame:hover img{transform:scale(1.04)}}
-@media (max-width:1020px){.ill-chapter-grid{grid-template-columns:1fr}.ill-chapter-copy{position:static}}
+@media (max-width:1020px){.ill-chapter-grid,.ill-chapter.is-alt .ill-chapter-grid{grid-template-columns:1fr}.ill-chapter-copy,.ill-chapter.is-alt .ill-chapter-copy{position:static;order:0}}
 @media (max-width:640px){.ill-chapter-photos{grid-template-columns:1fr}.ill-frame{aspect-ratio:4/3}}
 
+/* ── house page: the line under the hero ── */
+.ill-hp-strip{display:flex;align-items:center;gap:clamp(18px,3vw,44px);flex-wrap:wrap;max-width:1500px;margin:0 auto;
+  padding:22px clamp(20px,5vw,64px);border-bottom:1px solid var(--hair);font-size:.86rem;color:var(--ink-soft)}
+.ill-hp-strip > span{display:inline-flex;align-items:center;gap:clamp(18px,3vw,44px)}
+.ill-hp-strip > span + span::before{content:'';width:1px;height:1em;background:var(--hair)}
+.ill-hp-strip-go{margin-left:auto;display:inline-flex;gap:.5em;align-items:center;color:var(--fg);font-weight:400;letter-spacing:.02em}
+.ill-hp-strip-go i{font-style:normal;transition:transform .3s var(--e)}
+@media (hover:hover) and (pointer:fine){.ill-hp-strip-go:hover i{transform:translateX(4px)}}
+@media (max-width:640px){.ill-hp-strip{gap:10px 16px;font-size:13px}.ill-hp-strip > span{gap:16px}.ill-hp-strip-go{margin-left:0;width:100%}}
+
 /* ── house page: content left, the house's calendar in a sticky card ── */
+.ill-hp-below{margin-top:clamp(48px,8vh,96px)}
+.ill-chapter-photos.is-house{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ill-chapter-photos.is-house .ill-frame.is-wide{grid-column:1/-1;aspect-ratio:16/7}
 .ill-hp-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,400px);gap:clamp(28px,4.5vw,70px);align-items:start}
 .ill-hp-main{display:grid;gap:clamp(40px,7vh,72px);min-width:0}
 .ill-hp-copy{display:grid;gap:22px;max-width:620px}
@@ -1251,7 +1527,7 @@ const STYLES = `
   background:color-mix(in srgb,var(--fg) 4%,var(--bg));box-shadow:inset 0 0 0 1px var(--hair)}
 .ill-hp-card-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
   border-bottom:1px solid var(--hair);padding-bottom:12px}
-.ill-hp-card-head b{font-family:var(--serif);font-weight:400;font-size:1.7rem}
+.ill-hp-card-head b{font-family:var(--serif);font-weight:300;font-size:1.7rem}
 .ill-hp-card-head p{color:var(--ink-mute);font-size:.88rem}
 .ill-hp-card-score{font-size:.78rem !important;text-align:right}
 @media (max-width:1020px){
@@ -1263,7 +1539,7 @@ const STYLES = `
 }
 
 /* ── room by room (Úlfljótsskáli) ── */
-.ill-rooms{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.2fr);gap:clamp(20px,3vw,40px);align-items:start}
+.ill-rooms{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px,4vw,72px);align-items:start}
 .ill-rooms-h{grid-column:1/-1;font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--acc);
   border-top:1px solid var(--hair);padding-top:18px}
 .ill-rooms-list{list-style:none;padding:0;margin:0;display:grid}
@@ -1273,12 +1549,12 @@ const STYLES = `
 .ill-rooms-n{grid-row:1/3;font-family:var(--serif);font-size:.95rem;padding-top:.2em;color:var(--acc);opacity:.6}
 .ill-rooms-name{font-family:var(--serif);font-size:clamp(1.25rem,2vw,1.6rem);line-height:1.15;
   transition:transform .35s var(--e)}
-.ill-rooms-line{font-size:.82rem;max-height:0;opacity:0;overflow:hidden;transition:max-height .35s var(--e),opacity .35s var(--e)}
+.ill-rooms-line{font-size:.86rem;color:var(--ink-mute);max-height:0;opacity:0;overflow:hidden;transition:max-height .35s var(--e),opacity .35s var(--e)}
 .ill-rooms-list button.is-on{color:var(--fg)}
 .ill-rooms-list button.is-on .ill-rooms-n{opacity:1}
 .ill-rooms-list button.is-on .ill-rooms-name{transform:translateX(6px)}
-.ill-rooms-list button.is-on .ill-rooms-line{max-height:2.4em;opacity:1;transform:translateX(6px)}
-.ill-rooms-view{position:sticky;top:96px;margin:0;aspect-ratio:4/5;overflow:hidden;background:var(--ink)}
+.ill-rooms-list button.is-on .ill-rooms-line{max-height:3.6em;opacity:1;transform:translateX(6px)}
+.ill-rooms-view{position:sticky;top:96px;margin:0;aspect-ratio:5/4;overflow:hidden;background:var(--ink)}
 .ill-rooms-view img{position:absolute;inset:0;opacity:0;transform:scale(1.05);
   transition:opacity .55s var(--e),transform 1.1s var(--e)}
 .ill-rooms-view img.is-on{opacity:1;transform:none}
@@ -1370,7 +1646,7 @@ const STYLES = `
   padding:0 20px clamp(56px,13vh,130px);color:#F3F7F8;text-shadow:0 2px 28px rgba(4,8,12,.55)}
 .js .ill-dusk-in{opacity:var(--nt,0);transform:translateY(calc((1 - var(--nt,0)) * 18px))}
 .ill-dusk-eye{font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:#B9CEDC}
-.ill-dusk-h{font-family:var(--serif);font-weight:400;font-size:clamp(2.3rem,6.4vw,5.4rem);line-height:1.02;letter-spacing:-.01em}
+.ill-dusk-h{font-family:var(--serif);font-weight:300;font-size:clamp(2.3rem,6.4vw,5.4rem);line-height:1.02;letter-spacing:-.01em}
 .ill-dusk-p{color:rgba(239,243,245,.88);max-width:40ch;font-size:clamp(1rem,1.7vw,1.15rem)}
 
 /* ── fourth key ── */
@@ -1420,10 +1696,14 @@ const STYLES = `
 .ill-rev-ord b{grid-area:1/1;font-weight:400;opacity:0;transform:scale(1.08);filter:blur(9px);
   transition:opacity .6s var(--e),transform .6s var(--e),filter .6s var(--e)}
 .ill-rev-ord b.is-on{opacity:1;transform:none;filter:none}
-.ill-rev-badge{display:inline-flex;align-items:center;gap:9px;
-  font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(239,243,245,.82);
-  border:1px solid var(--hair-ice);border-radius:999px;padding:7px 15px}
-.ill-rev-badge span{width:5px;height:5px;border-radius:50%;background:#8FBFB0;flex:none}
+.ill-rev-scores{display:flex;align-items:end;gap:clamp(22px,4vw,56px);flex-wrap:wrap;color:rgba(239,243,245,.86)}
+.ill-rev-scores > p{display:grid;gap:4px}
+.ill-rev-scores b{font-family:var(--serif);font-weight:300;font-size:clamp(2.2rem,4.4vw,3.6rem);line-height:.95;color:#F7FAFB}
+.ill-rev-scores b i{font-style:normal;font-size:.42em;color:rgba(239,243,245,.6);margin-left:.08em}
+.ill-rev-scores > p > span{font-size:.74rem;letter-spacing:.06em;color:rgba(239,243,245,.66)}
+.ill-rev-sync{display:inline-flex !important;align-items:center;gap:9px;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(239,243,245,.72);padding-bottom:6px}
+.ill-rev-sync span{width:5px;height:5px;border-radius:50%;background:#8FBFB0;flex:none}
 .ill-rev-list{list-style:none;padding:0;margin:0;display:grid;perspective:800px;width:100%}
 /* ASYMMETRIC, not a crossfade. Two stacked display-size quotes fading through
    each other overlap into unreadable mush for the whole transition. Leaving is
@@ -1465,15 +1745,16 @@ const STYLES = `
 }
 
 /* ── booking ── */
-.ill-book{max-width:1280px;margin:0 auto;padding:clamp(96px,15vh,170px) clamp(20px,5vw,64px) clamp(100px,15vh,180px);
-  display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.2fr);gap:clamp(30px,5vw,70px);align-items:start}
-/* the hairline has to run across BOTH columns. The form carried a border-top
-   and the copy did not, so the two halves of the section started on different
-   lines and the rule looked broken rather than deliberate. */
-.ill-book-copy{display:grid;gap:16px;position:sticky;top:110px;
+/* round 6b: the booking is the widest thing on the page. Heading and line
+   across the top, then the three house tiles, then two months of calendar
+   with the summary card standing beside them. */
+.ill-book{max-width:1500px;margin:0 auto;padding:clamp(96px,15vh,170px) clamp(20px,5vw,64px) clamp(100px,15vh,180px);
+  display:grid;gap:clamp(34px,5vh,56px)}
+.ill-book-copy{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px clamp(28px,6vw,110px);align-items:end;
   border-top:1px solid var(--hair);padding-top:26px}
-.ill-book-copy h2 .ill-rise-in{font-family:var(--serif);font-size:clamp(1.9rem,4vw,3.1rem);line-height:1.1}
-.ill-book-copy p .ill-rise-in{color:var(--ink-soft);max-width:44ch}
+.ill-book-copy h2 .ill-rise-in{font-family:var(--serif);font-size:clamp(2rem,4.4vw,3.6rem);line-height:1.06}
+.ill-book-copy p .ill-rise-in{color:var(--ink-soft);max-width:46ch}
+@media (max-width:860px){.ill-book-copy{grid-template-columns:minmax(0,1fr)}}
 .ill-field{display:grid;gap:7px}
 .ill-field label{font-size:.78rem;letter-spacing:.06em;color:var(--ink-mute);font-weight:400}
 .ill-field input,.ill-field select{font:inherit;color:var(--fg);background:transparent;border:1px solid var(--hair);
@@ -1498,25 +1779,53 @@ const STYLES = `
    silently ate it. minmax(0,1fr) lets the track shrink; min-width:0 lets the
    children stop propagating their own content floor. */
 @media (max-width:860px){
-  .ill-book{grid-template-columns:minmax(0,1fr)}
   .ill-book-copy,.ill-sb{min-width:0}
-  .ill-book-copy{position:static}
   .ill-field-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .ill-field-row .ill-field:last-child{grid-column:1/-1}
 }
 
 /* ── footer ── */
-.ill-footer{position:relative;background:var(--ink);color:var(--ice)}
-.ill-footer .ill-stage.is-footer{height:56svh;position:relative}
-.ill-footer .ill-stage.is-footer::after{content:'';position:absolute;inset:0;
-  background:linear-gradient(to bottom,rgba(14,22,29,.12),rgba(14,22,29,.96))}
-.ill-footer-grid{padding:clamp(40px,7vh,90px) clamp(20px,5vw,64px);display:grid;gap:clamp(28px,5vh,54px);max-width:1500px;margin:0 auto}
-.ill-footer-word{font-family:var(--serif);font-size:clamp(2rem,7.2vw,5.4rem);line-height:1.04;color:var(--ice);opacity:.94}
-.ill-footer-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:22px}
-.ill-footer-dl div{display:grid;gap:5px;border-top:1px solid var(--hair-ice);padding-top:14px}
-.ill-footer-dl dt{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ice-mute);font-weight:400}
-.ill-footer-dl dd{color:var(--ice-soft);font-size:.95rem}
-.ill-footer-dl a:hover{color:var(--ice)}
+.ill-footer{position:relative;background:var(--ink);color:var(--ice);overflow:hidden}
+.ill-footer-top{max-width:1500px;margin:0 auto;padding:clamp(70px,10vh,120px) clamp(20px,5vw,64px) clamp(44px,7vh,80px);
+  display:grid;grid-template-columns:minmax(0,1.7fr) repeat(3,minmax(0,1fr));gap:clamp(28px,4vw,72px);border-top:1px solid var(--hair-ice)}
+.ill-footer-brand{display:grid;gap:16px;align-content:start}
+.ill-footer-mark{font-family:var(--serif);font-size:1.4rem;display:flex;gap:.4em;color:var(--ice)}
+.ill-footer-brand p{color:var(--ice-soft);max-width:34ch;font-size:.95rem;text-wrap:balance}
+.ill-footer-brand .ill-footer-addr{color:var(--ice-mute);font-size:.84rem}
+.ill-footer-col h3{font-family:var(--sans);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ice-mute);font-weight:500;margin-bottom:18px}
+.ill-footer-col ul{list-style:none;padding:0;display:grid;gap:11px}
+.ill-footer-col li a{color:var(--ice-soft);font-family:var(--serif);font-size:1.15rem;line-height:1.2;transition:color .25s var(--e)}
+.ill-footer-book{display:inline-flex;gap:.6em;align-items:center;margin-top:24px;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;font-weight:500;
+  color:var(--ice);box-shadow:inset 0 0 0 1px var(--hair-ice);padding:12px 18px;transition:background-color .3s var(--e),color .3s var(--e)}
+.ill-footer-book i{font-style:normal;transition:transform .3s var(--e)}
+@media (hover:hover) and (pointer:fine){
+  .ill-footer-col li a:hover{color:var(--ice)}
+  .ill-footer-book:hover{background:var(--ice);color:var(--ink)}
+  .ill-footer-book:hover i{transform:translateX(4px)}
+}
+/* the waterline: word, seam, reflection. The reflection is a flipped box
+   that shows the lower half of the glyphs (flex-end + overflow), masked to
+   nothing, so the word reads as standing in still water. The drift loop
+   writes translate on the inner nodes only, never on the flipped box. */
+.ill-water{position:relative;padding:clamp(20px,5vh,56px) clamp(20px,5vw,64px) 0;text-align:center;line-height:1;max-width:1500px;margin:0 auto}
+.ill-water-word,.ill-water-refl > div{font-family:var(--serif);font-weight:300;font-size:clamp(2.5rem,9vw,9.4rem);letter-spacing:-.012em;white-space:nowrap;color:var(--ice);will-change:transform}
+.ill-water-word{padding-bottom:.06em}
+.ill-water-seam{display:block;height:1px;background:rgba(239,243,245,.4)}
+.ill-water-refl{display:flex;align-items:flex-end;justify-content:center;height:.62em;overflow:hidden;
+  font-size:clamp(2.5rem,9vw,9.4rem);transform:scaleY(-1);opacity:.3;filter:blur(1.2px);
+  -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.55) 40%,transparent 100%);
+  mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.55) 40%,transparent 100%)}
+.ill-water-refl > div{font-size:1em;padding-bottom:.06em}
+.ill-footer-base{max-width:1500px;margin:0 auto;padding:clamp(28px,5vh,48px) clamp(20px,5vw,64px) clamp(20px,3vh,32px);
+  display:flex;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;font-size:.76rem;letter-spacing:.02em;color:var(--ice-mute)}
+@media (max-width:900px){
+  .ill-footer-top{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .ill-footer-brand{grid-column:1/-1}
+}
+@media (max-width:640px){
+  .ill-footer-top{grid-template-columns:minmax(0,1fr);gap:34px}
+  .ill-water-refl{opacity:.22}
+}
 
 /* ── rise mechanism (resting state visible; .js arms the hidden start) ── */
 .ill-rise{overflow:hidden}
@@ -1528,6 +1837,8 @@ const STYLES = `
 @media (prefers-reduced-motion:reduce){
   .ill-stage-in{position:absolute;inset:0;transform:none !important}
   .ill-hero-line-in,.ill-hero-sub-in{transform:none;opacity:1;transition:none}
+  .ill-pill-wrap{opacity:1;transition:none}
+  .ill-pill{transform:none;transition:none}
   .ill-door,.ill-fact,.ill-amen li,.ill-frame{opacity:1;transform:none;transition:none}
   .js .ill-dusk-in{transform:none}
   .ill-loader-line::after{animation:none}
