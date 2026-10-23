@@ -156,22 +156,24 @@ const factIcon = (l: string): IconName => (/bed/i.test(l) ? 'bed' : /guest/i.tes
    DEMO_STAYS in data.ts; live, SNDR Bókun answers the same questions. ── */
 type Stay = { house: string; guest: string; arrive: Date; leave: Date }
 type PassResult = { kind: 'open'; stay: Stay } | { kind: 'early'; stay: Stay; opens: Date } | { kind: 'over'; stay: Stay } | { kind: 'cancelled' } | { kind: 'none' }
-const dayAt = (offset: number, hhmm = '00:00') => {
+/* Iceland is UTC all year: every window is built in UTC and shown in Iceland time,
+   so a guest's phone in another zone sees the same check-out moment as the lodge */
+const dayAt = (offset: number, hhmm = '00:00', now = new Date()) => {
   const [h, m] = hhmm.split(':').map(Number)
-  const d = new Date(); d.setHours(h, m, 0, 0); d.setDate(d.getDate() + offset); return d
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + offset, h, m))
 }
 function resolvePass(q: { pin?: string; token?: string }, now = new Date()): PassResult {
   const s = DEMO_STAYS.find((x) => (q.pin && x.pin === q.pin) || (q.token && x.token === q.token))
   if (!s) return { kind: 'none' }
   if (s.cancelled) return { kind: 'cancelled' }
-  const stay: Stay = { house: s.house, guest: s.guest, arrive: dayAt(s.arriveInDays, '15:00'), leave: dayAt(s.arriveInDays + s.nights, PASS_RULES.closesAt) }
-  const opens = dayAt(s.arriveInDays - PASS_RULES.opensDaysBefore)
+  const stay: Stay = { house: s.house, guest: s.guest, arrive: dayAt(s.arriveInDays, '15:00', now), leave: dayAt(s.arriveInDays + s.nights, PASS_RULES.closesAt, now) }
+  const opens = dayAt(s.arriveInDays - PASS_RULES.opensDaysBefore, '00:00', now)
   if (now < opens) return { kind: 'early', stay, opens }
   if (now > stay.leave) return { kind: 'over', stay }
   return { kind: 'open', stay }
 }
-const fmtDay = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-const fmtShortDay = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+const fmtDay = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Atlantic/Reykjavik' })
+const fmtShortDay = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Atlantic/Reykjavik' })
 /* remembered on this device until check-out, then forgotten by itself */
 const PASS_KEY = 'ill_pass'
 function rememberPass(stay: Stay, pin: string) {
@@ -188,21 +190,24 @@ function recallPass(): PassResult | null {
 function forgetPass() { try { localStorage.removeItem(PASS_KEY) } catch { /* private mode */ } }
 
 const PIN_LEN = 4
-function Gate({ onOpen }: { onOpen: (stay: Stay) => void }) {
+function Gate({ onOpen, notice }: { onOpen: (stay: Stay) => void; notice?: string }) {
   const [pin, setPin] = useState('')
   const [state, setState] = useState<'idle' | 'wrong' | 'ok' | 'early' | 'over' | 'paused'>('idle')
-  const [msg, setMsg] = useState('')
+  const [msg, setMsg] = useState(notice ?? '')
   const [house, setHouse] = useState<string | null>(null)
   const [guest, setGuest] = useState('')
   const [pausedUntil, setPausedUntil] = useState(0)
   const [, tick] = useState(0)
   const tries = useRef(0)
+  const pauseRef = useRef(0)
+  const seq = useRef(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const done = useRef(false)
+  const [focusIn, setFocusIn] = useState(false)
 
-  const check = (value: string) => {
-    if (done.current) return
-    if (Date.now() < pausedUntil) return
+  const check = (value: string, at: number) => {
+    if (done.current || at !== seq.current) return
+    if (Date.now() < pauseRef.current) { setPin(''); return }
     const r = resolvePass({ pin: value })
     if (r.kind === 'open') {
       done.current = true
@@ -222,29 +227,30 @@ function Gate({ onOpen }: { onOpen: (stay: Stay) => void }) {
     tries.current += 1
     if (tries.current >= PASS_RULES.maxTries) {
       tries.current = 0
-      setPausedUntil(Date.now() + PASS_RULES.pauseSeconds * 1000); setState('paused')
+      pauseRef.current = Date.now() + PASS_RULES.pauseSeconds * 1000
+      setPausedUntil(pauseRef.current); setState('paused')
     } else {
       setState('wrong'); setMsg('That pass does not match a stay. It is in your booking confirmation.')
     }
-    window.setTimeout(() => setPin(''), 380)
+    window.setTimeout(() => { if (at === seq.current) setPin('') }, 380)
   }
   const put = (d: string) => {
-    if (done.current || Date.now() < pausedUntil) return
+    if (done.current || Date.now() < pauseRef.current) return
     setPin((p) => {
       if (p.length >= PIN_LEN) return p
       const next = p + d
       if (state !== 'idle' && state !== 'ok') { setState('idle'); setMsg('') }
-      if (next.length === PIN_LEN) window.setTimeout(() => check(next), 120)
+      if (next.length === PIN_LEN) { const at = ++seq.current; window.setTimeout(() => check(next, at), 120) }
       return next
     })
   }
-  const back = () => { if (!done.current) setPin((p) => p.slice(0, -1)) }
+  const back = () => { if (!done.current) { seq.current++; setPin((p) => p.slice(0, -1)) } }
 
   /* the paused countdown */
   useEffect(() => {
     if (!pausedUntil) return
     const id = window.setInterval(() => {
-      if (Date.now() >= pausedUntil) { setPausedUntil(0); setState('idle'); setMsg(''); window.clearInterval(id) } else tick((n) => n + 1)
+      if (Date.now() >= pausedUntil) { pauseRef.current = 0; setPausedUntil(0); setState('idle'); setMsg(''); window.clearInterval(id) } else tick((n) => n + 1)
     }, 500)
     return () => window.clearInterval(id)
   }, [pausedUntil])
@@ -263,7 +269,8 @@ function Gate({ onOpen }: { onOpen: (stay: Stay) => void }) {
     const digits = e.target.value.replace(/\D/g, '').slice(0, PIN_LEN)
     e.target.value = ''
     if (!digits) return
-    if (digits.length === PIN_LEN) { setPin(digits); window.setTimeout(() => check(digits), 120) } else digits.split('').forEach(put)
+    if (Date.now() < pauseRef.current || done.current) return
+    if (digits.length === PIN_LEN) { const at = ++seq.current; setPin(digits); window.setTimeout(() => check(digits, at), 120) } else digits.split('').forEach(put)
   }
 
   const paused = Date.now() < pausedUntil
@@ -291,8 +298,11 @@ function Gate({ onOpen }: { onOpen: (stay: Stay) => void }) {
 
         <label htmlFor="ill-g-pin" className="ill-sr">4-digit pass</label>
         <input ref={inputRef} id="ill-g-pin" className="ill-g-pin-real" inputMode="numeric" autoComplete="one-time-code"
-          pattern="[0-9]*" maxLength={8} onChange={onInput} aria-describedby="ill-g-status" disabled={paused || state === 'ok'} />
-        <div className="ill-g-dots" aria-hidden="true" onClick={() => inputRef.current?.focus()}>
+          pattern="[0-9]*" maxLength={8} onChange={onInput} aria-describedby="ill-g-status ill-g-progress" disabled={paused || state === 'ok'}
+          onKeyDown={(e) => { if (e.key === 'Backspace') { e.preventDefault(); back() } }}
+          onFocus={() => setFocusIn(true)} onBlur={() => setFocusIn(false)} />
+        <span id="ill-g-progress" className="ill-sr" aria-live="polite">{pin.length} of {PIN_LEN} digits entered</span>
+        <div className={`ill-g-dots ${focusIn ? 'is-focus' : ''}`} aria-hidden="true" onClick={() => inputRef.current?.focus()}>
           {Array.from({ length: PIN_LEN }, (_, i) => <span key={i} className={i < pin.length ? 'is-on' : ''} />)}
           <svg className="ill-g-tick" viewBox="0 0 24 24" width="28" height="28"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </div>
@@ -462,7 +472,7 @@ function Manual({ stay, onClose }: { stay: Stay; onClose: () => void }) {
 
           <footer className="ill-g-foot">
             <p>Questions during your stay: <a href={PHONE_HREF}>{PHONE_DISPLAY}</a> · <a href={EMAIL_HREF}>{EMAIL}</a></p>
-            <p className="ill-g-small">Prototype. Facts are from the site; every “Signý fills in” is hers to write in the manual editor.</p>
+            <p className="ill-g-small">Prototype. House facts are from the site; Good to know is general knowledge about the area; every “Signý fills in” is hers to write in the manual editor.</p>
           </footer>
         </div>
       </div>
@@ -472,18 +482,35 @@ function Manual({ stay, onClose }: { stay: Stay; onClose: () => void }) {
 
 /* ════════════════════════════════ PAGE ════════════════════════════════════ */
 export default function Guests() {
-  const [stay, setStay] = useState<Stay | null>(() => {
-    /* 1) the private link from the confirmation email, 2) a pass remembered on this device */
-    try {
-      const token = new URLSearchParams(window.location.search).get('pass')
-      if (token) {
-        const r = resolvePass({ token })
-        if (r.kind === 'open') { const s = DEMO_STAYS.find((x) => x.token === token)!; rememberPass(r.stay, s.pin); return r.stay }
-      }
-    } catch { /* no URL access */ }
+  const [boot] = useState<{ stay: Stay | null; notice?: string }>(() => {
+    /* 1) the private link from the confirmation: authoritative, never falls back to device memory */
+    let token: string | null = null
+    try { token = new URLSearchParams(window.location.search).get('pass') } catch { /* no URL access */ }
+    if (token) {
+      const r = resolvePass({ token })
+      if (r.kind === 'open') { const s = DEMO_STAYS.find((x) => x.token === token)!; rememberPass(r.stay, s.pin); return { stay: r.stay } }
+      forgetPass()
+      const notice = r.kind === 'early' ? `Your manual opens on ${fmtDay(r.opens)}, three days before you arrive.`
+        : r.kind === 'over' ? 'That stay has ended. Thank you for staying with us.'
+        : r.kind === 'cancelled' ? 'This booking was cancelled, so its link no longer opens a manual.'
+        : 'That link is not valid. Enter the 4-digit pass from your booking confirmation.'
+      return { stay: null, notice }
+    }
+    /* 2) a pass remembered on this device, until check-out */
     const r = recallPass()
-    return r && r.kind === 'open' ? r.stay : null
+    return { stay: r && r.kind === 'open' ? r.stay : null }
   })
+  const [stay, setStay] = useState<Stay | null>(boot.stay)
+  /* the manual closes itself at check-out, also when the tab was left open */
+  useEffect(() => {
+    if (!stay) return
+    const expire = () => { if (Date.now() >= stay.leave.getTime()) { forgetPass(); setStay(null) } }
+    const ms = Math.min(stay.leave.getTime() - Date.now(), 2 ** 31 - 1)
+    const id = window.setTimeout(expire, Math.max(0, ms))
+    const onVis = () => { if (document.visibilityState === 'visible') expire() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { window.clearTimeout(id); document.removeEventListener('visibilitychange', onVis) }
+  }, [stay])
   useEffect(() => {
     document.title = stay ? `${DOORS.find((d) => d.id === stay.house)?.name ?? ''} · House manual` : 'House manual · Iceland Luxury Lodges'
     setThemeColor(stay ? '#0E161D' : '#0E161D')
@@ -507,7 +534,7 @@ export default function Guests() {
           <button type="button" onClick={close} aria-label="Lock the manual on this device"><Icon n="lock" size={18} /><span>Lock</span></button>
         </div>}
       </header>
-      {stay ? <Manual key={stay.house} stay={stay} onClose={close} /> : <Gate onOpen={open} />}
+      {stay ? <Manual key={stay.house} stay={stay} onClose={close} /> : <Gate onOpen={open} notice={boot.notice} />}
     </div>
   )
 }
@@ -559,6 +586,7 @@ const G_STYLES = `
 @keyframes ill-g-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .ill-g-pin-real{position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;border:0;padding:0;font-size:16px}
 .ill-g-dots{position:relative;display:flex;gap:18px;padding:16px 4px 6px;cursor:text}
+.ill-g-dots.is-focus{box-shadow:0 1px 0 rgba(246,249,250,.7)}
 .ill-g-dots span{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 1.25px rgba(246,249,250,.75);transition:background .18s var(--e),box-shadow .18s var(--e),transform .18s var(--e),opacity .3s var(--e)}
 .ill-g-dots span.is-on{background:#F6F9FA;box-shadow:none;transform:scale(1.04)}
 .ill-g-tick{position:absolute;left:50%;top:50%;margin:-6px 0 0 -14px;color:#F6F9FA;opacity:0;transform:scale(.9);transition:opacity .3s var(--e) .12s,transform .3s var(--e) .12s}

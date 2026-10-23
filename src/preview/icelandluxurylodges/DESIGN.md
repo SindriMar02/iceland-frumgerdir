@@ -264,3 +264,11 @@ dots + round pad, dark glass, smart-lock "send key" apps. 21st.dev API search fa
   guest's house and greets them by name before the manual opens.
 - **Manual**: "Welcome, <guest>" + stay dates and check-out in the header; four quick tiles (Arrival,
   Wi-Fi, Hot tub, Help); the section bar is a floating glass bar on desktop and a bottom dock on phones.
+- **Codex audit** (gpt-6-astra, high, standard; 55.6k tokens; verdict "concerns", 6 findings, all valid,
+  all fixed and each proven by `_docs/ill-round7-2026-10-22/pass-regress.mjs`): the manual closes itself at
+  check-out even in a tab left open; an explicit link is authoritative (invalid/cancelled links never fall
+  back to a remembered pass); windows are built in UTC and shown in Atlantic/Reykjavik (same check-out on a
+  Tokyo or LA phone); checks are serialized against a synchronous pause deadline (5 checked wrong passes
+  pause even an instant right one); Backspace works in the real field, focus shows on the dots and progress
+  is spoken; the geothermal line no longer claims the hot tubs' heating source, and the footer separates
+  house facts from general knowledge.

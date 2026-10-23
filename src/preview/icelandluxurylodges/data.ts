@@ -520,7 +520,7 @@ export const MANUAL_IMAGES: Record<string, Partial<Record<string, { img: keyof t
 export const MANUAL_FACTS: Record<string, { icon: 'swan' | 'law' | 'lake' | 'river' | 'steam' | 'aurora'; title: string; body: string }[]> = {
   all: [
     { icon: 'law', title: 'Þingvellir', body: 'A short drive north, and a UNESCO World Heritage Site since 2004: Iceland’s parliament met there in the open air from 930.' },
-    { icon: 'steam', title: 'Hot water from the ground', body: 'Nine in ten Icelandic homes are heated with geothermal water, the same warmth that fills the hot tub.' },
+    { icon: 'steam', title: 'Hot water from the ground', body: 'Nine in ten Icelandic homes are heated with geothermal water from deep under the ground.' },
     { icon: 'aurora', title: 'Aurora season', body: 'Roughly September to April, when the nights are dark enough. Clear skies and patience do the rest.' },
   ],
   ulfljotsskali: [
