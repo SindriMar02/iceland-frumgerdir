@@ -225,3 +225,42 @@ but open to ~57vw.
   (`auto`), then Signý's lines (`text.all` and `text.<house>`), and its "Signý fills in" box disappears
   once she has written any; `only` limits a section to some houses. Pricing clamps percents to 0–100,
   ignores bad tiers, never goes below 0; a rule at 0 % is off. Codes match ignoring case, spaces, dashes.
+
+## Round 10 (2026-10-23): the gate and the manual, premium pass
+Sindri: "the password page very intelligent and premium, the manual brilliant and in line with the
+site; mobbin screens and 21st dev components; nice icons, fun facts, easy navigation, beautiful images".
+References (Mobbin): Family + Skyscanner code screens (grouped boxes, paste), Airbnb + Vrbo arrival
+guides (check-in, Wi-Fi, rules blocks), Polarsteps destination header (coordinates + facts). 21st.dev
+catalog search was DOWN (failed twice); nothing taken from it.
+- **Gate**: editorial split, photograph left (collection hero), code right. Eight drawn boxes in two
+  groups over ONE real input (paste, `one-time-code` autofill, screen readers). The first four letters
+  identify the house: the photograph crossfades to it and its name + lake coordinates appear before
+  the code is finished; a full valid code opens by itself; a wrong one shakes once, explains, and puts
+  focus back on the code.
+- **Manual**: full-bleed house photograph with name, lake, coordinates; icon stats; "Today at the lake"
+  (sunrise/sunset/daylight computed on the device for the lake's coordinates, NOAA equation, Iceland is
+  UTC); a sticky icon bar with scrollspy (chips swipe on phones) + a numbered rail on desktop; every
+  section with a fine-line icon (drawn for this page, 1.25 stroke), photographs where they help (a
+  swipe reel under "Yours to use"); call buttons (112, host, email) under Help; "Good to know" INK band
+  of short well-established facts. Print + Lock in the top bar.
+- Editable in data.ts: `MANUAL_COORDS`, `MANUAL_IMAGES`, `MANUAL_FACTS` (plus `MANUAL`, `DEMO_CODES`).
+- review-animations: per-keystroke letter pop removed (keyboard, high frequency); rest approved.
+  web-design-guidelines: submit always enabled (empty press explains), touch-action manipulation,
+  safe-area top bar.
+
+## Round 11 (2026-10-23): the stay pass (Sindri: "a whole booking code seems a bit too much; something smart as the passcode engine; Pinterest + 21st.dev; premium, modern, sleek")
+References: Pinterest (logged in) "passcode screen ui minimal luxury", "hotel digital key app": iOS-style four
+dots + round pad, dark glass, smart-lock "send key" apps. 21st.dev API search failed again; the website
+(21st.dev/s/otp, /s/pin) confirmed the same pattern ("Enter your PIN" + round keypad). Built in-house.
+- **Engine** (`resolvePass` in Guests.tsx, rules + demo stays in data.ts `PASS_RULES`/`DEMO_STAYS`):
+  (1) the confirmation email's button carries `?pass=<token>`, opens the right house with no typing, and the
+  token is removed from the address bar; (2) otherwise a 4-digit PIN, which alone identifies the house.
+  Time-aware: open from 3 days before arrival to check-out 12:00; too early it names the day it opens;
+  after the stay it thanks them. Remembered on the device until check-out (Lock forgets it). 5 wrong PINs
+  pause entry 30 s. Paste and one-time-code autofill work through a hidden real input; on desktop digits
+  can be typed anywhere. Demo: 1906 Úlfljótsskáli, 2412 Álftavík (James), 3108 Áslundur, 5050 early.
+- **Gate UI**: full-bleed photograph, one glass column (blur on a fixed, non-scrolling layer), four dots
+  that fill, a 72 px round pad in Sentient numerals; success turns the dots into a check, crossfades to the
+  guest's house and greets them by name before the manual opens.
+- **Manual**: "Welcome, <guest>" + stay dates and check-out in the header; four quick tiles (Arrival,
+  Wi-Fi, Hot tub, Help); the section bar is a floating glass bar on desktop and a bottom dock on phones.

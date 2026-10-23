@@ -431,10 +431,33 @@ export const DISCOUNTS = {
   gap: { pct: 12 },
 }
 
-/** House-manual codes for the PROTOTYPE only. Live: SNDR Bókun issues one code per
- *  booking, checks it on the server, and it expires after check-out. Typing is
- *  forgiving: case, spaces and dashes are ignored ("alft 2026" opens ALFT-2026). */
-export const DEMO_CODES: Record<string, string> = { ulfljotsskali: 'ULFL-2026', alftavik: 'ALFT-2026', aslundur: 'ASLU-2026' }
+/** THE STAY PASS (round 11). How a guest gets into their house manual:
+ *  1. the confirmation email's "Open your house manual" button carries a private link
+ *     (`?pass=<token>`): no typing at all;
+ *  2. otherwise a 4-digit PIN from the same email. The PIN alone tells which house it is.
+ *  The pass works from `opensDaysBefore` days before arrival until check-out day at
+ *  `closesAt`; too early it says the day it opens, after the stay it thanks them. Once
+ *  opened it stays open on that device until check-out. `maxTries` wrong PINs pause entry
+ *  for `pauseSeconds`.
+ *  A pass follows the booking: moved dates move its window, a cancellation ends it, and
+ *  guests who booked through Airbnb or Booking.com get it as a message there.
+ *  PROTOTYPE: the stays below are demo bookings dated relative to today, checked in the
+ *  browser. Live: SNDR Bókun issues one pass per booking and checks it on the server. */
+export const PASS_RULES = { opensDaysBefore: 3, closesAt: '12:00', maxTries: 5, pauseSeconds: 30 }
+export type DemoStay = { pin: string; token: string; house: string; arriveInDays: number; nights: number; guest: string; cancelled?: boolean }
+export const DEMO_STAYS: DemoStay[] = [
+  { pin: '1906', token: 'demo-ulfl', house: 'ulfljotsskali', arriveInDays: 1, nights: 3, guest: 'Anna' },
+  { pin: '2412', token: 'demo-alft', house: 'alftavik', arriveInDays: 0, nights: 4, guest: 'James' },
+  { pin: '3108', token: 'demo-aslu', house: 'aslundur', arriveInDays: 2, nights: 2, guest: 'Sophie' },
+  /* shows the "opens on …" state: arrival 12 days away */
+  { pin: '5050', token: 'demo-early', house: 'alftavik', arriveInDays: 12, nights: 3, guest: 'Lukas' },
+  /* a cancelled booking: the pass ends with it (contract: access ends on cancellation) */
+  { pin: '7070', token: 'demo-cancel', house: 'aslundur', arriveInDays: 1, nights: 2, guest: 'Maria', cancelled: true },
+]
+/** One PIN per house for the booking confirmation demo. */
+export const DEMO_CODES: Record<string, string> = Object.fromEntries(
+  ['ulfljotsskali', 'alftavik', 'aslundur'].map((h) => [h, DEMO_STAYS.find((s) => s.house === h)!.pin]),
+)
 
 /** Where each house is, as the site already states it. */
 export const MANUAL_LOCALITY: Record<string, string> = {
@@ -464,3 +487,52 @@ export const MANUAL: ManualSection[] = [
   { id: 'rules', title: 'House rules', todo: 'quiet hours, events, pets, smoking, the number of guests the licence allows.' },
   { id: 'emergency', title: 'Help and emergencies', auto: 'contact', todo: 'nearest health centre and pharmacy, the caretaker on call, what to do if the power or hot water goes.' },
 ]
+
+/** The lake each house stands on, in degrees (from the map's OSM geometry; the
+ *  lake, never the parcel). Feeds the manual's coordinates and its sunrise/sunset. */
+export const MANUAL_COORDS: Record<string, { lat: number; lon: number; lake: string }> = {
+  ulfljotsskali: { lat: 64.108, lon: -21.031, lake: 'Úlfljótsvatn' },
+  alftavik: { lat: 64.033, lon: -20.978, lake: 'Álftavatn' },
+  aslundur: { lat: 64.033, lon: -20.978, lake: 'Álftavatn' },
+}
+
+/** One photograph per manual section, per house (keys of IMG). Omit to show none. */
+export const MANUAL_IMAGES: Record<string, Partial<Record<string, { img: keyof typeof IMG; alt: string }>>> = {
+  ulfljotsskali: {
+    hero: { img: 'lodgeExterior', alt: 'Úlfljótsskáli at dusk, the fire lit on the deck' },
+    water: { img: 'lodgeSpa', alt: 'The spa lounge beside the sauna' },
+    heat: { img: 'lodgeInt4', alt: 'The high-ceiling hall' },
+  },
+  alftavik: {
+    hero: { img: 'villa1', alt: 'The infinity hot tub on the terrace above Álftavatn' },
+    water: { img: 'eveBlue', alt: 'The infinity hot tub on the terrace at blue hour' },
+    heat: { img: 'villa6', alt: 'The living room fireplace with the lake through the glass' },
+  },
+  aslundur: {
+    hero: { img: 'aslundurHouse', alt: 'Áslundur among the spruce' },
+    water: { img: 'aslundurPatio', alt: 'The patio and hot tub' },
+    heat: { img: 'aslundurLiving', alt: 'The living room with the fireplace lit' },
+  },
+}
+
+/** "Good to know": short, well-established facts about the place. Key `all` shows on
+ *  every manual, a house id on that house only. Edit or remove freely. */
+export const MANUAL_FACTS: Record<string, { icon: 'swan' | 'law' | 'lake' | 'river' | 'steam' | 'aurora'; title: string; body: string }[]> = {
+  all: [
+    { icon: 'law', title: 'Þingvellir', body: 'A short drive north, and a UNESCO World Heritage Site since 2004: Iceland’s parliament met there in the open air from 930.' },
+    { icon: 'steam', title: 'Hot water from the ground', body: 'Nine in ten Icelandic homes are heated with geothermal water, the same warmth that fills the hot tub.' },
+    { icon: 'aurora', title: 'Aurora season', body: 'Roughly September to April, when the nights are dark enough. Clear skies and patience do the rest.' },
+  ],
+  ulfljotsskali: [
+    { icon: 'lake', title: 'Úlfljótsvatn', body: 'Named, the sagas say, after Úlfljótur, who brought Iceland its first code of law.' },
+    { icon: 'lake', title: 'Iceland’s largest lake', body: 'Þingvallavatn, just north of the lodge, is the largest natural lake in the country.' },
+  ],
+  alftavik: [
+    { icon: 'swan', title: 'Swan Lake', body: 'Álftavatn means Swan Lake: álft is the whooper swan, often on the water in summer.' },
+    { icon: 'river', title: 'The Sog', body: 'The river that runs through the lake is Iceland’s largest spring-fed river, clear and cold all year.' },
+  ],
+  aslundur: [
+    { icon: 'swan', title: 'Swan Lake', body: 'Álftavatn means Swan Lake: álft is the whooper swan, often on the water in summer.' },
+    { icon: 'river', title: 'The Sog', body: 'The river that runs through the lake is Iceland’s largest spring-fed river, clear and cold all year.' },
+  ],
+}

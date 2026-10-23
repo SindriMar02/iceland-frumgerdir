@@ -248,7 +248,7 @@ export function StayBook({ initial, compact = false }: { initial?: string; compa
         <p className="ill-sb-eyebrow">Confirmed · {ref}</p>
         <p className="ill-sb-done-h">{house.name} is yours, {fmt(start)} to {fmt(end)}.</p>
         <p className="ill-sb-done-p">{nights} nights for {guests} {guests === 1 ? 'guest' : 'guests'}, {money(total)} paid. A confirmation is on its way to your inbox.</p>
-        <p className="ill-sb-done-p">Your house manual opens with the code in your email: <b className="ill-sb-code">{DEMO_CODES[house.id]}</b>. <Link className="ill-sb-link" to="/preview/icelandluxurylodges/gestir">Open the manual</Link></p>
+        <p className="ill-sb-done-p">Your house manual opens from the link in your email, or with your 4-digit pass <b className="ill-sb-code">{DEMO_CODES[house.id]}</b>, from three days before you arrive. <Link className="ill-sb-link" to="/preview/icelandluxurylodges/gestir">Open the manual</Link></p>
         <button type="button" className="ill-sb-link" onClick={() => { setStep('pick'); setStart(null); setEnd(null) }}>Plan another stay</button>
         <p className="ill-sb-note">{STAY.note}</p>
       </div>
