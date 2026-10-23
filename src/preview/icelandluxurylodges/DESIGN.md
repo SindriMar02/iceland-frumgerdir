@@ -178,3 +178,27 @@ under the copy/card grid.
   Nav "Book", the landing booking section and the house cards carry the booking. The sentence bar
   (`HeroPill`) stays in the code behind `HERO_BAR = false`.
 - **Map pins on phones**: a pin past 45 % of the stage puts its label on the left, so it never leaves the stage.
+
+## Round 8 (2026-10-23): photographs (Sindri: "why are the images SO low quality? fix the images and upscale if needed")
+Cause: every source was 1600–1800 px (her WordPress library tops out under 1200), encoded AVIF q58 with a
+1600 px srcset ceiling, so a 1440 retina screen got a soft, over-compressed file; the doors hinted 33vw
+but open to ~57vw.
+- **Real originals first.** Airbnb keeps the uploads: host 7351939's lodge (6456350) and Álftavík
+  (1918233) listings serve 2560 px (checked native, not CDN-upscaled: grass and stone detail beat the
+  1200 px version upscaled). Matched by grey-fingerprint correlation ≥ 0.985: lodge-exterior,
+  lodge-gameroom, lodge-sauna, lodge-spa, villa-1, villa-2, villa-4, villa-5 → 2560 px originals.
+- **2K AI upscale only where faithful** (memory feedback-ai-upscale-listing-photos; Higgsfield
+  bytedance 2k, 2 credits each, 14 submitted, 28 credits). Crop-for-crop against a Lanczos resize of the
+  original. Accepted, stored at 2560 w: lodge-wide (disclose: the wine bottle's label text changed, a
+  movable object), lodge-suite, lodge-int-4, villa-3, villa-6, aslundur-patio, aslundur-dining,
+  aslundur-terrace, lodge-int-2 (retry), aslundur-house (retry; both tries invented an object where the
+  porch grill stands, so the original pixels of that 300×230 corner are pasted back). Rejected, kept as
+  they were: lodge-gym (frosted glass gained a floral pattern), lodge-family (cabinet burl and tile
+  redrawn), aslundur-living (painting redrawn, stray glyph in the window), aslundur-master (toile figures
+  dissolved). Those four want the photographer's full-size files from Signý. 18 upscales, 36 credits.
+- **Sizes by height where cover crops.** The doors are portrait boxes filled with landscape photos, so the
+  photo's width follows the door's HEIGHT (92svh × 1.5): sizes `(max-width: 900px) 96vh, 140vh`, not 33vw
+  (the browser was taking ~1000 px and stretching it 3×). Full-screen hero and evening band:
+  `(orientation: portrait) 150vh, 100vw`. House strip: 83vh.
+- **Delivery.** `encode-images.mjs`: 800/1200/1800/2400, AVIF q72 s6 + WebP q86 sharp_yuv, never above the
+  source width. Doors hint 58vw. Old 640/1000/1600 variants removed.

@@ -43,22 +43,22 @@ const ROOT = '/preview/icelandluxurylodges'
 const HERO_BAR = false
 
 /* ── responsive pictures ──────────────────────────────────────────────────
-   Every photograph ships as AVIF + WebP + JPEG at three widths from
-   public/icelandluxurylodges/r/ (made by sips + cwebp + avifenc, see the
-   DESIGN.md perf note). The 1600px originals were 300–950 KB each; the
-   AVIF a phone actually downloads is 40–110 KB. */
+   Every photograph ships as AVIF + WebP at 800/1200/1800/2400 from
+   public/icelandluxurylodges/r/ (encode-images.mjs: AVIF q72, WebP q86;
+   round 6's q58 at a 1600 ceiling read soft on retina screens). A width
+   above a source's own size is written at the source size, never upscaled. */
 const RDIR = `${import.meta.env.BASE_URL}icelandluxurylodges/r/`
 const picSrc = (src: string) => {
   const m = src.match(/\/([a-z0-9-]+)\.jpg$/i)
   if (!m) return null
   const n = m[1]
-  const widths = n.startsWith('hero-') ? [1000, 1600, 2400] : [640, 1000, 1600]
+  const widths = [800, 1200, 1800, 2400]
   const set = (ext: string) => widths.map((w) => `${RDIR}${n}-${w}.${ext} ${w}w`).join(', ')
   /* no JPEG srcset: every browser that reads srcset reads WebP, so the plain
      src (the original file) is the only JPEG fallback that is ever fetched */
   return { avif: set('avif'), webp: set('webp') }
 }
-function Pic({ src, alt, sizes = '100vw', priority = false, className }: {
+function Pic({ src, alt, sizes = '(orientation: portrait) 150vh, 100vw', priority = false, className }: {
   src: string; alt: string; sizes?: string; priority?: boolean; className?: string
 }) {
   const s = picSrc(src)
@@ -169,7 +169,7 @@ function Stage({
     <figure className={`ill-stage ${className}`} ref={figRef}>
       <div className="ill-stage-frame" style={{ ['--dz' as string]: `${dz}%` }}>
         <div className="ill-stage-in" ref={imgRef}>
-          <Pic src={src} alt={alt} priority={priority} sizes={priority ? '100vw' : '(max-width: 900px) 100vw, 60vw'} />
+          <Pic src={src} alt={alt} priority={priority} sizes={priority ? '(orientation: portrait) 150vh, 100vw' : '(max-width: 900px) 100vw, 60vw'} />
           {film && (
             <video
               className="ill-stage-film"
@@ -361,7 +361,7 @@ function Strip({ name }: { name: string }) {
         {STRIP.map((f, k) => (
           <li key={f.img}>
             <figure>
-              <div className="ill-strip-img"><Pic src={IMG[f.img]} alt={f.alt} sizes="(max-width: 640px) 84vw, 60vh" /></div>
+              <div className="ill-strip-img"><Pic src={IMG[f.img]} alt={f.alt} sizes="(max-width: 640px) 84vw, 83vh" /></div>
               <figcaption><span>{String(k + 1).padStart(2, '0')}</span>{f.line}</figcaption>
             </figure>
           </li>
@@ -886,7 +886,7 @@ export default function Page({ house }: { house?: string } = {}) {
       {doorList.map((d, i) => (
         <Link className="ill-door" key={d.id} to={`${ROOT}/${d.id}`} style={{ transitionDelay: `${i * 90}ms` }}>
           <div className="ill-door-media">
-            <Pic src={IMG[d.img as keyof typeof IMG]} alt={d.alt} sizes="(max-width: 900px) 100vw, 33vw" />
+            <Pic src={IMG[d.img as keyof typeof IMG]} alt={d.alt} sizes="(max-width: 900px) 96vh, 140vh" />
           </div>
           <div className="ill-door-copy">
             <span className="ill-door-kind">{d.kind}</span>
