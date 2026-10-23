@@ -1,14 +1,14 @@
 /* ── Guest reviews, in the SNDR review-sync standard shape ──────────────────
    On the live site this is `src/content/reviews.json`, and `_tools/review-sync`
    rewrites it every Monday 07:30 from the Airbnb door (listing 1918233 is
-   Álftavík: "Hosted by Signy · Superhost", 4.95 from 184 reviews, read
-   2026-09-02 on the listing itself). The prototype keeps it as a module so the
+   Álftavík: "Hosted by Signy · Superhost", 4.95 from 187 reviews, read
+   2026-10-23 on the listing itself). The prototype keeps it as a module so the
    page can import it without a JSON loader; the shape is identical.
    Vrbo is read by hand (no free door) and says so in `read`. Quotes are one
    sentence each, cut verbatim at a sentence boundary, never paraphrased. */
 export const REVIEW_DATA = {
   sources: [
-    { platform: 'Airbnb', listing: '1918233', house: 'Álftavík', url: 'https://www.airbnb.com/rooms/1918233', count: 184, rating: 4.95, of: 5, read: '2026-09-02', synced: 'weekly' },
+    { platform: 'Airbnb', listing: '1918233', house: 'Álftavík', url: 'https://www.airbnb.com/rooms/1918233', count: 187, rating: 4.95, of: 5, read: '2026-10-23', synced: 'weekly' },
     { platform: 'Vrbo', listing: '', house: 'Úlfljótsskáli', url: '', count: 28, rating: 10, of: 10, read: '2026-08-16', synced: 'by hand' },
   ],
   reviews: [

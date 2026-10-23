@@ -99,7 +99,7 @@ export function LakeMap({ crop, focus, legend = false }: { crop: Crop; focus?: s
             <div key={p.id} className={`ill-map-pin is-${sideOf(p)} ${isFocus ? 'is-focus' : ''} ${dim ? 'is-dim' : ''} ${p.id === 'reykjavik' ? 'is-key' : ''}`} style={pct(p.c)}>
               <i aria-hidden="true" />
               <span className="ill-map-pin-l">
-                <b>{p.names.map((n, i) => {
+                <b>{p.names.filter((n) => !(narrow && focus && p.names.length > 1) || DOORS.find((d) => d.id === focus)?.name === n).map((n, i) => {
                   const own = !focus || DOORS.find((d) => d.id === focus)?.name === n || p.id === 'reykjavik'
                   return <em key={n} className={own ? '' : 'is-other'}>{i ? ' · ' : ''}{n}</em>
                 })}</b>

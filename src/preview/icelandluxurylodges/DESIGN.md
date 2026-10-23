@@ -202,3 +202,26 @@ but open to ~57vw.
   `(orientation: portrait) 150vh, 100vw`. House strip: 83vh.
 - **Delivery.** `encode-images.mjs`: 800/1200/1800/2400, AVIF q72 s6 + WebP q86 sharp_yuv, never above the
   source width. Doors hint 58vw. Old 640/1000/1600 variants removed.
+
+## Round 9 (2026-10-23, after Sindri's meeting with Signý, Pocket 16be3b58): guest manual + discounts
+- **House manual** (`Guests.tsx`, route `/preview/icelandluxurylodges/gestir`, noindex, not in the nav;
+  linked from the footer base line "Guests" and from the booking confirmation). A guest types the code
+  from the confirmation email; it opens that house's manual. Demo codes ULFL-2026 / ALFT-2026 /
+  ASLU-2026 live client-side (`DEMO_CODES` in Book.tsx); the live site checks a per-booking code on the
+  server and it dies after check-out. Ten sections; facts only from data.ts (locality, kind, facts,
+  amenities, host phone/email, 112), every unknowable part a marked "Signý fills in" box. House map
+  under "Getting there". Print stylesheet hides the index, map and buttons.
+- **Discounts** (`DISCOUNTS` + `priceStay` in Book.tsx), mirroring the engine (sndr-platform
+  `smartPricing.ts`) and contract grein 3.4: PER NIGHT the single largest percent applies, NEVER a sum.
+  Sample rules: longer stay (highest tier: 3+ −5%, 5+ −10%, 7+ −15%, on every night), last minute (a
+  night within 7 days −8%, judged per night), gap night (a single empty night booked on both sides
+  −12%). Ties: gap, then stay, then last minute. One line per rule that won, with its night count when
+  it won only some nights; each group rounded once to whole euros so lines sum exactly (engine prices to
+  the cent: 7 × €690 at 15% = €724.50 → €725). Note under the breakdown: samples, one best discount per
+  night, she sets every rule.
+- Phone house maps name only the focused house when two share a pin (the pair left the stage).
+- **Editable by design** (Sindri: "bulletproof and editable and customizable"): `DISCOUNTS`, `DEMO_CODES`,
+  `MANUAL` and `MANUAL_LOCALITY` live in data.ts as plain content. A manual section shows the site's facts
+  (`auto`), then Signý's lines (`text.all` and `text.<house>`), and its "Signý fills in" box disappears
+  once she has written any; `only` limits a section to some houses. Pricing clamps percents to 0–100,
+  ignores bad tiers, never goes below 0; a rule at 0 % is off. Codes match ignoring case, spaces, dashes.

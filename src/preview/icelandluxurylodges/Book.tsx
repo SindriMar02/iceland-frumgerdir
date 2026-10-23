@@ -1,5 +1,6 @@
+import { Link } from 'react-router-dom'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { STAY } from './data'
+import { STAY, DISCOUNTS, DEMO_CODES } from './data'
 
 /* ── BOOK DIRECT — the SNDR stay calendar, in this page's own language ─────
    The offer she has on the table is a site that TAKES the booking (calendar →
@@ -75,6 +76,50 @@ export function pickNight(
 
 /* the hero bar hands its choice over before navigating; the house page's
    card picks it up on mount (and only if those nights are free there) */
+/* ── automatic discounts (Signý's meeting, 23 Oct 2026) ──────────────────
+   SAMPLE rules: on the live site she sets every one herself in SNDR Bókun.
+   Mirrors the engine (sndr-platform src/booking/smartPricing.ts): PER NIGHT
+   the single largest percent applies, never a sum (contract grein 3.4):
+     · longer stay: the highest tier the stay reaches, on every night of it;
+     · last minute: a night within N days of today (judged per night, so a
+       stay starting soon and running on is priced night by night);
+     · gap night: a single empty night booked on both sides.
+   Ties go gap, then stay, then last minute, as in the engine. The lines group
+   nights by the rule that won, so they always add up to the total exactly. */
+type Kind = 'gap' | 'long' | 'short'
+export { DEMO_CODES }
+export function priceStay(rate: number, start: D | null, end: D | null, today: D, taken: Set<D>) {
+  if (!start || !end) return { base: 0, lines: [] as { label: string; amount: number }[], total: 0 }
+  const n = nightsBetween(start, end), base = n * rate
+  if (!(n > 0) || !(rate > 0)) return { base: Math.max(0, base), lines: [] as { label: string; amount: number }[], total: Math.max(0, base) }
+  const pc = (v: number) => (Number.isFinite(v) ? Math.min(100, Math.max(0, v)) : 0)
+  const tiers = (DISCOUNTS.long ?? []).filter((t) => t.min >= 1 && pc(t.pct) > 0).sort((a, b) => a.min - b.min)
+  const tier = [...tiers].reverse().find((t) => n >= t.min)
+  const stayPct = pc(tier?.pct ?? 0)
+  const shortPct = DISCOUNTS.short && DISCOUNTS.short.days >= 0 ? pc(DISCOUNTS.short.pct) : 0
+  const gapRule = pc(DISCOUNTS.gap?.pct ?? 0)
+  const won: Record<Kind, { nights: number; pct: number }> = { gap: { nights: 0, pct: 0 }, long: { nights: 0, pct: 0 }, short: { nights: 0, pct: 0 } }
+  for (let i = 0; i < n; i++) {
+    const night = addDays(start, i)
+    const stepPct = shortPct && nightsBetween(today, night) <= DISCOUNTS.short.days ? shortPct : 0
+    const gapPct = gapRule && taken.has(addDays(night, -1)) && taken.has(addDays(night, 1)) ? gapRule : 0
+    const pct = Math.max(stepPct, gapPct, stayPct)
+    if (pct <= 0) continue
+    const kind: Kind = gapPct > 0 && gapPct >= stepPct && gapPct >= stayPct ? 'gap' : stayPct > 0 && stayPct >= stepPct ? 'long' : 'short'
+    won[kind].nights++; won[kind].pct = pct
+  }
+  /* the engine prices each night to the cent; the prototype shows whole euros, so each
+     rule's nights are rounded once as a group (7 × €690 at 15% = €724.50 → €725) */
+  const off = (k: Kind) => Math.round(won[k].nights * rate * won[k].pct / 100)
+  const per = (k: number) => k === n ? '' : ` (${k} ${k === 1 ? 'night' : 'nights'})`
+  const lines: { label: string; amount: number }[] = []
+  if (off('long')) lines.push({ label: `Stay ${tier!.min}+ nights −${stayPct}%${per(won.long.nights)}`, amount: off('long') })
+  if (off('short')) lines.push({ label: `Within ${DISCOUNTS.short.days} days −${shortPct}%${per(won.short.nights)}`, amount: off('short') })
+  if (off('gap')) lines.push({ label: `Gap night −${gapRule}%${per(won.gap.nights)}`, amount: off('gap') })
+  const total = base - lines.reduce((a, l) => a + l.amount, 0)
+  return { base, lines, total: Math.max(0, total) }
+}
+
 export const stayPrefill: { house: string | null; guests: number; start: D | null; end: D | null } = { house: null, guests: 0, start: null, end: null }
 
 /* ── the calendar itself ──────────────────────────────────────────────── */
@@ -180,7 +225,8 @@ export function StayBook({ initial, compact = false }: { initial?: string; compa
   }
 
   const nights = start && end ? nightsBetween(start, end) : 0
-  const total = nights * house.rate
+  const price = priceStay(house.rate, start, end, today, taken)
+  const total = price.total
 
   const pay = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -202,6 +248,7 @@ export function StayBook({ initial, compact = false }: { initial?: string; compa
         <p className="ill-sb-eyebrow">Confirmed · {ref}</p>
         <p className="ill-sb-done-h">{house.name} is yours, {fmt(start)} to {fmt(end)}.</p>
         <p className="ill-sb-done-p">{nights} nights for {guests} {guests === 1 ? 'guest' : 'guests'}, {money(total)} paid. A confirmation is on its way to your inbox.</p>
+        <p className="ill-sb-done-p">Your house manual opens with the code in your email: <b className="ill-sb-code">{DEMO_CODES[house.id]}</b>. <Link className="ill-sb-link" to="/preview/icelandluxurylodges/gestir">Open the manual</Link></p>
         <button type="button" className="ill-sb-link" onClick={() => { setStep('pick'); setStart(null); setEnd(null) }}>Plan another stay</button>
         <p className="ill-sb-note">{STAY.note}</p>
       </div>
@@ -275,7 +322,8 @@ export function StayBook({ initial, compact = false }: { initial?: string; compa
             </div>
           </div>
           <dl className="ill-sb-price">
-            <div><dt>{money(house.rate)} × {nights || '—'} nights</dt><dd>{nights ? money(total) : '—'}</dd></div>
+            <div><dt>{money(house.rate)} × {nights || '—'} nights</dt><dd>{nights ? money(price.base) : '—'}</dd></div>
+            {price.lines.map((l) => <div className="is-off" key={l.label}><dt>{l.label}</dt><dd>−{money(l.amount)}</dd></div>)}
             <div><dt>Booking fee</dt><dd>{money(0)}</dd></div>
             <div className="is-total"><dt>Total</dt><dd>{nights ? money(total) : '—'}</dd></div>
           </dl>
@@ -285,6 +333,7 @@ export function StayBook({ initial, compact = false }: { initial?: string; compa
               {nights ? `Continue with ${nights} nights` : 'Choose your nights'}
             </button>
           )}
+          <p className="ill-sb-note">Discounts apply by themselves, and each night gets the single best one, never two added together. The amounts are samples: you set every rule (longer stays, short notice, gap nights) in your own settings.</p>
           <p className="ill-sb-note">{STAY.note}</p>
         </aside>
       </div>
@@ -353,6 +402,8 @@ export const BOOK_STYLES = `
 .ill-sb-price{display:grid;gap:8px;margin:0}
 .ill-sb-price div{display:flex;justify-content:space-between;gap:16px;font-size:.9rem;color:var(--ink-soft)}
 .ill-sb-price dd{margin:0;font-variant-numeric:tabular-nums}
+.ill-sb-price .is-off{color:var(--acc)}
+.ill-sb-code{font-family:var(--sans);font-weight:500;letter-spacing:.12em}
 .ill-sb-price .is-total{border-top:1px solid var(--hair);padding-top:12px;margin-top:2px;color:var(--fg);font-size:1rem}
 .ill-sb-price .is-total dd{font-family:var(--serif);font-size:1.3rem}
 .ill-sb-go{width:100%}

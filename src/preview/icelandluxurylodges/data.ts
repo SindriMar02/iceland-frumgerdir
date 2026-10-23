@@ -200,7 +200,7 @@ export const CHAPTERS: Chapter[] = [
       { img: 'villa3', alt: 'Bathroom shelf with towels and spa stones' },
     ],
     /* re-read on the listing itself (airbnb.com/rooms/1918233) 2026-09-02 */
-    chip: { score: '4.95 of 5 · 184 reviews', source: 'Airbnb, Guest favourite' },
+    chip: { score: '4.95 of 5 · 187 reviews', source: 'Airbnb, Guest favourite' },
   },
   {
     id: 'aslundur',
@@ -273,7 +273,7 @@ export const STRIP: { img: keyof typeof IMG; line: string; alt: string }[] = [
 /** Álftavík: its own score, read on the listing itself 2026-09-02, and its own guest */
 export const SCORE = {
   n: '4.95',
-  of: 'out of 5 from 184 Airbnb reviews',
+  of: 'out of 5 from 187 Airbnb reviews',
   tag: 'Guest favourite',
   quote: 'Amazing stay at a wonderful property.',
   who: 'Joshua S. · Álftavík · Vrbo, July 2025',
@@ -399,7 +399,7 @@ export const JSON_LD = {
       '@type': 'LodgingBusiness',
       name: 'Álftavík Lakefront Villa',
       description: '170 m² lakefront villa on Álftavatn with infinity hot tub, panorama sauna and private black sand beach. Sleeps up to 12.',
-      aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.95', reviewCount: '184', bestRating: '5' },
+      aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.95', reviewCount: '187', bestRating: '5' },
       address: { '@type': 'PostalAddress', addressLocality: 'Grímsnes- og Grafningshreppur', addressCountry: 'IS' },
       parentOrganization: { '@type': 'Organization', name: 'Iceland Luxury Lodges' },
     },
@@ -412,3 +412,55 @@ export const JSON_LD = {
     },
   ],
 }
+
+/* ═══ EDITABLE: booking discounts, house-manual codes and the manual itself ═══
+   Everything below is plain content. Change a number or a sentence here and the
+   booking card, the confirmation and the house manual follow; no component code
+   needs touching. On the live site the same fields live in SNDR Bókun settings
+   and the manual editor, so Signý changes them herself without a deploy. */
+
+/** Automatic discounts (SAMPLE values). Per NIGHT the single largest percent applies,
+ *  never a sum (contract grein 3.4, engine smartPricing.ts). Set a percent to 0, or
+ *  empty the tier list, to switch a rule off. Percents are clamped to 0–100. */
+export const DISCOUNTS = {
+  /** Longer stay: the highest tier the stay reaches applies to every night. */
+  long: [{ min: 3, pct: 5 }, { min: 5, pct: 10 }, { min: 7, pct: 15 }],
+  /** Last minute: a night within `days` of today. */
+  short: { days: 7, pct: 8 },
+  /** Gap night: a single empty night booked on both sides. */
+  gap: { pct: 12 },
+}
+
+/** House-manual codes for the PROTOTYPE only. Live: SNDR Bókun issues one code per
+ *  booking, checks it on the server, and it expires after check-out. Typing is
+ *  forgiving: case, spaces and dashes are ignored ("alft 2026" opens ALFT-2026). */
+export const DEMO_CODES: Record<string, string> = { ulfljotsskali: 'ULFL-2026', alftavik: 'ALFT-2026', aslundur: 'ASLU-2026' }
+
+/** Where each house is, as the site already states it. */
+export const MANUAL_LOCALITY: Record<string, string> = {
+  ulfljotsskali: 'Úlfljótsvatn, 805 Selfoss',
+  alftavik: 'Grímsnes- og Grafningshreppur, on Álftavatn',
+  aslundur: 'Grímsnes- og Grafningshreppur, on Álftavatn',
+}
+
+/** The house manual, in reading order. Per section:
+ *  · `auto`  facts the site already states, pulled from the data above (never typed twice);
+ *  · `text`  Signý's own lines: key `all` for every house, or a house id for one house.
+ *            When a section has any text for the house, its "Signý fills in" box disappears;
+ *  · `todo`  what the placeholder asks for until then;
+ *  · `only`  limit a section to some houses (omit = every house).
+ *  Add, remove or reorder sections freely; ids must stay unique. */
+export type ManualAuto = 'directions' | 'house' | 'amenities' | 'water' | 'fireplaces' | 'contact'
+export type ManualSection = { id: string; title: string; auto?: ManualAuto; text?: Record<string, string[]>; todo?: string; only?: string[] }
+export const MANUAL: ManualSection[] = [
+  { id: 'arrival', title: 'Arrival and departure', todo: 'check-in time, check-out time, where the key is, early arrival and late departure.' },
+  { id: 'directions', title: 'Getting there', auto: 'directions', todo: 'the turn-off, the last stretch of road, where to park, winter driving notes.' },
+  { id: 'house', title: 'The house', auto: 'house' },
+  { id: 'yours', title: 'Yours to use', auto: 'amenities', todo: 'how each one works, what is stocked, what to leave as found.' },
+  { id: 'water', title: 'Hot tub and sauna', auto: 'water', todo: 'how to open and close the hot tub, the cover, temperature, sauna times.' },
+  { id: 'wifi', title: 'Wi-Fi', todo: 'network name and password (shown only after the code, never on the open site).' },
+  { id: 'heat', title: 'Heating and fireplaces', auto: 'fireplaces', todo: 'thermostats, floor heating, how to light the fireplace safely, firewood.' },
+  { id: 'waste', title: 'Waste and recycling', todo: 'bins, sorting, where they go before departure.' },
+  { id: 'rules', title: 'House rules', todo: 'quiet hours, events, pets, smoking, the number of guests the licence allows.' },
+  { id: 'emergency', title: 'Help and emergencies', auto: 'contact', todo: 'nearest health centre and pharmacy, the caretaker on call, what to do if the power or hot water goes.' },
+]

@@ -1177,7 +1177,7 @@ export default function Page({ house }: { house?: string } = {}) {
           <Waterword />
           <div className="ill-footer-base">
             <span>© {new Date().getFullYear()} Luxuria ehf. · Iceland Luxury Lodges</span>
-            <span>Úlfljótsvatn · Álftavatn · Reykjavík</span>
+            <span>Úlfljótsvatn · Álftavatn · Reykjavík · <Link to={`${ROOT}/gestir`}>Guests</Link></span>
           </div>
           <PreviewFooter company={company} />
         </footer>
