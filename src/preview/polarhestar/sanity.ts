@@ -26,6 +26,7 @@ import {
   GOOD_TO_KNOW,
   IMG,
   type GoodToKnowData,
+  type GtkAudience,
   type L3,
   type LongTour,
   LONG_TOURS,
@@ -59,7 +60,7 @@ const STUDIO_URL = (import.meta.env.VITE_SANITY_STUDIO_URL as string | undefined
 const STEGA_SKIP = new Set([
   'key', 'glow', 'phoneHref', 'email', 'bookingEmail', 'mapsUrl', 'facebook', 'order', '_id', '_type',
   // schedule values are parsed, compared and looked up, never displayed raw
-  'level', 'beds', 'status', 'start', 'times',
+  'level', 'beds', 'status', 'start', 'times', 'audience',
 ])
 
 const client = createClient({
@@ -199,13 +200,13 @@ export const QUERY = `{
     ..., bookingImage ${IMG_PRJ}, trustFamilyImage ${IMG_PRJ}, visitImage ${IMG_PRJ}, ctaImage ${IMG_PRJ}
   },
   "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, bookingEmail, facebook, address, mapsUrl, childDiscount, stats},
-  "tours": *[_type=="tour"]|order(order asc){_id, active, name, duration, minAge, minRiders, price, months, times, blurb, image ${IMG_PRJ}},
+  "tours": *[_type=="tour"]|order(order asc){_id, active, name, duration, minAge, minRiders, price, price2027, months, times, blurb, image ${IMG_PRJ}},
   "seasons": *[_type=="season"]|order(order asc){_id, key, name, kicker, line, tourLabel, glow, image ${IMG_PRJ}},
   "longTours": *[_type=="longTour"]|order(order asc){_id, active, name, blurb, priceEur, days, ridingDays, level, minAge, maxRiders, kmMin, kmMax, herdDays, beds, departures[]{start, status, note}, datesNote, itinerary[]{kind, body, places}, image ${IMG_PRJ}},
   "schedule": *[_type=="schedulePage"][0]{eyebrow, title, intro, longTerms, shortTerms},
   "reviews": *[_type=="review"]|order(coalesce(order, 100) asc, name asc){_id, quote, name, origin},
   "shop": *[_type=="shopItem"]|order(order asc){_id, name, price, from},
-  "gtk": *[_type=="goodToKnow"][0]{eyebrow, heading, body, items[]{title, body}},
+  "gtk": *[_type=="goodToKnow"][0]{eyebrow, heading, body, items[]{audience, title, body}},
   "farm": *[_type=="farmSection"][0]{eyebrow, heading, body, items[]{title, body}},
   "gallery": *[_type=="galleryImage"]|order(order asc){image ${IMG_PRJ}}
 }`
@@ -271,6 +272,8 @@ export function merge(raw: any): SiteContent {
             minAge: num(d.minAge, fb?.minAge ?? 6),
             minRiders: num(d.minRiders, fb?.minRiders ?? 1),
             price: typeof d.price === 'number' ? d.price : (fb?.price ?? 0),
+            // the CMS is the truth for next year's price: empty there = not published yet
+            price2027: typeof d.price2027 === 'number' && d.price2027 > 0 ? d.price2027 : undefined,
             image: fb?.image ?? IMG.procession[0],
             blurb: fb ? l3(d.blurb, fb.blurb) : l3self(d.blurb),
             months: Array.isArray(d.months) ? (d.months.length ? d.months : undefined) : fb?.months,
@@ -380,7 +383,11 @@ export function merge(raw: any): SiteContent {
           Array.isArray(raw.gtk.items) && raw.gtk.items.length
             ? raw.gtk.items.map((it: any, i: number) => {
                 const fb = GOOD_TO_KNOW.items[i] ?? GOOD_TO_KNOW.items[0]
-                return { title: l3(it?.title, fb.title), body: l3(it?.body, fb.body) }
+                return {
+                  title: l3(it?.title, fb.title),
+                  body: l3(it?.body, fb.body),
+                  audience: oneOf<GtkAudience>(it?.audience, ['short', 'long', 'both'], 'both'),
+                }
               })
             : GOOD_TO_KNOW.items,
       }

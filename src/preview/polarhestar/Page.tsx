@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Clock,
   Facebook,
+  Info,
   Instagram,
   Mail,
   MapPin,
@@ -23,7 +24,7 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
-import { COPY, INSTAGRAM, TRIPADVISOR, type Lang } from './data'
+import { COPY, FOUNDED, INSTAGRAM, TRIPADVISOR, priceOn, type GtkAudience, type Lang } from './data'
 import { stegaClean } from '@sanity/client/stega'
 import { Link } from 'react-router-dom'
 import { SiteContentProvider, useHashLanding, useSiteContent, altIs, type Pic, type TourX } from './sanity'
@@ -99,13 +100,51 @@ const fmtDate = (iso: string, lang: Lang) => {
   return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
 }
 /** A rider on a booking request: what they say of their riding, and a child's age. */
-type Rider = { experience: '' | 'none' | 'some' | 'regular' | 'experienced'; age?: number | '' }
+type Rider = { experience: '' | 'none' | 'some' | 'novice' | 'intermediate' | 'strong' | 'advanced'; age?: number | '' }
+/** The farm's own scale, in their order (Símon, 23 Oct 2026). */
 const EXPERIENCE: { id: Exclude<Rider['experience'], ''>; label: Record<Lang, string> }[] = [
   { id: 'none', label: { is: 'Aldrei farið á hestbak', en: 'Never ridden', de: 'Noch nie geritten' } },
   { id: 'some', label: { is: 'Farið nokkrum sinnum', en: 'Ridden a few times', de: 'Ein paar Mal geritten' } },
-  { id: 'regular', label: { is: 'Ríð reglulega', en: 'Ride regularly', de: 'Reite regelmäßig' } },
-  { id: 'experienced', label: { is: 'Vanur knapi', en: 'Experienced rider', de: 'Erfahrener Reiter' } },
+  { id: 'novice', label: { is: 'Byrjandi', en: 'Novice', de: 'Anfänger' } },
+  { id: 'intermediate', label: { is: 'Miðlungsvanur', en: 'Intermediate', de: 'Mittleres Niveau' } },
+  { id: 'strong', label: { is: 'Nokkuð vanur', en: 'Strong Intermediate', de: 'Gutes mittleres Niveau' } },
+  { id: 'advanced', label: { is: 'Mjög vanur', en: 'Advanced', de: 'Fortgeschritten' } },
 ]
+type PriceYear = 2026 | 2027
+
+/** A few choices, one pressed: the price year on the rides, short or long in "good to know". */
+function Segmented<T extends string | number>({
+  options,
+  value,
+  onChange,
+  label,
+}: {
+  options: { id: T; label: string }[]
+  value: T
+  onChange: (v: T) => void
+  label: string
+}) {
+  return (
+    <div role="group" aria-label={label} className="inline-flex rounded-full p-1" style={{ background: '#161B3C0f' }}>
+      {options.map((o) => {
+        const on = o.id === value
+        return (
+          <button
+            key={String(o.id)}
+            type="button"
+            aria-pressed={on}
+            onClick={() => onChange(o.id)}
+            className="rounded-full px-4 py-2.5 font-hanken text-sm font-semibold transition-colors duration-200"
+            style={on ? { background: INK, color: MIST } : { background: 'transparent', color: BODY }}
+          >
+            {o.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 /** Trilingual inline pick for tiny UI strings that don't live in COPY. */
 const tri = (lang: Lang, is: string, en: string, de: string) => (lang === 'is' ? is : lang === 'de' ? de : en)
 const isoDay = (d: Date) =>
@@ -491,7 +530,9 @@ function DayStrip({
   const [start, setStart] = useState(() => isoDay(weekStart(new Date(value + 'T00:00:00'))))
   const stripRef = useRef<HTMLDivElement>(null)
   const moved = useRef(false)
-  // follow the selection when it leaves the window (tour switch, keyboard)
+  // follow the selection when IT moves out of the window (tour switch, keyboard).
+  // Only on a new value: reacting to `start` too snapped every month/week arrow
+  // straight back to the selected week, so no day past the first two weeks could be picked.
   useEffect(() => {
     const d = new Date(value + 'T00:00:00')
     if (Number.isNaN(d.getTime())) return
@@ -499,7 +540,8 @@ function DayStrip({
     const last = new Date(first)
     last.setDate(last.getDate() + STRIP_DAYS - 1)
     if (d < first || d > last) setStart(isoDay(weekStart(d)))
-  }, [value, start])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
   // keep keyboard focus on the day the arrows landed on; on phones the strip
   // scrolls, so the selected day is also centred (the strip only, never the page)
   useEffect(() => {
@@ -546,9 +588,12 @@ function DayStrip({
     d.setDate(d.getDate() + n)
     setStart(isoDay(d))
   }
+  // a month on from the window's first day, same day of the month. Jumping to the
+  // 1st instead landed on the week the window already started in (start 26 Oct →
+  // 1 Nov → week of 26 Oct), so the arrow did nothing.
   const shiftMonth = (n: number) => {
     const d = new Date(start + 'T00:00:00')
-    setStart(isoDay(weekStart(new Date(d.getFullYear(), d.getMonth() + n, 1))))
+    setStart(isoDay(weekStart(new Date(d.getFullYear(), d.getMonth() + n, d.getDate()))))
   }
   const first = days[0]
   const last = days[STRIP_DAYS - 1]
@@ -821,8 +866,10 @@ function Booking({
       ? setAdultRiders((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)))
       : setChildRiders((rs) => rs.map((r, j) => (j === i - adults ? { ...r, ...patch } : r)))
 
-  const childPrice = Math.max(tour.price - CHILD_DISCOUNT, 0)
-  const total = tour.price * adults + childPrice * children
+  // a 2027 day is priced from the 2027 list, as the platform's quote is
+  const unitPrice = priceOn(tour, date)
+  const childPrice = Math.max(unitPrice - CHILD_DISCOUNT, 0)
+  const total = unitPrice * adults + childPrice * children
   // seasonal tours are handled in the calendar itself: out-of-season days are
   // struck out and unpickable, so an impossible date never reaches this form
 
@@ -977,6 +1024,13 @@ function Booking({
           </div>
         ) : (
           <form onSubmit={submit}>
+            <div className="mb-6 flex gap-3 rounded-2xl border px-4 py-3.5" style={{ borderColor: `${CLAY_TX}40`, background: `${CLAY_TX}0d` }}>
+              <Info className="mt-0.5 h-5 w-5 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
+              <div>
+                <p className="font-hanken text-sm font-semibold" style={{ color: INK }}>{t.bookRequestTitle}</p>
+                <p className="mt-0.5 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>{t.bookRequestBody}</p>
+              </div>
+            </div>
             <Step n={1} label={t.stepTour} />
             <div className="mb-5 flex flex-wrap gap-2">
               {SHORT_TOURS.map((x) => {
@@ -1002,7 +1056,7 @@ function Booking({
             <p key={tour.id} className="ph-tick -mt-2 mb-5 font-hanken text-sm" style={{ color: INK }}>
               <span className="font-semibold">{tour.name[lang]}</span>
               <span style={{ color: SLATE }}>
-                {' '}· {tour.meta[lang]} · {isk(tour.price, lang)} {t.perPerson}
+                {' '}· {tour.meta[lang]} · {isk(unitPrice, lang)} {t.perPerson}
               </span>
             </p>
 
@@ -1123,6 +1177,10 @@ function Booking({
                   'Danach wählen wir für jeden Reiter ein Pferd. Höchstgewicht 95 kg; große Reiter bitte in der Nachricht nennen.',
                 )}
               </p>
+              <div className="mt-3 rounded-xl px-3.5 py-3" style={{ background: MIST }}>
+                <p className="font-hanken text-xs font-semibold" style={{ color: INK }}>{t.bookGearTitle}</p>
+                <p className="mt-0.5 font-hanken text-xs leading-relaxed" style={{ color: BODY }}>{t.bookGearBody}</p>
+              </div>
             </fieldset>
             </div>
             <div>
@@ -1201,7 +1259,7 @@ function Booking({
                 </p>
                 {children > 0 && (
                   <p className="font-hanken text-xs tabular-nums" style={{ color: SLATE }}>
-                    {adults} × {isk(tour.price, lang)} · {children} × {isk(childPrice, lang)}
+                    {adults} × {isk(unitPrice, lang)} · {children} × {isk(childPrice, lang)}
                   </p>
                 )}
                 <p className="font-spectral text-3xl tabular-nums" style={{ color: INK }}>
@@ -1397,6 +1455,9 @@ function PolarHestarPageInner() {
   })
   const [shownPhotos, setShownPhotos] = useState(24)
   const [lightbox, setLightbox] = useState<number | null>(null)
+  // which price list the ride cards show, and which half of "good to know" is open
+  const [priceYear, setPriceYear] = useState<PriceYear>(2026)
+  const [gtkTab, setGtkTab] = useState<Exclude<GtkAudience, 'both'>>('short')
   const t = COPY[lang]
   const minPrice = Math.min(...SHORT_TOURS.map((x) => x.price))
   const bookingRef = useRef<HTMLDivElement>(null)
@@ -1405,16 +1466,6 @@ function PolarHestarPageInner() {
   const heroRef = useRef<HTMLElement>(null)
   useSmoothScroll()
   useHeroParallax(heroRef, '.ph-hero-media', '.ph-hero-copy')
-  // the ride picked on the farm map; the cards follow it
-  const [mapPick, setMapPick] = useState<string | undefined>(undefined)
-  const pickRide = (id: string) => {
-    setMapPick(id)
-    const el = document.getElementById(`ferd-${id}`)
-    if (el) {
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' })
-    }
-  }
 
   /** Þokan — the language changes behind a breath of glacier mist. */
   const switchLang = (code: Lang) => {
@@ -1549,8 +1600,6 @@ function PolarHestarPageInner() {
         /* first paint: the hero photo opens out from a centred frame while the loader lifts (Hópbílar) */
         .ph-hero-mask{animation:phHeroMask 1.3s cubic-bezier(.76,0,.24,1) .15s both}
         @keyframes phHeroMask{from{clip-path:inset(18% 14% 18% 14%)}to{clip-path:inset(0 0 0 0)}}
-        .ph-ride{transition:box-shadow .4s ease,outline-color .4s ease;outline:2px solid transparent;outline-offset:3px}
-        .ph-ride[data-picked="true"]{outline-color:#2160A6}
         .ph-pin:focus-visible circle{stroke:#202070;stroke-width:4}
         .ph-hero-rise{animation:phHeroRise .9s cubic-bezier(.2,.7,.2,1) both}
         @keyframes phHeroRise{from{transform:translateY(18px)}to{transform:none}}
@@ -1991,7 +2040,7 @@ function PolarHestarPageInner() {
             </a>
           </div>
           <div className="ph-hero-rise mt-9 flex flex-wrap items-center gap-x-7 gap-y-3" style={{ animationDelay: '240ms' }}>
-            <Stat value={<CountUp to={STATS.years} lang={lang} />} label={t.statYears} />
+            <Stat value={FOUNDED} label={t.statYears} before />
             <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
             <Stat value={<CountUp to={STATS.horses} lang={lang} duration={2000} />} label={t.statHorses} />
             <span className="hidden h-8 w-px bg-white/25 sm:block" aria-hidden="true" />
@@ -2145,14 +2194,28 @@ function PolarHestarPageInner() {
 
           <Reveal className="mx-auto mt-7 max-w-3xl">
             <div className="rounded-[24px] p-3 md:p-4" style={{ background: PAPER, boxShadow: '0 1px 2px rgba(22,27,60,0.05), 0 18px 40px -28px rgba(22,27,60,0.35)' }}>
-              <FarmMap tours={SHORT_TOURS} lang={lang} selected={mapPick} onPick={pickRide} />
+              <FarmMap lang={lang} />
             </div>
           </Reveal>
 
-          <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {SHORT_TOURS.some((x) => x.price2027) && (
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <span className="font-hanken text-[0.72rem] font-semibold tracking-[0.14em] uppercase" style={{ color: SLATE }}>
+                {tri(lang, 'Verðskrá', 'Prices', 'Preise')}
+              </span>
+              <Segmented
+                label={tri(lang, 'Verð fyrir árið', 'Prices for the year', 'Preise für das Jahr')}
+                options={[{ id: 2026, label: '2026' }, { id: 2027, label: '2027' }]}
+                value={priceYear}
+                onChange={setPriceYear}
+              />
+            </div>
+          )}
+
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {SHORT_TOURS.map((tour, i) => (
               <Reveal key={tour.id} delay={i * 70}>
-                <TourCard tour={tour} lang={lang} t={t} onBook={() => goBook(tour.id)} picked={tour.id === mapPick} />
+                <TourCard tour={tour} lang={lang} t={t} onBook={() => goBook(tour.id)} year={priceYear} />
               </Reveal>
             ))}
           </div>
@@ -2250,10 +2313,21 @@ function PolarHestarPageInner() {
             <p className="mt-3 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
               {GTK.body[lang]}
             </p>
+            <div className="mt-5">
+              <Segmented
+                label={tri(lang, 'Upplýsingar fyrir', 'Information for', 'Informationen für')}
+                options={[
+                  { id: 'short', label: tri(lang, 'Stuttir reiðtúrar', 'Short rides', 'Kurze Ritte') },
+                  { id: 'long', label: tri(lang, 'Lengri ferðir', 'Long tours', 'Lange Touren') },
+                ]}
+                value={gtkTab}
+                onChange={setGtkTab}
+              />
+            </div>
           </Reveal>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {GTK.items.map((item, i) => (
-              <Reveal key={i} delay={i * 60}>
+            {GTK.items.filter((it) => !it.audience || it.audience === 'both' || it.audience === gtkTab).map((item, i) => (
+              <Reveal key={`${gtkTab}-${i}`} delay={i * 60}>
                 <div className="h-full rounded-2xl border p-5" style={{ borderColor: '#1a20521a', background: MIST }}>
                   <p className="font-spectral text-lg" style={{ color: INK }}>
                     {item.title[lang]}
@@ -2691,18 +2765,21 @@ export default function PolarHestarPage() {
 }
 
 /* ── small presentational helpers ─────────────────────────────────────── */
-function Stat({ value, label }: { value: ReactNode; label: string }) {
+function Stat({ value, label, before = false }: { value: ReactNode; label: string; before?: boolean }) {
+  const small = <span className="font-hanken text-xs text-white/70">{label}</span>
   return (
     <div className="flex items-baseline gap-2">
+      {before && small}
       <span className="font-spectral text-2xl text-white">{value}</span>
-      <span className="font-hanken text-xs text-white/70">{label}</span>
+      {!before && small}
     </div>
   )
 }
 
-function TourCard({ tour, lang, t, onBook, picked = false }: { tour: TourX; lang: Lang; t: typeof COPY['is']; onBook: () => void; picked?: boolean }) {
+function TourCard({ tour, lang, t, onBook, year }: { tour: TourX; lang: Lang; t: typeof COPY['is']; onBook: () => void; year: PriceYear }) {
+  const price = year === 2027 ? tour.price2027 : tour.price
   return (
-    <article id={`ferd-${tour.id}`} data-picked={picked} className="ph-card ph-ride flex h-full scroll-mt-28 flex-col overflow-hidden rounded-[22px] shadow-[0_1px_2px_rgba(22,27,60,0.05),0_10px_22px_-14px_rgba(22,27,60,0.22),0_28px_56px_-32px_rgba(32,32,112,0.35)] ring-1 ring-[#161B3C0f]" style={{ background: PAPER }}>
+    <article id={`ferd-${tour.id}`} className="ph-card flex h-full scroll-mt-28 flex-col overflow-hidden rounded-[22px] shadow-[0_1px_2px_rgba(22,27,60,0.05),0_10px_22px_-14px_rgba(22,27,60,0.22),0_28px_56px_-32px_rgba(32,32,112,0.35)] ring-1 ring-[#161B3C0f]" style={{ background: PAPER }}>
       <div className="aspect-[4/3] overflow-hidden">
         <img
           src={tour.pic.src}
@@ -2743,10 +2820,10 @@ function TourCard({ tour, lang, t, onBook, picked = false }: { tour: TourX; lang
         <div className="mt-4 flex items-end justify-between">
           <div>
             <p className="font-hanken text-[0.68rem] tracking-wide uppercase" style={{ color: SLATE }}>
-              {t.fromLabel}
+              {tri(lang, 'Verð', 'Price', 'Preis')} {year}
             </p>
-            <p className="font-spectral text-lg" style={{ color: INK }}>
-              {isk(tour.price, lang)}
+            <p className="font-spectral text-lg tabular-nums" style={{ color: INK }}>
+              {price ? isk(price, lang) : tri(lang, 'Kemur síðar', 'To follow', 'Folgt')}
             </p>
           </div>
           <button

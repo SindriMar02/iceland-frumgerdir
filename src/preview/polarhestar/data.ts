@@ -34,6 +34,8 @@ export const MAPS_HREF = `https://www.google.com/maps/search/?api=1&query=${enco
 )}`
 
 export const STATS = { years: 40, horses: 160, rating: '4,9', reviews: 268 }
+/** The year the family began (Símon, 23 Oct 2026: "since 1985", so it never needs a yearly edit). */
+export const FOUNDED = 1985
 
 /* ── Verified imagery (genuine Icelandic horses / North Iceland) ───────── */
 export const IMG = {
@@ -66,6 +68,8 @@ export interface Tour {
   /** Fewest riders the farm will take the tour out for. */
   minRiders: number
   price: number // full 2026 price, ISK; children up to 12 pay 2.000 less
+  /** Full 2027 price, ISK (Símon, 23 Oct 2026); undefined = not published yet. */
+  price2027?: number
   image: string
   blurb: L3
   /** Months (1–12) the tour runs; empty/undefined = all year. Drives the booking-date hint. */
@@ -73,6 +77,10 @@ export interface Tour {
   /** Published departure times (24h, e.g. "09:00"); undefined = agreed on request. */
   times?: string[]
 }
+
+/** A ride's full price on a day: the 2027 list from 1 January 2027 where it is published (the platform quotes the same). */
+export const priceOn = (tour: Pick<Tour, 'price' | 'price2027'>, iso: string) =>
+  iso >= '2027-01-01' && tour.price2027 ? tour.price2027 : tour.price
 
 export const SHORT_TOURS: Tour[] = [
   {
@@ -82,6 +90,7 @@ export const SHORT_TOURS: Tour[] = [
     minAge: 6,
     minRiders: 1,
     price: 9500,
+    price2027: 10500,
     times: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'],
     image: 'photo-1589157467587-913a38bb3d9d',
     blurb: {
@@ -97,6 +106,7 @@ export const SHORT_TOURS: Tour[] = [
     minAge: 6,
     minRiders: 1,
     price: 15000,
+    price2027: 16000,
     months: [5, 6, 7, 8, 9, 10],
     times: ['10:00', '14:00'],
     image: 'photo-1726579209496-ceac166f72df',
@@ -113,6 +123,7 @@ export const SHORT_TOURS: Tour[] = [
     minAge: 8,
     minRiders: 2,
     price: 18000,
+    price2027: 19000,
     months: [5, 6, 7, 8, 9, 10],
     times: ['09:30', '14:00'],
     image: 'photo-1637354897519-5b962c8157e8',
@@ -129,6 +140,7 @@ export const SHORT_TOURS: Tour[] = [
     minAge: 6,
     minRiders: 1,
     price: 12500,
+    price2027: 13500,
     times: ['10:30', '13:30'],
     months: [11, 12, 1, 2, 3, 4],
     image: 'photo-1774018538486-49f5a51cd63f',
@@ -168,7 +180,7 @@ export interface LongTour extends LongTourFacts {
 export const LONG_TOURS: LongTour[] = [
   {
     id: 'midnightsun',
-    name: { is: 'Ring around the Midnightsun', en: 'Ring around the Midnightsun', de: 'Sommersonnenwende' },
+    name: { is: 'Ring around the Midnight Sun', en: 'Ring around the Midnight Sun', de: 'Sommersonnenwende' },
     priceEur: 2150, days: 7, ridingDays: 5, level: 'mixed', minAge: 12, maxRiders: 14, kmMin: 15, kmMax: 30,
     herdDays: 0, beds: 'made',
     departures: [
@@ -293,7 +305,7 @@ export const SEASONS: Season[] = [
       en: 'Bright nights and long rides under a sun that never sets. The highlands open and the long tours begin.',
       de: 'Helle Nächte und lange Ritte unter einer Sonne, die nie untergeht. Das Hochland öffnet sich und die langen Touren beginnen.',
     },
-    tour: { is: 'Ferð: Ring around the Midnightsun', en: 'Tour: Ring around the Midnightsun', de: 'Tour: Sommersonnenwende' },
+    tour: { is: 'Ferð: Ring around the Midnight Sun', en: 'Tour: Ring around the Midnight Sun', de: 'Tour: Sommersonnenwende' },
     image: 'photo-1699818035127-75727321a851',
     glow: '#c9871f',
   },
@@ -380,7 +392,11 @@ export const SHOP: ShopItem[] = [
 export interface GtkItem {
   title: L3
   body: L3
+  /** Which tab the card sits under; FARM items leave it out. */
+  audience?: GtkAudience
 }
+/** Símon, 23 Oct 2026: short-ride and long-tour facts apart, not all in one list. */
+export type GtkAudience = 'short' | 'long' | 'both'
 
 export interface GoodToKnowData {
   eyebrow: L3
@@ -393,12 +409,13 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
   eyebrow: { is: 'Gott að vita', en: 'Good to know', de: 'Gut zu wissen' },
   heading: { is: 'Allt fyrir heimsóknina', en: 'Everything for your visit', de: 'Alles für Ihren Besuch' },
   body: {
-    is: 'Það helsta sem gestir spyrja um, á einum stað.',
-    en: 'The things guests ask about most, in one place.',
-    de: 'Was Gäste am häufigsten fragen, auf einen Blick.',
+    is: 'Það helsta sem gestir spyrja um, fyrir stuttu reiðtúrana og lengri ferðirnar.',
+    en: 'The things guests ask about most, for the short rides and the long tours.',
+    de: 'Was Gäste am häufigsten fragen, für die kurzen Ritte und die langen Touren.',
   },
   items: [
     {
+      audience: 'both',
       title: { is: 'Persónuleg bókun', en: 'Personal booking', de: 'Persönliche Buchung' },
       body: {
         is: 'Bókanir fara fram beint hjá okkur, í tölvupósti eða síma. Fyrir bókanir með stuttum fyrirvara er best að hringja.',
@@ -407,14 +424,16 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       },
     },
     {
+      audience: 'short',
       title: { is: 'Greiðsla', en: 'Payment', de: 'Bezahlung' },
       body: {
-        is: 'Engin greiðsla fer fram á netinu. Í lengri ferðum er 20% staðfestingargjald við bókun og eftirstöðvar greiðast tveimur vikum fyrir brottför.',
-        en: 'No payment is taken online. Long tours require a 20% deposit on booking, with the rest due two weeks before departure.',
-        de: 'Es wird nichts online bezahlt. Bei langen Touren bitten wir um 20 % Anzahlung, der Rest ist zwei Wochen vor Beginn fällig.',
+        is: 'Engin greiðsla fer fram á netinu þegar þú sendir bókunarbeiðni.',
+        en: 'No payment is taken online when you send a booking request.',
+        de: 'Beim Senden einer Buchungsanfrage wird online nichts bezahlt.',
       },
     },
     {
+      audience: 'short',
       title: { is: 'Börn', en: 'Children', de: 'Kinder' },
       body: {
         is: 'Börn 12 ára og yngri greiða 2.000 kr. minna en fullt verð í öllum stuttum ferðum. Lágmarksaldur er 6 ára, 8 ára í þriggja tíma ferðinni.',
@@ -423,6 +442,43 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       },
     },
     {
+      audience: 'short',
+      title: { is: 'Búnaður', en: 'Equipment', de: 'Ausrüstung' },
+      body: {
+        is: 'Við leggjum til reiðhjálma, hanska, regnföt og buff. Komdu í traustum skóm, klæddu þig í lögum og taktu mittistösku frekar en bakpoka. Hámarksþyngd knapa er 95 kg.',
+        en: 'We provide helmets, riding gloves, rain gear and buffs. Come in sturdy shoes, dress in layers and bring a waist bag rather than a backpack. The maximum rider weight is 95 kg.',
+        de: 'Wir stellen Reithelme, Reithandschuhe, Regenkleidung und Buffs zur Verfügung. Kommen Sie in festen Schuhen, kleiden Sie sich in Schichten und nehmen Sie eine kleine Bauchtasche statt eines Rucksacks. Das maximale Reitergewicht ist 95 kg.',
+      },
+    },
+    {
+      audience: 'short',
+      title: { is: 'Mæting', en: 'Arrival', de: 'Ankunft' },
+      body: {
+        is: 'Mættu 30 mínútum fyrir brottför og gerðu ráð fyrir um klukkustund aukalega í undirbúning og kaffi eftir reiðtúrinn.',
+        en: 'Please arrive 30 minutes before departure, and allow about an extra hour for preparation and coffee after the ride.',
+        de: 'Bitte seien Sie 30 Minuten vor Beginn auf dem Hof und planen Sie etwa eine Stunde extra für Vorbereitung und Kaffee nach dem Ritt ein.',
+      },
+    },
+    {
+      audience: 'short',
+      title: { is: 'Afbókun', en: 'Cancellation', de: 'Stornierung' },
+      body: {
+        is: 'Ferðin greiðist að fullu ef afbókað er með minna en 4 klst. fyrirvara. Afbókanir berist í tölvupósti.',
+        en: 'Cancellations with less than four hours’ notice are charged in full. Cancellations should be made by email.',
+        de: 'Stornierungen weniger als 4 Stunden vor Beginn werden voll berechnet. Stornierungen bitte per E-Mail.',
+      },
+    },
+    {
+      audience: 'long',
+      title: { is: 'Greiðsla', en: 'Payment', de: 'Bezahlung' },
+      body: {
+        is: 'Engin greiðsla fer fram á netinu. Við bókun er 20% staðfestingargjald og eftirstöðvar greiðast tveimur vikum fyrir brottför.',
+        en: 'No payment is taken online. A 20% deposit is due on booking, with the rest due two weeks before departure.',
+        de: 'Es wird nichts online bezahlt. Bei der Buchung bitten wir um 20 % Anzahlung, der Rest ist zwei Wochen vor Beginn fällig.',
+      },
+    },
+    {
+      audience: 'long',
       title: { is: 'Búnaður', en: 'Equipment', de: 'Ausrüstung' },
       body: {
         is: 'Við leggjum til reiðhjálma, hanska, regnföt og buff. Komdu í traustum skóm, klæddu þig í lögum og taktu mittistösku frekar en bakpoka. Í skálaferðum þarf svefnpoka. Hámarksþyngd knapa er 95 kg.',
@@ -431,19 +487,21 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       },
     },
     {
-      title: { is: 'Mæting og skutl', en: 'Arrival & pickup', de: 'Ankunft & Abholung' },
+      audience: 'long',
+      title: { is: 'Skutl', en: 'Pickup', de: 'Abholung' },
       body: {
-        is: 'Mættu 30 mínútum fyrir brottför og gerðu ráð fyrir um klukkustund aukalega í undirbúning og kaffi eftir reiðtúrinn. Í lengri ferðum sækjum við gesti á flugvöllinn eða umferðarmiðstöðina á Akureyri, oftast milli kl. 16 og 18.',
-        en: 'Please arrive 30 minutes before departure, and allow about an extra hour for preparation and coffee after the ride. For long tours we pick guests up at the airport or bus station in Akureyri, usually between 4 and 6 pm.',
-        de: 'Bitte seien Sie 30 Minuten vor Beginn auf dem Hof und planen Sie etwa eine Stunde extra für Vorbereitung und Kaffee nach dem Ritt ein. Bei langen Touren holen wir Sie am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16 und 18 Uhr.',
+        is: 'Við sækjum gesti á flugvöllinn eða umferðarmiðstöðina á Akureyri, oftast milli kl. 16 og 18, og keyrum þá þangað aftur í lok ferðar.',
+        en: 'We pick guests up at the airport or bus station in Akureyri, usually between 4 and 6 pm, and bring them back there at the end of the tour.',
+        de: 'Wir holen Sie am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16 und 18 Uhr, und bringen Sie am Ende der Tour wieder dorthin.',
       },
     },
     {
+      audience: 'long',
       title: { is: 'Afbókun', en: 'Cancellation', de: 'Stornierung' },
       body: {
-        is: 'Í stuttum ferðum greiðist ferðin að fullu ef afbókað er með minna en 4 klst. fyrirvara. Í lengri ferðum er gjaldið 20% innan sex vikna, 50% innan þriggja vikna og fullt verð innan viku. Afbókanir berist í tölvupósti. Ferðatrygging er ekki innifalin og við mælum með henni.',
-        en: 'Short-tour cancellations with less than four hours’ notice are charged in full. For long tours the fee is 20% within six weeks, 50% within three weeks and the full price within one week. Cancellations should be made by email. Travel insurance is not included and we recommend it.',
-        de: 'Bei kurzen Ritten werden Stornierungen weniger als 4 Stunden vor Beginn voll berechnet. Bei langen Touren fallen innerhalb von sechs Wochen 20 % an, innerhalb von drei Wochen 50 % und innerhalb einer Woche der volle Preis. Stornierungen bitte per E-Mail. Eine Reiseversicherung ist nicht inbegriffen und wird empfohlen.',
+        is: 'Afbókunargjaldið er 20% innan sex vikna, 50% innan þriggja vikna og fullt verð innan viku. Afbókanir berist í tölvupósti. Ferðatrygging er ekki innifalin og við mælum með henni.',
+        en: 'The cancellation fee is 20% within six weeks, 50% within three weeks and the full price within one week. Cancellations should be made by email. Travel insurance is not included and we recommend it.',
+        de: 'Innerhalb von sechs Wochen fallen 20 % an, innerhalb von drei Wochen 50 % und innerhalb einer Woche der volle Preis. Stornierungen bitte per E-Mail. Eine Reiseversicherung ist nicht inbegriffen und wird empfohlen.',
       },
     },
   ],
@@ -519,16 +577,16 @@ export const COPY = {
     heroH1a: 'Þar sem hestar',
     heroH1b: 'og álfar hittast',
     heroLede:
-      'Í fjörutíu ár höfum við deilt norðlensku birtunni með knöpum á öllum getustigum, á bænum okkar Grýtubakka við lengsta fjörð landsins.',
+      'Frá árinu 1985 höfum við deilt norðlensku birtunni með knöpum á öllum getustigum, á bænum okkar Grýtubakka við lengsta fjörð landsins.',
     heroBook: 'Bóka reiðtúr',
     heroTours: 'Sjá ferðir',
-    statYears: 'ára saga',
+    statYears: 'Síðan',
     statHorses: 'hross',
 
     storyEyebrow: 'Grýtubakki II · Eyjafjörður',
-    storyH2: 'Fjörutíu ár við lengsta fjörðinn',
+    storyH2: 'Frá 1985 við lengsta fjörðinn',
     storyP1:
-      'Pólar Hestar hafa boðið upp á hestaferðir í 40 ár. Það byrjaði allt með rúmlega 15 hestum en í dag erum við með um 160 hross og bjóðum upp á ýmiss konar reiðtúra.',
+      'Pólar Hestar hafa boðið upp á hestaferðir frá árinu 1985. Það byrjaði allt með rúmlega 15 hestum en í dag erum við með um 160 hross og bjóðum upp á ýmiss konar reiðtúra.',
     storyP2:
       'Landslagið í kringum bæinn okkar Grýtubakka býður upp á ógleymanlega reynslu, bæði fyrir reyndustu knapa og algjöra byrjendur. Fjölskyldan tekur á móti hverjum gesti.',
     storyQuote: '„Þar sem hestar og álfar hittast.“',
@@ -557,6 +615,11 @@ export const COPY = {
       'Veldu ferð, dagsetningu og fjölda knapa og sendu okkur beiðni. Við förum persónulega yfir óskir og reynslu hópsins áður en ferðin er staðfest.',
     bookPanelLine: 'Segðu okkur frá reynslu knapanna, aldri barna og öðru sem við þurfum að vita.',
     bookNoPay: 'Engin greiðsla fer fram þegar beiðnin er send. Við höfum samband til að staðfesta ferðina.',
+    bookRequestTitle: 'Þetta er bókunarbeiðni',
+    bookRequestBody: 'Bókunin er ekki gild fyrr en við höfum staðfest hana í tölvupósti eða síma.',
+    bookGearTitle: 'Notuð reiðföt',
+    bookGearBody:
+      'Notaðan reiðbúnað og notuð leðurreiðföt má ekki taka með til landsins. Önnur reiðföt þarf að sótthreinsa fyrir komu, hanskar eiga að vera nýir og skór hreinir. Við lánum hjálma, hanska og regnföt.',
     stepTour: '1 · Veldu ferð',
     stepDate: '2 · Veldu dag',
     timeLabel: 'Brottför',
@@ -626,22 +689,22 @@ export const COPY = {
     nav: { tours: 'Tours', seasons: 'Seasons', info: 'Good to know', visit: 'Visit', cta: 'Book a ride' },
 
     heroEyebrow: 'Horse riding · Grenivík · North Iceland',
-    heroH1a: 'Where horses',
-    heroH1b: 'meet the elves',
+    heroH1a: 'Where Horses',
+    heroH1b: 'meet the Elves',
     heroLede:
-      'For forty years we have shared the light of the north with riders of every level, at our farm Grýtubakki by Iceland’s longest fjord.',
+      'Since 1985 we have shared the light of the north with riders of every level, at our farm Grýtubakki by Iceland’s longest fjord.',
     heroBook: 'Book a ride',
     heroTours: 'See the tours',
-    statYears: 'years',
+    statYears: 'Since',
     statHorses: 'horses',
 
     storyEyebrow: 'Grýtubakki II · Eyjafjörður',
-    storyH2: 'Forty years by the longest fjord',
+    storyH2: 'By the longest fjord since 1985',
     storyP1:
       'Pólar Hestar has offered riding tours since 1985. It all began with a small herd of about 15 horses; today around 160 horses live on the farm and we offer all kinds of rides.',
     storyP2:
       'The landscape around our farm Grýtubakki makes for an unforgettable experience, for the most seasoned riders and complete beginners alike. The family welcomes every guest.',
-    storyQuote: '“Where horses meet the elves.”',
+    storyQuote: '“Where Horses meet the Elves.”',
 
     procH2: 'Around 160 horses at Grýtubakki',
     procBody:
@@ -666,6 +729,11 @@ export const COPY = {
     bookBody: 'Choose a tour, date and group size, then send your request. We review the group’s wishes and riding experience personally before confirming the ride.',
     bookPanelLine: 'Tell us about the riders’ experience, the ages of any children and anything else we should know.',
     bookNoPay: 'No payment is taken when you send the request. We will contact you to confirm the ride.',
+    bookRequestTitle: 'This is a booking request',
+    bookRequestBody: 'Your booking is only valid once we have confirmed it by email or phone.',
+    bookGearTitle: 'Used riding clothes',
+    bookGearBody:
+      'Used riding equipment and used leather riding clothes may not be brought into Iceland. Other riding clothes must be disinfected before arrival, gloves must be brand new and shoes clean. We lend helmets, gloves and rain gear.',
     stepTour: '1 · Choose a tour',
     stepDate: '2 · Choose a date',
     timeLabel: 'Departure',
@@ -738,14 +806,14 @@ export const COPY = {
     heroH1a: 'Wo sich Pferde',
     heroH1b: 'und Elfen treffen',
     heroLede:
-      'Seit vierzig Jahren teilen wir das Licht des Nordens mit Reitern aller Erfahrungsstufen, auf unserem Hof Grýtubakki am längsten Fjord Islands.',
+      'Seit 1985 teilen wir das Licht des Nordens mit Reitern aller Erfahrungsstufen, auf unserem Hof Grýtubakki am längsten Fjord Islands.',
     heroBook: 'Ritt buchen',
     heroTours: 'Touren ansehen',
-    statYears: 'Jahre',
+    statYears: 'Seit',
     statHorses: 'Pferde',
 
     storyEyebrow: 'Grýtubakki II · Eyjafjörður',
-    storyH2: 'Vierzig Jahre am längsten Fjord',
+    storyH2: 'Seit 1985 am längsten Fjord',
     storyP1:
       'Pólar Hestar bietet seit 1985 Reittouren im Norden Islands an. Angefangen hat alles mit einer kleinen Herde von rund fünfzehn Pferden, heute leben etwa 160 Pferde auf dem Hof.',
     storyP2:
@@ -776,6 +844,11 @@ export const COPY = {
       'Wählen Sie Tour, Datum und Gruppengröße und senden Sie Ihre Anfrage. Wir prüfen Wünsche und Reiterfahrung persönlich, bevor wir den Ritt bestätigen.',
     bookPanelLine: 'Teilen Sie uns Reiterfahrung, das Alter der Kinder und alles Weitere mit, das wir wissen sollten.',
     bookNoPay: 'Beim Senden der Anfrage wird nichts bezahlt. Wir melden uns, um den Ritt zu bestätigen.',
+    bookRequestTitle: 'Dies ist eine Buchungsanfrage',
+    bookRequestBody: 'Ihre Buchung ist erst gültig, wenn wir sie per E-Mail oder Telefon bestätigt haben.',
+    bookGearTitle: 'Gebrauchte Reitkleidung',
+    bookGearBody:
+      'Gebrauchte Reitausrüstung und gebrauchte Reitkleidung aus Leder dürfen nicht nach Island eingeführt werden. Andere Reitkleidung muss vor der Anreise desinfiziert werden, Handschuhe müssen neu und Schuhe sauber sein. Helme, Handschuhe und Regenkleidung leihen wir Ihnen.',
     stepTour: '1 · Tour wählen',
     stepDate: '2 · Datum wählen',
     timeLabel: 'Startzeit',

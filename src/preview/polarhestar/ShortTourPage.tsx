@@ -168,8 +168,15 @@ function ShortTourInner() {
   const facts: Array<[string, string]> = [
     // meta carries the month window too (sanity.ts); the season has its own fact
     [tri(lang, 'Lengd', 'Duration', 'Dauer'), tour.meta[lang].split(' · ')[0]],
-    [tri(lang, 'Verð á mann', 'Price per person', 'Preis pro Person'), isk(tour.price, lang)],
-    [tri(lang, 'Börn 12 ára og yngri', 'Children 12 and under', 'Kinder bis 12 Jahre'), isk(childPrice, lang)],
+    [tri(lang, 'Verð á mann 2026', 'Price per person 2026', 'Preis pro Person 2026'), isk(tour.price, lang)],
+    [tri(lang, 'Börn 12 ára og yngri 2026', 'Children 12 and under 2026', 'Kinder bis 12 Jahre 2026'), isk(childPrice, lang)],
+    // next year's list, once the farm has published it (Símon, 23 Oct 2026)
+    ...(tour.price2027
+      ? ([
+          [tri(lang, 'Verð á mann 2027', 'Price per person 2027', 'Preis pro Person 2027'), isk(tour.price2027, lang)],
+          [tri(lang, 'Börn 12 ára og yngri 2027', 'Children 12 and under 2027', 'Kinder bis 12 Jahre 2027'), isk(Math.max(0, tour.price2027 - CHILD_DISCOUNT), lang)],
+        ] as Array<[string, string]>)
+      : []),
     [tri(lang, 'Brottfarir', 'Departure times', 'Startzeiten'), tour.times?.length ? tour.times.join(', ') : tri(lang, 'Eftir samkomulagi', 'On request', 'Auf Anfrage')],
     [tri(lang, 'Árstími', 'Season', 'Saison'), monthsLabel(tour.months, lang)],
     [tri(lang, 'Reynsla', 'Riding level', 'Reitkenntnisse'), tri(lang, 'Fyrir alla', 'All levels', 'Alle Niveaus')],

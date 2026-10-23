@@ -45,7 +45,7 @@ export function RegionMap({ tourId, activeDay, lang, onPick }: { tourId: string;
   const L = legs(days)
   const active = L.find((l) => l.day === activeDay)
   const touched = new Set(L.flatMap((l) => l.ids))
-  const labelled = new Set([...touched, HOME, 'akureyri', 'godafoss', 'myvatn', 'grenivik'])
+  const labelled = new Set([...touched, HOME, 'akureyri', 'godafoss', 'grenivik'])
   const home = pt(HOME)!
   const t = (is: string, en: string, de: string) => (lang === 'is' ? is : lang === 'de' ? de : en)
   // label placement: a place whose label would sit on a neighbour's goes below-left instead
