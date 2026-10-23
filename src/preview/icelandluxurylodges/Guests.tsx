@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { Link } from 'react-router-dom'
 import {
   CHAPTERS, DOORS, IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, DEMO_STAYS, PASS_RULES,
@@ -190,6 +191,15 @@ function recallPass(): PassResult | null {
 function forgetPass() { try { localStorage.removeItem(PASS_KEY) } catch { /* private mode */ } }
 
 const PIN_LEN = 4
+const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+/* one photograph travels between the gate and the manual's header (View Transitions where
+   the browser has them, a plain swap elsewhere); reduced motion always swaps */
+type VTDoc = Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } }
+function morph(update: () => void) {
+  const d = document as VTDoc
+  if (!d.startViewTransition || reducedMotion()) { update(); return }
+  d.startViewTransition(() => flushSync(update))
+}
 function Gate({ onOpen, notice }: { onOpen: (stay: Stay) => void; notice?: string }) {
   const [pin, setPin] = useState('')
   const [state, setState] = useState<'idle' | 'wrong' | 'ok' | 'early' | 'over' | 'paused'>('idle')
@@ -204,6 +214,10 @@ function Gate({ onOpen, notice }: { onOpen: (stay: Stay) => void; notice?: strin
   const inputRef = useRef<HTMLInputElement>(null)
   const done = useRef(false)
   const [focusIn, setFocusIn] = useState(false)
+  const [leaving, setLeaving] = useState(false)
+  const [hit, setHit] = useState('')
+  const hitT = useRef(0)
+  const echo = (k: string) => { setHit(k); window.clearTimeout(hitT.current); hitT.current = window.setTimeout(() => setHit(''), 160) }
 
   const check = (value: string, at: number) => {
     if (done.current || at !== seq.current) return
@@ -214,7 +228,10 @@ function Gate({ onOpen, notice }: { onOpen: (stay: Stay) => void; notice?: strin
       rememberPass(r.stay, value)
       setHouse(r.stay.house); setGuest(r.stay.guest); setState('ok'); setMsg('')
       if ('vibrate' in navigator) navigator.vibrate?.(12)
-      window.setTimeout(() => onOpen(r.stay), matchMedia('(prefers-reduced-motion: reduce)').matches ? 200 : 1100)
+      /* dots draw into a check (≈.5 s), the panel lifts away, then the photograph carries into the manual */
+      if (reducedMotion()) { window.setTimeout(() => onOpen(r.stay), 200); return }
+      window.setTimeout(() => setLeaving(true), 760)
+      window.setTimeout(() => onOpen(r.stay), 1080)
       return
     }
     if (r.kind === 'early') {
@@ -259,7 +276,7 @@ function Gate({ onOpen, notice }: { onOpen: (stay: Stay) => void; notice?: strin
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
       if (document.activeElement === inputRef.current) return
-      if (/^[0-9]$/.test(e.key)) { put(e.key); e.preventDefault() } else if (e.key === 'Backspace') { back(); e.preventDefault() }
+      if (/^[0-9]$/.test(e.key)) { put(e.key); echo(e.key); e.preventDefault() } else if (e.key === 'Backspace') { back(); echo('del'); e.preventDefault() }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -282,7 +299,7 @@ function Gate({ onOpen, notice }: { onOpen: (stay: Stay) => void; notice?: strin
   const status = paused ? `Too many tries. Try again in ${wait} s.` : state === 'ok' ? `Welcome, ${guest}.` : msg || 'Enter the 4-digit pass from your booking confirmation.'
 
   return (
-    <main className={`ill-g-gate is-${state}`}>
+    <main className={`ill-g-gate is-${state} ${leaving ? 'is-leaving' : ''}`}>
       <div className="ill-g-stage" aria-hidden="true">
         {stage.map((s, i) => (
           <div key={s.id || 'all'} className={`ill-g-stage-img ${(house ?? '') === s.id ? 'is-on' : ''}`}>
@@ -292,8 +309,8 @@ function Gate({ onOpen, notice }: { onOpen: (stay: Stay) => void; notice?: strin
       </div>
 
       <section className="ill-g-pass" aria-labelledby="ill-g-h">
-        <p className="ill-g-eye is-ice"><Icon n="key" size={14} /> {state === 'ok' ? 'Your house' : state === 'early' && door ? door.name : 'For guests'}</p>
-        <h1 id="ill-g-h">{state === 'ok' && door ? door.name : 'Welcome to the lake'}</h1>
+        <p className="ill-g-eye is-ice ill-g-in" style={{ '--i': 0 } as React.CSSProperties}><Icon n="key" size={14} /> {state === 'ok' ? 'Your house' : state === 'early' && door ? door.name : 'For guests'}</p>
+        <h1 id="ill-g-h" key={state === 'ok' ? 'name' : 'welcome'} className={state === 'ok' ? 'is-swap' : 'ill-g-in'} style={{ '--i': 1 } as React.CSSProperties}>{state === 'ok' && door ? door.name : 'Welcome to the lake'}</h1>
         {coords && state === 'ok' && <p className="ill-g-pass-coord">{coords.lake} · {dms(coords.lat, 'N', 'S')} {dms(coords.lon, 'E', 'W')}</p>}
 
         <label htmlFor="ill-g-pin" className="ill-sr">4-digit pass</label>
@@ -302,20 +319,20 @@ function Gate({ onOpen, notice }: { onOpen: (stay: Stay) => void; notice?: strin
           onKeyDown={(e) => { if (e.key === 'Backspace') { e.preventDefault(); back() } }}
           onFocus={() => setFocusIn(true)} onBlur={() => setFocusIn(false)} />
         <span id="ill-g-progress" className="ill-sr" aria-live="polite">{pin.length} of {PIN_LEN} digits entered</span>
-        <div className={`ill-g-dots ${focusIn ? 'is-focus' : ''}`} aria-hidden="true" onClick={() => inputRef.current?.focus()}>
-          {Array.from({ length: PIN_LEN }, (_, i) => <span key={i} className={i < pin.length ? 'is-on' : ''} />)}
-          <svg className="ill-g-tick" viewBox="0 0 24 24" width="28" height="28"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <div className={`ill-g-dots ill-g-in ${focusIn ? 'is-focus' : ''}`} style={{ '--i': 2 } as React.CSSProperties} aria-hidden="true" onClick={() => inputRef.current?.focus()}>
+          {Array.from({ length: PIN_LEN }, (_, i) => <span key={i} className={i < pin.length ? 'is-on' : ''} style={{ '--d': i } as React.CSSProperties} />)}
+          <svg className="ill-g-tick" viewBox="0 0 24 24" width="28" height="28"><path pathLength="1" d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </div>
-        <p id="ill-g-status" className="ill-g-pass-status" role={state === 'wrong' || paused ? 'alert' : 'status'}>{status}</p>
+        <p id="ill-g-status" className="ill-g-pass-status ill-g-in" style={{ '--i': 3 } as React.CSSProperties} role={state === 'wrong' || paused ? 'alert' : 'status'}>{status}</p>
 
-        <div className="ill-g-pad" role="group" aria-label="Number pad">
+        <div className="ill-g-pad ill-g-in" style={{ '--i': 4 } as React.CSSProperties} role="group" aria-label="Number pad">
           {keys.map((k, i) => k === '' ? <span key={i} /> : k === 'del'
-            ? <button key={i} type="button" className="is-del" onClick={back} aria-label="Delete last digit" disabled={paused || state === 'ok'}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 6h10.5v12H9l-5.5-6L9 6Zm3.5 3.5 5 5m0-5-5 5" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
-            : <button key={i} type="button" onClick={() => put(k)} disabled={paused || state === 'ok'}>{k}</button>)}
+            ? <button key={i} type="button" className={`is-del ${hit === 'del' ? 'is-hit' : ''}`} onClick={back} aria-label="Delete last digit" disabled={paused || state === 'ok'}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 6h10.5v12H9l-5.5-6L9 6Zm3.5 3.5 5 5m0-5-5 5" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+            : <button key={i} type="button" className={hit === k ? 'is-hit' : ''} onClick={() => put(k)} disabled={paused || state === 'ok'}>{k}</button>)}
         </div>
 
-        <p className="ill-g-pass-help">The link in your booking confirmation opens the manual directly: by email, or as a message on Airbnb or Booking.com. Can’t find it? Call <a href={PHONE_HREF}>{PHONE_DISPLAY}</a>.</p>
-        <details className="ill-g-pass-demo">
+        <p className="ill-g-pass-help ill-g-in" style={{ '--i': 5 } as React.CSSProperties}>The link in your booking confirmation opens the manual directly: by email, or as a message on Airbnb or Booking.com. Can’t find it? Call <a href={PHONE_HREF}>{PHONE_DISPLAY}</a>.</p>
+        <details className="ill-g-pass-demo ill-g-in" style={{ '--i': 6 } as React.CSSProperties}>
           <summary>Prototype passes</summary>
           <p>{DEMO_STAYS.map((s, i) => <span key={s.pin}>{i ? ' · ' : ''}<code>{s.pin}</code> {DOORS.find((d) => d.id === s.house)?.name}{s.cancelled ? ' (cancelled booking)' : s.arriveInDays > PASS_RULES.opensDaysBefore ? ' (arrives in 12 days)' : ''}</span>)}.
             {' '}Or the email link: <Link to={`${ROOT}/gestir?pass=demo-alft`} reloadDocument>open as James</Link>. Live, SNDR Bókun issues one pass per booking and checks it on the server.</p>
@@ -326,7 +343,7 @@ function Gate({ onOpen, notice }: { onOpen: (stay: Stay) => void; notice?: strin
 }
 
 /* ════════════════════════════════ MANUAL ══════════════════════════════════ */
-function Manual({ stay, onClose }: { stay: Stay; onClose: () => void }) {
+function Manual({ stay, onClose, fromGate }: { stay: Stay; onClose: () => void; fromGate: boolean }) {
   const house = stay.house
   const c = CHAPTERS.find((x) => x.id === house)!
   const d = DOORS.find((x) => x.id === house)!
@@ -366,6 +383,31 @@ function Manual({ stay, onClose }: { stay: Stay; onClose: () => void }) {
     const left = chip.offsetLeft - bar.clientWidth / 2 + chip.clientWidth / 2
     bar.scrollTo({ left, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }, [active])
+  /* the active chip's underline slides to it (transform only) */
+  const [ind, setInd] = useState({ x: 0, w: 0 })
+  useEffect(() => {
+    const place = () => {
+      const chip = barRef.current?.querySelector<HTMLElement>(`[data-s="${active}"]`)
+      if (chip) setInd({ x: chip.offsetLeft, w: chip.offsetWidth })
+    }
+    place(); window.addEventListener('resize', place)
+    return () => window.removeEventListener('resize', place)
+  }, [active])
+  /* in-page jumps glide (and land under the bar); reduced motion jumps */
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]')
+      const el = a && document.getElementById(a.getAttribute('href')!.slice(1))
+      if (!a || !el) return
+      e.preventDefault()
+      el.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' })
+      window.history.replaceState(null, '', `#${el.id}`)
+    }
+    root.addEventListener('click', onClick)
+    return () => root.removeEventListener('click', onClick)
+  }, [])
   /* reveal: sections and cards rise in once */
   useEffect(() => {
     const root = rootRef.current
@@ -380,7 +422,7 @@ function Manual({ stay, onClose }: { stay: Stay; onClose: () => void }) {
   const statFacts = c.facts.slice(0, 4)
 
   return (
-    <div className="ill-g-man" ref={rootRef}>
+    <div className={`ill-g-man ${fromGate ? 'is-from-gate' : ''}`} ref={rootRef}>
       <header className="ill-g-hero">
         <div className="ill-g-hero-img"><Pic src={IMG[hero.img]} alt={hero.alt} eager sizes="(orientation: portrait) 150vh, 100vw" /></div>
         <div className="ill-g-hero-in">
@@ -394,7 +436,7 @@ function Manual({ stay, onClose }: { stay: Stay; onClose: () => void }) {
 
       <div className="ill-g-strip">
         <ul className="ill-g-stats">
-          {statFacts.map((f) => <li key={f.l}><Icon n={factIcon(f.l)} /><b>{f.n}</b><span>{f.l}</span></li>)}
+          {statFacts.map((f, i) => <li key={f.l} className="ill-g-in" style={{ '--i': i + 3 } as React.CSSProperties}><Icon n={factIcon(f.l)} /><b>{f.n}</b><span>{f.l}</span></li>)}
         </ul>
         {light && (
           <div className="ill-g-light" aria-label="Today at the lake">
@@ -407,13 +449,14 @@ function Manual({ stay, onClose }: { stay: Stay; onClose: () => void }) {
       </div>
 
       <div className="ill-g-quick" role="list" aria-label="Most asked">
-        {QUICK.filter((q) => secs.some((x) => x.id === q.id)).map((q) => (
-          <a role="listitem" key={q.id} href={`#${q.id}`} className="ill-g-rise"><Icon n={SECTION_ICON[q.id]} size={26} /><b>{q.label}</b><span>{q.hint}</span></a>
+        {QUICK.filter((q) => secs.some((x) => x.id === q.id)).map((q, i) => (
+          <a role="listitem" key={q.id} href={`#${q.id}`} className="ill-g-rise" style={{ '--i': i } as React.CSSProperties}><Icon n={SECTION_ICON[q.id]} size={26} /><b>{q.label}</b><span>{q.hint}</span></a>
         ))}
       </div>
 
       <nav className="ill-g-bar" aria-label="In this manual">
         <div className="ill-g-bar-in" ref={barRef}>
+          <span className="ill-g-bar-ind" aria-hidden="true" style={{ transform: `translateX(${ind.x}px) scaleX(${ind.w / 100})` }} />
           {secs.map((s) => (
             <a key={s.id} href={`#${s.id}`} data-s={s.id} className={active === s.id ? 'is-on' : ''} aria-current={active === s.id ? 'true' : undefined}>
               <Icon n={SECTION_ICON[s.id] ?? 'sparkle'} size={18} /><span>{SHORT[s.id] ?? s.title}</span>
@@ -521,8 +564,9 @@ export default function Guests() {
     if (new URLSearchParams(window.location.search).has('pass')) window.history.replaceState(null, '', window.location.pathname)
   }, [])
 
-  const open = (s: Stay) => { setStay(s); window.scrollTo(0, 0) }
-  const close = () => { forgetPass(); setStay(null); window.scrollTo(0, 0) }
+  const [fromGate, setFromGate] = useState(false)
+  const open = (s: Stay) => morph(() => { setFromGate(true); setStay(s); window.scrollTo(0, 0) })
+  const close = () => { forgetPass(); window.scrollTo(0, 0); morph(() => setStay(null)) }
 
   return (
     <div className={`ill-root ill-g ${stay ? 'is-open' : 'is-gate'}`}>
@@ -534,7 +578,7 @@ export default function Guests() {
           <button type="button" onClick={close} aria-label="Lock the manual on this device"><Icon n="lock" size={18} /><span>Lock</span></button>
         </div>}
       </header>
-      {stay ? <Manual key={stay.house} stay={stay} onClose={close} /> : <Gate onOpen={open} notice={boot.notice} />}
+      {stay ? <Manual key={stay.house} stay={stay} onClose={close} fromGate={fromGate} /> : <Gate onOpen={open} notice={boot.notice} />}
     </div>
   )
 }
@@ -577,21 +621,39 @@ const G_STYLES = `
 .ill-g-gate{position:relative;min-height:100svh;display:grid;place-items:center;padding:96px 20px 40px;background:var(--ink);color:#F6F9FA;overflow:hidden}
 .ill-g-stage{position:absolute;inset:0}
 .ill-g-stage-img{position:absolute;inset:0;opacity:0;transform:scale(1.05);transition:opacity 1.2s var(--e2),transform 2.2s var(--e2)}
-.ill-g-stage-img.is-on{opacity:1;transform:none}
+.ill-g-stage-img.is-on{opacity:1;transform:none;view-transition-name:ill-photo}
+::view-transition-group(ill-photo){animation-duration:.75s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
+::view-transition-old(ill-photo),::view-transition-new(ill-photo){height:100%;width:100%;object-fit:cover;animation-duration:.75s}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.42s;animation-timing-function:cubic-bezier(.22,.9,.28,1)}
 .ill-g-stage::after{content:'';position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 55%,rgba(14,22,29,.35) 0%,rgba(14,22,29,.72) 70%),linear-gradient(180deg,rgba(14,22,29,.4),rgba(14,22,29,.1) 30%,rgba(14,22,29,.55))}
 .ill-g-pass{position:relative;z-index:2;width:min(100%,400px);display:grid;justify-items:center;gap:14px;text-align:center;padding:34px 28px 26px;
   background:rgba(14,22,29,.32);box-shadow:inset 0 0 0 1px rgba(246,249,250,.16),0 40px 80px -40px rgba(0,0,0,.6);-webkit-backdrop-filter:blur(22px) saturate(1.2);backdrop-filter:blur(22px) saturate(1.2)}
-.ill-g-pass h1{font-family:var(--serif);font-weight:300;font-size:clamp(2rem,4.4vw,2.8rem);line-height:1.04;letter-spacing:-.01em;animation:ill-g-up .7s var(--e2) both}
+.ill-g-pass h1{font-family:var(--serif);font-weight:300;font-size:clamp(2rem,4.4vw,2.8rem);line-height:1.04;letter-spacing:-.01em}
+/* entrance: the glass settles, then its contents rise in a short stagger (once per visit) */
+.ill-g-pass{animation:ill-g-panel .9s var(--e2) .1s both}
+@keyframes ill-g-panel{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+.ill-g-in{animation:ill-g-rise-in .6s var(--e2) both;animation-delay:calc(var(--i,0) * 50ms + 220ms)}
+@keyframes ill-g-rise-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.ill-g-pass h1.is-swap{animation:ill-g-up .6s var(--e2) both}
+/* leaving: the panel lifts away and the scrim thins, so the photograph carries the moment */
+.ill-g-pass{transition:opacity .32s var(--e),transform .32s var(--e)}
+.is-leaving .ill-g-pass{opacity:0;transform:translateY(-12px) scale(.985)}
+.ill-g-stage::after{transition:opacity .6s var(--e)}
+.is-leaving .ill-g-stage::after{opacity:.4}
 .ill-g-pass-coord{font-size:.78rem;letter-spacing:.08em;color:rgba(246,249,250,.78);animation:ill-g-up .7s var(--e2) .08s both}
 @keyframes ill-g-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .ill-g-pin-real{position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;border:0;padding:0;font-size:16px}
 .ill-g-dots{position:relative;display:flex;gap:18px;padding:16px 4px 6px;cursor:text}
 .ill-g-dots.is-focus{box-shadow:0 1px 0 rgba(246,249,250,.7)}
-.ill-g-dots span{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 1.25px rgba(246,249,250,.75);transition:background .18s var(--e),box-shadow .18s var(--e),transform .18s var(--e),opacity .3s var(--e)}
-.ill-g-dots span.is-on{background:#F6F9FA;box-shadow:none;transform:scale(1.04)}
-.ill-g-tick{position:absolute;left:50%;top:50%;margin:-6px 0 0 -14px;color:#F6F9FA;opacity:0;transform:scale(.9);transition:opacity .3s var(--e) .12s,transform .3s var(--e) .12s}
-.is-ok .ill-g-dots span{opacity:0;transform:scale(.6)}
-.is-ok .ill-g-tick{opacity:1;transform:none}
+.ill-g-dots span{position:relative;width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 1.25px rgba(246,249,250,.75);transition:transform .38s var(--e2),opacity .3s var(--e)}
+.ill-g-dots span::after{content:'';position:absolute;inset:0;border-radius:50%;background:#F6F9FA;opacity:0;transform:scale(.5);transition:transform .16s cubic-bezier(.34,1.3,.64,1),opacity .12s var(--e),background .2s var(--e)}
+.ill-g-dots span.is-on::after{opacity:1;transform:none}
+.is-wrong .ill-g-dots span::after,.is-paused .ill-g-dots span::after{background:#E8A79C;transition-delay:calc((3 - var(--d)) * 45ms)}
+.ill-g-tick{position:absolute;left:50%;top:50%;margin:-6px 0 0 -14px;color:#F6F9FA;opacity:0}
+.ill-g-tick path{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .42s var(--e2) .26s}
+.is-ok .ill-g-dots span{opacity:0;transform:translateX(calc((1.5 - var(--d)) * 32px)) scale(.5)}
+.is-ok .ill-g-tick{opacity:1;transition:opacity .2s var(--e) .22s}
+.is-ok .ill-g-tick path{stroke-dashoffset:0}
 .is-wrong .ill-g-dots,.is-paused .ill-g-dots{animation:ill-g-shake .42s var(--e)}
 .is-wrong .ill-g-dots span.is-on,.is-paused .ill-g-dots span.is-on{background:#E8A79C}
 @keyframes ill-g-shake{20%{transform:translateX(-7px)}45%{transform:translateX(6px)}70%{transform:translateX(-3px)}90%{transform:translateX(1px)}}
@@ -599,9 +661,11 @@ const G_STYLES = `
 .is-wrong .ill-g-pass-status,.is-paused .ill-g-pass-status{color:#F2C3BB}
 .ill-g-pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px 22px;margin:4px 0 6px}
 .ill-g-pad button{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-size:1.75rem;font-weight:300;color:#F6F9FA;
-  background:rgba(246,249,250,.06);box-shadow:inset 0 0 0 1px rgba(246,249,250,.22);transition:background .18s var(--e),transform .12s var(--e)}
+  background:rgba(246,249,250,.06);box-shadow:inset 0 0 0 1px rgba(246,249,250,.22);transition:background .26s var(--e),transform .26s var(--e)}
 .ill-g-pad button.is-del{background:none;box-shadow:none}
-.ill-g-pad button:active:not(:disabled){transform:scale(.94);background:rgba(246,249,250,.22)}
+.ill-g-pad button:active:not(:disabled){transform:scale(.92);background:rgba(246,249,250,.24);transition-duration:.06s}
+.ill-g-pad button.is-hit{background:rgba(246,249,250,.24);transition-duration:.06s}
+.ill-g-pad button.is-del:active:not(:disabled),.ill-g-pad button.is-del.is-hit{background:rgba(246,249,250,.1)}
 .ill-g-pad button:disabled{opacity:.4;cursor:default}
 @media (hover:hover) and (pointer:fine){.ill-g-pad button:hover:not(:disabled):not(.is-del){background:rgba(246,249,250,.14)}}
 .ill-g-pass-help{font-size:.8rem;line-height:1.5;color:rgba(246,249,250,.68);max-width:34ch}
@@ -616,7 +680,8 @@ const G_STYLES = `
 
 /* ═══ MANUAL ═══ */
 .ill-g-hero{position:relative;height:min(78svh,760px);min-height:460px;color:#F6F9FA;overflow:hidden;background:var(--ink)}
-.ill-g-hero-img{position:absolute;inset:0;animation:ill-g-settle 1.6s var(--e2) both}
+.ill-g-hero-img{position:absolute;inset:0;animation:ill-g-settle 1.6s var(--e2) both;view-transition-name:ill-photo}
+.is-from-gate .ill-g-hero-img{animation:none}
 @keyframes ill-g-settle{from{transform:scale(1.05)}to{transform:none}}
 .ill-g-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,22,29,.42) 0%,rgba(14,22,29,0) 30%,rgba(14,22,29,.12) 55%,rgba(14,22,29,.7) 100%)}
 .ill-g-hero-in{position:absolute;left:0;right:0;bottom:0;z-index:2;max-width:1280px;margin:0 auto;padding:0 clamp(20px,5vw,64px) clamp(30px,6vh,60px);display:grid;gap:10px}
@@ -650,12 +715,13 @@ const G_STYLES = `
 /* the icon bar: a floating glass bar that follows the reader; a bottom dock on phones */
 .ill-g-bar{position:sticky;top:12px;z-index:4;max-width:1280px;margin:18px auto 0;padding:0 clamp(20px,5vw,64px)}
 .ill-g-bar > .ill-g-bar-in{background:color-mix(in srgb,var(--bg) 78%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);box-shadow:inset 0 0 0 1px var(--hair),0 18px 40px -28px rgba(14,22,29,.45)}
-.ill-g-bar-in{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:6px;scroll-padding:0 24px}
+.ill-g-bar-in{position:relative;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:6px;scroll-padding:0 24px}
+.ill-g-bar-ind{position:absolute;left:0;bottom:7px;width:100px;height:1px;background:var(--fg);transform-origin:0 50%;transition:transform .3s var(--e2);pointer-events:none}
 .ill-g-bar-in::-webkit-scrollbar{display:none}
 .ill-g-bar a{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;text-decoration:none;font-size:.84rem;color:var(--ink-soft);
   box-shadow:inset 0 0 0 1px transparent;transition:color .25s var(--e),box-shadow .25s var(--e),background .25s var(--e)}
 .ill-g-bar a .ill-g-ico{color:var(--acc)}
-.ill-g-bar a.is-on{color:var(--fg);background:var(--card);box-shadow:inset 0 0 0 1px var(--hair)}
+.ill-g-bar a.is-on{color:var(--fg)}
 @media (hover:hover) and (pointer:fine){.ill-g-bar a:hover{color:var(--fg)}}
 
 .ill-g-body{max-width:1280px;margin:0 auto;padding:0 clamp(20px,5vw,64px);display:grid;grid-template-columns:240px minmax(0,1fr);gap:clamp(32px,6vw,96px)}
@@ -705,7 +771,7 @@ const G_STYLES = `
 .ill-g-small{font-size:.8rem;color:var(--ink-mute)}
 
 /* reveals (transform + opacity only) */
-.is-js .ill-g-rise{opacity:0;transform:translateY(22px);transition:opacity .9s var(--e2),transform .9s var(--e2)}
+.is-js .ill-g-rise{opacity:0;transform:translateY(22px);transition:opacity .9s var(--e2),transform .9s var(--e2);transition-delay:calc(var(--i,0) * 60ms)}
 .is-js .ill-g-rise.is-on{opacity:1;transform:none}
 
 @media (max-width:1020px){

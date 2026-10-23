@@ -272,3 +272,16 @@ dots + round pad, dark glass, smart-lock "send key" apps. 21st.dev API search fa
   pause even an instant right one); Backspace works in the real field, focus shows on the dots and progress
   is spoken; the geothermal line no longer claims the hot tubs' heating source, and the footer separates
   house facts from general knowledge.
+
+## Round 12 (2026-10-23): premium motion on the gate and manual (Sindri: "make the animations and transitions more premium")
+- Gate: glass settles in (.9 s, once), contents rise in a 50 ms stagger; dots fill with a small spring
+  (.16 s), drain right-to-left on a wrong pass after the shake, and on success fold together while a check
+  draws itself (stroke-dashoffset); keypad presses dip fast (.06 s) and release slower (.26 s); keyboard
+  typing tints the matching key (no movement); the panel lifts away (.32 s) and the scrim thins.
+- Unlock → manual: View Transitions carry the one photograph (`view-transition-name: ill-photo`) from the
+  full-screen gate into the manual header (.75 s, object-fit cover so nothing stretches); browsers without
+  the API and reduced motion simply swap. Lock reverses it.
+- Manual: stats and quick tiles stagger in; the section bar's underline slides to the active chip (transform
+  only, .3 s); in-page jumps glide and update the hash.
+- review-animations: 5 reductions applied (keyboard echo no longer scales, dot spring shorter, release under
+  300 ms, underline .3 s, entrance stagger shorter); approved.
