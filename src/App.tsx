@@ -193,6 +193,7 @@ const ReykjafellPage = lazy(() => import('./preview/reykjafell/Page'))
 const ReykjafellProject = lazy(() => import('./preview/reykjafell/Project'))
 const MatvelarPage = lazy(() => import('./preview/matvelar/Page'))
 const SamhentirPage = lazy(() => import('./preview/samhentir/Page'))
+const RafmidlunPage = lazy(() => import('./preview/rafmidlun/Page'))
 const SamboPage = lazy(() => import('./preview/sambo/Page'))
 const TreborgPage = lazy(() => import('./preview/treborg/Page'))
 const TreborgProject = lazy(() => import('./preview/treborg/Project'))
@@ -507,6 +508,12 @@ export default function App() {
             <Route path="/preview/samhentir/merkingar" element={<SamhentirPage view="merkingar" />} />
             <Route path="/preview/samhentir/thjonusta" element={<SamhentirPage view="thjonusta" />} />
             <Route path="/preview/samhentir/fyrirspurn" element={<SamhentirPage view="fyrirspurn" />} />
+            <Route path="/preview/rafmidlun" element={<RafmidlunPage view="home" />} />
+            <Route path="/preview/rafmidlun/thjonusta/:slug" element={<RafmidlunPage view="service" />} />
+            <Route path="/preview/rafmidlun/starfsfolk" element={<RafmidlunPage view="starfsfolk" />} />
+            <Route path="/preview/rafmidlun/verkbeidni" element={<RafmidlunPage view="verkbeidni" />} />
+            <Route path="/preview/rafmidlun/hafa-samband" element={<RafmidlunPage view="hafa-samband" />} />
+            <Route path="/preview/rafmidlun/jafnlaunastefna" element={<RafmidlunPage view="jafnlaunastefna" />} />
             <Route path="/preview/sambo" element={<SamboPage />} />
             <Route path="/preview/treborg" element={<TreborgPage />} />
             <Route path="/preview/treborg/verk/:slug" element={<TreborgProject />} />
