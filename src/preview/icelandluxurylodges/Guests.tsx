@@ -559,6 +559,14 @@ export default function Guests() {
     setThemeColor(stay ? '#0E161D' : '#0E161D')
   }, [stay])
   useEffect(() => setNoindex(true), [])
+  /* iOS 26 Safari tints its top and bottom bars from the page background: ink, so the clock sits
+     on the photograph's dark edge instead of a white strip (restored when the guest leaves) */
+  useEffect(() => {
+    const els = [document.documentElement, document.body]
+    const prev = els.map((e) => e.style.backgroundColor)
+    els.forEach((e) => { e.style.backgroundColor = '#0E161D' })
+    return () => els.forEach((e, i) => { e.style.backgroundColor = prev[i] })
+  }, [])
   /* the link has done its job: keep the token out of the address bar and history */
   useEffect(() => {
     if (new URLSearchParams(window.location.search).has('pass')) window.history.replaceState(null, '', window.location.pathname)
