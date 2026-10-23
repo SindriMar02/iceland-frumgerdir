@@ -4,7 +4,7 @@ import Lenis from 'lenis'
 import { StayBook, BOOK_STYLES, stayPrefill, RangeCal, takenFor, pickNight, fmtShort, iso, nightsBetween, type D } from './Book'
 import { companyEntry } from './company'
 import { REVIEW_DATA } from './reviews'
-import { MapSection, HouseMap, MAP_STYLES } from './Map'
+import { MapSection, HouseMap, CityMap, MAP_STYLES } from './Map'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
@@ -221,80 +221,83 @@ function Reviews({ only }: { only?: string } = {}) {
   /* the aurora loop is fetched only when the section is near, never on mount */
   const film = useNear(secRef)
   const n = QUOTES.length
-
-  useEffect(() => {
-    if (reduced || held) return
-    const t = window.setInterval(() => setI((v) => (v + 1) % n), 7000)
-    return () => window.clearInterval(t)
-  }, [n, held])
-
-  const go = (d: number) => { setHeld(true); setI((v) => (v + d + n) % n) }
+  const pick = (k: number) => { setHeld(true); setI(k) }
   const cur = QUOTES[i]
 
   return (
-    <section className="ill-rev" aria-label="Guest reviews" ref={secRef}>
-      <div className="ill-rev-bed" aria-hidden="true">
-        <Pic src={IMG.auroraStill} alt="" />
-        {film && (
-          <video className="ill-rev-film" src={IMG.auroraFilm} poster={IMG.auroraStill}
-            autoPlay muted loop playsInline aria-hidden="true" />
-        )}
+    <section className="ill-rev" aria-labelledby="ill-rev-h" ref={secRef}>
+      <div className="ill-rev-grid">
+        {/* the night, framed beside the words instead of under them: type on a
+            moving sky had to fight the film for every line */}
+        <figure className="ill-rev-frame">
+          <div className="ill-rev-media">
+            <Pic src={IMG.auroraStill} alt="" sizes="(max-width: 900px) 100vw, 64vw" />
+            {film && (
+              <video className="ill-rev-film" src={IMG.auroraFilm} poster={IMG.auroraStill}
+                autoPlay muted loop playsInline aria-hidden="true" />
+            )}
+          </div>
+          <figcaption>The hot tub deck at Úlfljótsskáli, at night</figcaption>
+        </figure>
+
+        <div className="ill-rev-text">
+          <h2 className="ill-rev-eye" id="ill-rev-h">Guest book</h2>
+
+          <ul className="ill-rev-list">
+            {QUOTES.map((q, idx) => (
+              <li key={q.name} className={`ill-rev-q ${idx === i ? 'is-on' : ''}`} aria-hidden={idx !== i}>
+                <blockquote>
+                  {q.text.split(' ').flatMap((w, k, all) => [
+                    <span className="ill-rev-w" key={`${w}-${k}`}>
+                      {/* +200ms so the words start only after the outgoing
+                          quote has cleared the cell */}
+                      <i style={{ transitionDelay: idx === i ? `${200 + Math.min(k, 26) * 26}ms` : '0ms' }}>{w}</i>
+                    </span>,
+                    ...(k < all.length - 1 ? [' '] : []),
+                  ])}
+                </blockquote>
+              </li>
+            ))}
+          </ul>
+          <p className="ill-rev-who"><b>{cur.name}</b>{cur.meta}</p>
+
+          {/* every voice in the book, as an index: the reader picks a guest
+              instead of stepping through arrows. The active row's hairline is
+              the timer; when it fills, the next guest speaks. Any pick stops
+              that for good. */}
+          {n > 1 && (
+            <ol className="ill-rev-index" aria-label="Choose a review">
+              {QUOTES.map((q, k) => {
+                const [houseName, when] = q.meta.split(' · ')
+                return (
+                  <li key={q.name}>
+                    <button type="button" className={k === i ? 'is-on' : ''} aria-pressed={k === i} onClick={() => pick(k)}>
+                      <span className="ill-rev-n">{String(k + 1).padStart(2, '0')}</span>
+                      <b>{q.name}</b>
+                      <small>{houseName} · {when.replace(/^Vrbo, /, '')}</small>
+                      {k === i && !held && !reduced && (
+                        <i className="ill-rev-tick" key={`t${i}`} aria-hidden="true"
+                          onAnimationEnd={() => setI((v) => (v + 1) % n)} />
+                      )}
+                    </button>
+                  </li>
+                )
+              })}
+            </ol>
+          )}
+        </div>
       </div>
 
-      <div className="ill-rev-inner">
-        <span className="ill-rev-ord" aria-hidden="true" hidden>
-          {QUOTES.map((q, idx) => (
-            <b key={q.name} className={idx === i ? 'is-on' : ''}>{String(idx + 1).padStart(2, '0')}</b>
-          ))}
-        </span>
-
-        {/* the figures come from reviews.ts, the review-sync standard shape:
-            Airbnb's number rewrites itself every Monday on the live site */}
-        <div className="ill-rev-scores" aria-label="Ratings">
-          {REVIEW_DATA.sources.map((s) => (
-            <p key={s.platform}>
-              <b>{s.rating}<i>/{s.of}</i></b>
-              <span>{s.count} {s.platform} reviews · {s.house}</span>
-            </p>
-          ))}
-          <p className="ill-rev-sync"><span aria-hidden="true" />Airbnb figures update themselves every Monday</p>
-        </div>
-
-        <ul className="ill-rev-list">
-          {QUOTES.map((q, idx) => (
-            <li key={q.name} className={`ill-rev-q ${idx === i ? 'is-on' : ''}`} aria-hidden={idx !== i}>
-              <blockquote>
-                {q.text.split(' ').flatMap((w, k, all) => [
-                  <span className="ill-rev-w" key={`${w}-${k}`}>
-                    {/* +200ms so the words start only after the outgoing
-                        quote has cleared the cell */}
-                    <i style={{ transitionDelay: idx === i ? `${200 + Math.min(k, 26) * 26}ms` : '0ms' }}>{w}</i>
-                  </span>,
-                  ...(k < all.length - 1 ? [' '] : []),
-                ])}
-              </blockquote>
-            </li>
-          ))}
-        </ul>
-
-        <div className="ill-rev-foot">
-          <p className="ill-rev-who"><i aria-hidden="true" />{cur.name} · {cur.meta}</p>
-          <div className="ill-rev-nav">
-            <button type="button" aria-label="Previous review" onClick={() => go(-1)}>
-              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M10 12L6 8l4-4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
-            <button type="button" aria-label="Next review" onClick={() => go(1)}>
-              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
-          </div>
-        </div>
-
-        <div className="ill-rev-rail" aria-hidden="true">
-          {QUOTES.map((q, idx) => (
-            <span key={q.name} className={idx === i ? 'is-on' : ''} />
-          ))}
-        </div>
-
+      {/* the figures come from reviews.ts, the review-sync standard shape:
+          Airbnb's number rewrites itself every Monday on the live site */}
+      <div className="ill-rev-ledger" role="group" aria-label="Ratings">
+        {REVIEW_DATA.sources.map((s) => (
+          <dl key={s.platform}>
+            <dt>{s.platform} · {s.house}</dt>
+            <dd><b>{s.rating}<i>/{s.of}</i></b><span>{s.count} reviews</span></dd>
+          </dl>
+        ))}
+        <p className="ill-rev-sync"><span aria-hidden="true" />Airbnb figures update themselves every Monday</p>
       </div>
     </section>
   )
@@ -1132,14 +1135,21 @@ export default function Page({ house }: { house?: string } = {}) {
 
         {/* ── fourth key: no photograph of it exists, so it is set as type on
               its own band rather than pretending to be an image tile ── */}
-        {!house && <section className="ill-fourth" id="apartment">
-          <div className="ill-fourth-card">
-            <span className="ill-fourth-rule" aria-hidden="true" />
-            <Rise as="p" className="ill-fourth-place">{FOURTH_KEY.place}</Rise>
-            <Rise as="h2" className="ill-fourth-name">{FOURTH_KEY.name}</Rise>
+        {!house && <section className="ill-fourth" id="apartment" aria-labelledby="ill-fourth-h">
+          <div className="ill-fourth-text">
+            <Rise as="p" className="ill-fourth-place">The city key · {FOURTH_KEY.place}</Rise>
+            <Rise as="h2" className="ill-fourth-name"><span id="ill-fourth-h">{FOURTH_KEY.name}</span></Rise>
             <Rise as="p" className="ill-fourth-body">{FOURTH_KEY.body}</Rise>
-            <p className="ill-fourth-meta">Reykjavík · 64°09′N 21°57′W · the nights before and after the lake</p>
+            {/* the stay, as a route: city, lake, city. Only places, no claims */}
+            <ol className="ill-fourth-route">
+              <li><span>Before</span><b>Reykjavík</b><small>The apartment, the first night in</small></li>
+              <li><span>The lake</span><b>Úlfljótsvatn · Álftavatn</b><small>Úlfljótsskáli, Álftavík or Áslundur</small></li>
+              <li><span>After</span><b>Reykjavík</b><small>The apartment, the last night out</small></li>
+            </ol>
             <a className="ill-fourth-go" href={`${EMAIL_HREF}?subject=${encodeURIComponent('The Reykjavík apartment')}`}>Ask about the apartment <i aria-hidden="true">→</i></a>
+          </div>
+          <div className="ill-fourth-map">
+            <CityMap />
           </div>
         </section>}
 
@@ -1700,104 +1710,131 @@ const STYLES = `
 .ill-dusk-h{font-family:var(--serif);font-weight:300;font-size:clamp(2.3rem,6.4vw,5.4rem);line-height:1.02;letter-spacing:-.01em}
 .ill-dusk-p{color:rgba(239,243,245,.88);max-width:40ch;font-size:clamp(1rem,1.7vw,1.15rem)}
 
-/* ── fourth key ── */
-/* A dark box floating on a light page, with the page showing down both sides,
-   is a card — the same template tell struck off Mirror Lodge. The fourth key
-   is now its own FULL-BLEED band: the section IS the dark ground, it butts
-   directly against its neighbours with no gap, and the type sits on it,
-   left-ranged, with no container of its own. */
-.ill-fourth{background:var(--ink);color:var(--ice);
-  padding:clamp(78px,13vh,150px) clamp(20px,5vw,64px)}
-.ill-fourth-card{max-width:1100px;margin:0 auto;display:grid;justify-items:start;gap:15px}
-.ill-fourth-meta{font-size:.78rem;letter-spacing:.08em;color:var(--ice-mute)}
-.ill-root .ill-fourth-go{display:inline-flex;align-items:center;gap:.6em;margin-top:14px;min-height:46px;padding:0 20px;font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500;color:var(--ice);box-shadow:inset 0 0 0 1px rgba(239,243,245,.4);transition:background .25s var(--e),color .25s var(--e)}
-.ill-fourth-go i{font-style:normal;transition:transform .3s var(--e)}
-@media (hover:hover) and (pointer:fine){.ill-root .ill-fourth-go:hover{background:var(--ice);color:var(--ink)}.ill-fourth-go:hover i{transform:translateX(4px)}}
+/* ── fourth key: the city key ── */
+/* Round 14. It was a dark slab of text with nothing to look at. There is no
+   photograph of the apartment, so none is invented: the picture is WHERE it
+   is. A split band: the words and the stay as a route (city, lake, city) on
+   the left; on the right the collection's own OSM map, redrawn for night and
+   cropped to the capital, bled to the viewport edge, with the two lakes
+   pointed to off its right side. */
+.ill-fourth{background:var(--ink);color:var(--ice);display:grid;
+  grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:stretch;
+  border-top:1px solid rgba(239,243,245,.1)}
+.ill-fourth-text{display:grid;align-content:center;justify-items:start;gap:16px;
+  padding:clamp(78px,12vh,140px) clamp(28px,4vw,72px) clamp(78px,12vh,140px) max(clamp(20px,5vw,64px),calc((100vw - 1440px) / 2 + 64px))}
 .ill-fourth-place .ill-rise-in{color:var(--ice-mute);letter-spacing:.22em;text-transform:uppercase;
   font-size:.71rem;font-weight:400}
-.ill-fourth-name .ill-rise-in{font-family:var(--serif);font-size:clamp(1.9rem,4.4vw,3.1rem);
-  line-height:1.02;letter-spacing:-.02em}
-.ill-fourth-body .ill-rise-in{color:var(--ice-soft);max-width:52ch}
-.ill-fourth-rule{width:56px;height:1px;background:rgba(233,240,243,.28);margin-bottom:6px}
+.ill-fourth-name .ill-rise-in{font-family:var(--serif);font-weight:300;font-size:clamp(2.1rem,4.2vw,3.5rem);
+  line-height:1.02;letter-spacing:-.02em;max-width:12ch}
+.ill-fourth-body .ill-rise-in{color:var(--ice-soft);max-width:44ch}
+.ill-fourth-route{list-style:none;margin:14px 0 6px;padding:0;width:100%;max-width:460px;display:grid}
+.ill-fourth-route li{display:grid;grid-template-columns:88px 1fr;column-gap:16px;row-gap:2px;
+  padding:14px 0;border-top:1px solid rgba(239,243,245,.14);position:relative}
+.ill-fourth-route li:last-child{border-bottom:1px solid rgba(239,243,245,.14)}
+.ill-fourth-route span{grid-row:1/3;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ice-mute);padding-top:.35em}
+.ill-fourth-route b{font-family:var(--serif);font-weight:300;font-size:1.18rem;line-height:1.2;color:var(--ice)}
+.ill-fourth-route small{font-size:.8rem;color:rgba(239,243,245,.6)}
+.ill-fourth-route li:nth-child(2) b{font-style:italic}
+.ill-root .ill-fourth-go{display:inline-flex;align-items:center;gap:.6em;margin-top:12px;min-height:48px;padding:0 22px;font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500;color:var(--ink);background:var(--ice);transition:background-color .25s var(--e),color .25s var(--e)}
+.ill-fourth-go i{font-style:normal;transition:transform .3s var(--e)}
+@media (hover:hover) and (pointer:fine){.ill-root .ill-fourth-go:hover{background:#FFFFFF}.ill-fourth-go:hover i{transform:translateX(4px)}}
+/* the night map: the same three colours, inverted */
+.ill-fourth-map{position:relative;min-height:clamp(420px,64vh,680px);
+  --fg:#EFF3F5;--bg:#0E161D;--acc:#9DBBD2;--hair:rgba(239,243,245,.12);--ink-mute:rgba(239,243,245,.62)}
+.ill-city-fit{position:absolute;inset:0}
+.ill-fourth-map .ill-map-stage{position:absolute;inset:0;box-shadow:inset 1px 0 0 var(--hair);
+  background:color-mix(in srgb,#EFF3F5 3%,#0E161D)}
+.ill-fourth-map .ill-map-sea path{fill:color-mix(in srgb,var(--acc) 12%,transparent)}
+.ill-fourth-map .ill-map-lakes path{fill:color-mix(in srgb,var(--acc) 22%,transparent)}
+.ill-fourth-map .ill-map-pin.is-key i{background:var(--ice);box-shadow:0 0 0 7px rgba(239,243,245,.1),0 0 0 18px rgba(239,243,245,.05)}
+.ill-fourth-map .ill-map-pin.is-key i::before{inset:6px;background:var(--ink)}
+.ill-fourth-map .ill-map-pin-l b{font-size:clamp(1.15rem,1.6vw,1.5rem)}
 
-/* ── quote ── */
-/* ══ guest words, on the night they describe ══ */
-.ill-rev{position:relative;isolation:isolate;overflow:hidden;background:var(--ink);
-  padding:clamp(80px,14vh,150px) clamp(20px,6vw,80px) clamp(74px,12vh,130px)}
-/* the photograph fades into the night canvas at both edges, so the section
-   reads as a scene inside the night rather than a box stacked on it */
-.ill-rev-bed{position:absolute;inset:0;z-index:0}
-/* masked on the media themselves: a <video> is its own compositor layer and
-   Chrome does not reliably clip it by a parent's mask, which left a hard edge */
-.ill-rev-bed img,.ill-rev-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 78%,transparent);
-  mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 78%,transparent)}
+/* ══ guest book ══ */
+/* Round 14. The quotes used to sit ON the aurora film behind a double scrim,
+   and the type fought the moving sky for every line. Now the night is framed
+   beside the words, the voices are an index you pick from, and the two
+   platform scores close the section as a ruled ledger. */
+.ill-rev{position:relative;background:var(--ink);color:var(--ice);
+  padding:clamp(84px,13vh,150px) clamp(20px,5vw,64px) clamp(56px,8vh,90px)}
+.ill-rev-grid{max-width:1312px;margin:0 auto;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);
+  gap:clamp(40px,6vw,104px);align-items:center}
+.ill-rev-frame{margin:0;display:grid;gap:12px}
+.ill-rev-media{position:relative;aspect-ratio:4/5;overflow:hidden;background:#0A1117}
+.ill-rev-media img,.ill-rev-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ill-rev-film{z-index:1}
-/* the type sits on the film, so the film needs a floor */
-/* two scrims, not one: a lateral wash so the column always has a dark ground,
-   and a top band because the quote's first line sits against open sky, which
-   is the brightest part of the frame */
-.ill-rev::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
-  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 78%,transparent);
-  mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 78%,transparent);
-  background:
-    linear-gradient(to bottom,rgba(6,11,16,.72),rgba(6,11,16,.18) 42%,transparent 62%),
-    linear-gradient(to right,rgba(6,11,16,.9),rgba(6,11,16,.7) 50%,rgba(6,11,16,.3) 86%)}
-.ill-rev-inner{position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;justify-items:start;gap:clamp(22px,3.4vh,34px)}
-.ill-rev-sync{flex-basis:100%}
-/* oversized ghost ordinal, bled off the right */
-.ill-rev-ord{position:absolute;right:-.08em;top:-.3em;z-index:0;display:grid;
-  font-family:var(--serif);font-size:clamp(8rem,17vw,15rem);line-height:.76;letter-spacing:-.04em;
-  color:#EFF3F5;opacity:.07;pointer-events:none;user-select:none}
-.ill-rev-ord b{grid-area:1/1;font-weight:400;opacity:0;transform:scale(1.08);filter:blur(9px);
-  transition:opacity .6s var(--e),transform .6s var(--e),filter .6s var(--e)}
-.ill-rev-ord b.is-on{opacity:1;transform:none;filter:none}
-.ill-rev-scores{display:flex;align-items:end;gap:clamp(22px,4vw,56px);flex-wrap:wrap;color:rgba(239,243,245,.86)}
-.ill-rev-scores > p{display:grid;gap:4px}
-.ill-rev-scores b{font-family:var(--serif);font-weight:300;font-size:clamp(2.2rem,4.4vw,3.6rem);line-height:.95;color:#F7FAFB}
-.ill-rev-scores b i{font-style:normal;font-size:.42em;color:rgba(239,243,245,.6);margin-left:.08em}
-.ill-rev-scores > p > span{font-size:.74rem;letter-spacing:.06em;color:rgba(239,243,245,.66)}
-.ill-rev-sync{display:inline-flex !important;align-items:center;gap:9px;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
-  color:rgba(239,243,245,.72);padding-bottom:6px}
-.ill-rev-sync span{width:5px;height:5px;border-radius:50%;background:#8FBFB0;flex:none}
-.ill-rev-list{list-style:none;padding:0;margin:0;display:grid;perspective:800px;width:100%}
+.ill-rev-media::after{content:'';position:absolute;inset:0;z-index:2;box-shadow:inset 0 0 0 1px rgba(239,243,245,.1);pointer-events:none}
+.ill-rev-frame figcaption{font-family:var(--serif);font-style:italic;font-size:.92rem;color:rgba(239,243,245,.6)}
+.ill-rev-text{display:grid;justify-items:start;gap:clamp(18px,2.6vh,26px)}
+.ill-rev-eye{margin:0;font-family:var(--sans);font-weight:400;font-size:.71rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ice-mute)}
+.ill-rev-list{list-style:none;padding:0;margin:0;display:grid;width:100%}
 /* ASYMMETRIC, not a crossfade. Two stacked display-size quotes fading through
    each other overlap into unreadable mush for the whole transition. Leaving is
    efficiency (fast, no delay); arriving is ceremony (waits for the outgoing to
    clear, then comes in word by word). */
-.ill-rev-q{grid-area:1/1;opacity:0;pointer-events:none;transition:opacity .18s var(--e)}
+.ill-rev-q{grid-area:1/1;align-self:end;opacity:0;pointer-events:none;transition:opacity .18s var(--e)}
 .ill-rev-q.is-on{opacity:1;pointer-events:auto;transition:opacity .3s var(--e) .2s}
-.ill-rev-q blockquote{margin:0;font-family:var(--serif);
-  font-size:clamp(1.35rem,2.7vw,2.25rem);line-height:1.2;letter-spacing:-.012em;
-  color:#F7FAFB;max-width:26ch;text-shadow:0 2px 30px rgba(4,8,12,.6)}
+.ill-rev-q blockquote{margin:0;font-family:var(--serif);font-weight:300;
+  font-size:clamp(1.6rem,3.1vw,2.7rem);line-height:1.14;letter-spacing:-.015em;
+  color:#F7FAFB;max-width:21ch;text-indent:-.42em}
 .ill-rev-q blockquote::before{content:'\\201C'}
 .ill-rev-q blockquote::after{content:'\\201D'}
-/* word-by-word arrival */
-.ill-rev-w{display:inline-block;overflow:hidden;vertical-align:top}
-.ill-rev-w i{display:inline-block;font-style:normal;opacity:0;
-  transform:translateY(104%) rotateX(58deg);transform-origin:top center;
-  transition:transform .66s var(--e),opacity .48s var(--e)}
+.ill-rev-w{display:inline-block;overflow:hidden;vertical-align:top;text-indent:0}
+.ill-rev-w i{display:inline-block;font-style:normal;opacity:0;transform:translateY(100%);
+  transition:transform .6s var(--e),opacity .4s var(--e)}
 .ill-rev-q.is-on .ill-rev-w i{opacity:1;transform:none}
-.ill-rev-foot{display:flex;align-items:center;justify-content:space-between;gap:20px;
-  width:100%;flex-wrap:wrap;margin-top:4px}
-.ill-rev-who{display:flex;align-items:center;gap:13px;font-size:.76rem;letter-spacing:.08em;
-  color:rgba(239,243,245,.72)}
-.ill-rev-who i{display:block;width:32px;height:1px;background:rgba(239,243,245,.6);flex:none}
-.ill-rev-nav{display:flex;gap:10px}
-.ill-rev-nav button{width:42px;height:42px;border-radius:50%;border:1px solid var(--hair-ice);
-  display:grid;place-content:center;color:rgba(239,243,245,.85);
-  transition:color .2s var(--e),border-color .2s var(--e),background-color .2s var(--e)}
-@media (hover:hover) and (pointer:fine){
-  .ill-rev-nav button:hover{color:#0E161D;background:#EFF3F5;border-color:#EFF3F5}
+.ill-rev-who{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:.4em 14px;font-size:.8rem;letter-spacing:.04em;color:rgba(239,243,245,.6)}
+.ill-rev-who b{font-weight:500;color:var(--ice);letter-spacing:.06em}
+.ill-rev-index{list-style:none;margin:clamp(10px,2vh,22px) 0 0;padding:0;width:100%;display:grid}
+.ill-rev-index li{border-top:1px solid rgba(239,243,245,.12)}
+.ill-rev-index li:last-child{border-bottom:1px solid rgba(239,243,245,.12)}
+.ill-root .ill-rev-index button{position:relative;width:100%;min-height:52px;display:grid;
+  grid-template-columns:34px minmax(0,auto) 1fr;align-items:baseline;column-gap:14px;padding:14px 0;
+  text-align:left;color:rgba(239,243,245,.5);transition:color .2s var(--e)}
+.ill-rev-n{font-size:.68rem;letter-spacing:.12em;font-variant-numeric:tabular-nums}
+.ill-rev-index b{font-family:var(--serif);font-weight:300;font-size:1.12rem;white-space:nowrap}
+.ill-rev-index small{justify-self:end;font-size:.74rem;letter-spacing:.04em;text-align:right}
+.ill-root .ill-rev-index button.is-on{color:var(--ice)}
+.ill-rev-index button::before{content:'';position:absolute;left:0;right:0;top:-1px;height:1px;
+  background:rgba(239,243,245,.5);transform:scaleX(0);transform-origin:left;transition:transform .3s var(--e)}
+.ill-rev-index button.is-on::before{transform:scaleX(1)}
+@media (hover:hover) and (pointer:fine){.ill-root .ill-rev-index button:hover{color:var(--ice)}}
+/* the timer: the active row's top hairline fills over 7 s; linear, because
+   it is a clock, not a movement */
+.ill-rev-tick{position:absolute;left:0;right:0;top:-1px;height:1px;background:var(--ice);
+  transform-origin:left;transform:scaleX(0);animation:ill-rev-tick 7s linear forwards}
+.ill-rev-text:hover .ill-rev-tick,.ill-rev-text:focus-within .ill-rev-tick{animation-play-state:paused}
+@keyframes ill-rev-tick{to{transform:scaleX(1)}}
+.ill-rev-ledger{max-width:1312px;margin:clamp(64px,10vh,110px) auto 0;display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr)) auto;align-items:end;gap:20px clamp(28px,4vw,64px);
+  padding-top:22px;border-top:1px solid rgba(239,243,245,.14)}
+.ill-rev-ledger > dl{margin:0;display:grid;gap:8px}
+.ill-rev-ledger dt{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ice-mute)}
+.ill-rev-ledger dd{margin:0;display:flex;align-items:baseline;gap:14px}
+.ill-rev-ledger dd b{font-family:var(--serif);font-weight:300;font-size:clamp(2.4rem,4.4vw,3.8rem);line-height:.9;color:#F7FAFB;letter-spacing:-.02em}
+.ill-rev-ledger dd b i{font-style:normal;font-size:.4em;color:rgba(239,243,245,.55);margin-left:.06em;letter-spacing:0}
+.ill-rev-ledger dd span{font-size:.8rem;color:rgba(239,243,245,.62)}
+.ill-rev-sync{display:inline-flex;align-items:center;gap:9px;margin:0;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(239,243,245,.6);padding-bottom:8px}
+.ill-rev-sync span{width:5px;height:5px;border-radius:50%;background:#8FBFB0;flex:none}
+@media (max-width:900px){
+  .ill-fourth{grid-template-columns:1fr}
+  .ill-fourth-text{padding:clamp(72px,11vh,110px) clamp(20px,5vw,64px) 44px}
+  .ill-fourth-map{min-height:0;aspect-ratio:4/3}
 }
-.ill-rev-rail{display:flex;gap:7px}
-.ill-rev-rail span{width:30px;height:1px;background:var(--hair-ice);transition:background .5s var(--e)}
-.ill-rev-rail span.is-on{background:rgba(239,243,245,.92)}
-.ill-rev-note{font-size:.72rem;letter-spacing:.03em;color:rgba(239,243,245,.55);max-width:62ch}
 @media (max-width:640px){
-  .ill-rev::after{background:linear-gradient(to top,rgba(6,11,16,.9),rgba(6,11,16,.55) 60%,rgba(6,11,16,.35))}
-  .ill-rev-q blockquote{max-width:18ch}
-  .ill-rev-ord{font-size:7rem}
+  .ill-fourth-map{aspect-ratio:1/1}
+  .ill-fourth-map .ill-map-stage{box-shadow:inset 0 1px 0 var(--hair)}
+  .ill-rev-grid{grid-template-columns:1fr;gap:36px}
+  .ill-rev-media{aspect-ratio:4/3}
+  .ill-rev-ledger{grid-template-columns:1fr 1fr}
+  .ill-rev-sync{grid-column:1/-1}
+}
+@media (max-width:640px){
+  .ill-fourth-route li{grid-template-columns:76px 1fr}
+  .ill-rev-index small{display:none}
+  .ill-root .ill-rev-index button{grid-template-columns:34px 1fr}
+  .ill-rev-ledger dd{flex-direction:column;align-items:start;gap:6px}
 }
 
 /* ── booking ── */
@@ -1902,11 +1939,8 @@ const STYLES = `
   /* no auto-advance and no film: every quote is shown at once, so every WORD
      must show too — the per-word reveal keys off .is-on, which only one <li>
      ever carries */
-  .ill-rev-q{grid-area:auto;opacity:1;pointer-events:auto;margin-bottom:28px}
-  .ill-rev-w i{opacity:1 !important;transform:none !important;transition:none}
-  .ill-rev-ord b{opacity:0}
-  .ill-rev-ord b.is-on{opacity:1;filter:none;transform:none}
-  .ill-rev-rail,.ill-rev-nav{display:none}
+  .ill-rev-w i{transition:opacity .3s var(--e);transform:none}
+  .ill-rev-index button::before{transition:none}
 }
 
 /* ── the SHARED prototype disclaimer, dressed in this page's own language ──
@@ -1961,7 +1995,6 @@ const STYLES = `
   .ill-eyebrow,.ill-door-kind,.ill-fact-l,.ill-rev-note,.ill-book-note,
   .ill-rev-badge,.ill-chip,.ill-chip span,.ill-fourth-place .ill-rise-in,.ill-footer-dl dt,
   .ill-field label,.ill-book label,.ill-dusk-eye,.ill-others-h{font-size:13px}
-  .ill-rev-nav button{width:44px;height:44px}
   .ill-nav-mark{padding:9px 0}
   /* the shared disclaimer is dressed by this page at .76rem — 12.2px, under
      the floor. The component itself ships 15px on phones; the override is

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { GEO } from './geo'
 import { DOORS, STATEMENT } from './data'
@@ -42,6 +42,8 @@ const CROPS: Record<string, Crop> = {
   landingNarrow: [420, 150, 560, 520],
   /* house pages: the two lakes and the road between them */
   house: [540, 255, 340, 280],
+  /* the apartment: the capital area alone, the lakes pointed to off the right */
+  city: [0, 228, 336, 224],
 }
 
 /* Faxaflói: the long coast way runs from Hvalfjörður (top) to Reykjanes
@@ -64,7 +66,7 @@ function useNarrow(q = '(max-width: 640px)') {
   return n
 }
 
-export function LakeMap({ crop, focus, legend = false }: { crop: Crop; focus?: string; legend?: boolean }) {
+export function LakeMap({ crop, focus, legend = false, label = 'Map of the Golden Circle lakes: Reykjavík, Þingvallavatn, Úlfljótsvatn and Álftavatn' }: { crop: Crop; focus?: string; legend?: boolean; label?: string }) {
   const [cx, cy, cw, ch] = crop
   const narrow = useNarrow()
   /* on a phone a label to the right of a pin past mid-stage would leave the stage */
@@ -73,7 +75,7 @@ export function LakeMap({ crop, focus, legend = false }: { crop: Crop; focus?: s
   const inside = (p: Pt, pad = 0) => p[0] > cx + pad && p[0] < cx + cw - pad && p[1] > cy + pad && p[1] < cy + ch - pad
   const off = PINS.filter((p) => !inside(p.c, 6))
   return (
-    <div className="ill-map-stage" role="group" aria-label="Map of the Golden Circle lakes: Reykjavík, Þingvallavatn, Úlfljótsvatn and Álftavatn" style={{ aspectRatio: `${cw} / ${ch}` }}>
+    <div className="ill-map-stage" role="group" aria-label={label} style={{ aspectRatio: `${cw} / ${ch}` }}>
       <svg className="ill-map-svg" viewBox={`${cx} ${cy} ${cw} ${ch}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
         <g className="ill-map-l ill-map-sea">{SEA.map((d, i) => <path key={i} d={d} />)}</g>
         <g className="ill-map-l ill-map-lakes">{GEO.lakes.map((l, i) => <path key={i} d={l.d} />)}</g>
@@ -90,7 +92,7 @@ export function LakeMap({ crop, focus, legend = false }: { crop: Crop; focus?: s
           <span key={name} className="ill-map-lake" style={pct(p)}>{name}</span>
         ))}
         {GEO.places.filter((p) => TOWNS.has(p.name) && inside(p.p, 8)).map((p) => (
-          <span key={p.name} className={`ill-map-town ${p.p[0] > cx + cw * 0.82 ? 'is-flip' : ''}`} style={pct(p.p)}>{p.name}</span>
+          <span key={p.name} className={`ill-map-town ${p.p[0] > cx + cw * (narrow ? 0.7 : 0.82) ? 'is-flip' : ''}`} style={pct(p.p)}>{p.name}</span>
         ))}
         {PINS.filter((p) => inside(p.c, 6)).map((p) => {
           const isFocus = focus ? PIN_OF[focus] === p.id : false
@@ -108,13 +110,48 @@ export function LakeMap({ crop, focus, legend = false }: { crop: Crop; focus?: s
             </div>
           )
         })}
-        {off.map((p) => (
-          <span key={p.id} className="ill-map-off" style={{ top: pct(p.c).top }}>
-            <i aria-hidden="true">←</i> {p.lake}
-          </span>
-        ))}
+        {off.map((p) => {
+          /* off the right edge reads right; the label never leaves the stage */
+          const right = p.c[0] > cx + cw
+          const top = `${Math.min(88, Math.max(12, ((p.c[1] - cy) / ch) * 100))}%`
+          return (
+            <span key={p.id} className={`ill-map-off ${right ? 'is-r' : ''}`} style={{ top }}>
+              {!right && <i aria-hidden="true">←</i>} {p.lake}{right && p.note ? <small>{p.note}</small> : null} {right && <i aria-hidden="true">→</i>}
+            </span>
+          )
+        })}
       </div>
       {legend && <p className="ill-map-credit">Map data © OpenStreetMap contributors</p>}
+    </div>
+  )
+}
+
+/* ── the apartment: the same OSM geometry at night, cropped to the city ── */
+export function CityMap() {
+  /* the band sets the map's shape, so the crop is fitted to the box: same
+     width of country, as much height as the box asks for, centred on the
+     city. Labels are placed by percentage of the crop, so a crop that did not
+     match the box would slide every label off its dot. */
+  const ref = useRef<HTMLDivElement>(null)
+  const [crop, setCrop] = useState<Crop>(CROPS.city)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const fit = () => {
+      const { width, height } = el.getBoundingClientRect()
+      if (!width || !height) return
+      const [x, y, w, h] = CROPS.city
+      const nh = Math.round(w * (height / width))
+      setCrop([x, Math.round(y + h / 2 - nh / 2), w, nh])
+    }
+    fit()
+    const ro = new ResizeObserver(fit)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  return (
+    <div className="ill-city-fit" ref={ref}>
+      <LakeMap crop={crop} legend label="Map of Reykjavík, where the apartment is, with the lakes to the east" />
     </div>
   )
 }
@@ -232,6 +269,9 @@ export const MAP_STYLES = `
 .reduced .ill-map-pin.is-focus i::after{animation:none;transform:scale(1.5);opacity:.5}
 .ill-map-off{left:14px;transform:translateY(-50%);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mute);font-weight:500;display:inline-flex;gap:8px;align-items:center}
 .ill-map-off i{font-style:normal}
+.ill-map-off.is-r{left:auto;right:14px}
+@media (max-width:640px){.ill-map-off small{display:none}}
+.ill-map-off small{font-size:inherit;letter-spacing:.08em;text-transform:none;opacity:.75;margin-left:.4em}
 .ill-map-credit{position:absolute;right:12px;bottom:8px;font-size:.66rem;letter-spacing:.06em;color:var(--ink-mute);opacity:.7}
 /* the index beside the map: one row per key, hovering a row lights its pin */
 .ill-map-index{display:grid;gap:clamp(22px,3vh,34px);padding-top:4px}
