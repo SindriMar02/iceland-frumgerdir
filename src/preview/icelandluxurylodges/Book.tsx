@@ -342,7 +342,7 @@ export function StayBook({ initial, compact = false }: { initial?: string; compa
 }
 
 export const BOOK_STYLES = `
-.ill-sb{display:grid;gap:clamp(22px,3vw,36px);min-width:0}
+.ill-sb{display:grid;gap:clamp(36px,5vh,56px);min-width:0}
 /* house tiles: three quiet columns on one hairline, the chosen one in ink */
 .ill-sb-houses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 clamp(16px,2.5vw,36px)}
 .ill-sb-house{display:grid;gap:4px;text-align:left;padding:16px 0 18px;border-top:1px solid var(--hair);color:var(--ink-mute);
@@ -352,7 +352,7 @@ export const BOOK_STYLES = `
 .ill-sb-house.is-on{color:var(--fg);box-shadow:inset 0 1px 0 var(--fg)}
 .ill-sb-house:disabled:not(.is-on){opacity:.45}
 @media (hover:hover) and (pointer:fine){.ill-sb-house:not(:disabled):not(.is-on):hover{color:var(--ink-soft)}}
-.ill-sb-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,360px);gap:clamp(28px,4vw,64px);align-items:start}
+.ill-sb-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,380px);gap:clamp(36px,5.5vw,96px);align-items:start}
 .ill-sb-main{min-width:0}
 /* calendar */
 .ill-sb-cal{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(18px,3vw,40px)}

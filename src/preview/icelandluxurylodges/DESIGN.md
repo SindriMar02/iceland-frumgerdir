@@ -285,3 +285,15 @@ dots + round pad, dark glass, smart-lock "send key" apps. 21st.dev API search fa
   only, .3 s); in-page jumps glide and update the hash.
 - review-animations: 5 reductions applied (keyboard echo no longer scales, dot spring shorter, release under
   300 ms, underline .3 s, entrance stagger shorter); approved.
+
+## Round 13 (2026-10-23): load speed + the lower sections (Sindri: "make sure the landing page and the images load … they keep being behind"; "lazy load on the loading screen"; booking "a bit condensed"; reviews/evening/apartment "something puts me off"; footer reflection "water ripples … much more elegant")
+- Measured live first: landing 10.7 MB (hero + 3 doors ~700 KB each at 2400 w; films 3 MB + 1.25 MB);
+  on simulated phone 4G the doors finished ~2 s after first paint; Safari's native lazy starts late.
+- Loader now waits for the hero AND the three doors (made eager), cap 2.6 s; every other photo flips to
+  eager ~2 screens ahead (IntersectionObserver, 1800 px); films mount 1800 px ahead.
+- 1800/2400 widths re-encoded AVIF q58 / WebP q78 (~40% lighter: hero 695 → 407 KB), checked at retina.
+- Booking: more air between copy, house tabs, calendar and card. Reviews: ghost ordinal hidden, the
+  pitch note removed from the scene, firmer left scrim. Evening band: a soft dark pool behind the words.
+  Apartment: coordinates line + "Ask about the apartment" mailto button. Footer: lighter type, a hairline
+  that fades at both ends, the reflection displaced by an SVG turbulence field (slow SMIL breathing, still
+  under reduced motion, plain mirror without SVG filter support).

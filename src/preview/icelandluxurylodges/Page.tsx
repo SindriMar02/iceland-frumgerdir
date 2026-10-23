@@ -81,7 +81,7 @@ function Pic({ src, alt, sizes = '(orientation: portrait) 150vh, 100vw', priorit
 }
 
 /* mounts heavy media (the ambient films) only once its section is near */
-function useNear<T extends HTMLElement>(ref: React.RefObject<T | null>, margin = '900px') {
+function useNear<T extends HTMLElement>(ref: React.RefObject<T | null>, margin = '1800px') {
   const [near, setNear] = useState(false)
   useEffect(() => {
     const el = ref.current
@@ -242,7 +242,7 @@ function Reviews({ only }: { only?: string } = {}) {
       </div>
 
       <div className="ill-rev-inner">
-        <span className="ill-rev-ord" aria-hidden="true">
+        <span className="ill-rev-ord" aria-hidden="true" hidden>
           {QUOTES.map((q, idx) => (
             <b key={q.name} className={idx === i ? 'is-on' : ''}>{String(idx + 1).padStart(2, '0')}</b>
           ))}
@@ -295,7 +295,6 @@ function Reviews({ only }: { only?: string } = {}) {
           ))}
         </div>
 
-        <p className="ill-rev-note">{REVIEWS.sourceNote}</p>
       </div>
     </section>
   )
@@ -541,13 +540,26 @@ function HeroPill() {
 function Waterword() {
   const wRef = useRef<HTMLDivElement>(null)
   const rRef = useRef<HTMLDivElement>(null)
+  const still = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   useEffect(() => {
     const a = armDrift(wRef.current, 5, 'text')
-    const b = armDrift(rRef.current, 5, 'refl')
-    return () => { a(); b() }
+    return () => { a() }
   }, [])
+  /* round 13 (Sindri: "water ripples in the reflection, much more elegant"): the reflection is
+     water now. A horizontal turbulence field displaces it, slowly breathing (SMIL on the
+     field's frequency, so no script runs per frame); reduced motion keeps it still; a browser
+     without SVG filters on HTML keeps the plain mirror. */
   return (
     <div className="ill-water" aria-hidden="true">
+      <svg className="ill-water-defs" width="0" height="0" focusable="false">
+        <filter id="ill-ripple" x="-5%" y="-20%" width="110%" height="140%" colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.006 0.11" numOctaves="2" seed="7" result="n">
+            {!still && <animate attributeName="baseFrequency" dur="11s" values="0.006 0.11;0.008 0.13;0.006 0.11" repeatCount="indefinite" />}
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G" />
+          <feGaussianBlur stdDeviation="0.5" />
+        </filter>
+      </svg>
       <div className="ill-water-word" ref={wRef}>Sjáumst við vatnið</div>
       <span className="ill-water-seam" />
       <div className="ill-water-refl"><div ref={rRef}>Sjáumst við vatnið</div></div>
@@ -579,11 +591,16 @@ function Preloader({ onDone }: { onDone: () => void }) {
        old loader counted every lazy photograph on the page, and a lazy image
        below the fold never reports complete, so it ran to its 2.4 s cap on
        every visit and the booking bar arrived five seconds in. */
-    const hero = document.querySelector<HTMLImageElement>('.ill-hero img')
+    /* round 13 (Sindri: "make sure the landing page and the images load"): the curtain now also
+       waits for the three doors, the first photographs a scroll reaches, so nothing arrives
+       behind the reader. Doors are made eager below; capped so a slow line never strands it. */
+    const ready = (img: HTMLImageElement | null) => !img || img.complete
+      ? Promise.resolve()
+      : new Promise<void>((r) => { img.addEventListener('load', () => r(), { once: true }); img.addEventListener('error', () => r(), { once: true }) })
+    const imgs = [document.querySelector<HTMLImageElement>('.ill-hero img'), ...document.querySelectorAll<HTMLImageElement>('.ill-door img')]
+    imgs.forEach((i) => { if (i && i.loading === 'lazy') i.loading = 'eager' })
     const parts: Promise<unknown>[] = [
-      hero && !hero.complete
-        ? new Promise<void>((r) => { hero.addEventListener('load', () => r(), { once: true }); hero.addEventListener('error', () => r(), { once: true }) })
-        : Promise.resolve(),
+      ...imgs.map(ready),
       'fonts' in document ? document.fonts.ready : Promise.resolve(),
     ]
     let done = 0
@@ -592,7 +609,7 @@ function Preloader({ onDone }: { onDone: () => void }) {
       const el = performance.now() - t0
       real = Math.max(real, done / parts.length)
       const floorP = Math.min(1, el / 600)
-      const capP = el / 1300
+      const capP = el / 2600
       const p = Math.min(1, Math.max(capP, Math.min(real, floorP)))
       setPct(Math.round(p * 100))
       if (p >= 1 && !doneRef.current) {
@@ -654,6 +671,18 @@ export default function Page({ house }: { house?: string } = {}) {
   /* the evening loop is fetched only once the band is near */
   const eveFilm = useNear(duskRef)
   const [booted, setBooted] = useState(false)
+  /* photographs within ~2 screens start loading now, not at the viewport's edge */
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root || !('IntersectionObserver' in window)) return
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      if (!e.isIntersecting) return
+      const img = e.target as HTMLImageElement
+      img.loading = 'eager'; io.unobserve(img)
+    }), { rootMargin: '1800px 0px' })
+    root.querySelectorAll<HTMLImageElement>('img[loading="lazy"]').forEach((i) => io.observe(i))
+    return () => io.disconnect()
+  }, [booted, house])
   const [showLoader, setShowLoader] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const heroRef = useRef<HTMLElement>(null)
@@ -1109,6 +1138,8 @@ export default function Page({ house }: { house?: string } = {}) {
             <Rise as="p" className="ill-fourth-place">{FOURTH_KEY.place}</Rise>
             <Rise as="h2" className="ill-fourth-name">{FOURTH_KEY.name}</Rise>
             <Rise as="p" className="ill-fourth-body">{FOURTH_KEY.body}</Rise>
+            <p className="ill-fourth-meta">Reykjavík · 64°09′N 21°57′W · the nights before and after the lake</p>
+            <a className="ill-fourth-go" href={`${EMAIL_HREF}?subject=${encodeURIComponent('The Reykjavík apartment')}`}>Ask about the apartment <i aria-hidden="true">→</i></a>
           </div>
         </section>}
 
@@ -1662,7 +1693,8 @@ const STYLES = `
 .ill-dusk-stage::after{content:'';position:absolute;inset:0;opacity:var(--nt,0);
   background:linear-gradient(to top,rgba(6,11,16,.82) 0%,rgba(6,11,16,.42) 34%,transparent 62%)}
 .ill-dusk-in{display:grid;align-content:end;justify-items:center;gap:14px;text-align:center;
-  padding:0 20px clamp(56px,13vh,130px);color:#F3F7F8;text-shadow:0 2px 28px rgba(4,8,12,.55)}
+  padding:0 20px clamp(56px,13vh,130px);color:#F3F7F8;text-shadow:0 2px 28px rgba(4,8,12,.55);
+  background:radial-gradient(60% 55% at 50% 72%,rgba(6,11,16,.55),transparent 75%)}
 .js .ill-dusk-in{opacity:var(--nt,0);transform:translateY(calc((1 - var(--nt,0)) * 18px))}
 .ill-dusk-eye{font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:#B9CEDC}
 .ill-dusk-h{font-family:var(--serif);font-weight:300;font-size:clamp(2.3rem,6.4vw,5.4rem);line-height:1.02;letter-spacing:-.01em}
@@ -1677,6 +1709,10 @@ const STYLES = `
 .ill-fourth{background:var(--ink);color:var(--ice);
   padding:clamp(78px,13vh,150px) clamp(20px,5vw,64px)}
 .ill-fourth-card{max-width:1100px;margin:0 auto;display:grid;justify-items:start;gap:15px}
+.ill-fourth-meta{font-size:.78rem;letter-spacing:.08em;color:var(--ice-mute)}
+.ill-root .ill-fourth-go{display:inline-flex;align-items:center;gap:.6em;margin-top:14px;min-height:46px;padding:0 20px;font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500;color:var(--ice);box-shadow:inset 0 0 0 1px rgba(239,243,245,.4);transition:background .25s var(--e),color .25s var(--e)}
+.ill-fourth-go i{font-style:normal;transition:transform .3s var(--e)}
+@media (hover:hover) and (pointer:fine){.ill-root .ill-fourth-go:hover{background:var(--ice);color:var(--ink)}.ill-fourth-go:hover i{transform:translateX(4px)}}
 .ill-fourth-place .ill-rise-in{color:var(--ice-mute);letter-spacing:.22em;text-transform:uppercase;
   font-size:.71rem;font-weight:400}
 .ill-fourth-name .ill-rise-in{font-family:var(--serif);font-size:clamp(1.9rem,4.4vw,3.1rem);
@@ -1706,8 +1742,9 @@ const STYLES = `
   mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 78%,transparent);
   background:
     linear-gradient(to bottom,rgba(6,11,16,.72),rgba(6,11,16,.18) 42%,transparent 62%),
-    linear-gradient(to right,rgba(6,11,16,.88),rgba(6,11,16,.6) 48%,rgba(6,11,16,.2) 82%)}
-.ill-rev-inner{position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;justify-items:start;gap:20px}
+    linear-gradient(to right,rgba(6,11,16,.9),rgba(6,11,16,.7) 50%,rgba(6,11,16,.3) 86%)}
+.ill-rev-inner{position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;justify-items:start;gap:clamp(22px,3.4vh,34px)}
+.ill-rev-sync{flex-basis:100%}
 /* oversized ghost ordinal, bled off the right */
 .ill-rev-ord{position:absolute;right:-.08em;top:-.3em;z-index:0;display:grid;
   font-family:var(--serif);font-size:clamp(8rem,17vw,15rem);line-height:.76;letter-spacing:-.04em;
@@ -1768,7 +1805,7 @@ const STYLES = `
    across the top, then the three house tiles, then two months of calendar
    with the summary card standing beside them. */
 .ill-book{max-width:1500px;margin:0 auto;padding:clamp(96px,15vh,170px) clamp(20px,5vw,64px) clamp(100px,15vh,180px);
-  display:grid;gap:clamp(34px,5vh,56px)}
+  display:grid;gap:clamp(56px,9vh,96px)}
 .ill-book-copy{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px clamp(28px,6vw,110px);align-items:end;
   border-top:1px solid var(--hair);padding-top:26px}
 .ill-book-copy h2 .ill-rise-in{font-family:var(--serif);font-size:clamp(2rem,4.4vw,3.6rem);line-height:1.06}
@@ -1826,15 +1863,16 @@ const STYLES = `
    that shows the lower half of the glyphs (flex-end + overflow), masked to
    nothing, so the word reads as standing in still water. The drift loop
    writes translate on the inner nodes only, never on the flipped box. */
-.ill-water{position:relative;padding:clamp(20px,5vh,56px) clamp(20px,5vw,64px) 0;text-align:center;line-height:1;max-width:1500px;margin:0 auto}
-.ill-water-word,.ill-water-refl > div{font-family:var(--serif);font-weight:300;font-size:clamp(2.5rem,9vw,9.4rem);letter-spacing:-.012em;white-space:nowrap;color:var(--ice);will-change:transform}
+.ill-water{position:relative;padding:clamp(48px,10vh,110px) clamp(20px,5vw,64px) clamp(8px,2vh,20px);text-align:center;line-height:1;max-width:1500px;margin:0 auto}
+.ill-water-defs{position:absolute;width:0;height:0;overflow:hidden}
+.ill-water-word,.ill-water-refl > div{font-family:var(--serif);font-weight:300;font-size:clamp(2.4rem,8vw,8.2rem);letter-spacing:.005em;white-space:nowrap;color:rgba(239,243,245,.94);will-change:transform}
 .ill-water-word{padding-bottom:.06em}
-.ill-water-seam{display:block;height:1px;background:rgba(239,243,245,.4)}
+.ill-water-seam{display:block;height:1px;margin:0 auto;width:min(100%,1100px);background:linear-gradient(90deg,transparent,rgba(239,243,245,.5) 22%,rgba(239,243,245,.5) 78%,transparent)}
 .ill-water-refl{display:flex;align-items:flex-end;justify-content:center;height:.62em;overflow:hidden;
-  font-size:clamp(2.5rem,9vw,9.4rem);transform:scaleY(-1);opacity:.3;filter:blur(1.2px);
-  -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.55) 40%,transparent 100%);
-  mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.55) 40%,transparent 100%)}
-.ill-water-refl > div{font-size:1em;padding-bottom:.06em}
+  font-size:clamp(2.4rem,8vw,8.2rem);transform:scaleY(-1);opacity:.34;filter:url(#ill-ripple);
+  -webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.5) 45%,transparent 100%);
+  mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.5) 45%,transparent 100%)}
+.ill-water-refl > div{font-size:1em;padding-bottom:.06em;transform:scaleY(.86);transform-origin:50% 100%}
 .ill-footer-base{max-width:1500px;margin:0 auto;padding:clamp(28px,5vh,48px) clamp(20px,5vw,64px) clamp(20px,3vh,32px);
   display:flex;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;font-size:.76rem;letter-spacing:.02em;color:var(--ice-mute)}
 @media (max-width:900px){
