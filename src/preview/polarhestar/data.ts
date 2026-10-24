@@ -67,6 +67,8 @@ export interface Tour {
   minAge: number
   /** Fewest riders the farm will take the tour out for. */
   minRiders: number
+  /** Most riders on one departure (the CMS `maxRiders`, which the booking platform enforces). */
+  maxRiders: number
   price: number // full 2026 price, ISK; children up to 12 pay 2.000 less
   /** Full 2027 price, ISK (Símon, 23 Oct 2026); undefined = not published yet. */
   price2027?: number
@@ -89,6 +91,7 @@ export const SHORT_TOURS: Tour[] = [
     meta: { is: '1 klukkustund', en: '1 hour', de: '1 Stunde' },
     minAge: 6,
     minRiders: 1,
+    maxRiders: 8,
     price: 9500,
     price2027: 10500,
     times: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'],
@@ -105,6 +108,7 @@ export const SHORT_TOURS: Tour[] = [
     meta: { is: '2 klukkustundir', en: '2 hours', de: '2 Stunden' },
     minAge: 6,
     minRiders: 1,
+    maxRiders: 8,
     price: 15000,
     price2027: 16000,
     months: [5, 6, 7, 8, 9, 10],
@@ -122,6 +126,7 @@ export const SHORT_TOURS: Tour[] = [
     meta: { is: '3 klukkustundir', en: '3 hours', de: '3 Stunden' },
     minAge: 8,
     minRiders: 2,
+    maxRiders: 6,
     price: 18000,
     price2027: 19000,
     months: [5, 6, 7, 8, 9, 10],
@@ -139,6 +144,7 @@ export const SHORT_TOURS: Tour[] = [
     meta: { is: '1½ klukkustund', en: '1½ hours', de: '1½ Stunden' },
     minAge: 6,
     minRiders: 1,
+    maxRiders: 8,
     price: 12500,
     price2027: 13500,
     times: ['10:30', '13:30'],
@@ -156,6 +162,7 @@ export const SHORT_TOURS: Tour[] = [
     meta: { is: '1½ klst. reiðtúr + mínígolf', en: '1½ h ride + minigolf', de: '1½ Std. Ritt + Minigolf' },
     minAge: 6,
     minRiders: 2,
+    maxRiders: 8,
     price: 13500,
     price2027: 14500, // Juliane, 24 Oct 2026
     months: [6, 7, 8],
@@ -631,7 +638,7 @@ export const COPY = {
     children: 'Börn (12 og yngri)',
     nameLabel: 'Nafn',
     emailLabel: 'Netfang',
-    phoneLabel: 'Sími (valfrjálst)',
+    phoneLabel: 'Sími',
     noteLabel: 'Skilaboð (valfrjálst)',
     totalLabel: 'Samtals',
     confirmBtn: 'Senda bókunarbeiðni',
@@ -745,7 +752,7 @@ export const COPY = {
     children: 'Children (12 and under)',
     nameLabel: 'Name',
     emailLabel: 'Email',
-    phoneLabel: 'Phone (optional)',
+    phoneLabel: 'Phone',
     noteLabel: 'Message (optional)',
     totalLabel: 'Total',
     confirmBtn: 'Send booking request',
@@ -860,7 +867,7 @@ export const COPY = {
     children: 'Kinder (bis 12)',
     nameLabel: 'Name',
     emailLabel: 'E-Mail',
-    phoneLabel: 'Telefon (optional)',
+    phoneLabel: 'Telefon',
     noteLabel: 'Nachricht (optional)',
     totalLabel: 'Gesamt',
     confirmBtn: 'Buchung anfragen',

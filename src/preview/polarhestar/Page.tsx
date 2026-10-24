@@ -145,6 +145,34 @@ function Segmented<T extends string | number>({
   )
 }
 
+/*
+ * THE PLATFORM'S RULES, mirrored so the form never offers what it would refuse
+ * (sndr-platform src/tenants/polarhestar.ts + booking-core bookingWindow): a
+ * departure must be at least 12 hours away and at most 365 days ahead, counted
+ * from the day's midnight in Iceland time (UTC all year) plus the start minute.
+ * A tour without published times is requested for the day itself (minute 0).
+ */
+const LEAD_HOURS = 12
+const HORIZON_DAYS = 365
+const toMinute = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
+function bookable(iso: string, minute: number, now = Date.now()) {
+  const [y, m, d] = iso.split('-').map(Number)
+  const hours = (Date.UTC(y, m - 1, d) + minute * 60000 - now) / 3600000
+  return hours >= LEAD_HOURS && hours / 24 <= HORIZON_DAYS
+}
+const startsOf = (tour: Pick<TourX, 'times'>) => (tour.times?.length ? tour.times.map(toMinute) : [0])
+/** First and last day a request for this tour can be made right now. */
+function requestWindow(tour: Pick<TourX, 'times'>, now = Date.now()) {
+  const t = new Date(now)
+  const day = (i: number) => new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() + i)).toISOString().slice(0, 10)
+  const open = (iso: string) => startsOf(tour).some((m) => bookable(iso, m, now))
+  let lo = 0
+  while (lo < 3 && !open(day(lo))) lo++
+  let hi = HORIZON_DAYS + 1
+  while (hi > lo && !open(day(hi))) hi--
+  return { minIso: day(lo), maxIso: day(hi) }
+}
+
 /** Trilingual inline pick for tiny UI strings that don't live in COPY. */
 const tri = (lang: Lang, is: string, en: string, de: string) => (lang === 'is' ? is : lang === 'de' ? de : en)
 const isoDay = (d: Date) =>
@@ -583,17 +611,23 @@ function DayStrip({
       }
     }
   }
+  // the window's first day stays between the weeks of the first and last bookable day
+  const clampStart = (iso: string) => {
+    const lo = isoDay(weekStart(new Date(min + 'T00:00:00')))
+    const hi = isoDay(weekStart(new Date(max + 'T00:00:00')))
+    return iso < lo ? lo : iso > hi ? hi : iso
+  }
   const shiftDays = (n: number) => {
     const d = new Date(start + 'T00:00:00')
     d.setDate(d.getDate() + n)
-    setStart(isoDay(d))
+    setStart(clampStart(isoDay(d)))
   }
   // a month on from the window's first day, same day of the month. Jumping to the
   // 1st instead landed on the week the window already started in (start 26 Oct →
   // 1 Nov → week of 26 Oct), so the arrow did nothing.
   const shiftMonth = (n: number) => {
     const d = new Date(start + 'T00:00:00')
-    setStart(isoDay(weekStart(new Date(d.getFullYear(), d.getMonth() + n, d.getDate()))))
+    setStart(clampStart(isoDay(weekStart(new Date(d.getFullYear(), d.getMonth() + n, d.getDate())))))
   }
   const first = days[0]
   const last = days[STRIP_DAYS - 1]
@@ -699,12 +733,14 @@ const Stepper = ({
   value,
   set,
   min,
+  max = 10,
   lang,
 }: {
   label: string
   value: number
   set: (n: number) => void
   min: number
+  max?: number
   lang: Lang
 }) => {
   const prev = useRef(value)
@@ -733,9 +769,10 @@ const Stepper = ({
       </span>
       <button
         type="button"
-        onClick={() => set(Math.min(10, value + 1))}
+        onClick={() => set(Math.min(max, value + 1))}
+        disabled={value >= max}
         aria-label={`${label}: ${tri(lang, 'fjölga', 'increase', 'erhöhen')}`}
-        className="grid h-11 w-11 place-items-center rounded-full border transition-colors hover:bg-black/5"
+        className="grid h-11 w-11 place-items-center rounded-full border transition-colors hover:bg-black/5 disabled:opacity-30 disabled:hover:bg-transparent"
         style={{ borderColor: '#0000001f', color: INK }}
       >
         <Plus className="h-4 w-4" />
@@ -810,10 +847,11 @@ function Booking({
   const { SHORT_TOURS, PHONE_DISPLAY, PHONE_HREF, PICS, CHILD_DISCOUNT } = useSiteContent()
   const tour = SHORT_TOURS.find((x) => x.id === selectedId) ?? SHORT_TOURS[0]
   const today = new Date()
-  const minIso = isoDay(today)
-  const maxIso = isoDay(new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()))
+  // only days and departures the platform will take: 12 hours ahead at the soonest, a year at the latest
+  const { minIso, maxIso } = requestWindow(tour)
   const [date, setDate] = useState(() => isoDay(new Date(today.getTime() + 7 * 864e5)))
   const [time, setTime] = useState<string | null>(tour.times?.[0] ?? null)
+  const timeOpen = (slot: string) => bookable(date, toMinute(slot))
   const [adults, setAdults] = useState(1)
   const [children, setChildren] = useState(0)
   const [done, setDone] = useState(false)
@@ -836,7 +874,8 @@ function Booking({
     setTime(tour.times?.[0] ?? null)
     setDone(false)
     // a date the new tour can't run on is nudged forward to the first one it can
-    setDate((d) => {
+    setDate((d0) => {
+      const d = d0 < minIso ? minIso : d0
       const cur = new Date(d + 'T00:00:00')
       if (Number.isNaN(cur.getTime()) || !tour.months?.length) return d
       if (tour.months.includes(cur.getMonth() + 1)) return d
@@ -851,6 +890,14 @@ function Booking({
   const [phone, setPhone] = useState('')
   const [note, setNote] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'error'>('idle')
+  /** Why the platform said no, when it says: a full departure reads differently from a dropped connection. */
+  const [errorKind, setErrorKind] = useState<'full' | 'soon' | 'day' | 'other'>('other')
+  // a departure that has come inside the 12 hours (late on the first day) is swapped for the next one
+  useEffect(() => {
+    if (!tour.times?.length) return
+    setTime((cur) => (cur && bookable(date, toMinute(cur)) ? cur : tour.times!.find((x) => bookable(date, toMinute(x))) ?? null))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date, tour.id])
   /* One line per rider, the question the farm asks every guest: how much has
      each person ridden, and how old is each child. Adults first, then children,
      resized as the steppers move without losing what was already chosen. */
@@ -859,6 +906,18 @@ function Booking({
   const fit = (rs: Rider[], n: number, blank: Rider) =>
     rs.length === n ? rs : rs.length > n ? rs.slice(0, n) : [...rs, ...Array.from({ length: n - rs.length }, () => ({ ...blank }))]
   useEffect(() => setAdultRiders((rs) => fit(rs, adults, { experience: '' })), [adults])
+  /* The tour's rider limit, the number the platform enforces per departure
+     (Höfðahringur takes 6, the rest 8). Switching to a smaller tour keeps the
+     children (their ages are filled in) and trims adults, never below one. */
+  const cap = tour.maxRiders
+  useEffect(() => {
+    if (adults + children <= cap) return
+    const c = Math.min(children, Math.max(0, cap - 1))
+    setChildren(c)
+    setAdults(Math.min(adults, cap - c))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tour.id])
+  const tooFew = adults + children < tour.minRiders
   useEffect(() => setChildRiders((rs) => fit(rs, children, { experience: '', age: '' })), [children])
   const riders = [...adultRiders, ...childRiders]
   const setRider = (i: number, patch: Partial<Rider>) =>
@@ -889,7 +948,7 @@ function Booking({
    */
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (status === 'sending') return
+    if (status === 'sending' || tooFew || (tour.times?.length && !time)) return
     setStatus('sending')
     // a hung network must never leave the button stuck at "Sendi…"
     const ctrl = new AbortController()
@@ -926,8 +985,18 @@ function Booking({
         }),
       })
       const json = (await res.json().catch(() => null)) as
-        | { ok?: boolean; quote?: { total?: number } }
+        | { ok?: boolean; quote?: { total?: number }; reasons?: string[] }
         | null
+      const why = json?.reasons ?? []
+      setErrorKind(
+        why.includes('OVER_CAPACITY') || why.includes('ALREADY_BOOKED')
+          ? 'full'
+          : why.includes('TOO_SOON')
+            ? 'soon'
+            : why.some((r) => ['CLOSED_DAY', 'OUT_OF_SEASON', 'OUTSIDE_HOURS', 'TOO_FAR_AHEAD', 'RESOURCE_INACTIVE'].includes(r))
+              ? 'day'
+              : 'other',
+      )
 
       if (res.ok && json && json.ok) {
         setStatus('idle')
@@ -946,6 +1015,7 @@ function Booking({
         setStatus('error')
       }
     } catch {
+      setErrorKind('other')
       setStatus('error')
     } finally {
       window.clearTimeout(kill)
@@ -1083,13 +1153,15 @@ function Booking({
                     </span>
                     {tour.times.map((slot) => {
                       const active = slot === time
+                      const open = timeOpen(slot)
                       return (
                         <button
                           key={slot}
                           type="button"
                           onClick={() => setTime(slot)}
+                          disabled={!open}
                           aria-pressed={active}
-                          className="rounded-full border px-3.5 py-2 font-hanken text-sm font-medium tabular-nums transition-colors"
+                          className="rounded-full border px-3.5 py-2 font-hanken text-sm font-medium tabular-nums transition-colors disabled:cursor-not-allowed disabled:line-through disabled:opacity-40"
                           style={
                             active
                               ? { background: INK, color: MIST, borderColor: INK }
@@ -1119,9 +1191,30 @@ function Booking({
             <div>
             <Step n={3} label={t.stepRiders} />
             <div className="divide-y" style={{ borderColor: '#0000000f' }}>
-              <Stepper label={t.adults} value={adults} set={setAdults} min={1} lang={lang} />
-              <Stepper label={t.children} value={children} set={setChildren} min={0} lang={lang} />
+              <Stepper label={t.adults} value={adults} set={setAdults} min={1} max={cap - children} lang={lang} />
+              <Stepper label={t.children} value={children} set={setChildren} min={0} max={cap - adults} lang={lang} />
             </div>
+            {adults + children >= cap && (
+              <p className="mt-2 font-hanken text-xs leading-relaxed" style={{ color: CLAY_TX }}>
+                {tri(
+                  lang,
+                  `Í mesta lagi ${cap} knapar í þessa ferð. Fyrir stærri hópa, hringdu í `,
+                  `This ride takes up to ${cap} riders. For a larger group, call `,
+                  `Bis zu ${cap} Reiter pro Ritt. Für größere Gruppen rufen Sie an: `,
+                )}
+                <a className="font-semibold underline underline-offset-2" href={PHONE_HREF}>{PHONE_DISPLAY}</a>
+              </p>
+            )}
+            {tooFew && (
+              <p className="mt-2 font-hanken text-xs leading-relaxed" style={{ color: CLAY_TX }}>
+                {tri(
+                  lang,
+                  `Þessi ferð er farin fyrir minnst ${tour.minRiders} knapa.`,
+                  `This ride needs at least ${tour.minRiders} riders.`,
+                  `Dieser Ritt findet ab ${tour.minRiders} Reitern statt.`,
+                )}
+              </p>
+            )}
             <fieldset className="mt-4">
               <legend className="mb-2 font-hanken text-xs font-medium" style={{ color: SLATE }}>
                 {tri(lang, 'Reynsla hvers knapa', 'Each rider’s experience', 'Reiterfahrung pro Person')}
@@ -1248,7 +1341,14 @@ function Booking({
 
             {status === 'error' && (
               <p role="alert" className="mt-3 rounded-xl px-3.5 py-2.5 font-hanken text-xs leading-relaxed" style={{ background: '#FBE9E9', color: '#8C2B2B' }}>
-                {t.errorText} <a className="font-semibold underline underline-offset-2" href={PHONE_HREF}>{PHONE_DISPLAY}</a>
+                {errorKind === 'full'
+                  ? tri(lang, 'Ekki nógu mörg pláss laus í þessari brottför. Veldu annan tíma eða hringdu í', 'There are not enough places left on this departure. Pick another time or call', 'Für diese Abfahrt sind nicht mehr genug Plätze frei. Wählen Sie eine andere Zeit oder rufen Sie an:')
+                  : errorKind === 'soon'
+                    ? tri(lang, 'Þessi brottför er of nálægt í tíma til að bóka á netinu. Hringdu í', 'This departure is too soon to request online. Please call', 'Diese Abfahrt ist zu kurzfristig für eine Online-Anfrage. Bitte rufen Sie an:')
+                    : errorKind === 'day'
+                      ? tri(lang, 'Þessi dagur er ekki í boði. Veldu annan dag eða hringdu í', 'This day is not available. Pick another day or call', 'Dieser Tag ist nicht verfügbar. Wählen Sie einen anderen Tag oder rufen Sie an:')
+                      : t.errorText}{' '}
+                <a className="font-semibold underline underline-offset-2" href={PHONE_HREF}>{PHONE_DISPLAY}</a>
               </p>
             )}
 
@@ -1273,7 +1373,7 @@ function Booking({
               </div>
               <button
                 type="submit"
-                disabled={status === 'sending'}
+                disabled={status === 'sending' || tooFew}
                 data-busy={status === 'sending'}
                 className="ph-cta-send inline-flex items-center gap-2 rounded-full px-5 py-3 font-hanken text-sm font-semibold text-white shadow-lg transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-0.5 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
                 style={{ background: CLAY_FILL }}

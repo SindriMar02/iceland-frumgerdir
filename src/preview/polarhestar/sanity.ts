@@ -200,7 +200,7 @@ export const QUERY = `{
     ..., bookingImage ${IMG_PRJ}, trustFamilyImage ${IMG_PRJ}, visitImage ${IMG_PRJ}, ctaImage ${IMG_PRJ}
   },
   "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, bookingEmail, facebook, address, mapsUrl, childDiscount, stats},
-  "tours": *[_type=="tour"]|order(order asc){_id, active, name, duration, minAge, minRiders, price, price2027, months, times, blurb, image ${IMG_PRJ}},
+  "tours": *[_type=="tour"]|order(order asc){_id, active, name, duration, minAge, minRiders, maxRiders, price, price2027, months, times, blurb, image ${IMG_PRJ}},
   "seasons": *[_type=="season"]|order(order asc){_id, key, name, kicker, line, tourLabel, glow, image ${IMG_PRJ}},
   "longTours": *[_type=="longTour"]|order(order asc){_id, active, name, blurb, priceEur, days, ridingDays, level, minAge, maxRiders, kmMin, kmMax, herdDays, beds, departures[]{start, status, note}, datesNote, itinerary[]{kind, body, places}, image ${IMG_PRJ}},
   "schedule": *[_type=="schedulePage"][0]{eyebrow, title, intro, longTerms, shortTerms},
@@ -271,6 +271,7 @@ export function merge(raw: any): SiteContent {
             meta: fb ? l3(d.duration, fb.meta) : l3self(d.duration),
             minAge: num(d.minAge, fb?.minAge ?? 6),
             minRiders: num(d.minRiders, fb?.minRiders ?? 1),
+            maxRiders: num(d.maxRiders, fb?.maxRiders ?? 8),
             price: typeof d.price === 'number' ? d.price : (fb?.price ?? 0),
             // the CMS is the truth for next year's price: empty there = not published yet
             price2027: typeof d.price2027 === 'number' && d.price2027 > 0 ? d.price2027 : undefined,
