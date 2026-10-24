@@ -144,6 +144,7 @@ const HunabudPage = lazy(() => import('./preview/hunabud/Page'))
 const BudirPage = lazy(() => import('./preview/budir/Page'))
 const SvarfhollPage = lazy(() => import('./preview/svarfholl/Page'))
 const DrangarPage = lazy(() => import('./preview/drangar/Page'))
+const VogurPage = lazy(() => import('./preview/vogur/Page'))
 const NollurPage = lazy(() => import('./preview/nollur/Page'))
 const IcelandLuxuryLodgesPage = lazy(() => import('./preview/icelandluxurylodges/Page'))
 const IcelandLuxuryLodgesHouse = lazy(() => import('./preview/icelandluxurylodges/House'))
@@ -457,6 +458,7 @@ export default function App() {
             <Route path="/preview/budir" element={<BudirPage />} />
             <Route path="/preview/svarfholl" element={<SvarfhollPage />} />
             <Route path="/preview/drangar" element={<DrangarPage />} />
+            <Route path="/preview/vogur" element={<VogurPage />} />
             <Route path="/preview/nollur" element={<NollurPage />} />
             <Route path="/preview/icelandluxurylodges" element={<IcelandLuxuryLodgesPage />} />
             <Route path="/preview/icelandluxurylodges/gestir" element={<IcelandLuxuryLodgesGuests />} />
