@@ -157,6 +157,7 @@ export const SHORT_TOURS: Tour[] = [
     minAge: 6,
     minRiders: 2,
     price: 13500,
+    price2027: 14500, // Juliane, 24 Oct 2026
     months: [6, 7, 8],
     image: 'photo-1452698325353-b90e60289e87',
     blurb: {
