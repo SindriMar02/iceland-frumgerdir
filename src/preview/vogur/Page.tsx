@@ -11,6 +11,7 @@ import {
   IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, ADDRESS, BOOKING_URL,
   NAV, HERO, ARRIVAL, STATEMENT, STATEMENT_BODY, QUOTE, ROOMS, ROOMS_NOTE, HOUSE,
   EVENINGS, ISLANDS, WINTER, DALIR, DISTANCES, CIERRE, CREDIT_NOTE, JSON_LD,
+  MAP, PLACES, RATING, REVIEWS,
 } from './data'
 
 gsap.registerPlugin(ScrollTrigger, SplitText)
@@ -142,6 +143,7 @@ const PAGE_STYLES = `
 /* parallax room: the source is center-oversized so GSAP's yPercent drift
    (ONE writer, merged with the peel's scale) never exposes an edge */
 .vg-par .vg-m-src img { height: 116%; top: -8%; }
+.vg-flip .vg-m-up img { height: 114%; top: -7%; }
 .vg-spec { position: absolute; left: 0; bottom: 0; z-index: 3; display: flex; gap: 1.1em;
   padding: .55em .9em; background: ${PLASTER_SOFT}; color: ${INK};
   border-top: 1px solid var(--vg-patina); }
@@ -378,7 +380,7 @@ const PAGE_STYLES = `
   .vg-mat-term .vg-mat-title { transition: transform .5s cubic-bezier(.16,1,.3,1); }
   .vg-mat-term:hover .vg-mat-title { transform: translateX(.6vw); }
 }
-.vg-mat-title { position: relative; z-index: 20; font-family: ${DISPLAY}; font-weight: 200;
+.vg-mat-title { position: relative; z-index: 5; font-family: ${DISPLAY}; font-weight: 200;
   font-size: min(7.2vw, 15svh); line-height: .95; mix-blend-mode: difference; }
 .vg-mat-title > span { display: inline-block; filter: invert(100%); color: #000000; }
 .vg-mat-text { position: relative; width: 17rem; min-width: 17rem; margin-left: 4vw; }
@@ -504,6 +506,58 @@ const PAGE_STYLES = `
 }
 @media (max-width: 1023px) { .vg-hero-word { font-size: min(24vw, 19svh); line-height: .8; } .vg-hero-band { height: 46svh; } }
 
+/* ══ MAP — edge to edge, a night chart in the window navy ══ */
+.vg-mapsec { background: ${INK}; color: ${PLASTER}; padding: 6rem 0 3rem; }
+.vg-mapsec-head { padding: 0 1.65rem 2.4rem; }
+.vg-mapsec-title { margin-top: .8rem; font-size: clamp(2.2rem, 5.4vw, 5rem); line-height: 1; }
+.vg-mapsec-title em { font-style: italic; }
+.vg-map-stage { width: 100%; }
+.vg-map-svg { display: block; width: 100%; height: auto; }
+.vg-map-coast { fill: none; stroke: rgba(243,244,241,.5); stroke-width: .9; vector-effect: non-scaling-stroke; }
+.vg-map-isl { fill: rgba(243,244,241,.78); stroke: rgba(243,244,241,.78); stroke-width: .6; vector-effect: non-scaling-stroke; }
+.vg-map-mark circle { fill: var(--vg-patina); stroke: ${INK}; stroke-width: 1.2; }
+.vg-map-mark text { fill: ${PLASTER}; font-family: ${GROTESK}; }
+.vg-map-label { font-size: 10px; letter-spacing: .04em; }
+.vg-map-note { font-size: 7.5px; fill: ${PLASTER_MUTE}; letter-spacing: .08em; }
+.vg-map-num { font-size: 8px; font-family: ${MONO}; display: none; }
+.vg-map-home rect { fill: ${ACCENT}; stroke: ${PLASTER}; stroke-width: 1; }
+.vg-map-home text { fill: ${PLASTER}; font-family: ${DISPLAY}; font-size: 13px; letter-spacing: .14em; }
+.vg-map-legend { display: none; list-style: none; margin: 0; padding: 1.6rem 1.65rem 0; }
+.vg-map-legend li { display: grid; grid-template-columns: 2.4rem 1fr auto; gap: .8rem; padding: .7rem 0; border-top: 1px solid ${HAIR_PLASTER}; font-size: .9rem; }
+.vg-map-legend em { font-style: normal; color: ${PLASTER_MUTE}; font-size: .8rem; }
+.vg-map-credit { padding: 1.2rem 1.65rem 0; color: ${PLASTER_MUTE}; font-size: 11px; }
+@media (max-width: 1023px) {
+  .vg-map-label { display: none; }
+  .vg-map-num { display: block; font-size: 24px; font-weight: 500; transform: translateY(-8px); }
+  .vg-map-mark circle { r: 7; stroke-width: 2.4; }
+  .vg-map-home rect { transform: scale(1.8); }
+  .vg-map-home text { font-size: 26px; transform: translateX(8px); }
+  .vg-map-legend { display: block; }
+}
+@media (min-width: 1024px) {
+  .vg-mapsec { padding: 9rem 0 4rem; }
+  .vg-mapsec-head { padding: 0 5vw 3rem; }
+  .vg-map-credit { padding: 1.4rem 5vw 0; }
+}
+
+/* ══ REVIEWS ══ */
+.vg-rev { background: ${PLASTER}; padding: 6rem 0; }
+.vg-rev-head { padding: 0 1.65rem 2.6rem; display: flex; flex-direction: column; gap: .6rem; }
+.vg-rev-score { font-size: clamp(4.5rem, 12vw, 9rem); line-height: .9; }
+.vg-rev-score span { font-size: .32em; color: ${INK_MUTE}; }
+.vg-rev-list { list-style: none; margin: 0; padding: 0 1.65rem; display: grid; grid-auto-flow: column; grid-auto-columns: 82%; gap: 1rem;
+  overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+.vg-rev-list::-webkit-scrollbar { display: none; }
+.vg-rev-card { scroll-snap-align: start; border-top: 1px solid ${INK}; padding: 1.4rem 0 0; display: flex; flex-direction: column; justify-content: space-between; gap: 1.6rem; min-height: 15rem; }
+.vg-rev-card blockquote { margin: 0; font-size: 1.45rem; line-height: 1.28; }
+.vg-rev-card p { color: ${INK_MUTE}; }
+@media (min-width: 1024px) {
+  .vg-rev { padding: 9rem 0; }
+  .vg-rev-head { padding: 0 5vw 3.5rem; flex-direction: row; align-items: baseline; justify-content: space-between; }
+  .vg-rev-list { padding: 0 5vw; grid-auto-flow: row; grid-template-columns: repeat(5, 1fr); grid-auto-columns: auto; overflow: visible; gap: 2.4vw; }
+  .vg-rev-card blockquote { font-size: min(1.6vw, 1.55rem); }
+}
+
 /* ══ STICKY ROOM CARDS: each room holds the screen, the next slides over it ══ */
 .vg-acc-item { position: sticky; top: var(--vg-head, 0px); height: calc(var(--vg-100vh) - var(--vg-head, 0px)); }
 /* phones: the pipeline's fixed opaque bar instead of the blend header (the
@@ -540,8 +594,8 @@ const PAGE_STYLES = `
   .vg-mat { padding: 9rem 5vw; }
   .vg-mat-rail { display: block; position: static; transform: none; margin-bottom: 2rem; }
   .vg-mat-term { flex-direction: row; align-items: center; margin-bottom: 0; }
-  .vg-mat-title { font-size: min(7vw, 14svh); mix-blend-mode: difference; }
-  .vg-mat-title > span { filter: invert(100%); color: #000000; }
+  .vg-mat-title { font-size: min(7vw, 14svh); mix-blend-mode: normal; }
+  .vg-mat-title > span { filter: none; color: ${INK}; }
   .vg-mat-text { width: 18rem; min-width: 18rem; margin-left: auto; }
   .vg-barn-stage { display: grid; grid-template-columns: 40vw 1fr; }
   .vg-barn-content { position: sticky; top: 0; height: var(--vg-100vh); padding: 0 4vw 0 6vw; justify-content: center; display: flex; flex-direction: column; }
@@ -592,6 +646,57 @@ function useBodyLock(locked: boolean) {
       pageLenis?.start()
     }
   }, [locked])
+}
+
+/* ── The map: OSM coastline as one SVG, places as SVG marks so they crop with
+   the viewBox. Phones get numbered marks + a legend (labels stay readable). ── */
+const MAP_W = 1000
+const MAP_H = 692.9
+const MAP_VIEW = '170 80 810 560' // Flatey → Eiríksstaðir, Stykkishólmur → Skarð
+function mapXY(lat: number, lon: number) {
+  const [S, W, N, E] = MAP.bbox
+  return { x: ((lon - W) / (E - W)) * MAP_W, y: ((N - lat) / (N - S)) * MAP_H }
+}
+function VogurMap() {
+  const [paths, setPaths] = useState<{ coast: string; islands: string } | null>(null)
+  useEffect(() => {
+    let alive = true
+    fetch(MAP.src).then((r) => r.json()).then((d: { coast: string[]; islands: { d: string }[] }) => {
+      if (alive) setPaths({ coast: d.coast.join(''), islands: d.islands.map((i) => i.d).join('') })
+    }).catch(() => undefined)
+    return () => { alive = false }
+  }, [])
+  const v = mapXY(MAP.vogur.lat, MAP.vogur.lon)
+  return (
+    <div className="vg-map-stage">
+      <svg className="vg-map-svg" viewBox={MAP_VIEW} preserveAspectRatio="xMidYMid meet" role="img"
+        aria-label="Map of Breiðafjörður and Dalir around Vogur, with nearby places">
+        {paths && (
+          <>
+            <path className="vg-map-coast" d={paths.coast} />
+            <path className="vg-map-isl" d={paths.islands} />
+          </>
+        )}
+        {PLACES.map((p, i) => {
+          const { x, y } = mapXY(p.lat, p.lon)
+          const left = x > 860
+          return (
+            <g className="vg-map-mark" key={p.name} transform={`translate(${x} ${y})`}>
+              <circle r="3.2" />
+              <text className="vg-map-num" y="-7" textAnchor="middle">{i + 1}</text>
+              <text className="vg-map-label" x={left ? -8 : 8} y="3.2" textAnchor={left ? 'end' : 'start'}>
+                {p.name}<tspan className="vg-map-note" x={left ? -8 : 8} dy="11">{p.note}</tspan>
+              </text>
+            </g>
+          )
+        })}
+        <g className="vg-map-home" transform={`translate(${v.x} ${v.y})`}>
+          <rect x="-5" y="-5" width="10" height="10" />
+          <text x="10" y="4">VOGUR</text>
+        </g>
+      </svg>
+    </div>
+  )
 }
 
 /* ── flip media figure ── */
@@ -750,7 +855,7 @@ export default function VogurPage() {
 
       /* ── shared: split helpers ── */
       const cascade = (el: Element, tl: gsap.core.Timeline, pos: string | number = '<+=.05') => {
-        const split = SplitText.create(el, { type: 'lines,chars', linesClass: 'vg-line', charsClass: 'vg-char' })
+        const split = SplitText.create(el, { type: 'lines,words,chars', linesClass: 'vg-line', charsClass: 'vg-char' })
         /* iterate the SPLIT'S OWN lines, never a querySelectorAll: markup that
            already carries a .vg-line class would otherwise be matched too and
            the same chars get tweened twice in opposite directions (one line
@@ -1194,30 +1299,14 @@ export default function VogurPage() {
             scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none reverse' },
           })
         })
-        /* slow zoom from the bottom edge on the big slabs (Son Daven img-w 1 → 1.25) */
-        root.querySelectorAll<HTMLElement>('.vg-arrival-big, .vg-isl, .vg-summer').forEach((slab) => {
-          const fig = slab.matches('.vg-arrival-big') ? slab : slab.querySelector('.vg-flip')
-          if (!fig) return
-          gsap.fromTo(fig, { scale: 1 }, { scale: 1.12, transformOrigin: 'center bottom', ease: 'none', scrollTrigger: { trigger: slab, start: 'top bottom', end: 'bottom top', scrub: SCRUB } })
-        })
         /* sticky room cards: the card underneath sinks back as the next one slides over */
         const cards = Array.from(root.querySelectorAll<HTMLElement>('.vg-acc-item'))
         cards.forEach((card, i) => {
           const next = cards[i + 1]
           if (!next) return
-          gsap.fromTo(card, { scale: 1 }, { scale: 0.93, transformOrigin: 'center top', ease: 'none', scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top', scrub: true } })
+          gsap.fromTo(card, { scale: 1 }, { scale: 0.97, transformOrigin: 'center top', ease: 'none', scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top', scrub: true } })
           const body = card.querySelector('.vg-acc-body')
           if (body) gsap.from(body.children, { y: 30, opacity: 0, duration: 0.8, stagger: 0.08, ease: 'power3.out', scrollTrigger: { trigger: card, start: 'top 60%', toggleActions: 'play none none reverse' } })
-        })
-        root.querySelectorAll<HTMLElement>('.vg-acc-media').forEach((media) => {
-          const img = media.querySelector('.vg-m-src img')
-          const tl = gsap.timeline({ paused: true })
-          if (img) tl.from(img, { scale: 1.3, y: '-10%', ease: 'none' }, 0)
-          ScrollTrigger.create({ trigger: media, start: 'top 95%', end: 'top 20%', animation: tl, scrub: SCRUB })
-        })
-        /* evenings: the film cells drift against the sticky title */
-        root.querySelectorAll<HTMLElement>('.vg-barn-cell img').forEach((im) => {
-          gsap.fromTo(im, { yPercent: -6, scale: 1.12 }, { yPercent: 6, scale: 1.12, ease: 'none', scrollTrigger: { trigger: im.parentElement, start: 'top bottom', end: 'bottom top', scrub: SCRUB } })
         })
         /* the house: cursor becomes the photograph (desktop mice only) */
         const mat = root.querySelector<HTMLElement>('.vg-mat')
@@ -1241,7 +1330,30 @@ export default function VogurPage() {
             mat.addEventListener('mouseleave', () => cursorSwap(null))
           }
         }
-        armFlips((t) => ({ trigger: t, start: 'top 85%' }))
+        /* photographs: a calm CSS mask — the picture opens inside its own frame
+           (inset 9% 7% → 0) and settles from 1.05, scrubbed over a short band.
+           One layer only; the second peel copy is hidden. */
+        root.querySelectorAll<HTMLElement>('.vg-flip').forEach((fig) => {
+          const up = fig.querySelector<HTMLElement>('.vg-m-up')
+          const src = fig.querySelector<HTMLElement>('.vg-m-src')
+          const img = up?.querySelector('img')
+          if (!up || !img) return
+          if (src) gsap.set(src, { autoAlpha: 0 })
+          const st = { trigger: fig, start: 'top 94%', end: 'top 58%', scrub: SCRUB }
+          gsap.fromTo(up, { clipPath: 'inset(9% 7% 9% 7%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none', scrollTrigger: st })
+          gsap.fromTo(img, { scale: 1.05 }, { scale: 1, ease: 'none', scrollTrigger: { ...st } })
+          /* and a slight drift inside the frame across the whole pass */
+          gsap.fromTo(img, { yPercent: -5 }, { yPercent: 5, ease: 'none', scrollTrigger: { trigger: fig, start: 'top bottom', end: 'bottom top', scrub: SCRUB } })
+        })
+        root.querySelectorAll<HTMLElement>('.vg-barn-cell').forEach((cell) => {
+          gsap.fromTo(cell, { clipPath: 'inset(8% 6% 8% 6%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none', scrollTrigger: { trigger: cell, start: 'top 94%', end: 'top 60%', scrub: SCRUB } })
+        })
+        /* map + reviews: quiet entrances */
+        const mapSvg = root.querySelector('.vg-map-svg')
+        if (mapSvg) gsap.from(mapSvg, { opacity: 0, y: 30, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: mapSvg, start: 'top 85%', toggleActions: 'play none none reverse' } })
+        root.querySelectorAll('.vg-rev-card, .vg-map-legend li').forEach((el, i) => {
+          gsap.from(el, { opacity: 0, y: 22, duration: 0.8, delay: (i % 5) * 0.06, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 92%', toggleActions: 'play none none reverse' } })
+        })
       }
 
       /* footer gable morph — both branches (vertical section below journey) */
@@ -1654,9 +1766,40 @@ export default function VogurPage() {
               </div>
             </section>
 
+            {/* 7a ── THE MAP: edge to edge */}
+            <section className="vg-panel vg-mapsec" id="kort" aria-labelledby="vg-map-h">
+              <div className="vg-mapsec-head">
+                <p className="vg-caps" style={{ color: PLASTER_MUTE }}>Kortið ✳ around Vogur</p>
+                <h2 id="vg-map-h" className="vg-mapsec-title vg-display">Breiðafjörður <em>and</em> Dalir</h2>
+              </div>
+              <VogurMap />
+              <ol className="vg-map-legend">
+                {PLACES.map((p, i) => (
+                  <li key={p.name}><span className="vg-mono">{String(i + 1).padStart(2, '0')}</span><b>{p.name}</b><em>{p.note}</em></li>
+                ))}
+              </ol>
+              <p className="vg-map-credit">{MAP.credit}</p>
+            </section>
+
+            {/* 7a2 ── REVIEWS: real excerpts from their Google listing */}
+            <section className="vg-panel vg-rev" aria-labelledby="vg-rev-h">
+              <div className="vg-rev-head">
+                <p className="vg-rev-score vg-display" id="vg-rev-h">{RATING.score}<span> / 5</span></p>
+                <p className="vg-caps" style={{ color: INK_MUTE }}>{RATING.count} {RATING.source} · {RATING.read}</p>
+              </div>
+              <ul className="vg-rev-list">
+                {REVIEWS.map((r) => (
+                  <li className="vg-rev-card" key={r.who}>
+                    <blockquote className="vg-display">“{r.quote}”</blockquote>
+                    <p className="vg-caps">{r.who} · {r.where}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
             {/* 7b ── WINTER slab */}
             <section className="vg-panel vg-summer" aria-label="Fellsströnd in winter">
-              <Media src={IMG.winter} alt="Fellsströnd under winter snow above the bay" dir="up" scrub />
+              <Media src={IMG.winter} alt="A walker on the snowy rocks above the bay in winter" dir="up" scrub />
               <div className="vg-summer-chip vg-caps">{WINTER.kicker}</div>
             </section>
 

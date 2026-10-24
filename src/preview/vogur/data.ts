@@ -64,6 +64,7 @@ export const NAV = [
   { id: 'husid', label: 'The house' },
   { id: 'kvoldin', label: 'Evenings' },
   { id: 'dalir', label: 'Dalir' },
+  { id: 'kort', label: 'Map' },
   { id: 'heimsokn', label: 'Finding us' },
 ]
 
@@ -159,7 +160,7 @@ export const ROOMS: Room[] = [
     photo: IMG.roomSuperior,
     photoAlt: 'A superior room with a sitting area and window',
     photo2: IMG.roomSuperior2,
-    photo2Alt: 'The sitting corner of a superior room',
+    photo2Alt: 'A superior room with its sitting area',
     plate: ['SITTING AREA', 'EN SUITE'],
     line: 'A sitting corner by the window, the fields outside.',
     price: '€284.75',
@@ -212,7 +213,7 @@ export const HOUSE: Row[] = [
     title: 'Hot tub',
     body: 'A hot tub and a sauna for the end of the day.',
     photo: IMG.deckWinter,
-    photoAlt: 'The deck on a winter evening',
+    photoAlt: 'A guest in the hot tub, snow on the mountains across the bay',
   },
   {
     id: 'grill',
@@ -230,7 +231,7 @@ export const EVENINGS = {
   photos: [
     { src: IMG.night, alt: 'The lodge lit up at night with northern lights over the mountain', cap: 'The lodge at night' },
     { src: IMG.aurora, alt: 'Northern lights over the lit lodge', cap: 'The wake-up call' },
-    { src: IMG.sunset, alt: 'Sunset over Breiðafjörður', cap: 'Sunset over the bay' },
+    { src: IMG.sunset, alt: 'Sunset through a window at Vogur', cap: 'Sunset from a window' },
     { src: IMG.lounge, alt: 'The lounge with leather sofas and hides', cap: 'The lounge' },
   ],
 }
@@ -268,7 +269,7 @@ export const CIERRE = {
 }
 
 export const CREDIT_NOTE =
-  'Prototype by SNDR. Photography: the lodge’s own published images (vogur.org, Godo, Hey Iceland). Facts and quoted copy from vogur.org, their Godo engine and Hey Iceland listing; road distances from OpenStreetMap and OSRM, 24 October 2026.'
+  'Prototype by SNDR. Photography: the lodge’s own published images (vogur.org, Godo, Hey Iceland, and its hotel-supplied gallery on Expedia). Facts and quoted copy from vogur.org, their Godo engine and Hey Iceland listing; road distances from OpenStreetMap and OSRM, 24 October 2026.'
 
 export const JSON_LD = {
   '@context': 'https://schema.org',
@@ -286,3 +287,35 @@ export const JSON_LD = {
   },
   geo: { '@type': 'GeoCoordinates', latitude: 65.1766598, longitude: -22.3660028 },
 }
+
+/* ── The map: OpenStreetMap coastline (Overpass natural=coastline, bbox
+   64.95,-23.35,65.52,-21.40, read 24 Oct 2026, ODbL) drawn from
+   public/vogur/chart.json. Road distances: OSRM from the lodge. ── */
+export const MAP = {
+  src: `${A}chart.json`,
+  bbox: [64.95, -23.35, 65.52, -21.40] as [number, number, number, number],
+  vogur: { lat: 65.1766598, lon: -22.3660028 },
+  credit: 'Coastline © OpenStreetMap contributors. Distances by road from Vogur (OSRM).',
+}
+export const PLACES = [
+  { name: 'Klofningur', lat: 65.2154, lon: -22.4382, note: '11 km' },
+  { name: 'Skarð', lat: 65.2802, lon: -22.3124, note: '21 km' },
+  { name: 'Laugar', lat: 65.2469, lon: -21.8024, note: '42 km · hot pool' },
+  { name: 'Búðardalur', lat: 65.1098, lon: -21.7668, note: '54 km' },
+  { name: 'Erpsstaðir', lat: 65.0022, lon: -21.6287, note: '70 km · farm' },
+  { name: 'Eiríksstaðir', lat: 65.0586, lon: -21.5384, note: '72 km · saga farm' },
+  { name: 'Stykkishólmur', lat: 65.0743, lon: -22.7303, note: '140 km · ferry' },
+  { name: 'Flatey', lat: 65.3757, lon: -22.9168, note: 'island · by ferry' },
+]
+
+/* ── Reviews: short verbatim excerpts from their public Google Maps listing
+   (read 24 Oct 2026). Staff names left out; reviewers by first name and
+   initial. ── */
+export const RATING = { score: '4.4', count: '167', source: 'Google reviews', read: 'read 24 October 2026' }
+export const REVIEWS = [
+  { quote: 'The rooms here are large and have amazing views of the surrounding countryside.', who: 'Amanda P.', where: 'Google' },
+  { quote: 'Love the sauna and hot tub. Just a 20 min walk to a lovely waterfall.', who: 'A Tripadvisor guest', where: 'via Google' },
+  { quote: 'Wonderful place to stay away from the city. The hospitality was exceptional.', who: 'Michelle C.', where: 'Google' },
+  { quote: 'This was my favourite stay in Iceland.', who: 'Annabelle R.', where: 'Google' },
+  { quote: 'From the moment we arrived, the staff went above and beyond to make us feel incredibly welcome.', who: 'Mladen Ž.', where: 'Google' },
+]
