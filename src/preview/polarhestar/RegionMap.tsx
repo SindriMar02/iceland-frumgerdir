@@ -59,12 +59,12 @@ export function RegionMap({ tourId, activeDay, lang, onPick }: { tourId: string;
 
   return (
     <figure className="m-0 ph-regionmap">
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .ph-regionmap .leg-on{stroke-dasharray:14 10;animation:phLeg 1.4s linear infinite}
         @keyframes phLeg{to{stroke-dashoffset:-48}}
         @media (max-width: 640px){.ph-regionmap svg .lbl{font-size:34px}.ph-regionmap svg .lbl-sm{font-size:28px}.ph-regionmap svg .sea{font-size:30px}}
         @media (prefers-reduced-motion: reduce){.ph-regionmap .leg-on{animation:none}}
-      `}</style>
+      ` }} />
       <svg
         viewBox={`0 0 ${REGION.width} ${REGION.height}`}
         role="img"

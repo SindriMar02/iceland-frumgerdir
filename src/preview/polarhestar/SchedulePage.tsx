@@ -16,6 +16,10 @@ import { stegaClean } from '@sanity/client/stega'
 import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
+import { SiteFooter } from './SiteFooter'
+import { useLang } from './lang'
+import { useLiveClock } from './now'
+import { STANDALONE, bookPath, homePath } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { SiteContentProvider, useHashLanding, useSiteContent, altIs, type LongTourX, type TourX } from './sanity'
 import {
@@ -42,7 +46,6 @@ const AMBER_TX = '#7A4E00' // the same, as text on light (AA)
 
 const LOGO = `${import.meta.env.BASE_URL}polarhestar/logo.png`
 const LANGS: Lang[] = ['is', 'en', 'de']
-const HOME = '/preview/polarhestar'
 const tri = (lang: Lang, is: string, en: string, de: string) => (lang === 'is' ? is : lang === 'de' ? de : en)
 const isk = (n: number, lang: Lang) =>
   `${Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'en' ? ',' : '.')} kr.`
@@ -55,24 +58,6 @@ const dayOfYear = (iso: string) => {
 }
 const daysInYear = (y: number) => (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0) ? 366 : 365)
 const monthStartPct = (y: number, m: number) => (dayOfYear(`${y}-${String(m).padStart(2, '0')}-01`) / daysInYear(y)) * 100
-
-function useLang(): [Lang, (l: Lang) => void] {
-  const [lang, setLang] = useState<Lang>(() => {
-    try {
-      const saved = localStorage.getItem('ph-lang') as Lang | null
-      if (saved && LANGS.includes(saved)) return saved
-      const nav = (navigator.languages ?? [navigator.language]).map((l) => l.slice(0, 2))
-      return nav.find((l): l is Lang => LANGS.includes(l as Lang)) ?? 'en'
-    } catch {
-      return 'en'
-    }
-  })
-  const set = (l: Lang) => {
-    try { localStorage.setItem('ph-lang', l) } catch { /* private mode */ }
-    setLang(l)
-  }
-  return [lang, set]
-}
 
 function requestHref(email: string, tour: LongTourX, d: DepartureRow | null, lang: Lang) {
   const name = stegaClean(tour.name[lang])
@@ -332,6 +317,7 @@ function LongTourBlock({ tour, lang, email, today }: { tour: LongTourX; lang: La
 function SchedulePageInner() {
   const { LONG_TOURS, SHORT_TOURS, SCHEDULE, EMAIL, CHILD_DISCOUNT, PHONE_DISPLAY, PHONE_HREF } = useSiteContent()
   const [lang, setLang] = useLang()
+  useLiveClock()
   useHashLanding()
   const today = todayIso()
 
@@ -349,19 +335,19 @@ function SchedulePageInner() {
 
   return (
     <div lang={lang} style={{ background: MIST, color: BODY }} className="min-h-screen overflow-x-hidden font-hanken antialiased">
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .ph-bar{transform-origin:left center;animation:phBar .4s cubic-bezier(.2,.7,.2,1) both}
         @keyframes phBar{from{transform:scaleX(0);opacity:0}to{transform:none;opacity:1}}
         @keyframes phFade{from{opacity:0}to{opacity:1}}
         @media (prefers-reduced-motion: reduce){.ph-bar{animation:phFade .2s ease-out both}}
-      `}</style>
+      ` }} />
 
       <a href="#efni" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold" style={{ color: INK }}>
         {tri(lang, 'Fara beint í efni', 'Skip to content', 'Zum Inhalt springen')}
       </a>
       <header className="sticky top-0 z-30 border-b backdrop-blur-md" style={{ background: `${MIST}e6`, borderColor: '#161B3C12' }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-8">
-          <Link to={HOME} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar Hestar Startseite')}>
+          <Link to={homePath(lang)} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar Hestar Startseite')}>
             <img src={LOGO} alt="" className="h-10 w-auto" />
           </Link>
           <div className="flex items-center gap-2">
@@ -379,7 +365,7 @@ function SchedulePageInner() {
                 </button>
               ))}
             </div>
-            <Link to={`${HOME}#boka`} className="hidden rounded-full px-4 py-2 text-sm font-semibold text-white sm:inline-flex" style={{ background: CLAY_FILL }}>
+            <Link to={homePath(lang, '#boka')} className="hidden rounded-full px-4 py-2 text-sm font-semibold text-white sm:inline-flex" style={{ background: CLAY_FILL }}>
               {tri(lang, 'Bóka reiðtúr', 'Book a ride', 'Ritt buchen')}
             </Link>
           </div>
@@ -387,7 +373,7 @@ function SchedulePageInner() {
       </header>
 
       <main id="efni" className="mx-auto max-w-6xl px-4 pt-10 pb-20 md:px-8 md:pt-16">
-        <Link to={`${HOME}#lengri`} className="inline-flex items-center gap-1.5 text-sm font-medium" style={{ color: SLATE }}>
+        <Link to={homePath(lang, '#lengri')} className="inline-flex items-center gap-1.5 text-sm font-medium" style={{ color: SLATE }}>
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           {tri(lang, 'Til baka á forsíðu', 'Back to the front page', 'Zurück zur Startseite')}
         </Link>
@@ -485,7 +471,7 @@ function SchedulePageInner() {
                   </div>
                 </dl>
                 <Link
-                  to={`${HOME}?ferd=${encodeURIComponent(t.id)}#boka`}
+                  to={bookPath(t.id, lang)}
                   className="mt-5 inline-flex items-center gap-1 self-start text-sm font-semibold"
                   style={{ color: CLAY_TX }}
                 >
@@ -503,8 +489,8 @@ function SchedulePageInner() {
       </main>
 
       <div className="border-t" style={{ borderColor: '#161B3C12', background: NIGHT2 }} />
-      <PreviewFooter company={companyEntry} verifiedContent />
-      <PreviewChrome company={companyEntry} />
+      {STANDALONE ? <SiteFooter lang={lang} /> : <PreviewFooter company={companyEntry} verifiedContent />}
+      {STANDALONE ? null : <PreviewChrome company={companyEntry} />}
     </div>
   )
 }

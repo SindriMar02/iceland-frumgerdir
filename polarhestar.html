@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="is">
+  <!-- Pólar Hestar's OWN shell: the standalone build's index.html.
+
+       The catalogue's index.html is the wrong shell for a client's production
+       site in every way that has bitten us: the catalogue's title and
+       description, its icons, thirty font families when this site uses two,
+       and a blanket noindex. Instead of stripping that back out afterwards,
+       the standalone build starts from a shell that was never wrong.
+       tools/polarhestar-standalone-seo.mjs writes each route's own lang,
+       title, description, canonical, hreflang set, Open Graph card and
+       structured data on top at build time. -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pólar Hestar</title>
+    <meta name="theme-color" content="#EDF1F7" />
+    <!-- Safari 26 ignores theme-color; body background-color is its fallback
+         tint source, and this static rule also kills the white flash before
+         the bundle's CSS arrives. -->
+    <style>html, body { background-color: #EDF1F7; }</style>
+    <!-- focus-guard (_tools/focus-guard): no focus ring after a tap or click, every ring for the keyboard -->
+    <script>(function () {var root = document.documentElement;function set(v) { if (root.getAttribute('data-input') !== v) root.setAttribute('data-input', v); }addEventListener('pointerdown', function () { set('pointer'); }, true);addEventListener('keydown', function (e) {if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;set('key');}, true);})();</script>
+    <link rel="icon" href="/favicons/polarhestar/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/favicons/polarhestar/favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/favicons/polarhestar/apple-touch-icon.png" />
+    <link rel="preload" as="font" type="font/woff2" href="/polarhestar/fonts/spectral-n400-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/polarhestar/fonts/hanken-grotesk-regular.woff2" crossorigin />
+    <!-- Without JavaScript nothing arms the scroll reveals, so show everything. -->
+    <noscript><style>.ph-reveal{opacity:1!important;transform:none!important;filter:none!important}.ph-wi,.ph-line-i{transform:none!important}.ph-star{opacity:1!important;transform:none!important}.ph-live,.ph-card-img{transform:none!important}</style></noscript>
+    <!-- Cloudflare Web Analytics: cookieless, stores nothing that identifies a
+         visitor, so no consent banner is required. The token is injected at
+         build time from VITE_POLARHESTAR_CF_ANALYTICS_TOKEN; with no token the
+         tag is stripped by tools/polarhestar-standalone-post.mjs and the site
+         ships clean. -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"__CF_ANALYTICS_TOKEN__"}'></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/polarhestar-main.tsx"></script>
+  </body>
+</html>

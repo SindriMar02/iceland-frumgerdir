@@ -64,9 +64,18 @@ export const addDays = (iso: string, n: number) => {
   return toIso(d)
 }
 export const endOf = (dep: Departure, days: number) => addDays(dep.start, Math.max(1, days) - 1)
+/** The standalone build freezes "today" at the build date for the first render of
+ *  a prerendered page, so server HTML and hydration agree (see now.ts). */
+let frozenDay: string | null = null
+export const freezeToday = (iso: string) => { frozenDay = iso }
+export const thawToday = () => { frozenDay = null }
+export const isTodayFrozen = () => frozenDay !== null
 /** Local calendar day, as the guest's own browser sees it. */
-export const todayIso = (now = new Date()) =>
-  new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
+export const todayIso = (now?: Date) => {
+  if (!now && frozenDay) return frozenDay
+  const d = now ?? new Date()
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
+}
 
 const MONTHS: Record<Lang, string[]> = {
   is: ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'],

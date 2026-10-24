@@ -97,17 +97,50 @@ const KIND: Record<string, L3> = {
 
 export const kindOf = (id: string, lang: Lang) => KIND[id]?.[lang] ?? { is: 'hestaferð', en: 'horse riding tour', de: 'Ausritt' }[lang]
 
+/** The same, shorter, for when the title has to fit. */
+const KIND_SHORT: Record<string, L3> = {
+  'fyrstu-kynni': { is: '1 klst. hestaferð', en: '1-hour ride', de: '1-Std.-Ausritt' },
+  'moa-og-mela': { is: '2 klst. hestaferð', en: '2-hour ride', de: '2-Std.-Ausritt' },
+  hofdahringur: { is: '3 klst. hestaferð', en: '3-hour ride', de: '3-Std.-Ausritt' },
+  frostrosir: { is: 'vetrarhestaferð', en: 'winter ride', de: 'Winterritt' },
+  sumarsaela: { is: 'hestaferð og mínígolf', en: 'ride and minigolf', de: 'Ritt und Minigolf' },
+}
+
+/** What sets this ride apart, from the owners' own text for it (SHORT_TOUR_TEXT), so five descriptions are five. */
+const HIGHLIGHT: Record<string, L3> = {
+  'fyrstu-kynni': { is: 'Meðfram Gljúfurá upp að fjallsrótum.', en: 'Along the river Gljúfurá up to the mountains.', de: 'Entlang der Gljúfurá hinauf in die Berge.' },
+  'moa-og-mela': { is: 'Yfir græn engi og móa að Eyjafirði.', en: 'Over green meadows and moors towards the fjord.', de: 'Über Wiesen und Moore Richtung Fjord.' },
+  hofdahringur: { is: 'Hringur um Þengilhöfða, jafnvel hvalir í firðinum.', en: 'A loop around the hill Höfði, maybe with whales.', de: 'Rund um den Hügel Höfði, mit Glück Wale im Fjord.' },
+  frostrosir: { is: 'Vetrarreið í snjó, í hlýjum kuldagalla.', en: 'A winter ride through the snow, warmly dressed.', de: 'Winterritt durch den Schnee, warm eingepackt.' },
+  sumarsaela: { is: 'Reiðtúr, mínígolf og heimabakaðar kökur.', en: 'A ride, minigolf and homemade cake.', de: 'Ritt, Minigolf und selbstgebackener Kuchen.' },
+}
+
+/** First candidate that fits `max` characters; the last one when none does. */
+const fit = (max: number, ...candidates: string[]) => candidates.find((c) => c.length <= max) ?? candidates[candidates.length - 1]
+
 /**
  * <title> for a short-tour page: brand name first (it is theirs and what
  * returning guests type), then what and where (what new guests type).
  * "30 minutes from Akureyri" is their own fact (long-tour pickup text).
+ * Kept within about 60 characters, which is what a result shows: the longest
+ * form that fits wins, dropping the brand suffix (the result shows the site
+ * name anyway) and then shortening the description of the ride.
  */
 export function shortTourTitle(id: string, name: string, lang: Lang): string {
   const where = { is: 'nálægt Akureyri', en: 'near Akureyri', de: 'bei Akureyri' }[lang]
-  return `${name}: ${kindOf(id, lang)} ${where} | Pólar Hestar`
+  const kind = kindOf(id, lang)
+  const short = KIND_SHORT[id]?.[lang] ?? kind
+  return fit(
+    60,
+    `${name}: ${kind} ${where} | Pólar Hestar`,
+    `${name}: ${kind} ${where}`,
+    `${name}: ${short} ${where}`,
+    `${name}: ${short} | Pólar Hestar`,
+    `${name}: ${short}`,
+  )
 }
 
-/** <meta name="description">, from the tour's own facts. */
+/** <meta name="description">, from the tour's own facts, within the 160 characters a result shows. */
 export function shortTourDescription(
   t: { id: string; minAge: number; price: number },
   childPrice: number,
@@ -115,9 +148,29 @@ export function shortTourDescription(
 ): string {
   const n = (v: number) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'en' ? ',' : '.')
   const kind = kindOf(t.id, lang)
+  const up = `${kind[0].toUpperCase()}${kind.slice(1)}`
+  const hi = HIGHLIGHT[t.id]?.[lang] ?? ''
   if (lang === 'is')
-    return `${kind[0].toUpperCase()}${kind.slice(1)} frá Grýtubakka við Eyjafjörð, 30 mínútna akstur frá Akureyri. Fyrir alla, frá ${t.minAge} ára aldri. ${n(t.price)} kr. á mann, börn ${n(childPrice)} kr.`
+    return fit(
+      160,
+      `${up} frá Grýtubakka við Eyjafjörð, 30 mín. frá Akureyri. ${hi} Frá ${t.minAge} ára. ${n(t.price)} kr. á mann, börn ${n(childPrice)} kr.`,
+      `${up} frá Grýtubakka, 30 mín. frá Akureyri. ${hi} Frá ${t.minAge} ára. ${n(t.price)} kr., börn ${n(childPrice)} kr.`,
+      `${up} frá Grýtubakka, 30 mín. frá Akureyri. ${hi} Frá ${t.minAge} ára. ${n(t.price)} kr.`,
+      `${up} frá Grýtubakka, 30 mín. frá Akureyri. Frá ${t.minAge} ára. ${n(t.price)} kr., börn ${n(childPrice)} kr.`,
+    )
   if (lang === 'de')
-    return `${kind} vom Hof Grýtubakki am Eyjafjörður, 30 Minuten von Akureyri. Für alle Niveaus, ab ${t.minAge} Jahren. ${n(t.price)} ISK pro Person, Kinder ${n(childPrice)} ISK.`
-  return `${kind[0].toUpperCase()}${kind.slice(1)} from Grýtubakki farm by Eyjafjörður, a 30-minute drive from Akureyri. Icelandic horses, all levels, from age ${t.minAge}. ${n(t.price)} ISK per person, children ${n(childPrice)} ISK.`
+    return fit(
+      160,
+      `${kind} vom Hof Grýtubakki am Eyjafjörður, 30 Min. von Akureyri. ${hi} Ab ${t.minAge} Jahren. ${n(t.price)} ISK, Kinder ${n(childPrice)} ISK.`,
+      `${kind} vom Hof Grýtubakki, 30 Min. von Akureyri. ${hi} Ab ${t.minAge} J. ${n(t.price)} ISK, Kinder ${n(childPrice)} ISK.`,
+      `${kind} ab Grýtubakki, 30 Min. von Akureyri. ${hi} Ab ${t.minAge} J. ${n(t.price)} ISK.`,
+      `${kind} ab Grýtubakki, 30 Min. von Akureyri. Ab ${t.minAge} Jahren. ${n(t.price)} ISK, Kinder ${n(childPrice)} ISK.`,
+    )
+  return fit(
+    160,
+    `${up} from Grýtubakki farm by Eyjafjörður, 30 min from Akureyri. ${hi} From age ${t.minAge}. ${n(t.price)} ISK per person, children ${n(childPrice)} ISK.`,
+    `${up} from Grýtubakki farm, 30 min from Akureyri. ${hi} From age ${t.minAge}. ${n(t.price)} ISK, children ${n(childPrice)} ISK.`,
+    `${up} from Grýtubakki, 30 min from Akureyri. ${hi} From age ${t.minAge}. ${n(t.price)} ISK per person.`,
+    `${up} from Grýtubakki farm, 30 min from Akureyri. From age ${t.minAge}. ${n(t.price)} ISK, children ${n(childPrice)} ISK.`,
+  )
 }

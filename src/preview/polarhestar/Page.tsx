@@ -22,6 +22,12 @@ import {
 import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
+import { SiteFooter } from './SiteFooter'
+import { RideTable } from './RideTable'
+import { faqEntries } from './faq'
+import { ClientOnly, useLang } from './lang'
+import { useLiveClock } from './now'
+import { STANDALONE, linkHref, ridePath, schedulePath } from './paths'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { COPY, FOUNDED, INSTAGRAM, TRIPADVISOR, priceOn, type GtkAudience, type Lang } from './data'
@@ -67,8 +73,6 @@ const LOGO = `${import.meta.env.BASE_URL}polarhestar/logo.png`
 /** The farm shop is off: the owners said on 17 Oct 2026 that they don't need it for
  *  now (only the buffs are left). Items stay in the CMS; flip this to show it again. */
 const SHOW_SHOP = false
-const RIDE_HREF = '/preview/polarhestar/reidtur'
-const SCHEDULE_HREF = `${import.meta.env.BASE_URL}preview/polarhestar/dagskra`
 
 const LANGS: Lang[] = ['is', 'en', 'de']
 const LANG_NAMES: Record<Lang, string> = { is: 'Íslenska', en: 'English', de: 'Deutsch' }
@@ -1522,6 +1526,26 @@ function SeasonSwitcher({ t, lang }: { t: typeof COPY['is']; lang: Lang }) {
   )
 }
 
+/* ── What the booking section holds in the prerendered HTML (standalone) ──
+      The form itself mounts after hydration; this keeps the section's height and gives
+      crawlers, and visitors without scripts, the farm's own words and a way to book. ── */
+function BookingPlaceholder({ t }: { t: typeof COPY['is'] }) {
+  const { PHONE_DISPLAY, PHONE_HREF, EMAIL } = useSiteContent()
+  return (
+    <div
+      className="mx-auto flex min-h-[40rem] max-w-3xl flex-col items-center justify-center rounded-[28px] border px-6 py-12 text-center"
+      style={{ borderColor: '#ffffff1f', background: '#ffffff0a' }}
+    >
+      <p className="max-w-xl font-hanken text-base leading-relaxed text-white/85">{t.bookBody}</p>
+      <p className="mt-4 font-hanken text-sm text-white/70">{t.bookNoPay}</p>
+      <p className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-hanken text-sm font-semibold">
+        <a href={PHONE_HREF} className="underline underline-offset-4" style={{ color: ICE }}>{PHONE_DISPLAY}</a>
+        <a href={`mailto:${EMAIL}`} className="underline underline-offset-4" style={{ color: ICE }}>{EMAIL}</a>
+      </p>
+    </div>
+  )
+}
+
 /* ── Page ─────────────────────────────────────────────────────────────── */
 function PolarHestarPageInner() {
   const {
@@ -1530,16 +1554,9 @@ function PolarHestarPageInner() {
   } = useSiteContent()
   // First visit: greet guests in their own language (exact match, else EN;
   // Icelandic only for is-browsers). A manual choice persists and always wins.
-  const [lang, setLang] = useState<Lang>(() => {
-    try {
-      const saved = localStorage.getItem('ph-lang') as Lang | null
-      if (saved && LANGS.includes(saved)) return saved
-      const nav = (navigator.languages ?? [navigator.language]).map((l) => l.slice(0, 2))
-      return nav.find((l): l is Lang => LANGS.includes(l as Lang)) ?? 'en'
-    } catch {
-      return 'is'
-    }
-  })
+  // (Standalone: the URL decides, /, /en/ or /de/ — see lang.tsx.)
+  const [lang, setLang] = useLang()
+  useLiveClock()
   const [scrolled, setScrolled] = useState(false)
   const [barOn, setBarOn] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -1547,14 +1564,15 @@ function PolarHestarPageInner() {
   const [veil, setVeil] = useState(false)
   const pendingLang = useRef<Lang | null>(null)
   // ?ferd=<id> arrives from the schedule page's "Book" links with that tour picked
-  const [bookTour, setBookTour] = useState(() => {
+  // (read after mount, not in the initialiser: the prerendered HTML has no URL query, and the first client render must match it)
+  const [bookTour, setBookTour] = useState(() => SHORT_TOURS[0].id)
+  useEffect(() => {
     try {
-      const want = new URLSearchParams(window.location.search).get('ferd')
-      return SHORT_TOURS.find((x) => x.id === want)?.id ?? SHORT_TOURS[0].id
-    } catch {
-      return SHORT_TOURS[0].id
-    }
-  })
+      const want = SHORT_TOURS.find((x) => x.id === new URLSearchParams(window.location.search).get('ferd'))?.id
+      if (want) setBookTour(want)
+    } catch { /* no URL to read */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const [shownPhotos, setShownPhotos] = useState(24)
   const [lightbox, setLightbox] = useState<number | null>(null)
   // which price list the ride cards show, and which half of "good to know" is open
@@ -1572,7 +1590,6 @@ function PolarHestarPageInner() {
   /** Þokan — the language changes behind a breath of glacier mist. */
   const switchLang = (code: Lang) => {
     if (code === lang) return
-    try { localStorage.setItem('ph-lang', code) } catch { /* private mode */ }
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setLang(code)
       return
@@ -1608,11 +1625,19 @@ function PolarHestarPageInner() {
   const menuBtnRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const menuWasOpen = useRef(false)
+  // focus-guard: a tap opens the menu with nothing highlighted (focus on the panel, which never rings);
+  // Enter or Space opens it onto the first control, for the keyboard
+  const menuViaKey = useRef(false)
   useEffect(() => {
     if (menuWasOpen.current && !menuOpen) menuBtnRef.current?.focus()
     menuWasOpen.current = menuOpen
     if (!menuOpen) return
     document.body.style.overflow = 'hidden'
+    const panel = menuRef.current
+    if (panel) {
+      const first = panel.querySelector<HTMLElement>('button, a[href]')
+      ;(menuViaKey.current ? first : panel)?.focus({ preventScroll: true })
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMenuOpen(false)
       if (e.key === 'Tab' && menuRef.current) {
@@ -1639,6 +1664,8 @@ function PolarHestarPageInner() {
 
   // Verified LocalBusiness JSON-LD so the page carries machine-readable NAP
   useEffect(() => {
+    // the standalone site has the full business entity in its static head (seo.ts, written at build time)
+    if (STANDALONE) return
     const el = document.createElement('script')
     el.type = 'application/ld+json'
     el.text = JSON.stringify({
@@ -1691,7 +1718,7 @@ function PolarHestarPageInner() {
   return (
     <div lang={lang} style={{ background: MIST, color: BODY }} className="ph-root min-h-screen overflow-x-clip font-hanken antialiased">
       {/* scoped motion + theme */}
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .ph-reveal{opacity:0;transform:translateY(16px);filter:blur(6px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1),filter .9s ease}
         .ph-reveal[data-show="true"]{opacity:1;transform:none;filter:none}
         /* first paint: the hero photo opens out from a centred frame while the loader lifts (Hópbílar) */
@@ -1849,7 +1876,7 @@ function PolarHestarPageInner() {
              gallery grid directly below. */
           .ph-track{animation:none}
         }
-      `}</style>
+      ` }} />
 
       {/* skip link — first tab stop, jumps keyboard/AT users past the fixed header */}
       <a
@@ -1896,7 +1923,7 @@ function PolarHestarPageInner() {
                 kids: [
                   ['#ferdir', tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Touren')],
                   ['#lengri', tri(lang, 'Lengri ferðir', 'Long rides', 'Lange Reittouren')],
-                  [SCHEDULE_HREF, tri(lang, 'Dagskrá og dagsetningar', 'Schedule and dates', 'Termine und Daten')],
+                  [linkHref(schedulePath(lang)), tri(lang, 'Dagskrá og dagsetningar', 'Schedule and dates', 'Termine und Daten')],
                   ['#boka', tri(lang, 'Bóka reiðtúr', 'Book a ride', 'Ritt buchen')],
                 ] as [string, string][],
               },
@@ -1976,7 +2003,10 @@ function PolarHestarPageInner() {
             <button
               ref={menuBtnRef}
               type="button"
-              onClick={() => setMenuOpen(true)}
+              onClick={(e) => {
+                menuViaKey.current = e.detail === 0
+                setMenuOpen(true)
+              }}
               aria-expanded={menuOpen}
               aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}
               data-open={menuOpen}
@@ -2003,6 +2033,7 @@ function PolarHestarPageInner() {
           role="dialog"
           aria-modal="true"
           aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}
+          tabIndex={-1}
           className="ph-menu ph-dark fixed inset-0 z-50 flex flex-col overflow-y-auto p-6 md:hidden"
           style={{ background: NIGHT }}
         >
@@ -2010,7 +2041,6 @@ function PolarHestarPageInner() {
             <img src={LOGO} alt="Pólar Hestar" className="h-10 w-auto" />
             <button
               type="button"
-              autoFocus
               onClick={() => setMenuOpen(false)}
               aria-label={tri(lang, 'Loka', 'Close', 'Schließen')}
               className="grid h-11 w-11 place-items-center rounded-full border text-white"
@@ -2026,7 +2056,7 @@ function PolarHestarPageInner() {
             {[
               ['#ferdir', tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Touren')],
               ['#lengri', tri(lang, 'Lengri ferðir', 'Long rides', 'Lange Reittouren')],
-              [SCHEDULE_HREF, tri(lang, 'Dagskrá', 'Schedule', 'Termine')],
+              [linkHref(schedulePath(lang)), tri(lang, 'Dagskrá', 'Schedule', 'Termine')],
               ['#arstidir', t.nav.seasons],
               ['#gott', t.nav.info],
               ['#myndir', tri(lang, 'Myndasafn', 'Gallery', 'Galerie')],
@@ -2327,6 +2357,10 @@ function PolarHestarPageInner() {
               {t.weightNote}
             </p>
           </Reveal>
+
+          <Reveal className="mt-12">
+            <RideTable lang={lang} />
+          </Reveal>
         </div>
 
         {/* Tier 2 — multi-day journeys */}
@@ -2375,7 +2409,14 @@ function PolarHestarPageInner() {
             </h2>
           </Reveal>
           <Reveal>
-            <Booking t={t} lang={lang} selectedId={bookTour} onSelect={setBookTour} />
+            {STANDALONE ? (
+              /* the form is date-driven (today + 7, a strip of days), so it mounts in the browser only; the prerender holds the section's own words */
+              <ClientOnly fallback={<BookingPlaceholder t={t} />}>
+                <Booking t={t} lang={lang} selectedId={bookTour} onSelect={setBookTour} />
+              </ClientOnly>
+            ) : (
+              <Booking t={t} lang={lang} selectedId={bookTour} onSelect={setBookTour} />
+            )}
           </Reveal>
         </div>
       </section>
@@ -2422,20 +2463,33 @@ function PolarHestarPageInner() {
               />
             </div>
           </Reveal>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {GTK.items.filter((it) => !it.audience || it.audience === 'both' || it.audience === gtkTab).map((item, i) => (
-              <Reveal key={`${gtkTab}-${i}`} delay={i * 60}>
-                <div className="h-full rounded-2xl border p-5" style={{ borderColor: '#1a20521a', background: MIST }}>
-                  <p className="font-spectral text-lg" style={{ color: INK }}>
-                    {item.title[lang]}
-                  </p>
-                  <p className="mt-1.5 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
-                    {item.body[lang]}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
+          {/* both sets are in the page (the inactive one is hidden, not absent): the questions and the owners' answers are text for crawlers and for the FAQ markup */}
+          {(['short', 'long'] as const).map((set) => (
+            <div
+              key={set}
+              id={`faq-${set}`}
+              hidden={gtkTab !== set}
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {faqEntries(GTK, set, lang).map((e, i) => (
+                <Reveal key={e.id} delay={i * 60}>
+                  <div className="h-full rounded-2xl border p-5" style={{ borderColor: '#1a20521a', background: MIST }}>
+                    {e.label && (
+                      <p className="font-hanken text-[0.68rem] font-semibold tracking-[0.14em] uppercase" style={{ color: SLATE }}>
+                        {e.label}
+                      </p>
+                    )}
+                    <h3 className="mt-1 font-spectral text-lg leading-snug" style={{ color: INK }}>
+                      {e.question}
+                    </h3>
+                    <p className="mt-1.5 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+                      {e.answer}
+                    </p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          ))}
         </div>
       </section>
 
@@ -2814,7 +2868,7 @@ function PolarHestarPageInner() {
       </main>
 
       <div className="pb-20 md:pb-0">
-        <PreviewFooter company={company} verifiedContent />
+        {STANDALONE ? <SiteFooter lang={lang} /> : <PreviewFooter company={company} verifiedContent />}
       </div>
 
       {/* ── MOBILE STICKY CTA ───────────────────────────────────────────── */}
@@ -2848,7 +2902,7 @@ function PolarHestarPageInner() {
         />
       )}
 
-      <PreviewChrome company={company} />
+      {STANDALONE ? null : <PreviewChrome company={company} />}
     </div>
   )
 }
@@ -2902,14 +2956,14 @@ function TourCard({ tour, lang, t, onBook, year }: { tour: TourX; lang: Lang; t:
           </span>
         </div>
         <h3 className="mt-3 font-spectral text-xl leading-snug" style={{ color: INK }}>
-          <Link to={`${RIDE_HREF}/${tour.id}`} className="outline-none focus-visible:underline">
+          <Link to={ridePath(tour.id, lang)} className="outline-none focus-visible:underline">
             {tour.name[lang]}
           </Link>
         </h3>
         <p className="mt-2 flex-1 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
           {tour.blurb[lang]}
         </p>
-        <Link to={`${RIDE_HREF}/${tour.id}`} className="mt-3 inline-flex items-center gap-1 self-start font-hanken text-sm font-semibold transition-colors" style={{ color: CLAY_TX }}>
+        <Link to={ridePath(tour.id, lang)} className="mt-3 inline-flex items-center gap-1 self-start font-hanken text-sm font-semibold transition-colors" style={{ color: CLAY_TX }}>
           {tri(lang, 'Nánar um ferðina', 'More about this ride', 'Mehr zu diesem Ritt')}
           <span className="sr-only">: {tour.name[lang]}</span>
           <ChevronRight className="h-4 w-4" aria-hidden="true" />

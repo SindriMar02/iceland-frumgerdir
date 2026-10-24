@@ -17,3 +17,9 @@ dist-nypugardar
 dist-nypugardar-server
 dist-bjarkalundur
 dist-bjarkalundur-server
+
+# Pólar Hestar standalone build (tools/polarhestar-standalone-*.mjs)
+dist-polarhestar
+dist-polarhestar-server
+.cache/
+.wrangler/

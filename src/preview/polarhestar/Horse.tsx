@@ -64,7 +64,7 @@ export function HorseRule({ color, line }: { color: string; line: string }) {
   }, [])
   return (
     <div ref={ref} className="ph-horse-rule relative mx-auto h-16 max-w-6xl" data-go={go} aria-hidden="true">
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .ph-horse-rule .ph-hr-horse{position:absolute;bottom:7px;left:58%;width:72px;transform:translateX(-60vw);opacity:0}
         .ph-horse-rule[data-go="true"] .ph-hr-horse{animation:phTrot 2.6s cubic-bezier(.25,.6,.3,1) forwards}
         .ph-horse-rule[data-go="true"] .ph-hr-step{animation:phStep .32s ease-in-out 8 alternate}
@@ -74,7 +74,7 @@ export function HorseRule({ color, line }: { color: string; line: string }) {
           .ph-horse-rule .ph-hr-horse,.ph-horse-rule[data-go="true"] .ph-hr-horse{animation:none;transform:none;opacity:1}
           .ph-horse-rule[data-go="true"] .ph-hr-step{animation:none}
         }
-      `}</style>
+      ` }} />
       <span className="absolute inset-x-0 bottom-2 h-px" style={{ background: line }} />
       <span className="ph-hr-horse">
         <Horse className="ph-hr-step block w-full" style={{ color }} />

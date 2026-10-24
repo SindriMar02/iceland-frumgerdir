@@ -19,6 +19,10 @@ import { stegaClean } from '@sanity/client/stega'
 import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
+import { SiteFooter } from './SiteFooter'
+import { useLang } from './lang'
+import { useLiveClock } from './now'
+import { STANDALONE, homePath, schedulePath } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { SiteContentProvider, useSiteContent, altIs, type LongTourX } from './sanity'
 import {
@@ -46,27 +50,8 @@ const AMBER_TX = '#7A4E00'
 
 const LOGO = `${import.meta.env.BASE_URL}polarhestar/logo.png`
 const LANGS: Lang[] = ['is', 'en', 'de']
-const HOME = '/preview/polarhestar'
 const tri = (lang: Lang, is: string, en: string, de: string) => (lang === 'is' ? is : lang === 'de' ? de : en)
 const MAP_LABEL = (id: string) => MAP_PLACE[id]?.label ?? ''
-
-function useLang(): [Lang, (l: Lang) => void] {
-  const [lang, setLang] = useState<Lang>(() => {
-    try {
-      const saved = localStorage.getItem('ph-lang') as Lang | null
-      if (saved && LANGS.includes(saved)) return saved
-      const nav = (navigator.languages ?? [navigator.language]).map((l) => l.slice(0, 2))
-      return nav.find((l): l is Lang => LANGS.includes(l as Lang)) ?? 'en'
-    } catch {
-      return 'en'
-    }
-  })
-  const set = (l: Lang) => {
-    try { localStorage.setItem('ph-lang', l) } catch { /* private mode */ }
-    setLang(l)
-  }
-  return [lang, set]
-}
 
 function requestHref(email: string, tour: LongTourX, d: DepartureRow | null, lang: Lang) {
   const name = stegaClean(tour.name[lang])
@@ -94,6 +79,7 @@ function TourPageInner() {
   const { id = '' } = useParams()
   const { LONG_TOURS, EMAIL, PHONE_DISPLAY, PHONE_HREF } = useSiteContent()
   const [lang, setLang] = useLang()
+  useLiveClock()
   const tour = LONG_TOURS.find((t) => t.id === id)
   const itinerary = tour?.itinerary ?? ITINERARIES[id]
   const days = itinerary?.days ?? []
@@ -143,7 +129,7 @@ function TourPageInner() {
     return (
       <main className="mx-auto max-w-3xl px-5 py-24 font-hanken" style={{ color: BODY }}>
         <p className="font-spectral text-2xl" style={{ color: INK }}>{tri(lang, 'Ferðin fannst ekki.', 'That tour was not found.', 'Diese Tour wurde nicht gefunden.')}</p>
-        <Link to={`${HOME}#lengri`} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold" style={{ color: CLAY_TX }}>
+        <Link to={homePath(lang, '#lengri')} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold" style={{ color: CLAY_TX }}>
           <ArrowLeft className="h-4 w-4" /> {tri(lang, 'Allar lengri ferðir', 'All long tours', 'Alle langen Touren')}
         </Link>
       </main>
@@ -164,7 +150,7 @@ function TourPageInner() {
 
   return (
     <div lang={lang} style={{ background: MIST, color: BODY }} className="min-h-screen overflow-x-clip font-hanken antialiased">
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .ph-tour-frame{clip-path:inset(0 round 0)}
         @media (max-width: 1023px){.ph-map-card svg{max-height:38vh}.ph-map-card figcaption{display:none}}
         .ph-day{opacity:.55;transition:opacity .5s ease}
@@ -172,14 +158,14 @@ function TourPageInner() {
         .ph-day-rise{animation:phDayRise .7s cubic-bezier(.2,.7,.2,1) both}
         @keyframes phDayRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
         @media (prefers-reduced-motion: reduce){.ph-day{opacity:1;transition:none}.ph-day-rise{animation:none}}
-      `}</style>
+      ` }} />
 
       <a href="#efni" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold" style={{ color: INK }}>
         {tri(lang, 'Fara beint í efni', 'Skip to content', 'Zum Inhalt springen')}
       </a>
       <header className="sticky top-0 z-30 border-b backdrop-blur-md" style={{ background: `${MIST}e6`, borderColor: '#161B3C12' }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-8">
-          <Link to={HOME} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar Hestar Startseite')}>
+          <Link to={homePath(lang)} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar Hestar Startseite')}>
             <img src={LOGO} alt="" className="h-10 w-auto" />
           </Link>
           <div className="flex items-center gap-2">
@@ -212,7 +198,7 @@ function TourPageInner() {
             <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(13,16,40,.25) 0%, rgba(13,16,40,.2) 40%, rgba(13,16,40,.85) 100%)' }} />
           </div>
           <div className="relative z-10 mx-auto flex min-h-[88svh] w-full max-w-6xl flex-col justify-end px-5 pb-14 pt-28 md:px-8 md:pb-20">
-            <Link to={`${HOME}#lengri`} className="ph-day-rise mb-6 inline-flex items-center gap-1.5 self-start text-sm font-medium text-white/85">
+            <Link to={homePath(lang, '#lengri')} className="ph-day-rise mb-6 inline-flex items-center gap-1.5 self-start text-sm font-medium text-white/85">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               {tri(lang, 'Allar lengri ferðir', 'All long tours', 'Alle langen Touren')}
             </Link>
@@ -347,7 +333,7 @@ function TourPageInner() {
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-white/85">
               <a href={`mailto:${EMAIL}`} className="inline-flex items-center gap-2 underline underline-offset-4"><Mail className="h-4 w-4" style={{ color: ICE }} /> {EMAIL}</a>
               <a href={PHONE_HREF} className="inline-flex items-center gap-2"><Phone className="h-4 w-4" style={{ color: ICE }} /> {PHONE_DISPLAY}</a>
-              <Link to={`${HOME}/dagskra#${tour.id}`} className="underline underline-offset-4" style={{ color: CLAY }}>
+              <Link to={schedulePath(lang, `#${tour.id}`)} className="underline underline-offset-4" style={{ color: CLAY }}>
                 {tri(lang, 'Öll dagskráin', 'The whole schedule', 'Der ganze Terminplan')}
               </Link>
             </div>
@@ -357,8 +343,8 @@ function TourPageInner() {
           </div>
         </section>
       </main>
-      <PreviewFooter company={companyEntry} verifiedContent />
-      <PreviewChrome company={companyEntry} />
+      {STANDALONE ? <SiteFooter lang={lang} /> : <PreviewFooter company={companyEntry} verifiedContent />}
+      {STANDALONE ? null : <PreviewChrome company={companyEntry} />}
     </div>
   )
 }

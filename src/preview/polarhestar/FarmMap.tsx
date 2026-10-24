@@ -51,9 +51,9 @@ export function FarmMap({ lang }: { lang: Lang }) {
   const areaLabel = project(FARM, AREA.lat + AREA.dLat * 0.62, AREA.lon + 0.004)
   return (
     <figure className="m-0 ph-farmmap">
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 640px){.ph-farmmap svg .lbl{font-size:24px}.ph-farmmap svg .lbl-sm{font-size:20px}.ph-farmmap svg .sea{font-size:21px}.ph-farmmap svg .area{font-size:25px}}
-      `}</style>
+      ` }} />
       <svg
         viewBox={`${VIEW.x.toFixed(0)} ${VIEW.y.toFixed(0)} ${VIEW.w.toFixed(0)} ${VIEW.h.toFixed(0)}`}
         role="img"

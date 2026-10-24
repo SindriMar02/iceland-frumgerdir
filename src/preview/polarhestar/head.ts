@@ -102,15 +102,16 @@ export function tourHead(t: TourFacts, lang: Lang): HeadSpec {
     `${name}: ${t.days}-day horse riding tour from Grýtubakki farm, ${t.ridingDays} riding days, ${km} km a day, from age ${t.minAge}. €${eur} per person.`,
     `${name}: ${t.days}-tägige Reittour ab Hof Grýtubakki, ${t.ridingDays} Reittage, ${km} km pro Tag, ab ${t.minAge} Jahren. ${eur} € pro Person.`,
   )
+  // a title longer than ~60 characters is cut in the results: drop the brand suffix first (the result shows the site name anyway)
+  const titles = [
+    tri(lang, `${name}: ${t.days} daga hestaferð | Pólar Hestar`, `${name}: ${t.days}-day riding tour | Pólar Hestar`, `${name}: ${t.days}-tägige Reittour | Pólar Hestar`),
+    tri(lang, `${name}: ${t.days} daga hestaferð`, `${name}: ${t.days}-day riding tour`, `${name}: ${t.days}-tägige Reittour`),
+    tri(lang, `${name} | Pólar Hestar`, `${name} | Pólar Hestar`, `${name} | Pólar Hestar`),
+  ]
   return {
     path: `ferd/${t.id}/`,
-    title: tri(
-      lang,
-      `${name}: ${t.days} daga hestaferð | Pólar Hestar`,
-      `${name}: ${t.days}-day riding tour | Pólar Hestar`,
-      `${name}: ${t.days}-tägige Reittour | Pólar Hestar`,
-    ),
-    description: full.length <= 165 ? full : short,
+    title: titles.find((x) => x.length <= 60) ?? titles[1],
+    description: full.length <= 160 ? full : short,
   }
 }
 

@@ -1,0 +1,120 @@
+/**
+ * Pólar Hestar — the client build's own stylesheet.
+ *
+ * The catalogue's index.css carries Tailwind scanned across ~170 previews,
+ * thirty font families and every shared preview utility. This file carries
+ * Tailwind scanned across THIS design's folder only, its two typefaces
+ * (self-hosted: no request to Google at runtime, which matters for German
+ * visitors), and the few base rules the pages lean on. Anything added here
+ * ships to the farm's guests; keep it short.
+ *
+ * source(none) switches off Tailwind's automatic source detection, which
+ * would otherwise walk the whole workspace and emit a class for every preview
+ * ever built. The one @source below is the whole surface.
+ */
+@import "tailwindcss" source(none);
+@source "./preview/polarhestar";
+
+@theme {
+  --font-hanken: "Hanken Grotesk", system-ui, sans-serif; /* body and UI */
+  --font-spectral: "Spectral", Georgia, serif;          /* luminous literary serif, headings */
+}
+
+/* Spectral: Google Fonts, SIL Open Font License, latin + latin-ext only
+   (Icelandic and German live in latin; latin-ext covers names and symbols). */
+@font-face { font-family: "Spectral"; src: url("/polarhestar/fonts/spectral-i400-latin-ext.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Spectral"; src: url("/polarhestar/fonts/spectral-i400-latin.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Spectral"; src: url("/polarhestar/fonts/spectral-i500-latin-ext.woff2") format("woff2"); font-weight: 500; font-style: italic; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Spectral"; src: url("/polarhestar/fonts/spectral-i500-latin.woff2") format("woff2"); font-weight: 500; font-style: italic; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Spectral"; src: url("/polarhestar/fonts/spectral-n400-latin-ext.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Spectral"; src: url("/polarhestar/fonts/spectral-n400-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Spectral"; src: url("/polarhestar/fonts/spectral-n500-latin-ext.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Spectral"; src: url("/polarhestar/fonts/spectral-n500-latin.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Spectral"; src: url("/polarhestar/fonts/spectral-n600-latin-ext.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Spectral"; src: url("/polarhestar/fonts/spectral-n600-latin.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* Hanken Grotesk: same family the catalogue ships in public/fonts, latin + latin-ext in one file. */
+@font-face { font-family: "Hanken Grotesk"; src: url("/polarhestar/fonts/hanken-grotesk-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Hanken Grotesk"; src: url("/polarhestar/fonts/hanken-grotesk-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Hanken Grotesk"; src: url("/polarhestar/fonts/hanken-grotesk-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Hanken Grotesk"; src: url("/polarhestar/fonts/hanken-grotesk-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: var(--font-hanken);
+}
+
+/* Visible-but-quiet keyboard focus that adapts to the ink colour. In @layer
+   base so per-element focus-visible utilities can override the colour. */
+@layer base {
+  :where(a, button, input, textarea, [tabindex]):focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+}
+
+/* focus-guard.css (_tools/focus-guard): pairs with the inline script in the shell.
+   No ring after a tap or a click; every ring for the keyboard. Text fields keep theirs. */
+html[data-input="pointer"] :focus-visible:not(input):not(textarea):not(select):not([contenteditable="true"]) { outline: none; }
+/* a focus target that is only a container (a menu panel, a dialog, a drawer): never ring it */
+[tabindex="-1"]:focus { outline: none; }
+
+/* Hide scrollbars on horizontal snap rails while keeping them scrollable */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Slow cinematic zoom for hero imagery */
+@keyframes kenburns {
+  from { transform: scale(1.04) translateY(0); }
+  to { transform: scale(1.14) translateY(-1.25%); }
+}
+.kenburns {
+  animation: kenburns 32s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+/* Subtle film grain for the dark sections */
+.grain {
+  position: relative;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kenburns { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
+/* Lenis smooth scroll (desktop, fine pointers only). Native CSS smooth
+   scrolling is cancelled for Lenis's whole mounted lifetime, or the browser's
+   own easing fights Lenis's rAF loop and the double-smoothing reads as lag. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}

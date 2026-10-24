@@ -15,6 +15,7 @@
  */
 import { useEffect } from 'react'
 import type { Lang } from './data'
+import { STANDALONE } from './paths'
 
 const LOCALE: Record<Lang, string> = { is: 'is_IS', en: 'en_GB', de: 'de_DE' }
 
@@ -30,7 +31,8 @@ export function useHead(spec: { title: string; description: string } | null, lan
   const title = spec?.title
   const description = spec?.description
   useEffect(() => {
-    if (!title || !description) return
+    // the standalone site keeps its head in step with RouteHead.tsx, which uses the same builder as the static HTML
+    if (STANDALONE || !title || !description) return
     const undo: Array<() => void> = []
 
     const meta = (attr: Attr, key: string, content: string) => {

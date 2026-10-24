@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 import type { LongTourX } from './sanity'
 import { departuresLine, metaLine, requirementsLine, type Lang } from './schedule'
+import { tourPath } from './paths'
 
 const PAPER = '#F7FAFC'
 const INK = '#161B3C'
@@ -16,7 +17,6 @@ const BODY = '#3D4565'
 const CLAY = '#3B8FD4'
 const CLAY_TX = '#2160A6'
 const SLATE = '#57608A'
-const HOME = '/preview/polarhestar'
 
 export function LongTourSlider({ tours, lang }: { tours: LongTourX[]; lang: Lang }) {
   const t = (is: string, en: string, de: string) => (lang === 'is' ? is : lang === 'de' ? de : en)
@@ -99,7 +99,7 @@ export function LongTourSlider({ tours, lang }: { tours: LongTourX[]; lang: Lang
             className="ph-card group flex w-[86vw] max-w-[420px] shrink-0 snap-start flex-col overflow-hidden rounded-[24px] shadow-[0_1px_2px_rgba(22,27,60,0.05),0_10px_22px_-14px_rgba(22,27,60,0.22),0_28px_56px_-32px_rgba(32,32,112,0.3)] md:w-[420px]"
             style={{ background: PAPER }}
           >
-            <Link to={`${HOME}/ferd/${tour.id}`} className="relative block aspect-[4/3] overflow-hidden" draggable={false} tabIndex={-1} aria-hidden="true">
+            <Link to={tourPath(tour.id, lang)} className="relative block aspect-[4/3] overflow-hidden" draggable={false} tabIndex={-1} aria-hidden="true">
               <img
                 src={tour.pic.src}
                 srcSet={tour.pic.srcSet}
@@ -121,7 +121,7 @@ export function LongTourSlider({ tours, lang }: { tours: LongTourX[]; lang: Lang
                 ))}
               </div>
               <h3 className="font-spectral text-2xl leading-snug" style={{ color: INK }}>
-                <Link to={`${HOME}/ferd/${tour.id}`} className="outline-none focus-visible:underline" draggable={false}>
+                <Link to={tourPath(tour.id, lang)} className="outline-none focus-visible:underline" draggable={false}>
                   {tour.name[lang]}
                 </Link>
               </h3>
@@ -130,7 +130,7 @@ export function LongTourSlider({ tours, lang }: { tours: LongTourX[]; lang: Lang
                 <p className="font-hanken text-xs leading-relaxed" style={{ color: SLATE }}>{requirementsLine(tour, lang)}</p>
                 <p className="font-hanken text-xs leading-relaxed font-medium" style={{ color: CLAY_TX }}>{departuresLine(tour, lang)}</p>
               </div>
-              <Link to={`${HOME}/ferd/${tour.id}`} className="inline-flex items-center gap-1 self-start font-hanken text-sm font-semibold transition-colors" style={{ color: CLAY_TX }} draggable={false}>
+              <Link to={tourPath(tour.id, lang)} className="inline-flex items-center gap-1 self-start font-hanken text-sm font-semibold transition-colors" style={{ color: CLAY_TX }} draggable={false}>
                 {tour.itinerary ? t('Dagur fyrir dag og kort', 'Day by day and map', 'Tag für Tag und Karte') : t('Sjá ferðina', 'See the tour', 'Zur Tour')}
                 <ChevronRight className="h-4 w-4" />
               </Link>

@@ -9,13 +9,16 @@
  * front-page form with this ride picked. Titles and descriptions come from
  * shortTourText.ts so the standalone build can prerender the same ones.
  */
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Clock, Mail, MapPin, Phone } from 'lucide-react'
 import { stegaClean } from '@sanity/client/stega'
 import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
+import { SiteFooter } from './SiteFooter'
+import { useLang } from './lang'
+import { STANDALONE, bookPath, homePath, linkHref, ridePath } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { SiteContentProvider, useSiteContent, altIs } from './sanity'
 import { monthsLabel, type Lang } from './schedule'
@@ -35,30 +38,11 @@ const ICE = '#9BD8F3'
 
 const LOGO = `${import.meta.env.BASE_URL}polarhestar/logo.png`
 const LANGS: Lang[] = ['is', 'en', 'de']
-const HOME = '/preview/polarhestar'
 const tri = (lang: Lang, is: string, en: string, de: string) => (lang === 'is' ? is : lang === 'de' ? de : en)
 const isk = (n: number, lang: Lang) =>
   lang === 'en'
     ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ISK'
     : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr.'
-
-function useLang(): [Lang, (l: Lang) => void] {
-  const [lang, setLang] = useState<Lang>(() => {
-    try {
-      const saved = localStorage.getItem('ph-lang') as Lang | null
-      if (saved && LANGS.includes(saved)) return saved
-      const nav = (navigator.languages ?? [navigator.language]).map((l) => l.slice(0, 2))
-      return nav.find((l): l is Lang => LANGS.includes(l as Lang)) ?? 'en'
-    } catch {
-      return 'en'
-    }
-  })
-  const set = (l: Lang) => {
-    try { localStorage.setItem('ph-lang', l) } catch { /* private mode */ }
-    setLang(l)
-  }
-  return [lang, set]
-}
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
@@ -79,7 +63,7 @@ function ShortTourInner() {
   const name = tour ? stegaClean(tour.name[lang]) : ''
   const title = tour ? shortTourTitle(tour.id, name, lang) : 'Pólar Hestar'
   const description = tour ? shortTourDescription(tour, childPrice, lang) : ''
-  const bookHref = `${HOME}?ferd=${id}#boka`
+  const bookHref = bookPath(id, lang)
 
   useHead(tour ? { title, description } : null, lang)
   useEffect(() => {
@@ -92,7 +76,8 @@ function ShortTourInner() {
 
   // TouristTrip + breadcrumb, so search engines read the ride as a product with a price
   useEffect(() => {
-    if (!tour) return
+    // the standalone site has these blocks in its static head (seo.ts), built from the same content
+    if (STANDALONE || !tour) return
     const url = window.location.origin + window.location.pathname
     const el = document.createElement('script')
     el.type = 'application/ld+json'
@@ -124,8 +109,8 @@ function ShortTourInner() {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Pólar Hestar', item: window.location.origin + HOME },
-          { '@type': 'ListItem', position: 2, name: tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Ritte'), item: `${window.location.origin}${HOME}#ferdir` },
+          { '@type': 'ListItem', position: 1, name: 'Pólar Hestar', item: window.location.origin + linkHref(homePath(lang)) },
+          { '@type': 'ListItem', position: 2, name: tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Ritte'), item: `${window.location.origin}${linkHref(homePath(lang))}#ferdir` },
           { '@type': 'ListItem', position: 3, name, item: url },
         ],
       },
@@ -138,7 +123,7 @@ function ShortTourInner() {
     return (
       <main className="mx-auto max-w-3xl px-5 py-24 font-hanken" style={{ color: BODY }}>
         <p className="font-spectral text-2xl" style={{ color: INK }}>{tri(lang, 'Ferðin fannst ekki.', 'That tour was not found.', 'Diese Tour wurde nicht gefunden.')}</p>
-        <Link to={`${HOME}#ferdir`} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold" style={{ color: CLAY_TX }}>
+        <Link to={homePath(lang, '#ferdir')} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold" style={{ color: CLAY_TX }}>
           <ArrowLeft className="h-4 w-4" /> {tri(lang, 'Allar stuttar ferðir', 'All short tours', 'Alle kurzen Ritte')}
         </Link>
       </main>
@@ -168,20 +153,20 @@ function ShortTourInner() {
 
   return (
     <div lang={lang} style={{ background: MIST, color: BODY }} className="min-h-screen overflow-x-clip font-hanken antialiased">
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .ph-st-rise{animation:phStRise .7s cubic-bezier(.2,.7,.2,1) both}
         @keyframes phStRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
         @media (prefers-reduced-motion: reduce){.ph-st-rise{animation:none}}
         @media (hover:hover) and (pointer:fine){.ph-st-card:hover img{transform:scale(1.04)}}
         .ph-st-card img{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
-      `}</style>
+      ` }} />
 
       <a href="#efni" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold" style={{ color: INK }}>
         {tri(lang, 'Fara beint í efni', 'Skip to content', 'Zum Inhalt springen')}
       </a>
       <header className="sticky top-0 z-30 border-b backdrop-blur-md" style={{ background: `${MIST}e6`, borderColor: '#161B3C12' }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-8">
-          <Link to={HOME} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar Hestar Startseite')}>
+          <Link to={homePath(lang)} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar Hestar Startseite')}>
             <img src={LOGO} alt="" className="h-10 w-auto" />
           </Link>
           <div className="flex items-center gap-2">
@@ -212,7 +197,7 @@ function ShortTourInner() {
           <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(13,16,40,.3) 0%, rgba(13,16,40,.2) 35%, rgba(13,16,40,.88) 100%)' }} />
           <div className="relative z-10 mx-auto flex min-h-[72svh] w-full max-w-6xl flex-col justify-end px-5 pb-12 pt-24 md:px-8 md:pb-16">
             <nav aria-label={tri(lang, 'Brauðmolar', 'Breadcrumb', 'Brotkrümel')} className="ph-st-rise mb-6 text-sm text-white/85">
-              <Link to={`${HOME}#ferdir`} className="inline-flex items-center gap-1.5 font-medium">
+              <Link to={homePath(lang, '#ferdir')} className="inline-flex items-center gap-1.5 font-medium">
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 {tri(lang, 'Allar stuttar ferðir', 'All short tours', 'Alle kurzen Ritte')}
               </Link>
@@ -295,7 +280,7 @@ function ShortTourInner() {
             <ul className="mt-6 grid list-none grid-cols-2 gap-3 p-0 md:gap-4 lg:grid-cols-4">
               {others.map((o) => (
                 <li key={o.id}>
-                  <Link to={`${HOME}/reidtur/${o.id}`} className="ph-st-card group flex h-full flex-col overflow-hidden rounded-[20px] ring-1 ring-[#161B3C0f]" style={{ background: MIST }}>
+                  <Link to={ridePath(o.id, lang)} className="ph-st-card group flex h-full flex-col overflow-hidden rounded-[20px] ring-1 ring-[#161B3C0f]" style={{ background: MIST }}>
                     <div className="aspect-[4/3] overflow-hidden">
                       <img src={o.pic.src} srcSet={o.pic.srcSet} sizes="(max-width: 640px) 100vw, 280px" alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" style={{ objectPosition: o.pic.pos }} />
                     </div>
@@ -313,8 +298,8 @@ function ShortTourInner() {
           </div>
         </section>
       </main>
-      <PreviewFooter company={companyEntry} verifiedContent />
-      <PreviewChrome company={companyEntry} />
+      {STANDALONE ? <SiteFooter lang={lang} /> : <PreviewFooter company={companyEntry} verifiedContent />}
+      {STANDALONE ? null : <PreviewChrome company={companyEntry} />}
     </div>
   )
 }

@@ -13,7 +13,7 @@
  *  - stega + visual editing → every text carries an invisible link back to
  *    its exact field, so the studio's edit-overlays can highlight and open it
  */
-import { createContext, createElement, useContext, useEffect, useState, type ReactNode } from 'react'
+import { Fragment, createContext, createElement, useContext, useEffect, useState, type ReactNode } from 'react'
 import { createClient } from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 import {
@@ -481,6 +481,21 @@ export function merge(raw: any): SiteContent {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+/* ── Build-time snapshot (standalone build only) ─────────────────────────
+   tools/polarhestar-standalone-snapshot.mjs freezes the published CMS content
+   into .cache/polarhestar-cms.json and vite.polarhestar.config.ts defines it
+   here as __PH_SNAPSHOT__. With it the page has real content on the very first
+   render, on the server (prerender) and in the browser (hydration), instead of
+   fetching it after mount behind a loader. Without it (the catalogue preview)
+   nothing changes. */
+declare const __PH_SNAPSHOT__: { builtAt: string; raw: unknown } | undefined
+const SNAPSHOT = typeof __PH_SNAPSHOT__ === 'undefined' ? null : __PH_SNAPSHOT__
+/** The day the snapshot was taken; the prerender's "today" (see now.ts). */
+export const BUILD_DAY: string | null = SNAPSHOT?.builtAt ?? null
+/** The merged content the prerender and the first client render both use. */
+export const INITIAL_CONTENT: SiteContent | null = SNAPSHOT ? merge(SNAPSHOT.raw) : null
+const SNAPSHOT_JSON = SNAPSHOT ? JSON.stringify(SNAPSHOT.raw) : ''
+
 /* ── React glue ─────────────────────────────────────────────────────────── */
 const LISTEN = `*[_type in ["tour","season","heroSection","storySection","siteSettings","sectionsCopy","goodToKnow","farmSection","galleryImage","longTour","review","shopItem","schedulePage"]]`
 
@@ -496,20 +511,35 @@ const preload = (src: string | undefined, ms: number) =>
     window.setTimeout(done, ms)
   })
 
+/** True inside a provider: a page wrapped in its own SiteContentProvider by the
+    catalogue still works under the standalone app's single shared one. */
+const Provided = createContext(false)
+
 export function SiteContentProvider({ children }: { children: ReactNode }) {
+  const nested = useContext(Provided)
+  if (nested) return createElement(Fragment, null, children)
+  return createElement(ContentRoot, null, children)
+}
+
+function ContentRoot({ children }: { children: ReactNode }) {
   // null = still loading. The page used to mount with the bundled fallback
   // and re-render when the CMS answered, so a different hero flashed for a
   // split second; now it mounts once, with the CMS photos already decoded.
   // The fallback only shows if the CMS fails or stalls (3 s).
-  const [content, setContent] = useState<SiteContent | null>(null)
+  // The standalone build starts from the build-time snapshot instead: content
+  // from the first render, nothing to wait for, and the live fetch below only
+  // swaps in what changed in the CMS since the build.
+  const [content, setContent] = useState<SiteContent | null>(INITIAL_CONTENT)
   useEffect(() => {
     let live = true
-    let first = true
+    let first = !INITIAL_CONTENT
     const load = () =>
       client
         .fetch(QUERY)
         .then(async (raw) => {
           if (!live || !raw) return
+          // unchanged since the build: keep the content the page was hydrated with
+          if (INITIAL_CONTENT && !isPreview && JSON.stringify(raw) === SNAPSHOT_JSON) return
           const next = merge(raw)
           if (first) await preload(next.PICS.hero.src, 1500)
           first = false
@@ -559,7 +589,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     const t2 = window.setTimeout(() => setGone(true), reduce ? 350 : 1600)
     return () => { window.clearTimeout(t); window.clearTimeout(t2) }
   }, [loaded])
-  const loader = gone
+  const loader = gone || INITIAL_CONTENT
     ? null
     : createElement(
         'div',
@@ -569,7 +599,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         createElement('span', { className: 'ph-loader-line', 'aria-hidden': 'true' }, createElement('span')),
       )
   if (!content) return loader
-  return createElement(Ctx.Provider, { value: content }, children, loader)
+  return createElement(Provided.Provider, { value: true }, createElement(Ctx.Provider, { value: content }, children, loader))
 }
 
 const LOADER_CSS = `

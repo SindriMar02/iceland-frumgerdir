@@ -13,7 +13,10 @@
     "build:reynir": "vite build --config vite.reynir.config.ts && vite build --config vite.reynir.config.ts --ssr src/reynir-entry-server.tsx --outDir dist-reynir-server && node tools/reynir-standalone-post.mjs",
     "prices:nypugardar": "node tools/nypugardar-prices.mjs",
     "build:bjarkalundur": "vite build --config vite.bjarkalundur.config.ts && vite build --config vite.bjarkalundur.config.ts --ssr src/bjarkalundur-entry-server.tsx --outDir dist-bjarkalundur-server && node tools/bjarkalundur-standalone-post.mjs",
-    "build:nypugardar": "vite build --config vite.nypugardar.config.ts && vite build --config vite.nypugardar.config.ts --ssr src/nypugardar-entry-server.tsx --outDir dist-nypugardar-server && node tools/nypugardar-standalone-post.mjs"
+    "build:nypugardar": "vite build --config vite.nypugardar.config.ts && vite build --config vite.nypugardar.config.ts --ssr src/nypugardar-entry-server.tsx --outDir dist-nypugardar-server && node tools/nypugardar-standalone-post.mjs",
+    "snapshot:polarhestar": "node tools/polarhestar-standalone-snapshot.mjs",
+    "build:polarhestar": "node tools/polarhestar-standalone-snapshot.mjs && vite build --config vite.polarhestar.config.ts && vite build --config vite.polarhestar.config.ts --ssr src/polarhestar-entry-server.tsx --outDir dist-polarhestar-server && node tools/polarhestar-standalone-post.mjs",
+    "build:polarhestar:staging": "POLARHESTAR_NOINDEX=1 npm run build:polarhestar"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.3",
