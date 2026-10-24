@@ -85,6 +85,11 @@ const B = {
    * it is a real entity anchor for a farm whose domain is not its name. */
   ferdalag: 'https://www.ferdalag.is/en/service/nypugardar',
   booking: 'https://www.booking.com/hotel/is/gistiheimilid-nypugordum.html',
+  /* The two other listings the site itself names (FAQ, llms.txt). HeyIceland read
+   * live 2026-10-24: 200, carries the farm's name. Guide to Iceland refuses scripted
+   * fetches (406), so its page is the address search results give for the farm. */
+  heyiceland: 'https://www.heyiceland.is/accommodation/detail/865/nypugardar',
+  guidetoiceland: 'https://guidetoiceland.is/accommodation/iceland-guesthouses-hofn-i-hornafirdi/nypugardar',
   /* Booking.com headline figures, read live 2026-09-16 */
   rating: 8.8,
   reviewCount: 2289,
@@ -156,6 +161,10 @@ function assertMatchesSource() {
         if (!copy.includes(q)) bad.push(`FAQ question missing from the page (${lang}): "${q.slice(0, 40)}"`)
         if (!copy.includes(a)) bad.push(`FAQ answer missing from the page (${lang}): "${q.slice(0, 40)}"`)
       }
+    /* The share-card alt texts for the dining and winter photographs are the pages' own. */
+    for (const lang of ['en', 'is'])
+      for (const kind of ['dining', 'house'])
+        if (!copy.includes(IMAGE_ALT[lang][kind])) bad.push(`share-card alt missing from copy.ts (${lang} ${kind})`)
   }
   if (bad.length) {
     console.error(
@@ -172,6 +181,23 @@ const HERO = img('photos/125645004-2000.jpg')
 const DINING = img('photos/305950064-2000.jpg')
 const HOUSE = img('photos/258957593-2000.jpg')
 
+/* og:image:alt describes the picture the card actually shows. The dining and winter
+ * texts are the ones the pages already use (copy.ts, dinner.diningAlt / winterAlt) and
+ * the drift guard checks they still match; every page used to carry the hero's. */
+const IMAGE_ALT = {
+  en: {
+    hero: 'Evening sun over Mýrar at Nýpugarðar, glaciers along the horizon',
+    dining: 'The dining room at Nýpugarðar, with tables set beside full-height windows facing the glacier',
+    house: 'The guesthouse at Nýpugarðar in deep winter snow, with the deck and large windows facing the mountains',
+  },
+  is: {
+    hero: 'Kvöldsól yfir Mýrum við Nýpugarða, jöklar við sjóndeildarhringinn',
+    dining: 'Matsalurinn á Nýpugörðum, með borðum við gólfsíða glugga sem snúa að jöklinum',
+    house: 'Gistihúsið á Nýpugörðum í djúpum vetrarsnjó, með veröndina og stóra glugga sem snúa að fjöllunum',
+  },
+}
+const imageAlt = (page) => IMAGE_ALT[page.lang][page.image === DINING ? 'dining' : page.image === HOUSE ? 'house' : 'hero']
+
 /* ── Pages ────────────────────────────────────────────────────────────── */
 const COPY = {
   en: {
@@ -183,11 +209,13 @@ const COPY = {
     },
     rooms: {
       title: 'Rooms, cottages and prices | Nýpugarðar',
-      desc: `Seven room types, the two cottages among them, at Nýpugarðar guesthouse near Höfn, from ${lowest} € a night. Private or shared bathrooms, sleeps 2 to 4, photographs of every room and direct booking.`,
+      /* Rooms, winter and the two Icelandic twins were 167 to 210 characters, past the
+         ~155 to 160 a result shows (SEO fix phase, 24 Oct 2026). Same facts, shorter. */
+      desc: `Seven room types, two of them cottages, at Nýpugarðar guesthouse near Höfn, from ${lowest} € a night. Private or shared bathrooms, sleeps 2 to 4, direct booking.`,
     },
     winter: {
       title: 'Winter at Nýpugarðar | Daylight, roads and northern lights',
-      desc: 'What winter is like at Nýpugarðar guesthouse near Höfn: hours of daylight month by month, road conditions on Route 1, northern lights from the farmyard, arriving after dark and getting to Jökulsárlón in winter.',
+      desc: 'Winter at Nýpugarðar guesthouse near Höfn: daylight month by month, road conditions on Route 1, northern lights, arriving after dark, driving to Jökulsárlón.',
     },
     privacy: {
       title: 'Privacy | Nýpugarðar',
@@ -206,11 +234,11 @@ const COPY = {
     },
     rooms: {
       title: 'Herbergi, sumarhús og verð | Nýpugarðar',
-      desc: `Sjö herbergisgerðir, þar á meðal tvö sumarhús, á Nýpugörðum, frá ${lowest} € nóttin. Eigið eða sameiginlegt bað, fyrir 2 til 4 gesti, myndir af hverju herbergi og bein bókun.`,
+      desc: `Sjö herbergisgerðir, þar á meðal tvö sumarhús, á Nýpugörðum, frá ${lowest} € nóttin. Eigið eða sameiginlegt bað, fyrir 2 til 4 gesti og bein bókun.`,
     },
     winter: {
       title: 'Veturinn á Nýpugörðum | Birta, færð og norðurljós',
-      desc: 'Hvernig veturinn er á Nýpugörðum við Höfn: birtan mánuð fyrir mánuð, færð á þjóðvegi 1, norðurljós frá hlaðinu, koma eftir myrkur og leiðin að Jökulsárlóni að vetri.',
+      desc: 'Veturinn á Nýpugörðum við Höfn: birtan mánuð fyrir mánuð, færð á þjóðvegi 1, norðurljós frá hlaðinu, koma eftir myrkur og leiðin að Jökulsárlóni.',
     },
     privacy: {
       title: 'Persónuvernd | Nýpugarðar',
@@ -310,7 +338,7 @@ function lodging(lang) {
       }
       return room
     }),
-    sameAs: [B.facebook, B.booking, B.ferdalag],
+    sameAs: [B.facebook, B.booking, B.ferdalag, B.heyiceland, B.guidetoiceland],
     areaServed: [
       { '@type': 'Place', name: 'Hornafjörður' },
       { '@type': 'Place', name: 'Jökulsárlón' },
@@ -334,6 +362,26 @@ function faq(lang) {
     inLanguage: lang,
     mainEntity: qa.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
   }
+}
+
+/** The page itself, with the date its sources last changed (the same date the sitemap
+ *  carries as lastmod). Left out when git has no history to read it from. */
+const webpage = (page) => {
+  const c = COPY[page.lang][page.key]
+  const d = lastmodFor(page.key)
+  const node = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${urlFor(page)}#webpage`,
+    url: urlFor(page),
+    name: c.title,
+    description: c.desc,
+    inLanguage: page.lang,
+    isPartOf: { '@type': 'WebSite', name: B.name, url: urlFor(homeOf('en')) },
+  }
+  if (page.key !== 'privacy') node.about = { '@id': `${urlFor(homeOf('en'))}#guesthouse` }
+  if (d) node.dateModified = d
+  return node
 }
 
 const breadcrumb = (page) => ({
@@ -364,7 +412,7 @@ function headFor(page) {
   const url = urlFor(page)
   const other = twin(page)
   /* The privacy page describes a policy, not the lodging: breadcrumb only. */
-  const ld = page.key === 'privacy' ? [breadcrumb(page)] : [lodging(page.lang), breadcrumb(page)]
+  const ld = page.key === 'privacy' ? [webpage(page), breadcrumb(page)] : [lodging(page.lang), webpage(page), breadcrumb(page)]
   /* The FAQ schema goes on the page that CARRIES the questions, which is the
    * rooms page, not the home page. Structured data is a description of the
    * document it sits in; putting it on the home page would have described
@@ -405,7 +453,7 @@ ${alternates}
     <meta property="og:image" content="${page.image}" />
     <meta property="og:image:width" content="2000" />
     <meta property="og:image:height" content="${page.image === HERO ? 1125 : 902}" />
-    <meta property="og:image:alt" content="${esc(page.lang === 'is' ? 'Kvöldsól yfir Mýrum við Nýpugarða, jöklar við sjóndeildarhringinn' : 'Evening sun over Mýrar at Nýpugarðar, glaciers along the horizon')}" />
+    <meta property="og:image:alt" content="${esc(imageAlt(page))}" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${esc(c.title)}" />
     <meta name="twitter:description" content="${esc(c.desc)}" />
@@ -482,7 +530,7 @@ ${rooms}
 - Route 1 runs past the farm and is cleared in winter but can close in storms. Road conditions: road.is (Vegagerðin). Alerts: safetravel.is. Aurora forecast: vedur.is.
 - Arriving after dark is normal. Check-in runs to 22:00; later arrivals find a note on the table in the lobby saying which room is theirs.
 - Jökulsárlón is about 50 km, roughly 50 minutes when the road is clear. Ice cave and glacier tours run through the winter and leave early; breakfast to go can be arranged the evening before.
-- Full page: ${origin}${prefix}/winter (Icelandic: ${origin}${prefix}/is/vetur)
+- Full page: ${origin}${prefix}/winter/ (Icelandic: ${origin}${prefix}/is/vetur/)
 
 ## The place
 - The farm stands on a low hill above Mýrar, looking towards the mountains and outlet glaciers of Vatnajökull. The setting is quiet, and from September to April guests can watch for the northern lights on dark, clear evenings.
@@ -498,18 +546,32 @@ Book directly at ${urlFor(homeOf('en'))} (live dates and prices) or call ${B.pho
 
 /* lastmod = the newest commit touching the files a page is built from, never
    the build clock (Google stops trusting lastmod that moves on every deploy).
-   No git history (a shallow CI checkout still has one commit, so this only
-   fails outside a repo) means no lastmod at all. changefreq and priority are
+   No usable git history means no lastmod at all: outside a repo, and in a
+   shallow checkout, where the one boundary commit holds every file and would
+   be reported as the date of every page (Codex review, 24 Oct 2026). The live
+   site is built from the full local clone. changefreq and priority are
    ignored by Google and are gone. */
 const PAGE_SOURCES = {
-  home: ['Page.tsx', 'Hero.tsx', 'Scenes.tsx', 'copy.ts', 'data.ts', 'reviews.json'],
-  rooms: ['RoomsPage.tsx', 'copy.ts', 'data.ts', 'prices.json', 'photos.ts'],
-  winter: ['WinterPage.tsx', 'copy.ts'],
-  privacy: ['PrivacyPage.tsx', 'copy.ts'],
+  /* tools/nypugardar-seo.mjs holds every page's title, description, share card,
+     structured data, FAQ answers (as schema) and llms.txt, so a change there is a
+     change to what each page tells search engines. Entries starting with tools/ are
+     repo paths; the rest live in src/preview/nypugardar. */
+  home: ['Page.tsx', 'Hero.tsx', 'Scenes.tsx', 'copy.ts', 'data.ts', 'reviews.json', 'tools/nypugardar-seo.mjs'],
+  rooms: ['RoomsPage.tsx', 'copy.ts', 'data.ts', 'prices.json', 'photos.ts', 'tools/nypugardar-seo.mjs'],
+  winter: ['WinterPage.tsx', 'copy.ts', 'tools/nypugardar-seo.mjs'],
+  privacy: ['PrivacyPage.tsx', 'copy.ts', 'tools/nypugardar-seo.mjs'],
 }
-function lastmodFor(key) {
+const FULL_HISTORY = (() => {
   try {
-    const files = (PAGE_SOURCES[key] ?? []).map((f) => `src/preview/nypugardar/${f}`)
+    return execFileSync('git', ['rev-parse', '--is-shallow-repository'], { encoding: 'utf8' }).trim() === 'false'
+  } catch {
+    return false
+  }
+})()
+function lastmodFor(key) {
+  if (!FULL_HISTORY) return null
+  try {
+    const files = (PAGE_SOURCES[key] ?? []).map((f) => (f.startsWith('tools/') ? f : `src/preview/nypugardar/${f}`))
     const d = execFileSync('git', ['log', '-1', '--format=%cs', '--', ...files], { encoding: 'utf8' }).trim()
     return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null
   } catch {

@@ -185,15 +185,15 @@ export default function WinterPage() {
           <div className="mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
             <dl className="grid gap-x-14 gap-y-8 md:grid-cols-2 md:gap-y-10">
               {w.items.map((item, i) => (
-                <Reveal key={item.q} delay={Math.min(i, 3) * 60}>
-                  <div className="border-t pt-5" style={{ borderColor: HAIR }}>
-                    <dt className="font-erode text-xl font-medium leading-[1.25] tracking-tight">
-                      {item.q}
-                    </dt>
-                    <dd className="mt-3 max-w-[52ch] leading-relaxed [text-wrap:pretty]" style={{ color: BODY }}>
-                      {item.a}
-                    </dd>
-                  </div>
+                /* The Reveal wrapper is the question's box (see RoomsPage): dt and dd
+                 * sit directly in the one div the <dl> allows. */
+                <Reveal key={item.q} delay={Math.min(i, 3) * 60} className="border-t border-[rgba(244,238,226,0.14)] pt-5">
+                  <dt className="font-erode text-xl font-medium leading-[1.25] tracking-tight">
+                    {item.q}
+                  </dt>
+                  <dd className="mt-3 max-w-[52ch] leading-relaxed [text-wrap:pretty]" style={{ color: BODY }}>
+                    {item.a}
+                  </dd>
                 </Reveal>
               ))}
             </dl>

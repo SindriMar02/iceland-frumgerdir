@@ -50,7 +50,16 @@ const MIN_MARKUP = 2000
 
 let total = 0
 for (const route of PRERENDER_ROUTES) {
-  const body = await render(route)
+  /* React's Node stream flushes each 2048-byte view whole. When the next character
+   * is multi-byte (ó, ð, þ) and only one byte is left, the view goes out with one
+   * unwritten zero byte, so the HTML carried a stray U+0000 inside words: "okt\0óber"
+   * in a calendar label on /is/, "Landslagi\0ð" in an image alt on /is/herbergi/
+   * (live since launch, and different places on every build). A NUL is never
+   * markup, so it is dropped here, and a count is printed so a return is visible. */
+  const rendered = await render(route)
+  const nul = (rendered.match(/\u0000/g) || []).length
+  const body = nul ? rendered.replace(/\u0000/g, '') : rendered
+  if (nul) console.log(`  ${route}: dropped ${nul} stray NUL byte(s) from React's stream`)
 
   if (body.length < MIN_MARKUP) {
     console.error(

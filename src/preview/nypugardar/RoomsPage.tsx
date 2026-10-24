@@ -232,7 +232,6 @@ export default function RoomsPage() {
 
                     <div className={flip ? 'md:order-1' : ''}>
                       <MaskHeading
-                        as="h3"
                         text={name}
                         className="font-erode text-2xl font-medium leading-[1.2] tracking-tight md:text-3xl"
                       />
@@ -273,7 +272,6 @@ export default function RoomsPage() {
             <div className="mt-20 grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-14">
               <div>
                 <MaskHeading
-                  as="h3"
                   text={t.rooms.cottagesHeading}
                   className="font-erode text-3xl font-medium leading-[1.16] tracking-tight md:text-4xl"
                 />
@@ -323,9 +321,9 @@ export default function RoomsPage() {
                 className="mt-20 border-t pt-10 md:mt-24 md:pt-12"
                 style={{ borderColor: HAIR }}
               >
-                <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55">
+                <h2 className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#F4EEE2]/55">
                   {t.rooms.beforeYouCome}
-                </h3>
+                </h2>
                 <div className="mt-8 grid gap-10 md:grid-cols-[auto_1fr] md:gap-20">
                   <div>
                   <dl className="flex gap-12 sm:gap-16">
@@ -395,15 +393,16 @@ export default function RoomsPage() {
             />
             <dl className="mt-10 grid gap-x-14 gap-y-8 md:grid-cols-2 md:gap-y-10">
               {t.faq.items.map((item, i) => (
-                <Reveal key={item.q} delay={Math.min(i, 3) * 60}>
-                  <div className="border-t pt-5" style={{ borderColor: HAIR }}>
-                    <dt className="font-erode text-xl font-medium leading-[1.25] tracking-tight">
-                      {item.q}
-                    </dt>
-                    <dd className="mt-3 max-w-[52ch] leading-relaxed" style={{ color: BODY }}>
-                      {item.a}
-                    </dd>
-                  </div>
+                /* The Reveal wrapper IS the question's box, so dt and dd sit
+                 * directly inside the one div the <dl> allows (it was a div in
+                 * a div, which fails the definition-list check). */
+                <Reveal key={item.q} delay={Math.min(i, 3) * 60} className="border-t border-[rgba(244,238,226,0.14)] pt-5">
+                  <dt className="font-erode text-xl font-medium leading-[1.25] tracking-tight">
+                    {item.q}
+                  </dt>
+                  <dd className="mt-3 max-w-[52ch] leading-relaxed" style={{ color: BODY }}>
+                    {item.a}
+                  </dd>
                 </Reveal>
               ))}
             </dl>
