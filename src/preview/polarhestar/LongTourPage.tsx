@@ -26,6 +26,8 @@ import {
   type DepartureRow, type Lang,
 } from './schedule'
 import { DAY_TITLE, ITINERARIES, MAP_PLACE } from './itineraries'
+import { tourHead } from './head'
+import { useHead } from './useHead'
 import { RegionMap } from './RegionMap'
 import { useGrowingHero, useSmoothScroll } from './motion'
 import { Horse, HorseRule, horseFor } from './Horse'
@@ -120,8 +122,10 @@ function TourPageInner() {
 
   useEffect(() => {
     setThemeColor(MIST)
-    if (tour) document.title = `${stegaClean(tour.name[lang])} · Pólar Hestar`
   }, [lang, tour])
+  // unique title + description from the tour's own facts (head.ts), canonical and share card included
+  const head = tour ? tourHead(tour, lang) : null
+  useHead(head && { title: stegaClean(head.title), description: stegaClean(head.description) }, lang)
   // top of the page per tour, never per content refresh (a CMS live-edit
   // re-merges the content and must not throw the reader back to the top)
   useEffect(() => {

@@ -30,6 +30,8 @@ import { Link } from 'react-router-dom'
 import { SiteContentProvider, useHashLanding, useSiteContent, altIs, type Pic, type TourX } from './sanity'
 import { useHeroParallax, useSmoothScroll } from './motion'
 import { FarmMap } from './FarmMap'
+import { homeHead } from './head'
+import { useHead } from './useHead'
 import { LongTourSlider } from './LongTourSlider'
 
 const company = companyEntry
@@ -1662,13 +1664,8 @@ function PolarHestarPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useHead(homeHead(lang), lang)
   useEffect(() => {
-    document.title = tri(
-      lang,
-      'Pólar Hestar · hestaferðir við Eyjafjörð',
-      'Pólar Hestar · riding tours in North Iceland',
-      'Pólar Hestar · Reittouren in Nordisland',
-    )
     document.documentElement.lang = lang
     setThemeColor(MIST)
   }, [lang])

@@ -21,6 +21,7 @@ import { SiteContentProvider, useSiteContent, altIs } from './sanity'
 import { monthsLabel, type Lang } from './schedule'
 import { SHORT_TOUR_NOTES, SHORT_TOUR_TEXT, shortTourDescription, shortTourTitle } from './shortTourText'
 import { HorseRule } from './Horse'
+import { useHead } from './useHead'
 
 const MIST = '#EDF1F7'
 const PAPER = '#F7FAFC'
@@ -59,25 +60,6 @@ function useLang(): [Lang, (l: Lang) => void] {
   return [lang, set]
 }
 
-/** Sets <meta name=…> for this page and puts the old value back on leave. */
-function useMeta(name: string, content: string) {
-  useEffect(() => {
-    let el = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`)
-    const made = !el
-    if (!el) {
-      el = document.createElement('meta')
-      el.name = name
-      document.head.appendChild(el)
-    }
-    const before = el.content
-    el.content = content
-    return () => {
-      if (made) el?.remove()
-      else if (el) el.content = before
-    }
-  }, [name, content])
-}
-
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl p-4" style={{ background: PAPER, boxShadow: '0 1px 2px rgba(22,27,60,0.05)' }}>
@@ -99,12 +81,11 @@ function ShortTourInner() {
   const description = tour ? shortTourDescription(tour, childPrice, lang) : ''
   const bookHref = `${HOME}?ferd=${id}#boka`
 
-  useMeta('description', description)
+  useHead(tour ? { title, description } : null, lang)
   useEffect(() => {
     setThemeColor(MIST)
-    document.title = title
     document.documentElement.lang = lang
-  }, [title, lang])
+  }, [lang])
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [id])

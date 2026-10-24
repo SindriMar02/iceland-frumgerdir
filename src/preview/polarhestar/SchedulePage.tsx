@@ -23,6 +23,8 @@ import {
   nightsLine, priceEur, runsIn, todayIso, upcoming, weekday, type DepartureRow, type Lang,
 } from './schedule'
 import { Horse, horseFor } from './Horse'
+import { scheduleHead } from './head'
+import { useHead } from './useHead'
 
 const MIST = '#EDF1F7'
 const PAPER = '#F7FAFC'
@@ -342,8 +344,8 @@ function SchedulePageInner() {
 
   useEffect(() => {
     setThemeColor(MIST)
-    document.title = tri(lang, 'Dagskrá og dagsetningar · Pólar Hestar', 'Schedule and dates · Pólar Hestar', 'Termine · Pólar Hestar')
   }, [lang])
+  useHead(scheduleHead(lang), lang)
 
   return (
     <div lang={lang} style={{ background: MIST, color: BODY }} className="min-h-screen overflow-x-hidden font-hanken antialiased">
