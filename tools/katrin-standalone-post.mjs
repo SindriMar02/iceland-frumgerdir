@@ -11,7 +11,7 @@
  *      build on a hit. This is the step that turns "the catalogue should be
  *      unreachable" into a failed build rather than a silent leak.
  */
-import { readdirSync, rmSync, statSync, readFileSync, renameSync, existsSync, copyFileSync } from 'node:fs'
+import { readdirSync, rmSync, statSync, readFileSync, renameSync, existsSync, copyFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
@@ -144,6 +144,16 @@ execFileSync('node', ['tools/katrin-seo.mjs', dist], { stdio: 'inherit', env })
    (HQ health check 2026-10-02, same fix as Reynir 2026-09-28). */
 copyFileSync(join(dist, 'katrinisfeld/brand/favicon.ico'), join(dist, 'favicon.ico'))
 console.log('katrin-post: /favicon.ico')
+
+/* 3c ── a year of cache for the fingerprinted bundle. Everything under /assets/
+   is named by its content hash (katrin-BOmUYqgT.css), so a changed file always
+   arrives under a new name and the long lifetime can never serve a stale one.
+   Photographs and fonts keep their stable names and the host's default lifetime. */
+/* the one-year rule is only safe while every file there carries its content hash */
+const unhashed = readdirSync(join(dist, 'assets')).filter((f) => !/-[A-Za-z0-9_-]{8}\.[a-z0-9]+$/.test(f))
+if (unhashed.length) throw new Error(`katrin-post: /assets/ holds files without a content hash, so they cannot be cached as immutable: ${unhashed.join(', ')}`)
+writeFileSync(join(dist, '_headers'), '/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n')
+console.log('katrin-post: _headers (immutable /assets/*)')
 
 /* 4 ── the separation gate */
 const OTHER_SLUGS = [

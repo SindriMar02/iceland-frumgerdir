@@ -45,7 +45,7 @@ await build({
   define: { 'import.meta.env.BASE_URL': '"/"', 'import.meta.env.VITE_KATRIN_STANDALONE': '"1"' },
 })
 const D = await import(tmp + '?t=' + process.hrtime.bigint())
-const { STUDIO, CV, ADDRESS_LINE, BRANDS, CATEGORIES, PROJECTS, PHOTOGRAPHED, FAQ, FAQ_CONTACT, FAQ_CATEGORY, SERVICES, PROCESS, PRESS, REDIRECTS, PHOTO_DIMS } = D
+const { STUDIO, CV, ADDRESS_LINE, BRANDS, FURNITURE_BRANDS, CATEGORIES, PROJECTS, PHOTOGRAPHED, FAQ, FAQ_CONTACT, FAQ_CATEGORY, SERVICES, PROCESS, PRESS, REDIRECTS, PHOTO_DIMS } = D
 
 /** Where a page lives, in both homes. */
 const CAT_ORDER = ['innanhusshonnun', 'gistiheimili-og-hotel', 'atvinnuhusnaedi']
@@ -64,8 +64,30 @@ const photo = (id, w = 1500) => {
 
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-/** Google truncates around 155 chars; cut on a word, never mid-word. */
-const clip = (s, n = 155) => (s.length <= n ? s : s.slice(0, s.lastIndexOf(' ', n - 1)).replace(/[,.;:]$/, '') + '…')
+/** Google truncates around 155 chars. Keep whole sentences while they fit, so a
+ *  description does not stop mid-thought (30 of 37 ended in "…" on 2026-10-24).
+ *  Her words are only chosen, never edited. When the first sentence alone is
+ *  longer than the limit, or too short to be a description, it falls back to a
+ *  word cut and an ellipsis. A full stop after an abbreviation is not a sentence
+ *  end ("kl. 11"), so those pieces are glued back together first (Codex review). */
+const ABBREV = /(?:^|\s)(?:kl|t\.d|o\.fl|m\.a|þ\.e|u\.þ\.b|nr|bls|ca|sbr|skv)\.$/i
+const clip = (s, n = 155) => {
+  if (s.length <= n) return s
+  const parts = []
+  for (const part of s.split(/(?<=[.!?])\s+(?=[A-ZÁÐÉÍÓÚÝÞÆÖ0-9„"])/)) {
+    if (parts.length && ABBREV.test(parts[parts.length - 1])) parts[parts.length - 1] += ` ${part}`
+    else parts.push(part)
+  }
+  let out = ''
+  for (const part of parts) {
+    const next = out ? `${out} ${part}` : part
+    if (next.length > n) break
+    out = next
+  }
+  if (out.length >= 50) return out
+  const cut = s.lastIndexOf(' ', n - 1)
+  return (cut > 0 ? s.slice(0, cut) : s.slice(0, n - 1)).replace(/[,.;:]$/, '') + '…'
+}
 
 /* ── the pages ────────────────────────────────────────────────────────── */
 const PAGES = [
@@ -102,7 +124,7 @@ const PAGES = [
   {
     clean: '/italskar-innrettingar',
     title: 'Arrital eldhús og Altamarea baðinnréttingar',
-    desc: 'Arrital eldhúsinnréttingar og Altamarea baðinnréttingar fást hjá Katrín Ísfeld Hönnunar Studio í Reykjavík, teiknaðar inn í hvert rými af innanhússarkitekt.',
+    desc: 'Arrital eldhúsinnréttingar og Altamarea baðinnréttingar fást hjá Katrínu Ísfeld í Reykjavík, teiknaðar inn í hvert rými af innanhússarkitekt.',
     image: photo('s-eyja'),
     kind: 'brands',
   },
@@ -131,7 +153,8 @@ const PAGES = [
   {
     clean: '/en',
     title: 'Interior architect in Reykjavík, Iceland',
-    desc: D.EN.desc,
+    /* the page's own lead with her name in front: a whole sentence that fits the limit */
+    desc: `Katrín Ísfeld is ${D.EN.lead.charAt(0).toLowerCase()}${D.EN.lead.slice(1)}`,
     image: photo('s-eyja'),
     kind: 'en',
     lang: 'en',
@@ -206,7 +229,7 @@ const studioNode = {
     'Innanhússhönnun', 'Innanhússarkitektúr', 'Eldhúshönnun', 'Baðherbergishönnun',
     'Hönnun gistiheimila', 'Hótelhönnun', 'Hönnun atvinnuhúsnæðis', 'Efnisval', 'Litaval', 'Lýsingarhönnun',
   ],
-  brand: BRANDS.map((b) => ({ '@type': 'Brand', name: b.name, url: b.site })),
+  brand: [...BRANDS, ...FURNITURE_BRANDS].map((b) => ({ '@type': 'Brand', name: b.name, url: b.site })),
   hasOfferCatalog: {
     '@type': 'OfferCatalog',
     name: 'Þjónusta',
@@ -477,14 +500,64 @@ function inject(page) {
   return html.length
 }
 
-/* llms.txt is not shipped: no major engine has confirmed reading it and
-   Google says it does not, so it was upkeep with no measured benefit. */
+/* llms.txt: shipped again on Sindri's rule of 2026-10-20 (every client site has one),
+   although no major engine has confirmed reading it, so it is never sold as a lever.
+   Built from the same data the pages render from, so it cannot drift, and written
+   without dashes. Nothing here is a claim the site does not already make. */
+function writeLlms() {
+  if (!LIVE || !STANDALONE) return 0
+  const hours = `mánudaga til föstudaga frá ${STUDIO.opens} til ${STUDIO.closes}`
+  const byCat = (c) => PHOTOGRAPHED.filter((p) => p.category === c)
+  const L = []
+  L.push(`# ${STUDIO.name}`, '', `> ${studioNode.description}`, '')
+  L.push('## Um Katrínu')
+  L.push(`- ${STUDIO.personName} er innanhússarkitekt FHI. ${CV.degree} frá ${CV.school}, ${CV.schoolPlace}. ${CV.honours}. ${CV.award}.`)
+  for (const r of CV.roles) L.push(`- ${r}.`)
+  L.push(`- ${CV.membership}.`, '')
+  L.push('## Þjónusta')
+  for (const sv of SERVICES) L.push(`- ${sv.name}: ${sv.desc}`)
+  L.push('')
+  L.push('## Svona byrjar verkefni')
+  PROCESS.forEach((st, i) => L.push(`${i + 1}. ${st.title}. ${st.body}`))
+  L.push('')
+  L.push(`## Verkefni (${PROJECTS.length} verk)`)
+  for (const c of [...CAT_ORDER, 'ymislegt']) {
+    /* "Ýmislegt" has no category page of its own; its one project does */
+    L.push(CAT_ORDER.includes(c) ? `- ${CATEGORIES[c].nav}: ${urlFor(`/verkefni/${c}`)}` : `- ${CATEGORIES[c].nav}:`)
+    for (const p of byCat(c)) L.push(`  - ${p.title}: ${urlFor(`/verkefni/${p.slug}`)}`)
+  }
+  L.push('')
+  L.push('## Hafa samband')
+  L.push(`- Stúdíó: ${ADDRESS_LINE}`)
+  L.push(`- Sími: ${STUDIO.phone}`)
+  L.push(`- Netfang: ${STUDIO.email}`)
+  L.push(`- Opið ${hours}. Best er að hafa samband fyrirfram og bóka tíma.`)
+  L.push(`- Fyrirspurn: ${urlFor('/hafa-samband')}`, '')
+  L.push('## Síður')
+  L.push(`- Forsíða: ${urlFor('/')}`)
+  L.push(`- Verkefni: ${urlFor('/verkefni')}`)
+  L.push(`- Ítalskar innréttingar: ${urlFor('/italskar-innrettingar')}`)
+  L.push(`- Stúdíóið: ${urlFor('/studioid')}`)
+  L.push(`- Í fjölmiðlum: ${urlFor('/fjolmidlar')}`)
+  L.push(`- Hafa samband: ${urlFor('/hafa-samband')}`)
+  L.push(`- English: ${urlFor('/en')}`, '')
+  L.push('## In English')
+  L.push(`- ${D.EN.lead}`)
+  for (const t of D.EN.paras) L.push(`- ${t}`)
+  L.push(`- ${D.EN.how.title}. ${D.EN.how.body}`)
+  const text = L.join('\n') + '\n'
+  if (/[‒–—―−]/.test(text)) throw new Error(`katrin-seo: llms.txt contains a dash: ${text.match(/.{0,30}[‒–—―−].{0,30}/)[0]}`)
+  writeFileSync(join(dist, dirFor('/'), 'llms.txt'), text)
+  return text.split('\n').length
+}
 
 function writeSitemap() {
   const dir = join(dist, dirFor('/'))
-  /* lastmod is the date of the last commit, i.e. when the content last changed */
-  let lastmod
-  try { lastmod = execFileSync('git', ['log', '-1', '--format=%cs']).toString().trim() } catch { lastmod = '' }
+  /* lastmod is the date of the last commit, i.e. when the content last changed.
+     KATRIN_LASTMOD (YYYY-MM-DD) lets a release build stamp the day it ships when
+     the commit is made after the build that gets deployed. */
+  let lastmod = process.env.KATRIN_LASTMOD || ''
+  if (!lastmod) try { lastmod = execFileSync('git', ['log', '-1', '--format=%cs']).toString().trim() } catch { lastmod = '' }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(lastmod)) lastmod = new Date().toISOString().slice(0, 10)
   const prio = (p) => (p.clean === '/' ? '1.0' : p.kind === 'project' ? '0.7' : '0.8')
   const urls = PAGES.map((p) =>
@@ -552,4 +625,4 @@ function writeRedirects() {
 let bytes = 0
 for (const p of PAGES) bytes += inject(p)
 console.log(`katrin-seo: ${PAGES.length} pages injected (${LIVE ? 'indexable → ' + origin : 'noindex — no KATRIN_SITE_URL'})`)
-console.log(`katrin-seo: sitemap.xml ${writeSitemap()} urls · ${writeRedirects()} redirects`)
+console.log(`katrin-seo: sitemap.xml ${writeSitemap()} urls · ${writeRedirects()} redirects · llms.txt ${writeLlms()} lines`)

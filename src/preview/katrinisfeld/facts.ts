@@ -153,7 +153,7 @@ export const BRANDS = [
     slug: 'eldhus',
     name: 'Arrital',
     room: 'Eldhús',
-    site: 'https://www.arrital.com',
+    site: 'https://www.arrital.it',
     intro:
       'Arrital er ítalskur eldhúsframleiðandi sem vinnur með sömu efni og arkitektar teikna með: spónlagðan við, steinborðplötur, mattar lakkaðar framhliðar og granna álprófíla. Innréttingarnar eru ekki valdar úr bæklingi heldur teiknaðar inn í rýmið eins og það er.',
     photo: 's-eyja',
@@ -167,4 +167,13 @@ export const BRANDS = [
       'Altamarea gerir baðinnréttingar, vaska og spegla þar sem hver eining er teiknuð sérstaklega: breiddin ræðst af veggnum, ekki af staðalstærð. Þannig fæst baðherbergi sem lítur út fyrir að hafa alltaf verið svona.',
     photo: 's-bad',
   },
+] as const
+
+/**
+ * The third Italian maker she carries: wardrobes, dressing rooms and furniture.
+ * Linked from the Italian interiors page; listed here so the schema names the
+ * same brands the page does. No room or photo of its own, hence not in BRANDS.
+ */
+export const FURNITURE_BRANDS = [
+  { name: 'Novamobili', site: 'https://www.novamobili.it' },
 ] as const

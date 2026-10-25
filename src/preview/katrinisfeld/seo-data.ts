@@ -7,11 +7,11 @@
  * own page contradicts is a "just this once" copy of the facts into the build
  * script. There is no copy. There is this.
  */
-import { STUDIO, CV, ADDRESS_LINE, BRANDS } from './facts'
+import { STUDIO, CV, ADDRESS_LINE, BRANDS, FURNITURE_BRANDS } from './facts'
 import { CATEGORIES, PROJECTS, hasPage } from './projects'
 import { FAQ, FAQ_CONTACT, FAQ_CATEGORY, SERVICES, PROCESS, EN } from './content'
 
-export { STUDIO, CV, ADDRESS_LINE, BRANDS, CATEGORIES, PROJECTS, FAQ, FAQ_CONTACT, FAQ_CATEGORY, SERVICES, PROCESS, EN }
+export { STUDIO, CV, ADDRESS_LINE, BRANDS, FURNITURE_BRANDS, CATEGORIES, PROJECTS, FAQ, FAQ_CONTACT, FAQ_CATEGORY, SERVICES, PROCESS, EN }
 export { PRESS, PRESS_LEAD } from './press'
 export { PHOTO_DIMS } from './photo-dims'
 export const PHOTOGRAPHED = PROJECTS.filter(hasPage)
