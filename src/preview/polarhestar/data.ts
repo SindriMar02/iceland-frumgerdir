@@ -117,7 +117,7 @@ export const SHORT_TOURS: Tour[] = [
     blurb: {
       is: 'Vinsælasta stutta ferðin okkar. Riðið er meðfram Gljúfurá, yfir engi og móa, í áttina að Eyjafirði eða upp á heiðarbrún, allt eftir veðri og reynslu hópsins.',
       en: 'Our most popular short tour. We ride along the river Gljúfurá, over green meadows and through moorland, towards Eyjafjörður or up towards the deserted peninsula of Fjörður, depending on the weather and the group.',
-      de: 'Der beliebteste unserer kurzen Ritte. Wir reiten über grüne Wiesen entlang der Gljúfurá, durch Moorgebiete, Richtung Eyjafjörður oder hinauf in die Bergwelt der Halbinsel Fjörður.',
+      de: 'Der beliebteste unserer kurzen Ausritte. Wir reiten über grüne Wiesen entlang der Gljúfurá, durch Moorgebiete, Richtung Eyjafjörður oder hinauf in die Bergwelt der Halbinsel Fjörður.',
     },
   },
   {
@@ -153,7 +153,7 @@ export const SHORT_TOURS: Tour[] = [
     blurb: {
       is: 'Vel klædd í kuldagalla njótum við reiðtúrs í átt að Eyjafirði í tæru vetrarlofti. Vetrarsólin skapar oft dulúðugt andrúmsloft og heima bíða heimagerðar kökur og heitir drykkir.',
       en: 'Wrapped up warm, we ride towards Eyjafjörður through the crisp northern air. The special light of the winter sun gives this ride a magical atmosphere, and homemade cakes and hot drinks warm you up back at the farm.',
-      de: 'Warm eingepackt reiten wir durch die verschneite Landschaft Richtung Eyjafjörður. Das besondere Licht der Wintersonne verleiht diesem Ritt eine mystische Stimmung. Danach wärmen heiße Getränke und selbstgebackener Kuchen.',
+      de: 'Warm eingepackt reiten wir durch die verschneite Landschaft Richtung Eyjafjörður. Das besondere Licht der Wintersonne verleiht diesem Ritt eine mystische Stimmung. Danach wärmen heiße Getränke und selbst gebackener Kuchen.',
     },
   },
   {
@@ -278,17 +278,17 @@ export const SCHEDULE_COPY = {
   intro: {
     is: 'Allar lengri ferðirnar með brottförum og stuttu ferðirnar eftir árstíma. Dagsetningarnar koma beint frá okkur á bænum.',
     en: 'Every long ride with its departures, and the short rides by season. The dates come straight from us at the farm.',
-    de: 'Alle langen Reittouren mit ihren Terminen und die kurzen Ritte nach Jahreszeit. Die Termine kommen direkt von uns vom Hof.',
+    de: 'Alle Mehrtagesritte mit ihren Terminen und die kurzen Ausritte nach Jahreszeit. Die Termine kommen direkt von uns vom Hof.',
   } as L3,
   longTerms: {
     is: 'Við bókun greiðist 20% staðfestingargjald og eftirstöðvar tveimur vikum fyrir brottför. Við sækjum gesti á flugvöllinn eða umferðarmiðstöðina á Akureyri síðdegis fyrsta daginn, oftast milli kl. 16 og 18. Fullt fæði er innifalið. Því miður getum við ekki tekið á móti vegan gestum eða fólki með alvarlegt fæðuofnæmi.',
     en: 'A 20% deposit is due on booking and the rest two weeks before departure. We pick guests up at the airport or bus station in Akureyri on the first afternoon, usually between 4 and 6 pm. Full board is included. We are sorry that we cannot accommodate vegan guests or people with severe food allergies.',
-    de: 'Bei der Buchung sind 20 % Anzahlung fällig, der Rest zwei Wochen vor Reisebeginn. Wir holen unsere Gäste am ersten Nachmittag am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16 und 18 Uhr. Vollpension ist inbegriffen. Leider können wir keine veganen Gäste oder Menschen mit schweren Lebensmittelallergien aufnehmen.',
+    de: 'Bei der Buchung sind 20 % Anzahlung fällig, der Rest zwei Wochen vor Reisebeginn. Wir holen unsere Gäste am ersten Nachmittag am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16:00 und 18:00 Uhr. Vollpension ist inbegriffen. Leider können wir keine veganen Gäste oder Menschen mit schweren Lebensmittelallergien aufnehmen.',
   } as L3,
   shortTerms: {
     is: 'Stuttar ferðir má bóka í tölvupósti eða síma, +354 896 1879. Greitt er eftir ferðina og við tökum við greiðslukortum. Hámarksþyngd knapa er 95 kg. Henti tímarnir ekki, hafðu samband og við finnum tíma.',
     en: 'Short rides can be booked by email or phone, +354 896 1879. You pay after the ride, and we take cards. The maximum rider weight is 95 kg. If the times do not suit you, get in touch and we will find one that does.',
-    de: 'Kurze Ritte können per E-Mail oder Telefon gebucht werden, +354 896 1879. Bezahlt wird nach dem Ritt, Kreditkarten werden akzeptiert. Das Höchstgewicht der Reiter beträgt 95 kg. Passen die Zeiten nicht, melden Sie sich und wir finden eine passende.',
+    de: 'Kurze Ausritte können per E-Mail oder Telefon gebucht werden, +354 896 1879. Bezahlt wird nach dem Ritt, Kreditkarten werden akzeptiert. Das Höchstgewicht der Reiter beträgt 95 kg. Passen die Zeiten nicht, melden Sie sich, und wir finden eine passende Startzeit.',
   } as L3,
 }
 
@@ -311,7 +311,7 @@ export const SEASONS: Season[] = [
     line: {
       is: 'Bjartar nætur og þeysireið í sól sem aldrei sest. Hálendið opnast og lengri ferðirnar hefjast.',
       en: 'Bright nights and long rides under a sun that never sets. The highlands open and the long tours begin.',
-      de: 'Helle Nächte und lange Ritte unter einer Sonne, die nie untergeht. Das Hochland öffnet sich und die langen Touren beginnen.',
+      de: 'Helle Nächte und lange Ritte unter einer Sonne, die nie untergeht. Das Hochland öffnet sich und die Mehrtagesritte beginnen.',
     },
     tour: { is: 'Ferð: Ring around the Midnight Sun', en: 'Tour: Ring around the Midnight Sun', de: 'Tour: Sommersonnenwende' },
     image: 'photo-1699818035127-75727321a851',
@@ -419,7 +419,7 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
   body: {
     is: 'Það helsta sem gestir spyrja um, fyrir stuttu reiðtúrana og lengri ferðirnar.',
     en: 'The things guests ask about most, for the short rides and the long tours.',
-    de: 'Was Gäste am häufigsten fragen, für die kurzen Ritte und die langen Touren.',
+    de: 'Die häufigsten Fragen zu unseren kurzen Ausritten und Mehrtagesritten.',
   },
   items: [
     {
@@ -446,7 +446,7 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       body: {
         is: 'Börn 12 ára og yngri greiða 2.000 kr. minna en fullt verð í öllum stuttum ferðum. Lágmarksaldur er 6 ára, 8 ára í þriggja tíma ferðinni.',
         en: 'Children 12 and under pay 2,000 ISK less on every short tour. The minimum age is 6, and 8 for the three-hour tour.',
-        de: 'Kinder bis 12 Jahre zahlen bei allen kurzen Ritten 2.000 ISK weniger. Das Mindestalter ist 6 Jahre, beim Drei-Stunden-Ritt 8 Jahre.',
+        de: 'Kinder bis 12 Jahre zahlen bei allen kurzen Ausritten 2.000 ISK weniger. Das Mindestalter beträgt 6 Jahre, beim Drei-Stunden-Ritt 8 Jahre.',
       },
     },
     {
@@ -455,7 +455,7 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       body: {
         is: 'Við leggjum til reiðhjálma, hanska, regnföt og buff. Komdu í traustum skóm, klæddu þig í lögum og taktu mittistösku frekar en bakpoka. Hámarksþyngd knapa er 95 kg.',
         en: 'We provide helmets, riding gloves, rain gear and buffs. Come in sturdy shoes, dress in layers and bring a waist bag rather than a backpack. The maximum rider weight is 95 kg.',
-        de: 'Wir stellen Reithelme, Reithandschuhe, Regenkleidung und Buffs zur Verfügung. Kommen Sie in festen Schuhen, kleiden Sie sich in Schichten und nehmen Sie eine kleine Bauchtasche statt eines Rucksacks. Das maximale Reitergewicht ist 95 kg.',
+        de: 'Wir stellen Reithelme, Reithandschuhe, Regenkleidung und Buffs zur Verfügung. Kommen Sie in festen Schuhen, tragen Sie mehrere Kleidungsschichten und bringen Sie eine kleine Bauchtasche statt eines Rucksacks mit. Das maximale Reitergewicht beträgt 95 kg.',
       },
     },
     {
@@ -491,7 +491,7 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       body: {
         is: 'Við leggjum til reiðhjálma, hanska, regnföt og buff. Komdu í traustum skóm, klæddu þig í lögum og taktu mittistösku frekar en bakpoka. Í skálaferðum þarf svefnpoka. Hámarksþyngd knapa er 95 kg.',
         en: 'We provide helmets, riding gloves, rain gear and buffs. Come in sturdy shoes, dress in layers and bring a waist bag rather than a backpack. Hut tours require a sleeping bag. The maximum rider weight is 95 kg.',
-        de: 'Wir stellen Reithelme, Reithandschuhe, Regenkleidung und Buffs zur Verfügung. Kommen Sie in festen Schuhen, kleiden Sie sich in Schichten und nehmen Sie eine kleine Bauchtasche statt eines Rucksacks. Für Hüttentouren brauchen Sie einen Schlafsack. Das maximale Reitergewicht ist 95 kg.',
+        de: 'Wir stellen Reithelme, Reithandschuhe, Regenkleidung und Buffs zur Verfügung. Kommen Sie in festen Schuhen, tragen Sie mehrere Kleidungsschichten und bringen Sie eine kleine Bauchtasche statt eines Rucksacks mit. Für Hüttentouren brauchen Sie einen Schlafsack. Das maximale Reitergewicht beträgt 95 kg.',
       },
     },
     {
@@ -500,7 +500,7 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       body: {
         is: 'Við sækjum gesti á flugvöllinn eða umferðarmiðstöðina á Akureyri, oftast milli kl. 16 og 18, og keyrum þá þangað aftur í lok ferðar.',
         en: 'We pick guests up at the airport or bus station in Akureyri, usually between 4 and 6 pm, and bring them back there at the end of the tour.',
-        de: 'Wir holen Sie am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16 und 18 Uhr, und bringen Sie am Ende der Tour wieder dorthin.',
+        de: 'Wir holen Sie am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16:00 und 18:00 Uhr, und bringen Sie am Ende der Tour wieder dorthin.',
       },
     },
     {
@@ -530,7 +530,7 @@ export const FARM: GoodToKnowData = {
       body: {
         is: 'Þrjú notaleg gestahús rúma allt að 26 gesti og máltíðir eru bornar fram í aðalhúsinu. Frá miðjum júní og út september er gistingin fyrir ferðagesti okkar, en utan þess tímabils er hægt að bóka gistingu með morgunverði.',
         en: 'Three cosy cottages sleep up to 26 guests, with meals served in the main building. From mid-June to the end of September the cottages are for our riding-tour guests; out of season, bed and breakfast stays are welcome.',
-        de: 'Drei gemütliche Gästehäuser bieten Platz für bis zu 26 Gäste, die Mahlzeiten gibt es im Haupthaus. Von Mitte Juni bis Ende September sind die Häuser für unsere Reitgäste reserviert, in der Nebensaison ist Bed & Breakfast möglich.',
+        de: 'Drei gemütliche Gästehäuser bieten Platz für bis zu 26 Gäste, die Mahlzeiten gibt es im Haupthaus. Von Mitte Juni bis Ende September sind die Häuser für unsere Reitgäste reserviert, in der Nebensaison sind Übernachtungen mit Frühstück möglich.',
       },
     },
     {
@@ -554,7 +554,7 @@ export const FARM: GoodToKnowData = {
       body: {
         is: 'Sex heimagerðar brautir sem allar tengjast Íslandi og umhverfinu. Verð 1.500 kr. á mann, börn yngri en 12 ára borga helming. Innifalið fyrir gesti í lengri ferðum.',
         en: 'Six self-made lanes, each tied to Iceland and the farm’s surroundings. 1,500 ISK per person; children under 12 pay half. Free for guests on our long tours.',
-        de: 'Sechs selbstgebaute Bahnen, alle mit Bezug zu Island und der Umgebung. 1.500 ISK pro Person, Kinder unter 12 zahlen die Hälfte. Für Gäste der langen Touren inklusive.',
+        de: 'Sechs selbstgebaute Bahnen, alle mit Bezug zu Island und der Umgebung. 1.500 ISK pro Person, Kinder unter 12 zahlen die Hälfte. Für Gäste der Mehrtagesritte inklusive.',
       },
     },
     {
@@ -834,8 +834,8 @@ export const COPY = {
 
     toursZoneEyebrow: 'Unsere Touren',
     toursZoneIntro:
-      'Zwei Wege, das Islandpferd kennenzulernen: kurze Ritte das ganze Jahr oder mehrtägige Touren durch Nordislands Wildnis.',
-    toursEyebrow: 'Kurze Touren',
+      'Zwei Wege, das Islandpferd kennenzulernen: kurze Ausritte das ganze Jahr oder mehrtägige Touren durch Nordislands Wildnis.',
+    toursEyebrow: 'Kurze Ausritte',
     toursBadge: 'Ganzjährig',
     toursH2: 'Ausritte für alle, das ganze Jahr',
     toursBody:
@@ -850,7 +850,7 @@ export const COPY = {
     bookH2: 'Buchungsanfrage in Sekunden',
     bookBody:
       'Wählen Sie Tour, Datum und Gruppengröße und senden Sie Ihre Anfrage. Wir prüfen Wünsche und Reiterfahrung persönlich, bevor wir den Ritt bestätigen.',
-    bookPanelLine: 'Teilen Sie uns Reiterfahrung, das Alter der Kinder und alles Weitere mit, das wir wissen sollten.',
+    bookPanelLine: 'Teilen Sie uns die Reiterfahrung der Teilnehmer, das Alter der Kinder und alles Weitere mit, was wir wissen sollten.',
     bookNoPay: 'Beim Senden der Anfrage wird nichts bezahlt. Wir melden uns, um den Ritt zu bestätigen.',
     bookRequestTitle: 'Dies ist eine Buchungsanfrage',
     bookRequestBody: 'Ihre Buchung ist erst gültig, wenn wir sie per E-Mail oder Telefon bestätigt haben.',
@@ -871,7 +871,7 @@ export const COPY = {
     noteLabel: 'Nachricht (optional)',
     totalLabel: 'Gesamt',
     confirmBtn: 'Buchung anfragen',
-    sendingBtn: 'Wird gesendet…',
+    sendingBtn: 'Wird gesendet …',
     errorText: 'Die Anfrage konnte leider nicht gesendet werden. Versuchen Sie es erneut oder rufen Sie an:',
     confirmedTitle: 'Vielen Dank!',
     confirmedBody:
@@ -884,7 +884,7 @@ export const COPY = {
     seasonsBody:
       'Nordisland verändert sich mit dem Licht, und der Ritt mit ihm. Wählen Sie eine Jahreszeit und sehen Sie, was Sie erwartet.',
 
-    longEyebrow: 'Lange Reittouren',
+    longEyebrow: 'Mehrtagesritte',
     longBadge: 'Juni–Sept.',
     longQuestions: 'Fragen? Schreiben Sie an',
     longBody:
@@ -915,7 +915,7 @@ export const COPY = {
     gettingThereLabel: 'Anfahrt',
     gettingThere: 'Straße 83 Richtung Grenivík, etwa 35 km von Akureyri. Fahren Sie nicht durch den Tunnel Vaðlaheiðargöng.',
     seasonLabel: 'Öffnungszeiten',
-    seasonInfo: 'Kurze Touren ganzjährig, täglich. Lange Touren im Sommer. Buchung nach Vereinbarung.',
+    seasonInfo: 'Kurze Ausritte ganzjährig, täglich. Mehrtagesritte im Sommer. Buchung nach Vereinbarung.',
     mapsBtn: 'In Google Maps öffnen',
     callBtn: 'Anrufen',
     emailBtn: 'E-Mail senden',

@@ -67,7 +67,7 @@ function requestHref(email: string, tour: LongTourX, d: DepartureRow | null, lan
     lang,
     `Ferð: ${name}\nBrottför: ${dates || '(óskatímabil)'}\nFjöldi knapa:\nReynsla af hestamennsku:\nFyrirspurn eða athugasemdir:\n`,
     `Tour: ${name}\nDeparture: ${dates || '(preferred dates)'}\nNumber of riders:\nRiding experience:\nQuestions or notes:\n`,
-    `Tour: ${name}\nTermin: ${dates || '(Wunschzeitraum)'}\nAnzahl Reiter:\nReiterfahrung:\nFragen oder Hinweise:\n`,
+    `Tour: ${name}\nTermin: ${dates || '(Wunschzeitraum)'}\nAnzahl der Reiter:\nReiterfahrung:\nFragen oder Hinweise:\n`,
   )
   return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 }
@@ -196,7 +196,7 @@ function YearGlance({
         <span className="inline-flex items-center gap-2"><i className="block h-2.5 w-6 rounded-full" style={{ background: ICE }} />{STATUS_LABEL.open[lang]}</span>
         <span className="inline-flex items-center gap-2"><i className="block h-2.5 w-6 rounded-full" style={{ background: AMBER }} />{STATUS_LABEL.few[lang]}</span>
         <span className="inline-flex items-center gap-2"><i className="block h-2.5 w-6 rounded-full" style={{ boxShadow: `inset 0 0 0 1.5px ${ICE}73` }} />{STATUS_LABEL.full[lang]}</span>
-        <span className="inline-flex items-center gap-2"><i className="block h-1.5 w-6" style={{ background: `${ICE}59` }} />{tri(lang, 'Stuttar ferðir í boði', 'Short rides on offer', 'Kurze Ritte im Angebot')}</span>
+        <span className="inline-flex items-center gap-2"><i className="block h-1.5 w-6" style={{ background: `${ICE}59` }} />{tri(lang, 'Stuttar ferðir í boði', 'Short rides on offer', 'Kurze Ausritte im Angebot')}</span>
         {todayPct !== null && (
           <span className="inline-flex items-center gap-2"><i className="block h-3 w-px" style={{ background: ICE }} />{tri(lang, 'Í dag', 'Today', 'Heute')}</span>
         )}
@@ -347,7 +347,7 @@ function SchedulePageInner() {
       </a>
       <header className="sticky top-0 z-30 border-b backdrop-blur-md" style={{ background: `${MIST}e6`, borderColor: '#161B3C12' }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-8">
-          <Link to={homePath(lang)} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar Hestar Startseite')}>
+          <Link to={homePath(lang)} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar-Hestar-Startseite')}>
             <img src={LOGO} alt="" className="h-10 w-auto" />
           </Link>
           <div className="flex items-center gap-2">
@@ -410,7 +410,7 @@ function SchedulePageInner() {
 
         <section className="mt-16" aria-labelledby="ph-long">
           <h2 id="ph-long" className="font-spectral text-[clamp(1.6rem,1.2rem+1.4vw,2.2rem)]" style={{ color: INK }}>
-            {tri(lang, 'Lengri ferðir', 'Long rides', 'Lange Reittouren')}
+            {tri(lang, 'Lengri ferðir', 'Long rides', 'Mehrtagesritte')}
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed">{SCHEDULE.longTerms[lang]}</p>
           <div className="mt-7 flex flex-col gap-6">
@@ -422,7 +422,7 @@ function SchedulePageInner() {
 
         <section className="mt-16" aria-labelledby="ph-short">
           <h2 id="ph-short" className="font-spectral text-[clamp(1.6rem,1.2rem+1.4vw,2.2rem)]" style={{ color: INK }}>
-            {tri(lang, 'Stuttar ferðir', 'Short rides', 'Kurze Ritte')}
+            {tri(lang, 'Stuttar ferðir', 'Short rides', 'Kurze Ausritte')}
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed">
             {SCHEDULE.shortTerms[lang]}{' '}
@@ -452,7 +452,7 @@ function SchedulePageInner() {
                     <dd className="mt-0.5">{monthsLabel(t.months, lang)}</dd>
                   </div>
                   <div>
-                    <dt className="text-[0.68rem] font-semibold tracking-[0.1em] uppercase" style={{ color: SLATE }}>{tri(lang, 'Brottför', 'Departs', 'Abritt')}</dt>
+                    <dt className="text-[0.68rem] font-semibold tracking-[0.1em] uppercase" style={{ color: SLATE }}>{tri(lang, 'Brottför', 'Departs', 'Startzeiten')}</dt>
                     <dd className="mt-0.5 flex flex-wrap gap-1.5">
                       {t.times?.length ? (
                         t.times.map((h) => (

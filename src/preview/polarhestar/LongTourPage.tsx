@@ -61,7 +61,7 @@ function requestHref(email: string, tour: LongTourX, d: DepartureRow | null, lan
     lang,
     `Ferð: ${name}\nBrottför: ${dates || '(óskatímabil)'}\nFjöldi knapa:\nReynsla af hestamennsku:\nFyrirspurn eða athugasemdir:\n`,
     `Tour: ${name}\nDeparture: ${dates || '(preferred dates)'}\nNumber of riders:\nRiding experience:\nQuestions or notes:\n`,
-    `Tour: ${name}\nTermin: ${dates || '(Wunschzeitraum)'}\nAnzahl Reiter:\nReiterfahrung:\nFragen oder Hinweise:\n`,
+    `Tour: ${name}\nTermin: ${dates || '(Wunschzeitraum)'}\nAnzahl der Reiter:\nReiterfahrung:\nFragen oder Hinweise:\n`,
   )
   return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 }
@@ -130,7 +130,7 @@ function TourPageInner() {
       <main className="mx-auto max-w-3xl px-5 py-24 font-hanken" style={{ color: BODY }}>
         <p className="font-spectral text-2xl" style={{ color: INK }}>{tri(lang, 'Ferðin fannst ekki.', 'That tour was not found.', 'Diese Tour wurde nicht gefunden.')}</p>
         <Link to={homePath(lang, '#lengri')} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold" style={{ color: CLAY_TX }}>
-          <ArrowLeft className="h-4 w-4" /> {tri(lang, 'Allar lengri ferðir', 'All long tours', 'Alle langen Touren')}
+          <ArrowLeft className="h-4 w-4" /> {tri(lang, 'Allar lengri ferðir', 'All long tours', 'Alle Mehrtagesritte')}
         </Link>
       </main>
     )
@@ -165,7 +165,7 @@ function TourPageInner() {
       </a>
       <header className="sticky top-0 z-30 border-b backdrop-blur-md" style={{ background: `${MIST}e6`, borderColor: '#161B3C12' }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-8">
-          <Link to={homePath(lang)} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar Hestar Startseite')}>
+          <Link to={homePath(lang)} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar-Hestar-Startseite')}>
             <img src={LOGO} alt="" className="h-10 w-auto" />
           </Link>
           <div className="flex items-center gap-2">
@@ -200,10 +200,10 @@ function TourPageInner() {
           <div className="relative z-10 mx-auto flex min-h-[88svh] w-full max-w-6xl flex-col justify-end px-5 pb-14 pt-28 md:px-8 md:pb-20">
             <Link to={homePath(lang, '#lengri')} className="ph-day-rise mb-6 inline-flex items-center gap-1.5 self-start text-sm font-medium text-white/85">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              {tri(lang, 'Allar lengri ferðir', 'All long tours', 'Alle langen Touren')}
+              {tri(lang, 'Allar lengri ferðir', 'All long tours', 'Alle Mehrtagesritte')}
             </Link>
             <p className="ph-day-rise text-[0.72rem] font-semibold tracking-[0.2em] uppercase" style={{ color: ICE, animationDelay: '60ms' }}>
-              {tri(lang, 'Lengri ferð', 'Long tour', 'Lange Reittour')} · {nightsLine(tour, lang)}
+              {tri(lang, 'Lengri ferð', 'Long tour', 'Mehrtagesritt')} · {nightsLine(tour, lang)}
             </p>
             <h1 className="ph-day-rise mt-3 max-w-4xl text-balance font-spectral text-[clamp(2.4rem,1.4rem+4.6vw,4.6rem)] leading-[1.02] text-white" style={{ animationDelay: '120ms' }}>
               {tour.name[lang]}

@@ -41,7 +41,7 @@ export function SiteFooter({ lang }: { lang: Lang }) {
               lang,
               'Fjölskyldurekin hestaleiga á Grýtubakka við Eyjafjörð síðan 1985. Stuttir reiðtúrar allt árið og lengri ferðir um Norðurland.',
               'A family-run riding farm at Grýtubakki by Eyjafjörður since 1985. Short rides all year and long tours across North Iceland.',
-              'Familiengeführter Reitbetrieb am Hof Grýtubakki am Eyjafjörður seit 1985. Kurze Ausritte ganzjährig und lange Touren durch Nordisland.',
+              'Familiengeführter Reitbetrieb am Hof Grýtubakki am Eyjafjörður seit 1985. Kurze Ausritte ganzjährig und Mehrtagesritte durch Nordisland.',
             )}
           </p>
           <address className="mt-5 space-y-2 text-sm not-italic">
@@ -66,8 +66,8 @@ export function SiteFooter({ lang }: { lang: Lang }) {
           </p>
           <ul className="mt-4 space-y-2.5 text-sm">
             <li><Link to={homePath(lang, '#ferdir')} className={LINK}>{tri(lang, 'Stuttar ferðir', 'Short rides', 'Kurze Ausritte')}</Link></li>
-            <li><Link to={homePath(lang, '#lengri')} className={LINK}>{tri(lang, 'Lengri ferðir', 'Long tours', 'Lange Touren')}</Link></li>
-            <li><Link to={schedulePath(lang)} className={LINK}>{tri(lang, 'Dagskrá og dagsetningar', 'Schedule and dates', 'Termine und Daten')}</Link></li>
+            <li><Link to={homePath(lang, '#lengri')} className={LINK}>{tri(lang, 'Lengri ferðir', 'Long tours', 'Mehrtagesritte')}</Link></li>
+            <li><Link to={schedulePath(lang)} className={LINK}>{tri(lang, 'Dagskrá og dagsetningar', 'Schedule and dates', 'Termine')}</Link></li>
             <li><Link to={firstRide ? bookPath(firstRide, lang) : homePath(lang, '#boka')} className={LINK}>{tri(lang, 'Bóka reiðtúr', 'Book a ride', 'Ritt buchen')}</Link></li>
             <li><Link to={homePath(lang, '#gott')} className={LINK}>{tri(lang, 'Gott að vita', 'Good to know', 'Gut zu wissen')}</Link></li>
             <li><Link to={homePath(lang, '#heimsokn')} className={LINK}>{t.nav.visit}</Link></li>

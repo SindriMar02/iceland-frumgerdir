@@ -201,7 +201,7 @@ export function metaLine(t: LongTourFacts, lang: Lang, today = todayIso()): stri
 }
 
 export const LEVEL: Record<RiderLevel, L3> = {
-  mixed: { is: 'Fyrir miðlungs vana og vana knapa', en: 'Intermediate and experienced riders', de: 'Für Reiter mit mittlerer bis guter Erfahrung' },
+  mixed: { is: 'Fyrir miðlungs vana og vana knapa', en: 'Intermediate and experienced riders', de: 'Für Reiter mit mittlerer bis guter Reiterfahrung' },
   experienced: { is: 'Fyrir vana knapa', en: 'Experienced riders', de: 'Für geübte Reiter' },
 }
 
@@ -229,7 +229,7 @@ export function herdLine(t: LongTourFacts, lang: Lang): string {
 }
 
 export const BEDS: Record<Beds, L3> = {
-  made: { is: 'Uppábúin rúm', en: 'Made-up beds', de: 'Gemachte Betten' },
+  made: { is: 'Uppábúin rúm', en: 'Made-up beds', de: 'Bezogene Betten' },
   sleepingBag: { is: 'Svefnpokagisting, takið með svefnpoka', en: 'Sleeping-bag accommodation, bring your own', de: 'Schlafsackunterkunft, bitte eigenen Schlafsack mitbringen' },
 }
 
@@ -259,7 +259,7 @@ export const runsIn = (months: number[] | undefined, m: number) => !months?.leng
 
 /** "All levels · age 6+" for a short tour — every short tour takes every level. */
 export function shortLevel(minAge: number, lang: Lang): string {
-  const all = { is: 'Fyrir alla', en: 'All levels', de: 'Alle Niveaus' }[lang]
-  const age = lang === 'is' ? `${minAge} ára+` : lang === 'de' ? `ab ${minAge}` : `age ${minAge}+`
+  const all = { is: 'Fyrir alla', en: 'All levels', de: 'Alle Erfahrungsstufen' }[lang]
+  const age = lang === 'is' ? `${minAge} ára+` : lang === 'de' ? `ab ${minAge} Jahren` : `age ${minAge}+`
   return `${all} · ${age}`
 }

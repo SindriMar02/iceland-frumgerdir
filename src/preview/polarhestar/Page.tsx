@@ -1273,7 +1273,7 @@ function Booking({
                   lang,
                   'Við veljum hest fyrir hvern knapa út frá þessu. Hámarksþyngd er 95 kg; nefndu hávaxna knapa í athugasemd.',
                   'We choose a horse for each rider from this. The weight limit is 95 kg; mention tall riders in the note.',
-                  'Danach wählen wir für jeden Reiter ein Pferd. Höchstgewicht 95 kg; große Reiter bitte in der Nachricht nennen.',
+                  'Anhand dieser Angaben wählen wir für jeden Reiter ein Pferd aus. Höchstgewicht: 95 kg. Bitte weisen Sie in Ihrer Nachricht auf besonders große Reiter hin.',
                 )}
               </p>
               <div className="mt-3 rounded-xl px-3.5 py-3" style={{ background: MIST }}>
@@ -1348,9 +1348,9 @@ function Booking({
             {status === 'error' && (
               <p role="alert" className="mt-3 rounded-xl px-3.5 py-2.5 font-hanken text-xs leading-relaxed" style={{ background: '#FBE9E9', color: '#8C2B2B' }}>
                 {errorKind === 'full'
-                  ? tri(lang, 'Ekki nógu mörg pláss laus í þessari brottför. Veldu annan tíma eða hringdu í', 'There are not enough places left on this departure. Pick another time or call', 'Für diese Abfahrt sind nicht mehr genug Plätze frei. Wählen Sie eine andere Zeit oder rufen Sie an:')
+                  ? tri(lang, 'Ekki nógu mörg pláss laus í þessari brottför. Veldu annan tíma eða hringdu í', 'There are not enough places left on this departure. Pick another time or call', 'Für diesen Termin sind nicht mehr genug Plätze frei. Wählen Sie eine andere Startzeit oder rufen Sie an:')
                   : errorKind === 'soon'
-                    ? tri(lang, 'Þessi brottför er of nálægt í tíma til að bóka á netinu. Hringdu í', 'This departure is too soon to request online. Please call', 'Diese Abfahrt ist zu kurzfristig für eine Online-Anfrage. Bitte rufen Sie an:')
+                    ? tri(lang, 'Þessi brottför er of nálægt í tíma til að bóka á netinu. Hringdu í', 'This departure is too soon to request online. Please call', 'Für diesen Termin ist eine Online-Anfrage nicht mehr möglich. Bitte rufen Sie an:')
                     : errorKind === 'day'
                       ? tri(lang, 'Þessi dagur er ekki í boði. Veldu annan dag eða hringdu í', 'This day is not available. Pick another day or call', 'Dieser Tag ist nicht verfügbar. Wählen Sie einen anderen Tag oder rufen Sie an:')
                       : t.errorText}{' '}
@@ -1921,9 +1921,9 @@ function PolarHestarPageInner() {
                 href: '#ferdir',
                 label: t.nav.tours,
                 kids: [
-                  ['#ferdir', tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Touren')],
-                  ['#lengri', tri(lang, 'Lengri ferðir', 'Long rides', 'Lange Reittouren')],
-                  [linkHref(schedulePath(lang)), tri(lang, 'Dagskrá og dagsetningar', 'Schedule and dates', 'Termine und Daten')],
+                  ['#ferdir', tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Ausritte')],
+                  ['#lengri', tri(lang, 'Lengri ferðir', 'Long rides', 'Mehrtagesritte')],
+                  [linkHref(schedulePath(lang)), tri(lang, 'Dagskrá og dagsetningar', 'Schedule and dates', 'Termine')],
                   ['#boka', tri(lang, 'Bóka reiðtúr', 'Book a ride', 'Ritt buchen')],
                 ] as [string, string][],
               },
@@ -2054,8 +2054,8 @@ function PolarHestarPageInner() {
           </div>
           <nav className="mt-10 flex flex-col" aria-label={tri(lang, 'Valmynd', 'Menu', 'Menü')}>
             {[
-              ['#ferdir', tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Touren')],
-              ['#lengri', tri(lang, 'Lengri ferðir', 'Long rides', 'Lange Reittouren')],
+              ['#ferdir', tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Ausritte')],
+              ['#lengri', tri(lang, 'Lengri ferðir', 'Long rides', 'Mehrtagesritte')],
               [linkHref(schedulePath(lang)), tri(lang, 'Dagskrá', 'Schedule', 'Termine')],
               ['#arstidir', t.nav.seasons],
               ['#gott', t.nav.info],
@@ -2455,8 +2455,8 @@ function PolarHestarPageInner() {
               <Segmented
                 label={tri(lang, 'Upplýsingar fyrir', 'Information for', 'Informationen für')}
                 options={[
-                  { id: 'short', label: tri(lang, 'Stuttir reiðtúrar', 'Short rides', 'Kurze Ritte') },
-                  { id: 'long', label: tri(lang, 'Lengri ferðir', 'Long tours', 'Lange Touren') },
+                  { id: 'short', label: tri(lang, 'Stuttir reiðtúrar', 'Short rides', 'Kurze Ausritte') },
+                  { id: 'long', label: tri(lang, 'Lengri ferðir', 'Long tours', 'Mehrtagesritte') },
                 ]}
                 value={gtkTab}
                 onChange={setGtkTab}

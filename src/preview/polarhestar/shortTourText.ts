@@ -23,50 +23,50 @@ export const SHORT_TOUR_TEXT: Record<string, L3[]> = {
     {
       is: 'Þetta er tilvalin ferð til að kynnast íslenska hestinum í fyrsta sinn. Frá Grýtubakka ríðum við að ánni Gljúfurá, meðfram árbakkanum og upp að fjöllunum, þaðan sem útsýnið yfir Eyjafjörð er fallegt. Heima á bænum bíða heimabakaðar kökur og hressing.',
       en: 'This is the ideal tour for your first experience with the Icelandic horse. From Grýtubakki farmhouse we ride towards the river Gljúfurá, along the riverside and up to the mountains from where we have a beautiful view over the fjord Eyjafjörður. Back on the farm, some homemade cakes and refreshments are expecting you.',
-      de: 'Diese Tour ist ideal, um erste Erfahrungen mit dem Islandpferd zu sammeln, aber durchaus auch geeignet für erfahrenere Reiter, die nicht viel Zeit auf ihrer Islandreise mitbringen. Von unserem Farmhaus Grýtubakki reiten wir in Richtung des Flusses Gljúfurá und entlang seines tief in die Landschaft eingeschnittenen Flussbettes hoch in die Berge. Dort erwartet uns ein wunderschöner Blick über den Fjord Eyjafjörður. Abgerundet wird der Ritt durch ein gemütliches Kaffeetrinken auf der Farm mit selbstgebackenen Kuchen und heißen Getränken.',
+      de: 'Diese Tour ist ideal, um erste Erfahrungen mit dem Islandpferd zu sammeln, aber durchaus auch geeignet für erfahrene Reiter, die auf ihrer Islandreise nur wenig Zeit haben. Von unserem Farmhaus Grýtubakki reiten wir in Richtung des Flusses Gljúfurá und entlang seines tief in die Landschaft eingeschnittenen Flussbettes hoch in die Berge. Dort erwartet uns ein wunderschöner Blick über den Fjord Eyjafjörður. Abgerundet wird der Ritt durch ein gemütliches Kaffeetrinken auf der Farm mit selbst gebackenen Kuchen und heißen Getränken.',
     },
   ],
   'moa-og-mela': [
     {
       is: 'Tveggja tíma reiðtúrinn er vinsælasta ferðin okkar og hentar þeim sem vilja kynnast íslenska hestinum og náttúrunni í kring betur. Eftir veðri, færð og reynslu knapanna ríðum við meðfram Gljúfurá, yfir græn engi og móa, í átt að Eyjafirði eða upp í eyðibyggðina í Fjörðum. Heima á bænum bíða kaffi, te, heitt súkkulaði og heimabakaðar smákökur.',
       en: 'The two hour ride is our most popular riding tour and ideal for those who want to get a more intensive contact with the Icelandic horse and the surrounding nature. Depending on weather and trail conditions as well as the riding experience of the participants, we ride along the river Gljúfurá, over green meadows, through moorland, towards the fjord Eyjafjörður or up to the deserted peninsula of Fjörður. Coffee, tea, hot chocolate and homemade cookies are awaiting you at the farm.',
-      de: 'Der Zwei-Stunden-Ritt ist die beliebteste unter unseren kurzen Reittouren und gleichermaßen geeignet für Anfänger sowie Reiter unterschiedlicher Erfahrungsstufen. Er ist ideal für all diejenigen, die in einen intensiveren Kontakt mit dem Islandpferd und seinem ursprünglichen Lebensraum treten möchten.',
+      de: 'Der Zwei-Stunden-Ritt ist der beliebteste unserer kurzen Ausritte und eignet sich für Anfänger ebenso wie für Reiter mit mehr Erfahrung. Er ist ideal für all diejenigen, die das Islandpferd und seinen ursprünglichen Lebensraum näher kennenlernen möchten.',
     },
     {
       is: '',
       en: '',
-      de: 'In Abhängigkeit von der Reiterfahrung der Teilnehmer sowie der aktuellen Wetter- und Wegeverhältnisse reiten wir über grüne Wiesen entlang des Flusses Gljúfurá, durch von weichem Wollgras durchsäte Moorgebiete, in Richtung des längsten Fjordes Islands, dem Eyjafjörður, oder hoch in die verlassene Bergwelt der Halbinsel Fjörður. Zurück auf der Farm erwartet uns der Duft selbstgebackenen Kuchens und heißer Getränke.',
+      de: 'Je nach Reiterfahrung der Teilnehmer sowie den aktuellen Wetter- und Wegeverhältnissen reiten wir über grüne Wiesen entlang des Flusses Gljúfurá, durch Moorgebiete mit weichem Wollgras, in Richtung des längsten Fjordes Islands, des Eyjafjörður, oder hoch in die verlassene Bergwelt der Halbinsel Fjörður. Zurück auf der Farm erwartet uns der Duft selbst gebackenen Kuchens und heißer Getränke.',
     },
   ],
   hofdahringur: [
     {
       is: 'Í þessari ferð ríðum við fallegan hring í kringum Þengilhöfða. Við ríðum meðfram Gljúfurá í átt að Eyjafirði og landslagið á leiðinni er ótrúlega fjölbreytt. Ef heppnin er með þér sérðu jafnvel hvali, því tær sjórinn í lengsta firði landsins er leikvöllur hnúfubaka, hrefna, hnísa og andarnefja. Fyrir ofan Grenivík tökum við aðeins lengri pásu og njótum útsýnisins út að mynni fjarðarins. Heima bíða girnilegar kökur og hressing.',
       en: 'On this tour, a beautiful ride around the hill Höfði is expecting you. We ride alongside river Gljúfurá, heading towards the fjord Eyjafjörður. You will be amazed by the variety of the breathtaking landscape you are riding through. And if you are lucky you might even spot some whales. The clear water of the longest fjord in Iceland is the playground for humpback whales, minke whales, harbor porpoises and northern bottlenose whales. Above the small fishing village Grenivík we will take a little bit longer break so you can enjoy the amazing view to the entrance of the fjord. Back home delicious cakes and refreshments complete this intensive contact with the Icelandic horse and nature.',
-      de: 'Auf dieser Tour erwartet Sie ein herrlicher Ritt rund um den Hügel Höfði. Entlang des Flusses Gljúfurá machen wir uns auf den Weg in Richtung des Fjordes Eyjafjörður, der unser steter Begleiter auf diesem Ritt sein wird. Zu Füßen des Höfðis bildet der längste Fjord Islands eine atemberaubende Kulisse und ist zugleich Lebensraum für verschiedene Arten von Walen, wie den Buckelwal, Zwergwal, Schweinswal und den Nördlichen Entenwal. Mit etwas Glück können wir diesen beeindruckenden Meeresbewohnern bei ihrem Spiel im klaren Wasser des Fjordes zuschauen.',
+      de: 'Auf dieser Tour erwartet Sie ein herrlicher Ritt rund um den Hügel Höfði. Entlang des Flusses Gljúfurá machen wir uns auf den Weg in Richtung des Fjordes Eyjafjörður, der unser steter Begleiter auf diesem Ritt sein wird. Am Fuß des Hügels Höfði bildet der längste Fjord Islands eine atemberaubende Kulisse und ist zugleich Lebensraum verschiedener Walarten, darunter Buckelwale, Zwergwale, Schweinswale und Nördliche Entenwale. Mit etwas Glück können wir diesen beeindruckenden Meeresbewohnern bei ihrem Spiel im klaren Wasser des Fjordes zuschauen.',
     },
     {
       is: '',
       en: '',
-      de: 'Oberhalb des kleinen Fischerdörfchens Grenivík legen wir eine etwas längere Pause ein, um den wunderschönen Ausblick auf den Eingang des Fjordes zu genießen, bevor wir uns entlang der Rückseite des Hügels wieder auf den Heimweg zur Farm Grýtubakki begeben. Dort werden wir von selbstgebackenem Kuchen und heißen Getränken erwartet.',
+      de: 'Oberhalb des kleinen Fischerdörfchens Grenivík legen wir eine etwas längere Pause ein, um den wunderschönen Ausblick auf den Eingang des Fjordes zu genießen, bevor wir uns entlang der Rückseite des Hügels wieder auf den Heimweg zur Farm Grýtubakki begeben. Dort werden wir von selbst gebackenem Kuchen und heißen Getränken erwartet.',
     },
   ],
   frostrosir: [
     {
       is: 'Á veturna er landið oftast þakið þykkum snjó og norðanvindurinn lætur finna fyrir sér. Vel klædd í kuldagalla, ullarvettlinga og ennisband ríðum við í átt að Eyjafirði og öndum að okkur köldu vetrarloftinu. Sérstök birta vetrarsólarinnar gefur ferðinni dulúðugan blæ og gerir hana ógleymanlega. Heima á bænum hlýja heimabakaðar kökur og heitir drykkir.',
       en: 'During wintertime the Icelandic landscape is usually covered by a thick layer of snow and the northern wind is challenging you. Warmly packed in an overall, woolen gloves and a headband you will enjoy the ride towards the fjord Eyjafjörður, breathing the cold air of Icelandic winter. The special light of the winter sun gives this ride a mystic atmosphere and makes this tour an unforgettable experience. Back on the farm, homemade cakes and hot drinks will warm you up again.',
-      de: 'Während der Wintermonate ist die nordisländische Landschaft zumeist in eine dicke Schneedecke gehüllt und der arktische Wind spielt ausgelassen mit der langen, flauschigen Wintermähne unserer Pferde. Warm eingepackt in einen Overall genießen Sie den Ritt in Richtung des wunderschönen Fjordes Eyjafjörður. Die tief stehende Wintersonne taucht die glitzernd-weiße Landschaft in ein blau-rotes Licht und verleiht diesem Ritt eine ganz besondere, mystische Note. Zurück auf der Farm wärmt Sie ein gemütliches Kaffeetrinken mit selbstgebackenem Kuchen und heißen Getränken wieder auf.',
+      de: 'Während der Wintermonate ist die nordisländische Landschaft zumeist in eine dicke Schneedecke gehüllt und der arktische Wind spielt ausgelassen mit der langen, flauschigen Wintermähne unserer Pferde. Warm eingepackt in einen Overall genießen Sie den Ritt in Richtung des wunderschönen Fjordes Eyjafjörður. Die tief stehende Wintersonne taucht die glitzernde weiße Landschaft in ein blau-rotes Licht und verleiht diesem Ritt eine ganz besondere, mystische Note. Zurück auf der Farm wärmt Sie ein gemütliches Kaffeetrinken mit selbst gebackenem Kuchen und heißen Getränken wieder auf.',
     },
   ],
   sumarsaela: [
     {
       is: 'Í þessari samsettu ferð kynnist þú íslenskri náttúru bæði á hestbaki og á mínígolfvellinum okkar. Hver af sex heimasmíðuðu brautunum vísar í umhverfi bæjarins eða íslenska náttúru.',
       en: 'This combo tour provides the ideal opportunity to get to know the Icelandic nature not only on horseback but also based on our Minigolf course. Each one of the six self-made lanes represents a part of the surroundings of our farm or the Icelandic nature.',
-      de: 'Diese Kombi-Tour bietet eine ideale Möglichkeit, die isländische Natur nicht nur vom Rücken des Pferdes aus zu erkunden, sondern zugleich auch spielerisch anhand unserer hofeigenen Minigolf-Anlage kennenzulernen. Denn jede unserer sechs selbstgebauten Minigolf-Bahnen hat einen Bezug zu der näheren Umgebung unserer Farm oder der Natur Islands.',
+      de: 'Diese Kombitour bietet eine ideale Möglichkeit, die isländische Natur nicht nur vom Rücken des Pferdes aus zu erkunden, sondern zugleich auch spielerisch anhand unserer hofeigenen Minigolfanlage kennenzulernen. Denn jede unserer sechs selbstgebauten Minigolfbahnen hat einen Bezug zur näheren Umgebung unseres Hofes oder zur Natur Islands.',
     },
     {
       is: 'Í einn og hálfan tíma ríðum við yfir græn engi meðfram Gljúfurá og fylgjum henni upp að fjöllunum, þaðan sem útsýnið yfir Eyjafjörð og nágrennið er frábært. Heima bíða heimabakaðar kökur og heitir drykkir, og svo býður litli mínígolfvöllurinn í trjánum fyrir ofan bæinn upp á keppni við samferðafólkið. Alls tekur ferðin um tvo og hálfan tíma.',
       en: 'On the one and a half hour ride we ride over green meadows along the river Gljúfurá and follow its course up to the mountains. From there we have a fantastic view over the fjord Eyjafjörður and our surroundings. Homemade cakes and hot drinks await you back on the farm. Subsequently, our little minigolf course, which is located in the trees above our farm, invites you to participate in a minigolf tournament with your fellow riders. All in all, you can expect a duration of about two and a half hours for this combo tour.',
-      de: 'Auf dem anderthalbstündigen Ritt reiten wir über grüne Wiesen entlang des Flusses Gljúfurá und folgen seinem Lauf ein Stück hinauf in die Berge, von wo aus wir einen fantastischen Ausblick über den Fjord Eyjafjörður und unsere Umgebung haben. Zurück auf der Farm werden wir von selbstgebackenem Kuchen und heißen Getränken erwartet. Im Anschluss lädt unsere versteckt zwischen den Bäumen oberhalb unserer Farm liegende Minigolf-Anlage zu einem spannenden Duell mit Ihren Mitreitern ein. Alles in allem können Sie für diese Kombi-Tour eine Dauer von etwa zweieinhalb Stunden einplanen.',
+      de: 'Auf dem anderthalbstündigen Ritt reiten wir über grüne Wiesen entlang des Flusses Gljúfurá und folgen seinem Lauf ein Stück hinauf in die Berge, von wo aus wir einen fantastischen Ausblick über den Fjord Eyjafjörður und unsere Umgebung haben. Zurück auf der Farm werden wir von selbst gebackenem Kuchen und heißen Getränken erwartet. Im Anschluss lädt unsere versteckt zwischen den Bäumen oberhalb unserer Farm liegende Minigolfanlage zu einem spannenden Duell mit Ihren Mitreitern ein. Alles in allem können Sie für diese Kombitour eine Dauer von etwa zweieinhalb Stunden einplanen.',
     },
   ],
 }
@@ -77,7 +77,7 @@ export const SHORT_TOUR_NOTES: L3[] = [
   {
     is: 'Af öryggisástæðum ákveðum við leiðina dag frá degi, eftir lengd ferðarinnar, reynslu knapanna, veðri og færð.',
     en: 'For safety reasons, we decide on the exact route of the tour on a daily basis, taking into consideration different, varying factors such as the ride duration, riding experience of the participants and weather and trail conditions.',
-    de: 'Zu Ihrer eigenen Sicherheit und um Ihnen stets das bestmögliche Reiterlebnis zu bieten, passen wir den genauen Tourenverlauf den aktuellen Gegebenheiten an. Dabei spielen verschiedene Faktoren, wie die Reiterfahrung der Teilnehmer, die Wetterverhältnisse und der Zustand der Wege, eine Rolle.',
+    de: 'Zu Ihrer eigenen Sicherheit und um Ihnen stets das bestmögliche Reiterlebnis zu bieten, passen wir den genauen Tourenverlauf den aktuellen Gegebenheiten an. Dabei spielen verschiedene Faktoren wie die Reiterfahrung der Teilnehmer, die Wetterverhältnisse und der Zustand der Wege eine Rolle.',
   },
   {
     is: 'Ef þú forfallast eða seinkar með stuttum fyrirvara, hringdu þá í okkur.',
@@ -112,7 +112,7 @@ const HIGHLIGHT: Record<string, L3> = {
   'moa-og-mela': { is: 'Yfir græn engi og móa að Eyjafirði.', en: 'Over green meadows and moors towards the fjord.', de: 'Über Wiesen und Moore Richtung Fjord.' },
   hofdahringur: { is: 'Hringur um Þengilhöfða, jafnvel hvalir í firðinum.', en: 'A loop around the hill Höfði, maybe with whales.', de: 'Rund um den Hügel Höfði, mit Glück Wale im Fjord.' },
   frostrosir: { is: 'Vetrarreið í snjó, í hlýjum kuldagalla.', en: 'A winter ride through the snow, warmly dressed.', de: 'Winterritt durch den Schnee, warm eingepackt.' },
-  sumarsaela: { is: 'Reiðtúr, mínígolf og heimabakaðar kökur.', en: 'A ride, minigolf and homemade cake.', de: 'Ritt, Minigolf und selbstgebackener Kuchen.' },
+  sumarsaela: { is: 'Reiðtúr, mínígolf og heimabakaðar kökur.', en: 'A ride, minigolf and homemade cake.', de: 'Ritt, Minigolf und selbst gebackener Kuchen.' },
 }
 
 /** First candidate that fits `max` characters; the last one when none does. */

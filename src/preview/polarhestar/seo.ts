@@ -210,7 +210,7 @@ function faqPage(gtk: GoodToKnowData, set: 'short' | 'long', lang: Lang): object
     '@id': `${homeUrl(lang)}#faq-${set}`,
     name: set === 'short'
       ? tri(lang, 'Spurt og svarað: stuttir reiðtúrar', 'Questions about the short rides', 'Fragen zu den kurzen Ausritten')
-      : tri(lang, 'Spurt og svarað: lengri ferðir', 'Questions about the long tours', 'Fragen zu den langen Touren'),
+      : tri(lang, 'Spurt og svarað: lengri ferðir', 'Questions about the long tours', 'Fragen zu den Mehrtagesritten'),
     inLanguage: lang,
     isPartOf: { '@id': SITE_ID },
     mainEntity: entries.map((e) => ({
@@ -224,7 +224,7 @@ function faqPage(gtk: GoodToKnowData, set: 'short' | 'long', lang: Lang): object
 function breadcrumb(route: PhRoute, lang: Lang, name: string): object {
   const items: Array<{ name: string; item: string }> = [{ name: BIZ.name, item: homeUrl(lang) }]
   if (route.kind === 'ride') items.push({ name: tri(lang, 'Stuttar ferðir', 'Short rides', 'Kurze Ausritte'), item: `${homeUrl(lang)}#ferdir` })
-  if (route.kind === 'tour') items.push({ name: tri(lang, 'Lengri ferðir', 'Long tours', 'Lange Touren'), item: `${homeUrl(lang)}#lengri` })
+  if (route.kind === 'tour') items.push({ name: tri(lang, 'Lengri ferðir', 'Long tours', 'Mehrtagesritte'), item: `${homeUrl(lang)}#lengri` })
   items.push({ name, item: abs(routePath(route, lang)) })
   return {
     '@context': 'https://schema.org',
@@ -380,7 +380,7 @@ export function buildHead(c: SiteContent, route: PhRoute, lang: Lang, today: str
     const h = scheduleHead(lang)
     title = h.title
     description = h.description
-    ld.push(schedulePage(lang, title, description), breadcrumb(route, lang, tri(lang, 'Dagskrá og dagsetningar', 'Schedule and dates', 'Termine und Daten')))
+    ld.push(schedulePage(lang, title, description), breadcrumb(route, lang, tri(lang, 'Dagskrá og dagsetningar', 'Schedule and dates', 'Termine')))
     for (const t of c.LONG_TOURS) ld.push(...departureEvents(t, lang, upcoming(t, today)))
   } else if (route.kind === 'ride') {
     const t = c.SHORT_TOURS.find((x) => x.id === route.id)

@@ -60,7 +60,7 @@ export function FarmMap({ lang }: { lang: Lang }) {
         aria-label={t(
           'Kort af heimalandinu: stuttu reiðtúrarnir eru á svæðinu í kringum Grýtubakka',
           'Map of the home ground: the short rides are in the area around Grýtubakki',
-          'Karte des Hofgeländes: die kurzen Ritte finden rund um Grýtubakki statt',
+          'Karte des Hofgeländes: Die kurzen Ausritte finden rund um Grýtubakki statt',
         )}
         className="block h-auto w-full"
         style={{ borderRadius: 18 }}
@@ -87,7 +87,7 @@ export function FarmMap({ lang }: { lang: Lang }) {
         </g>
         <text x={sea[0]} y={sea[1]} className="sea" fontSize="14" fontStyle="italic" fill={SLATE} fillOpacity="0.8" textAnchor="middle">Eyjafjörður</text>
         <text x={areaLabel[0]} y={areaLabel[1]} className="area" fontSize="16" fontWeight="700" fill={CLAY_TX} paintOrder="stroke" stroke={LAND} strokeWidth="3.4" strokeLinejoin="round" textAnchor="middle">
-          {t('Stuttu reiðtúrarnir', 'The short rides', 'Die kurzen Ritte')}
+          {t('Stuttu reiðtúrarnir', 'The short rides', 'Die kurzen Ausritte')}
         </text>
         {/* places */}
         <g>
@@ -107,7 +107,7 @@ export function FarmMap({ lang }: { lang: Lang }) {
           {t(
             'Allir stuttu reiðtúrarnir byrja á bænum og eru á þessu svæði.',
             'Every short ride starts at the farm and stays within this area.',
-            'Alle kurzen Ritte beginnen am Hof und bleiben in diesem Gebiet.',
+            'Alle kurzen Ausritte beginnen am Hof und bleiben in diesem Gebiet.',
           )}
         </span>
         <span>{t('Kort: © OpenStreetMap', 'Map: © OpenStreetMap', 'Karte: © OpenStreetMap')}</span>

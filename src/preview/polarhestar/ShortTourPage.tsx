@@ -110,7 +110,7 @@ function ShortTourInner() {
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'Pólar Hestar', item: window.location.origin + linkHref(homePath(lang)) },
-          { '@type': 'ListItem', position: 2, name: tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Ritte'), item: `${window.location.origin}${linkHref(homePath(lang))}#ferdir` },
+          { '@type': 'ListItem', position: 2, name: tri(lang, 'Stuttar ferðir', 'Short tours', 'Kurze Ausritte'), item: `${window.location.origin}${linkHref(homePath(lang))}#ferdir` },
           { '@type': 'ListItem', position: 3, name, item: url },
         ],
       },
@@ -124,7 +124,7 @@ function ShortTourInner() {
       <main className="mx-auto max-w-3xl px-5 py-24 font-hanken" style={{ color: BODY }}>
         <p className="font-spectral text-2xl" style={{ color: INK }}>{tri(lang, 'Ferðin fannst ekki.', 'That tour was not found.', 'Diese Tour wurde nicht gefunden.')}</p>
         <Link to={homePath(lang, '#ferdir')} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold" style={{ color: CLAY_TX }}>
-          <ArrowLeft className="h-4 w-4" /> {tri(lang, 'Allar stuttar ferðir', 'All short tours', 'Alle kurzen Ritte')}
+          <ArrowLeft className="h-4 w-4" /> {tri(lang, 'Allar stuttar ferðir', 'All short tours', 'Alle kurzen Ausritte')}
         </Link>
       </main>
     )
@@ -145,9 +145,9 @@ function ShortTourInner() {
       : []),
     [tri(lang, 'Brottfarir', 'Departure times', 'Startzeiten'), tour.times?.length ? tour.times.join(', ') : tri(lang, 'Eftir samkomulagi', 'On request', 'Auf Anfrage')],
     [tri(lang, 'Árstími', 'Season', 'Saison'), monthsLabel(tour.months, lang)],
-    [tri(lang, 'Reynsla', 'Riding level', 'Reitkenntnisse'), tri(lang, 'Fyrir alla', 'All levels', 'Alle Niveaus')],
+    [tri(lang, 'Reynsla', 'Riding level', 'Reiterfahrung'), tri(lang, 'Fyrir alla', 'All levels', 'Alle Erfahrungsstufen')],
     [tri(lang, 'Lágmarksaldur', 'Minimum age', 'Mindestalter'), tri(lang, `${tour.minAge} ára`, `${tour.minAge} years`, `${tour.minAge} Jahre`)],
-    [tri(lang, 'Lágmarksfjöldi', 'Min. participants', 'Min. Teilnehmer'), String(tour.minRiders)],
+    [tri(lang, 'Lágmarksfjöldi', 'Min. participants', 'Mind. Teilnehmer'), String(tour.minRiders)],
     [tri(lang, 'Hámarksþyngd', 'Weight limit', 'Gewichtslimit'), '95 kg'],
   ]
 
@@ -166,7 +166,7 @@ function ShortTourInner() {
       </a>
       <header className="sticky top-0 z-30 border-b backdrop-blur-md" style={{ background: `${MIST}e6`, borderColor: '#161B3C12' }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-8">
-          <Link to={homePath(lang)} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar Hestar Startseite')}>
+          <Link to={homePath(lang)} className="flex shrink-0 items-center gap-2" aria-label={tri(lang, 'Forsíða Pólar Hestar', 'Pólar Hestar home', 'Pólar-Hestar-Startseite')}>
             <img src={LOGO} alt="" className="h-10 w-auto" />
           </Link>
           <div className="flex items-center gap-2">
@@ -196,10 +196,10 @@ function ShortTourInner() {
           />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(13,16,40,.3) 0%, rgba(13,16,40,.2) 35%, rgba(13,16,40,.88) 100%)' }} />
           <div className="relative z-10 mx-auto flex min-h-[72svh] w-full max-w-6xl flex-col justify-end px-5 pb-12 pt-24 md:px-8 md:pb-16">
-            <nav aria-label={tri(lang, 'Brauðmolar', 'Breadcrumb', 'Brotkrümel')} className="ph-st-rise mb-6 text-sm text-white/85">
+            <nav aria-label={tri(lang, 'Brauðmolar', 'Breadcrumb', 'Seitenpfad')} className="ph-st-rise mb-6 text-sm text-white/85">
               <Link to={homePath(lang, '#ferdir')} className="inline-flex items-center gap-1.5 font-medium">
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                {tri(lang, 'Allar stuttar ferðir', 'All short tours', 'Alle kurzen Ritte')}
+                {tri(lang, 'Allar stuttar ferðir', 'All short tours', 'Alle kurzen Ausritte')}
               </Link>
             </nav>
             <p className="ph-st-rise text-[0.72rem] font-semibold tracking-[0.2em] uppercase" style={{ color: ICE, animationDelay: '60ms' }}>
@@ -247,7 +247,7 @@ function ShortTourInner() {
           <aside className="self-start rounded-[24px] p-6 md:p-7 lg:sticky lg:top-24" style={{ background: PAPER, boxShadow: '0 1px 2px rgba(22,27,60,0.05), 0 18px 40px -28px rgba(22,27,60,0.35)' }}>
             <p className="flex items-start gap-3 font-hanken text-base font-semibold" style={{ color: INK }}>
               <Clock className="mt-0.5 h-5 w-5 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
-              {tri(lang, 'Mættu 30 mínútum fyrir brottför.', 'Please arrive 30 minutes prior to departure!', 'Bitte 30 Minuten vor Start des Rittes am Hof sein!')}
+              {tri(lang, 'Mættu 30 mínútum fyrir brottför.', 'Please arrive 30 minutes prior to departure!', 'Bitte seien Sie 30 Minuten vor Beginn des Rittes auf dem Hof.')}
             </p>
             <a href={MAPS_HREF} className="mt-4 flex items-start gap-3 text-sm leading-relaxed" style={{ color: BODY }}>
               <MapPin className="mt-0.5 h-5 w-5 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
@@ -275,7 +275,7 @@ function ShortTourInner() {
         <section className="border-t px-5 py-14 md:py-20" style={{ borderColor: '#161B3C12', background: PAPER }} aria-labelledby="ph-st-more">
           <div className="mx-auto max-w-6xl md:px-3">
             <h2 id="ph-st-more" className="font-spectral text-[clamp(1.5rem,1.1rem+1.4vw,2rem)] leading-tight" style={{ color: INK }}>
-              {tri(lang, 'Fleiri stuttar ferðir', 'More short rides', 'Weitere kurze Ritte')}
+              {tri(lang, 'Fleiri stuttar ferðir', 'More short rides', 'Weitere kurze Ausritte')}
             </h2>
             <ul className="mt-6 grid list-none grid-cols-2 gap-3 p-0 md:gap-4 lg:grid-cols-4">
               {others.map((o) => (

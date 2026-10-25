@@ -178,8 +178,8 @@ export function RegionMap({ tourId, activeDay, lang, onPick }: { tourId: string;
       </svg>
       <figcaption className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-hanken text-[0.72rem]" style={{ color: SLATE }}>
         <span className="inline-flex items-center gap-1.5"><span className="inline-block h-[3px] w-5 rounded" style={{ background: CLAY_TX }} /> {t(`Dagur ${activeDay}`, `Day ${activeDay}`, `Tag ${activeDay}`)}</span>
-        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-[3px] w-5 rounded" style={{ background: CLAY_TX, opacity: 0.5 }} /> {t('Riðið', 'Ridden', 'Geritten')}</span>
-        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-[3px] w-5 rounded border-t border-dotted" style={{ borderColor: CLAY, background: 'none' }} /> {t('Framundan', 'Ahead', 'Voraus')}</span>
+        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-[3px] w-5 rounded" style={{ background: CLAY_TX, opacity: 0.5 }} /> {t('Riðið', 'Ridden', 'Bereits geritten')}</span>
+        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-[3px] w-5 rounded border-t border-dotted" style={{ borderColor: CLAY, background: 'none' }} /> {t('Framundan', 'Ahead', 'Noch zu reiten')}</span>
         <span className="ml-auto">{t('Kort: © OpenStreetMap', 'Map: © OpenStreetMap', 'Karte: © OpenStreetMap')}</span>
       </figcaption>
     </figure>
