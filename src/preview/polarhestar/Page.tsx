@@ -1032,7 +1032,7 @@ function Booking({
     <div className="overflow-hidden rounded-[28px] shadow-[0_2px_4px_rgba(9,12,36,0.2),0_16px_32px_-16px_rgba(9,12,36,0.35),0_48px_96px_-40px_rgba(9,12,36,0.55)] ring-1 ring-white/10" style={{ background: PAPER }}>
       {/* banner — the CMS booking photo is 1920×600, a banner; it runs across the
           top of the card, the quote sits on it, and the steps get the full width */}
-      <div className="relative h-44 overflow-hidden md:h-56">
+      <div className="relative flex min-h-44 flex-col justify-end overflow-hidden md:min-h-56">
         <Img
           src={PICS.booking.src}
           srcSet={PICS.booking.srcSet}
@@ -1045,7 +1045,7 @@ function Booking({
           style={{ objectPosition: PICS.booking.pos ?? '50% 45%' }}
         />
         <div className="absolute inset-0" style={{ background: `linear-gradient(100deg, ${TWILIGHT}e6 0%, ${TWILIGHT}99 45%, ${TWILIGHT}40 100%)` }} />
-        <div className="relative flex h-full flex-col justify-end p-6 md:p-8">
+        <div className="relative p-6 md:p-8">
           <p className="max-w-md font-spectral text-2xl leading-snug text-white md:text-[1.75rem]">{t.bookPanelLine}</p>
           <p className="mt-1.5 max-w-md font-hanken text-sm text-white/85">{t.bookBody}</p>
         </div>
