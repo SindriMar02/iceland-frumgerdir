@@ -72,24 +72,6 @@ const PATINA_STOPS = [
   { p: 0.5, c: '#3F6C80' },  // the bay at dusk (#47778D measured)
   { p: 1.0, c: '#3F6B3E' },  // aurora green (#445F35 measured)
 ]
-function mixHex(a: string, b: string, t: number): string {
-  const pa = parseInt(a.slice(1), 16)
-  const pb = parseInt(b.slice(1), 16)
-  const ch = (s: number) => {
-    const va = (pa >> s) & 255
-    const vb = (pb >> s) & 255
-    return Math.round(va + (vb - va) * t)
-  }
-  return `rgb(${ch(16)}, ${ch(8)}, ${ch(0)})`
-}
-function patinaAt(p: number): string {
-  const c = Math.min(1, Math.max(0, p))
-  let i = 0
-  while (i < PATINA_STOPS.length - 2 && c > PATINA_STOPS[i + 1].p) i += 1
-  const a = PATINA_STOPS[i]
-  const b = PATINA_STOPS[i + 1]
-  return mixHex(a.c, b.c, (c - a.p) / (b.p - a.p))
-}
 
 /* Footer morph — the tide line. High water: one nearly flat line. Low water:
    the same line with the skerries of the bay standing out of it. Identical
@@ -185,16 +167,15 @@ const PAGE_STYLES = `
 .vg-cursor.is-hidden { opacity: 0; }
 @media (max-width: 1023px), (pointer: coarse) { .vg-cursor { display: none; } }
 
-/* ── preloader ── */
-.vg-loader { position: fixed; inset: 0; z-index: 120; background: ${INK}; color: ${PLASTER};
-  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2.2rem; }
-.vg-loader-word { font-family: ${DISPLAY}; font-weight: 200; font-size: clamp(2.4rem, 7vw, 5rem);
-  letter-spacing: .04em; overflow: clip; padding-top: .1em; }
-.vg-loader-word span { display: inline-block; }
-.vg-loader-bar { position: relative; width: min(46vw, 340px); height: 1px; background: ${HAIR_PLASTER}; }
-.vg-loader-bar i { position: absolute; inset: 0; transform-origin: left center; transform: scaleX(0);
-  background: var(--vg-patina); }
-.vg-loader-pct { font-family: ${MONO}; font-size: 10.5px; letter-spacing: .18em; color: ${PLASTER_MUTE}; }
+/* ── first paint: the hero starts in its intro pose so the wordmark is drawn
+   ONCE (no loader word, no visible-then-hidden flash). The engine adds
+   .is-live in the same task it builds the intro; a timer adds it anyway. ── */
+@media (prefers-reduced-motion: no-preference) {
+  .vg-root:not(.is-live) .vg-hero-mask span { transform: translateY(120%); }
+  .vg-root:not(.is-live) .vg-waterline { transform: scaleX(0); }
+  .vg-root:not(.is-live) .vg-hero-kicker,
+  .vg-root:not(.is-live) .vg-hero-sub { opacity: 0; }
+}
 
 /* ── header — ONE difference layer, legible over anything (the reference's
    exact mechanism: blend at container level). ── */
@@ -263,7 +244,7 @@ const PAGE_STYLES = `
 .vg-hero-word-zone { position: relative; display: flex; align-items: flex-end; justify-content: center; }
 .vg-hero-word { position: relative; font-family: ${DISPLAY}; font-weight: 200;
   font-size: min(13.2vw, 34svh); line-height: .82; letter-spacing: .015em; white-space: nowrap; }
-.vg-hero-word .vg-hero-mask { overflow: clip; padding-top: .18em; }
+.vg-hero-word .vg-hero-mask { display: inline-block; overflow: clip; padding-top: .18em; } /* inline boxes ignore overflow: the mask must be a box or the word shows un-masked */
 .vg-hero-word .vg-hero-mask span { display: inline-block; }
 .vg-waterline { position: relative; height: 1px; background: ${INK}; margin: 0 1.65rem; }
 .vg-hero-band { position: relative; height: 38svh; margin: 0; }
@@ -560,6 +541,8 @@ const PAGE_STYLES = `
 
 /* ══ STICKY ROOM CARDS: each room holds the screen, the next slides over it ══ */
 .vg-acc-item { position: sticky; top: var(--vg-head, 0px); height: calc(var(--vg-100vh) - var(--vg-head, 0px)); }
+/* the dwell: each card holds still for ~60vh of scroll before the next one slides over it */
+.vg-acc-item + .vg-acc-item { margin-top: 60vh; }
 /* phones: the pipeline's fixed opaque bar instead of the blend header (the
    blend garbled text under it in real iOS Safari and tinted the status bar) */
 @media (max-width: 1023px) {
@@ -740,12 +723,6 @@ export default function VogurPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [loaderDone, setLoaderDone] = useState(() => {
-    if (prefersReduced()) return true
-    /* storage access throws outright in some privacy modes — never let that
-       take the page down with it */
-    try { return sessionStorage.getItem('vg_seen') === '1' } catch { return false }
-  })
   useBodyLock(menuOpen)
 
   useEffect(() => {
@@ -764,92 +741,17 @@ export default function VogurPage() {
     return () => { document.body.style.backgroundColor = prevBg }
   }, [])
 
-  /* ── preloader (arm-once: StrictMode re-runs must not restart tweens) ── */
-  const loaderArmed = useRef(false)
-  useEffect(() => {
-    if (loaderDone || loaderArmed.current) return
-    const root = rootRef.current
-    if (!root) return
-    const word = root.querySelector('.vg-loader-word')
-    const bar = root.querySelector<HTMLElement>('.vg-loader-bar i')
-    const pct = root.querySelector<HTMLElement>('.vg-loader-pct')
-    if (!word || !bar || !pct) return
-    loaderArmed.current = true
-    const chars = Array.from(word.querySelectorAll('span'))
-    gsap.fromTo(chars, { xPercent: 120 }, {
-      xPercent: 0, duration: 0.55, stagger: 0.08, ease: 'power3.out', delay: 0.25,
-    })
-    /* Gate on the FIRST SCREEN only, and never for longer than MAX_HOLD.
-       The previous version waited on every entry in document.images and
-       force-fetched each one through `new Image()`. That did three bad things
-       on a phone: it defeated loading="lazy" (all 2.4 MB of gallery downloaded
-       before anything was visible), it parked the bar at exactly 90% until the
-       very last photo landed (measured: 18.8 s of black screen on a throttled
-       connection — reads as hung, and Sindri gave up and reopened), and a
-       single stalled request held the page hostage forever. Time is now both
-       a floor and a ceiling: the bar always creeps forward, and it completes
-       at MAX_HOLD no matter what the network is doing. */
-    const MIN_HOLD = 1100 // let the wordmark animation actually read
-    const MAX_HOLD = 2600 // hard ceiling — the page reveals regardless
-    const gate = Array.from(root.querySelectorAll<HTMLImageElement>('.vg-hero img, .vg-arrival img'))
-    const settled = (im: HTMLImageElement) => im.complete && im.naturalWidth > 0
-    let done = gate.filter(settled).length
-    gate.forEach((im) => {
-      if (settled(im)) return
-      const bump = () => {
-        done += 1
-        im.removeEventListener('load', bump)
-        im.removeEventListener('error', bump)
-      }
-      im.addEventListener('load', bump)
-      im.addEventListener('error', bump)
-    })
-    const started = performance.now()
-    let fake = 0
-    const iv = window.setInterval(() => {
-      const elapsed = performance.now() - started
-      const realPct = gate.length ? (done / gate.length) * 100 : 100
-      const timePct = (elapsed / MAX_HOLD) * 100
-      /* whichever is further along drives the bar; time guarantees an end */
-      const target = Math.max(realPct, timePct)
-      /* hold short of full until MIN_HOLD so the intro can breathe */
-      const capped = elapsed < MIN_HOLD ? Math.min(target, 92) : target
-      /* always creep (never stall), never leap */
-      fake = Math.min(100, Math.max(fake + 1.5, Math.min(fake + 7, capped)))
-      bar.style.transform = `scaleX(${fake / 100})`
-      pct.textContent = `${Math.round(fake)}%`
-      if (fake >= 100) {
-        window.clearInterval(iv)
-        try { sessionStorage.setItem('vg_seen', '1') } catch { /* private mode throws */ }
-        gsap.to([bar.parentElement, pct], { opacity: 0, duration: 0.4, ease: 'none' })
-        gsap.to(root.querySelector('.vg-loader'), {
-          yPercent: -100, duration: 0.9, ease: 'power3.inOut', delay: 0.4,
-          onComplete: () => setLoaderDone(true),
-        })
-      }
-    }, 16)
-    /* Failsafe: if the interval is throttled (backgrounded tab) or a reveal
-       tween never completes, the page still opens. Nothing about a loading
-       animation may ever be load-bearing for access to the content. */
-    window.setTimeout(() => {
-      window.clearInterval(iv)
-      try { sessionStorage.setItem('vg_seen', '1') } catch { /* private mode */ }
-      setLoaderDone(true)
-    }, MAX_HOLD + 3000)
-    /* no cleanup: StrictMode's simulated unmount must not kill the one real
-       run; the interval clears itself at 100. */
-  }, [loaderDone])
-
   /* ── the engine ── */
   useEffect(() => {
-    if (!loaderDone) return
     const root = rootRef.current
     if (!root) return
-    if (prefersReduced()) return // resting CSS is the finished page
+    const live = window.setTimeout(() => root.classList.add('is-live'), 2500)
+    if (prefersReduced()) { root.classList.add('is-live'); return } // resting CSS is the finished page
 
-    const isDesktop = false // the horizontal journey is retired (lag, 24 Oct); see styles
     const fine = window.matchMedia('(pointer: fine)').matches
     const cleanupFns: Array<() => void> = []
+    const steps: Array<() => void> = []
+    const later = (fn: () => void) => { steps.push(fn) }
     const ctx = gsap.context(() => {
       const TS = 1.15 // global speed dial (reference)
 
@@ -935,336 +837,7 @@ export default function VogurPage() {
         })
       }
 
-      /* ── flip peels + parallax. ONE writer per image: GSAP owns clip-path
-         on the up layer and scale+yPercent on the source img (it merges its
-         own transform channels; a CSS calc() transform would fight the
-         inline one and jitter). Accordion media peel one-shot only — its
-         panel geometry animates, so scrubbed starts there go stale. ── */
-      const armFlips = (container: (t: Element) => ScrollTrigger.Vars) => {
-        root.querySelectorAll<HTMLElement>('.vg-flip').forEach((fig) => {
-          const up = fig.querySelector('.vg-m-up') as HTMLElement
-          const src = fig.querySelector('.vg-m-src img') as HTMLElement
-          const inAccordion = !!fig.closest('.vg-acc-media')
-          const dir = fig.dataset.vgDir ?? 'up'
-          const scrub = fig.dataset.vgScrub === '1' && !inAccordion
-          const dur = parseFloat(fig.dataset.vgDur ?? '1.5')
-          const clipFrom = dir === 'up' ? 'inset(100% 0% 0% 0%)' : dir === 'right' ? 'inset(0% 100% 0% 0%)' : 'inset(0% 0% 0% 100%)'
-          const tl = gsap.timeline({ paused: true })
-          tl.fromTo(up, { clipPath: clipFrom }, { clipPath: 'inset(0% 0% 0% 0%)', duration: dur, ease: 'power2.out', immediateRender: true }, 0)
-          tl.from(src, { scale: 1.2, duration: dur + 0.5, ease: 'power2.out' }, 0)
-          ScrollTrigger.create({
-            ...container(fig),
-            animation: tl,
-            ...(scrub ? { scrub: 0.35, end: '+=75%' } : { toggleActions: 'play none none reverse' }),
-          })
-          if (!inAccordion && fig.classList.contains('vg-par')) {
-            const par = gsap.timeline({ paused: true })
-            par.fromTo(src, { yPercent: 6 }, { yPercent: -6, ease: 'none' }, 0)
-            ScrollTrigger.create({ ...container(fig), animation: par, scrub: 0.5, end: '+=120%' })
-          }
-        })
-      }
-
-      if (isDesktop) {
-        /* ══ THE HORIZONTAL JOURNEY ══ */
-        const lenis = new Lenis()
-        pageLenis = lenis
-        lenis.on('scroll', ScrollTrigger.update)
-        const raf = (t: number) => lenis.raf(t * 1000)
-        gsap.ticker.add(raf)
-        gsap.ticker.lagSmoothing(0)
-
-        const journeyEl = root.querySelector<HTMLElement>('.vg-journey')!
-        const track = root.querySelector<HTMLElement>('.vg-track')!
-        gsap.set(root.querySelector('.vg-progress'), { scaleX: 0 })
-
-        /* accordion timeline FIRST (widths change the track length) */
-        const accItems = Array.from(root.querySelectorAll<HTMLElement>('.vg-acc-item'))
-        const projectsTl = gsap.timeline({ paused: true })
-        const accTextTls: gsap.core.Timeline[] = []
-        accItems.forEach((item, i) => {
-          const media = item.querySelector('.vg-acc-media') as HTMLElement
-          const textwrap = item.querySelector('.vg-acc-textwrap') as HTMLElement
-          const pops = Array.from(textwrap.querySelectorAll<HTMLElement>('.vg-pop'))
-          const nameChars = SplitText.create(item.querySelector('.vg-acc-name'), { type: 'chars' }).chars
-          const tTl = gsap.timeline({ paused: true, delay: 0.1 })
-          tTl.fromTo(pops[0], { yPercent: 100 }, { yPercent: 0, duration: 0.33, ease: 'power2.out' }, 0)
-          if (pops[1]) tTl.fromTo(pops[1], { yPercent: 100 }, { yPercent: 0, duration: 0.33, ease: 'power2.out' }, 0.2)
-          if (pops[2]) tTl.fromTo(pops[2], { yPercent: 100, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.33, ease: 'power2.out' }, 0.4)
-          tTl.fromTo(nameChars, { yPercent: 100 }, { yPercent: 0, duration: 0.25, ease: 'power2.out', stagger: 0.05 }, 0.5)
-          accTextTls.push(tTl)
-          const time = i * 1
-          projectsTl.fromTo(item, { width: '15vw' }, { width: '58vw', duration: 1, ease: 'power1.inOut' }, time)
-          projectsTl.fromTo(media, { height: '82svh' }, { height: '60svh', duration: 1, ease: 'power1.inOut' }, time)
-        })
-        /* text pops fire ONCE per crossing with hysteresis; a scrubbed .005s
-           step re-fires on every jitter frame and reads as a glitch. */
-        const accFired = accItems.map(() => false)
-        const watchAccText = (self: ScrollTrigger) => {
-          const t = self.progress * projectsTl.duration()
-          accItems.forEach((_, i) => {
-            const at = i * 1 + 0.55
-            if (t >= at && !accFired[i]) {
-              accFired[i] = true
-              accTextTls[i].pause()
-              accTextTls[i].timeScale(1).play()
-            } else if (t < at - 0.12 && accFired[i]) {
-              accFired[i] = false
-              accTextTls[i].pause()
-              accTextTls[i].timeScale(2.5)
-              accTextTls[i].reverse()
-            }
-          })
-        }
-
-        /* the accordion's container width is FIXED, so the track measures the
-           same at any progress; function-based for same-branch resizes. */
-        const measureMaxX = () => track.scrollWidth - window.innerWidth
-        const journeyTween = gsap.to(track, { x: () => -measureMaxX(), duration: 100, ease: 'none' })
-        const master = ScrollTrigger.create({
-          animation: journeyTween,
-          trigger: journeyEl,
-          pin: journeyEl,
-          anticipatePin: 1,
-          scrub: 1,
-          invalidateOnRefresh: true,
-          start: 'top top',
-          end: () => `+=${measureMaxX()}`,
-          onUpdate: (self) => {
-            const patina = patinaAt(self.progress)
-            root.style.setProperty('--vg-patina', patina)
-            const bar = root.querySelector<HTMLElement>('.vg-progress')
-            if (bar) bar.style.transform = `scaleX(${self.progress})`
-          },
-        })
-        journeyNav = { master, track, lenis }
-
-        const onJourney = (t: Element, start: string): ScrollTrigger.Vars => ({
-          trigger: t, containerAnimation: journeyTween, start,
-        })
-
-        /* accordion driver */
-        ScrollTrigger.create({
-          ...onJourney(accItems[0], '0% 80%'),
-          animation: projectsTl,
-          end: `+=${58 * accItems.length}%`,
-          scrub: 0,
-          onUpdate: watchAccText,
-        })
-
-        /* hero intro ceremony */
-        const intro = gsap.timeline({ paused: true })
-        const heroMasks = Array.from(root.querySelectorAll('.vg-hero-mask span'))
-        intro.from(heroMasks, { yPercent: 120, duration: 1.1, stagger: { each: 0.06, from: 'center' }, ease: 'power3.out' }, 0.15)
-        intro.from(root.querySelector('.vg-waterline'), { scaleX: 0, transformOrigin: 'center', duration: 1.1, ease: 'power2.inOut' }, 0.1)
-        const kick = root.querySelector('.vg-hero-kicker')
-        if (kick) cascade(kick, intro, 0.55)
-        intro.from(root.querySelector('.vg-hero-sub'), { y: 22, opacity: 0, duration: 0.9, ease: 'power3.out' }, 0.85)
-        intro.from(root.querySelectorAll('.vg-hero-rotmenu a'), { y: '2.5rem', opacity: 0, duration: 1, stagger: -0.15, ease: 'power3.out' }, 0.9)
-        intro.from(root.querySelector('.vg-hero-copy'), { opacity: 0, duration: 0.5, ease: 'none' }, 1.1)
-        /* intro hands off to scrub: the arrival image slides during the intro,
-           then a scrubbed trigger takes the same value home (reference). */
-        const arrivalImg = root.querySelector<HTMLElement>('.vg-arrival-big .vg-m-src img')
-        if (arrivalImg) {
-          gsap.set(arrivalImg, { x: '-4vw' })
-          intro.call(() => {
-            gsap.to(arrivalImg, {
-              x: '-10vw', duration: 1.25, ease: 'power2.out',
-              onComplete: () => {
-                const handTl = gsap.timeline({ paused: true })
-                handTl.fromTo(arrivalImg, { x: '-10vw' }, { x: '0vw', ease: 'none' })
-                ScrollTrigger.create({
-                  ...onJourney(root.querySelector('.vg-arrival')!, '0% 78%'),
-                  animation: handTl, end: '90% 100%', scrub: 0.5,
-                })
-              },
-            })
-          }, [], 1.2)
-        }
-        intro.timeScale(TS).play()
-
-        /* arrival slow zoom (Son Daven probe: img-w scale 1 → 1.25, origin
-           center bottom, scrub 1 across the whole pass). Applied to the slab
-           wrapper so the peel keeps sole ownership of the img (single writer). */
-        const arrivalBig = root.querySelector('.vg-arrival-big')
-        if (arrivalBig) {
-          const zTl = gsap.timeline({ paused: true })
-          zTl.fromTo(arrivalBig, { scale: 1 }, { scale: 1.15, transformOrigin: 'center bottom', ease: 'none' })
-          ScrollTrigger.create({ ...onJourney(root.querySelector('.vg-arrival')!, 'left 100%'), animation: zTl, end: 'right 0%', scrub: 1 })
-        }
-
-        /* statement: line 4 slides into justification + scrubbed reading */
-        const contEl = root.querySelector<HTMLElement>('.vg-statement .vg-cont')
-        if (contEl) {
-          const off = contEl.scrollWidth - (contEl.parentElement as HTMLElement).clientWidth
-          const stTl = gsap.timeline({ paused: true })
-          stTl.from(contEl, { x: off > 0 ? off : 120, duration: 2, ease: 'power1.inOut' }, 0)
-          ScrollTrigger.create({
-            ...onJourney(root.querySelector('.vg-statement')!, '0% 50%'),
-            animation: stTl, end: '100% 50%', scrub: 0,
-          })
-        }
-        const stBody = root.querySelector('.vg-statement-body p')
-        if (stBody) {
-          const split = SplitText.create(stBody, { type: 'lines,chars', charsClass: 'vg-char' })
-          const opTl = gsap.timeline({ paused: true })
-          /* Son Daven probe: split chars read in from .1 (theirs: opacity .1, scrubbed top 75% → bottom 50%) */
-          opTl.fromTo(split.chars, { opacity: 0.1 }, { opacity: 1, duration: 0.5, stagger: 0.005, ease: 'none' })
-          ScrollTrigger.create({
-            ...onJourney(root.querySelector('.vg-statement')!, '0% 70%'),
-            animation: opTl, end: '70% 30%', scrub: 0.5,
-          })
-        }
-        root.querySelectorAll('.vg-statement .vg-sline').forEach((line, i) => {
-          const tl = gsap.timeline({ paused: true })
-          cascade(line, tl, 0)
-          ScrollTrigger.create({
-            ...onJourney(root.querySelector('.vg-statement')!, `${i * 4}% 75%`),
-            animation: tl, toggleActions: 'play none none reverse',
-          })
-        })
-
-        /* renovated quote: reading-highlight lines (reference images-text) */
-        const renoQuote = root.querySelector('.vg-reno-quote')
-        if (renoQuote) {
-          const split = SplitText.create(renoQuote, { type: 'lines' })
-          const rTl = gsap.timeline({ paused: true })
-          rTl.from(split.lines, { opacity: 0.2, duration: 0.2, stagger: 0.1, ease: 'none' })
-          ScrollTrigger.create({
-            ...onJourney(root.querySelector('.vg-reno')!, '0% 75%'),
-            animation: rTl, end: '0% 25%', scrub: 0,
-          })
-        }
-
-        /* materials: padding parallax + hover machinery */
-        const mat = root.querySelector<HTMLElement>('.vg-mat')
-        if (mat) {
-          gsap.set(mat, { width: mat.offsetWidth })
-          const terms = Array.from(mat.querySelectorAll<HTMLElement>('.vg-mat-term'))
-          const pTl = gsap.timeline({ paused: true })
-          pTl.to(terms[0], { paddingLeft: '8vw', ease: 'none' }, 0)
-          pTl.to(terms[1], { paddingRight: '3vw', ease: 'none' }, 0)
-          pTl.to(terms[2], { paddingLeft: '11vw', ease: 'none' }, 0)
-          if (terms[3]) pTl.to(terms[3], { paddingLeft: '5vw', ease: 'none' }, 0)
-          ScrollTrigger.create({ ...onJourney(mat, '0% 100%'), animation: pTl, end: '100% 0%', scrub: 1 })
-
-          const stack = mat.querySelector<HTMLElement>('.vg-mat-stack')!
-          const stackImgs = Array.from(stack.querySelectorAll('img'))
-          let cur = 0
-          terms.forEach((term, i) => {
-            term.addEventListener('mouseenter', () => {
-              if (cur === i) return
-              stackImgs.forEach((im) => im.classList.remove('is-prev'))
-              stackImgs[cur].classList.add('is-prev')
-              stackImgs[cur].classList.remove('is-on')
-              stackImgs[i].classList.add('is-on')
-              gsap.fromTo(stackImgs[i], { '--vg-clip': '100% 0% 0% 0%' }, { '--vg-clip': '0% 0% 0% 0%', duration: 1.25, ease: 'power3.out' })
-              gsap.fromTo(stackImgs[i], { scale: 2 }, { scale: 1, duration: 2, delay: -0.75, ease: 'power2.out' })
-              cur = i
-            })
-          })
-
-          /* cursor becomes content over the materials */
-          if (fine && cursorRef.current) {
-            mat.addEventListener('mouseenter', () => {
-              cursorSwap(stack)
-            })
-            mat.addEventListener('mouseleave', () => {
-              cursorSwap(null)
-            })
-          }
-        }
-
-        /* barn pin-in-pin filmstrip: the stage rides the journey (the
-           reference's lastProject x-travel) while a vertical film drifts
-           inside it. Deterministic geometry: fixed cells, strip taller than
-           the viewport for the WHOLE travel, one linear phase — photos are
-           on screen from the first frame of the panel to the last. */
-        const barn = root.querySelector<HTMLElement>('.vg-barn')
-        if (barn) {
-          const stage = barn.querySelector<HTMLElement>('.vg-barn-stage')!
-          const strip = barn.querySelector<HTMLElement>('.vg-barn-strip')!
-          const cells = barn.querySelectorAll<HTMLElement>('.vg-barn-cell').length
-          const stripH = cells * 46 - 2            // svh: 44svh cells + 2svh gaps
-          const yFrom = 10                          // first two photos visible at entry
-          const yTo = -(stripH - 100)               // last photo lands flush at the end
-          const travel = 120                        // barn 220vw − 100vw stage
-          const bTl = gsap.timeline({ paused: true })
-          bTl.fromTo(stage, { x: '0vw' }, { x: `${travel}vw`, duration: 1, ease: 'none' }, 0)
-          bTl.fromTo(strip, { y: `${yFrom}svh` }, { y: `${yTo}svh`, duration: 1, ease: 'none' }, 0)
-          ScrollTrigger.create({
-            ...onJourney(barn, 'left 0%'), animation: bTl, end: `left -${travel}%`, scrub: 0,
-          })
-          const bTitle = barn.querySelector('.vg-barn-title')
-          if (bTitle) {
-            const tl = gsap.timeline({ paused: true })
-            cascade(bTitle, tl, 0)
-            tl.from(barn.querySelector('.vg-barn-body'), { y: 26, opacity: 0, duration: 0.7, ease: 'power3.out' }, '<+=.3')
-            ScrollTrigger.create({ ...onJourney(barn, 'left 60%'), animation: tl, toggleActions: 'play none none reverse' })
-          }
-        }
-
-        /* islands: traveling word */
-        const isl = root.querySelector<HTMLElement>('.vg-isl')
-        if (isl) {
-          const travel = isl.querySelector<HTMLElement>('.vg-travel')
-          if (travel) {
-            const line = travel.closest('.vg-isl-line') as HTMLElement
-            const tl = gsap.timeline({ paused: true })
-            tl.from(travel, {
-              x: () => line.clientWidth - travel.offsetWidth - travel.offsetLeft,
-              duration: 1.25, ease: 'power2.out',
-            })
-            ScrollTrigger.create({ ...onJourney(isl, 'left 55%'), animation: tl, toggleActions: 'play none none reverse' })
-          }
-        }
-
-        /* sagan: three-axis settle + rows */
-        const saga = root.querySelector<HTMLElement>('.vg-saga')
-        if (saga) {
-          const fig = saga.querySelector<HTMLElement>('.vg-saga-fig')!
-          const figImg = fig.querySelector('.vg-m-src img')
-          const sTl = gsap.timeline({ paused: true })
-          sTl.from(fig, { '--vg-clip': '100% 0% 0% 0%', duration: 2 / 1.4, ease: 'power3.inOut' }, 0)
-          sTl.from(figImg, { y: '20%', scale: 1.4, duration: 3 / 1.4, ease: 'power2.out' }, 0)
-          sTl.from(fig, { height: '84svh', width: '54vw', duration: 1.25 / 1.4, ease: 'power3.inOut' }, 0.35)
-          sTl.from(saga.querySelectorAll('.vg-saga-row'), { y: 24, opacity: 0, duration: 0.55, stagger: 0.08, ease: 'power3.out' }, 0.7)
-          sTl.from(saga.querySelector('.vg-saga-award'), { opacity: 0, duration: 0.6, ease: 'none' }, 1.1)
-          const sTitle = saga.querySelector('.vg-saga-title')
-          if (sTitle) cascade(sTitle, sTl, 0.25)
-          ScrollTrigger.create({ ...onJourney(saga, 'left 65%'), animation: sTl, toggleActions: 'play none none reverse' })
-        }
-
-        /* cierre: content drift + inner strip parallax + cascade */
-        const cierre = root.querySelector<HTMLElement>('.vg-cierre')
-        if (cierre) {
-          const inEl = cierre.querySelector<HTMLElement>('.vg-cierre-in')!
-          const cTl = gsap.timeline({ paused: true })
-          cTl.fromTo(inEl, { x: '0%' }, { x: '18%', ease: 'none' }, 0)
-          ScrollTrigger.create({ ...onJourney(cierre, 'left 0%'), animation: cTl, end: 'left -20%', scrub: 0 })
-          const strip = cierre.querySelector<HTMLElement>('.vg-cierre-strip img')
-          if (strip) {
-            const pTl = gsap.timeline({ paused: true })
-            pTl.from(strip, { x: '-24%', ease: 'none' }, 0)
-            ScrollTrigger.create({ ...onJourney(cierre, 'left 100%'), animation: pTl, end: 'left 0%', scrub: 0.1 })
-          }
-          const word = cierre.querySelector('.vg-cierre-word')
-          if (word) {
-            const tl = gsap.timeline({ paused: true })
-            cascade(word, tl, 0)
-            tl.from(cierre.querySelector('.vg-cierre-sub'), { y: 20, opacity: 0, duration: 0.6, ease: 'power3.out' }, '<+=.35')
-            tl.from(cierre.querySelector('.vg-cierre-ctas'), { y: 20, opacity: 0, duration: 0.6, ease: 'power3.out' }, '<+=.15')
-            ScrollTrigger.create({ ...onJourney(cierre, 'left 55%'), animation: tl, toggleActions: 'play none none reverse' })
-          }
-        }
-
-        /* flips on the journey (left-based starts) */
-        armFlips((t) => {
-          const flip = t as HTMLElement
-          const scrubbed = flip.dataset.vgScrub === '1'
-          return { trigger: flip, containerAnimation: journeyTween, start: scrubbed ? 'left 100%' : 'left 82%' }
-        })
-      } else {
+      {
         /* ══ THE VERTICAL DOCUMENT — every width. Transform/opacity only, no
            layer wider than the viewport, sticky room cards on the compositor. ══ */
         const touch = window.matchMedia('(hover: none) and (pointer: coarse)').matches
@@ -1272,6 +845,7 @@ export default function VogurPage() {
         const SCRUB = touch ? 0.35 : 1
         const hero = root.querySelector('.vg-hero')
         if (hero) {
+          root.classList.add('is-live') // same task as the intro: no paint in between
           const intro = gsap.timeline({ paused: true })
           intro.from(root.querySelectorAll('.vg-hero-mask span'), { yPercent: 120, duration: 1.1, stagger: { each: 0.06, from: 'center' }, ease: 'power3.out' }, 0.15)
           intro.from(root.querySelector('.vg-waterline'), { scaleX: 0, duration: 1.1, ease: 'power2.inOut' }, 0.1)
@@ -1283,31 +857,34 @@ export default function VogurPage() {
           const band = root.querySelector('.vg-hero-band')
           if (band) gsap.fromTo(band, { yPercent: 0 }, { yPercent: -6, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: SCRUB } })
         }
-        root.querySelectorAll('.vg-statement .vg-sline, .vg-barn-title, .vg-saga-title, .vg-cierre-word, .vg-acc-name').forEach((el) => {
+        /* everything below the fold is armed in small pieces AFTER the intro has
+           started: building it all in one go was a 225 ms block (6x CPU) that
+           stalled the wordmark's first frames. */
+        root.querySelectorAll('.vg-statement .vg-sline, .vg-barn-title, .vg-saga-title, .vg-cierre-word').forEach((el) => later(() => {
           const tl = gsap.timeline({ paused: true })
           cascade(el, tl, 0)
           ScrollTrigger.create({ trigger: el, start: 'top 84%', animation: tl, toggleActions: 'play none none reverse' })
-        })
+        }))
         /* reading reveal (Son Daven: chars .1 → 1, scrubbed top 75% → bottom 50%) */
-        root.querySelectorAll('.vg-statement-body p, .vg-reno-quote').forEach((el) => {
+        root.querySelectorAll('.vg-statement-body p, .vg-reno-quote').forEach((el) => later(() => {
           const split = SplitText.create(el, { type: 'words' })
           gsap.fromTo(split.words, { opacity: 0.12 }, { opacity: 1, stagger: 0.05, ease: 'none', scrollTrigger: { trigger: el, start: 'top 80%', end: 'bottom 50%', scrub: SCRUB } })
-        })
-        root.querySelectorAll('.vg-saga-row, .vg-barn-body, .vg-cierre-sub, .vg-cierre-ctas, .vg-mat-term, .vg-shednote-body').forEach((el) => {
+        }))
+        later(() => root.querySelectorAll('.vg-saga-row, .vg-barn-body, .vg-cierre-sub, .vg-cierre-ctas, .vg-mat-term, .vg-shednote-body').forEach((el) => {
           gsap.from(el, {
             y: 26, opacity: 0, duration: 0.8, ease: 'power3.out',
             scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none reverse' },
           })
-        })
+        }))
         /* sticky room cards: the card underneath sinks back as the next one slides over */
         const cards = Array.from(root.querySelectorAll<HTMLElement>('.vg-acc-item'))
-        cards.forEach((card, i) => {
+        later(() => cards.forEach((card, i) => {
           const next = cards[i + 1]
           if (!next) return
           gsap.fromTo(card, { scale: 1 }, { scale: 0.97, transformOrigin: 'center top', ease: 'none', scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top', scrub: true } })
-          const body = card.querySelector('.vg-acc-body')
-          if (body) gsap.from(body.children, { y: 30, opacity: 0, duration: 0.8, stagger: 0.08, ease: 'power3.out', scrollTrigger: { trigger: card, start: 'top 60%', toggleActions: 'play none none reverse' } })
-        })
+          /* no text reveal inside a sticky card: triggers measured there go stale
+             and the room name stayed hidden. Name, price and Book are simply there. */
+        }))
         /* the house: cursor becomes the photograph (desktop mice only) */
         const mat = root.querySelector<HTMLElement>('.vg-mat')
         if (mat && fine && window.innerWidth >= 1024) {
@@ -1333,7 +910,7 @@ export default function VogurPage() {
         /* photographs: a calm CSS mask — the picture opens inside its own frame
            (inset 9% 7% → 0) and settles from 1.05, scrubbed over a short band.
            One layer only; the second peel copy is hidden. */
-        root.querySelectorAll<HTMLElement>('.vg-flip').forEach((fig) => {
+        root.querySelectorAll<HTMLElement>('.vg-flip').forEach((fig) => later(() => {
           const up = fig.querySelector<HTMLElement>('.vg-m-up')
           const src = fig.querySelector<HTMLElement>('.vg-m-src')
           const img = up?.querySelector('img')
@@ -1344,19 +921,22 @@ export default function VogurPage() {
           gsap.fromTo(img, { scale: 1.05 }, { scale: 1, ease: 'none', scrollTrigger: { ...st } })
           /* and a slight drift inside the frame across the whole pass */
           gsap.fromTo(img, { yPercent: -5 }, { yPercent: 5, ease: 'none', scrollTrigger: { trigger: fig, start: 'top bottom', end: 'bottom top', scrub: SCRUB } })
-        })
-        root.querySelectorAll<HTMLElement>('.vg-barn-cell').forEach((cell) => {
+        }))
+        later(() => root.querySelectorAll<HTMLElement>('.vg-barn-cell').forEach((cell) => {
           gsap.fromTo(cell, { clipPath: 'inset(8% 6% 8% 6%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none', scrollTrigger: { trigger: cell, start: 'top 94%', end: 'top 60%', scrub: SCRUB } })
-        })
+        }))
         /* map + reviews: quiet entrances */
+        later(() => {
         const mapSvg = root.querySelector('.vg-map-svg')
         if (mapSvg) gsap.from(mapSvg, { opacity: 0, y: 30, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: mapSvg, start: 'top 85%', toggleActions: 'play none none reverse' } })
         root.querySelectorAll('.vg-rev-card, .vg-map-legend li').forEach((el, i) => {
           gsap.from(el, { opacity: 0, y: 22, duration: 0.8, delay: (i % 5) * 0.06, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 92%', toggleActions: 'play none none reverse' } })
         })
+        })
       }
 
-      /* footer gable morph — both branches (vertical section below journey) */
+      later(() => {
+      /* footer gable morph */
       const gable = root.querySelector<SVGPathElement>('.vg-footer-gable path')
       if (gable) {
         const mTl = gsap.timeline({ paused: true })
@@ -1382,17 +962,33 @@ export default function VogurPage() {
           scrollTrigger: { trigger: foot, start: 'top 70%', toggleActions: 'play none none reverse' },
         })
       }
-
-      /* refresh once assets settle (collapsed-track race) */
-      const imgs = Array.from(root.querySelectorAll('img'))
-      Promise.allSettled([document.fonts.ready, ...imgs.map((im) => (im as HTMLImageElement).decode?.().catch(() => undefined))]).then(() => {
-        ScrollTrigger.refresh()
       })
 
-      /* branch fork is structural: crossing it re-runs the whole engine
-         (the reference reloads across its fork too) */
-
     }, root)
+
+    /* the queue pump: one piece per task, so no frame waits on more than one */
+    let pumpId = 0
+    const pump = () => {
+      const fn = steps.shift()
+      if (!fn) {
+        /* re-measure once fonts are in; lazy photos re-measure as they land
+           (never decode() every image up front: that pulled the whole lazy
+           gallery in at load) */
+        document.fonts.ready.then(() => ScrollTrigger.refresh())
+        return
+      }
+      ctx.add(fn)
+      pumpId = window.setTimeout(pump, 0)
+    }
+    pumpId = window.setTimeout(pump, 160)
+    let refreshId = 0
+    const onImg = (e: Event) => {
+      if ((e.target as HTMLElement).tagName !== 'IMG') return
+      window.clearTimeout(refreshId)
+      refreshId = window.setTimeout(() => ScrollTrigger.refresh(), 250)
+    }
+    root.addEventListener('load', onImg, true)
+    cleanupFns.push(() => { window.clearTimeout(pumpId); window.clearTimeout(refreshId); root.removeEventListener('load', onImg, true) })
 
     /* cursor — lerp + swell + content-swap */
     let cursorCleanup: (() => void) | undefined
@@ -1458,6 +1054,7 @@ export default function VogurPage() {
     }
 
     return () => {
+      window.clearTimeout(live)
       ctx.revert()
       cleanupFns.forEach((fn) => fn())
       cursorCleanup?.()
@@ -1468,7 +1065,7 @@ export default function VogurPage() {
       pageLenis = null
       gsap.ticker.lagSmoothing(500, 33)
     }
-  }, [loaderDone])
+  }, [])
 
   /* anchor navigation (Lenis owns scrolling — ledger) */
   const go = (id: string) => {
@@ -1499,18 +1096,6 @@ export default function VogurPage() {
     <div ref={rootRef} className="vg-root" style={{ minHeight: '100svh' }}>
       <style dangerouslySetInnerHTML={{ __html: PAGE_STYLES }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
-
-      {!loaderDone && (
-        <div className="vg-loader" role="status" aria-label="Loading">
-          <div className="vg-loader-word" aria-hidden="true">
-            {HERO.word.split('').map((c, i) => (
-              <span key={i}>{c}</span>
-            ))}
-          </div>
-          <div className="vg-loader-bar"><i /></div>
-          <div className="vg-loader-pct">0%</div>
-        </div>
-      )}
 
       <div className="vg-cursor" ref={cursorRef} aria-hidden="true">
         <div><span /></div>
