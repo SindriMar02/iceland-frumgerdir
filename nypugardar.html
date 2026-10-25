@@ -27,6 +27,12 @@
          comes, and tells Hero.tsx not to replay it late. Reduced motion and
          deep links (#hash) never hold. -->
     <script>try{var d=document.documentElement;if(!matchMedia('(prefers-reduced-motion: reduce)').matches&&!location.hash){history.scrollRestoration='manual';d.dataset.nypIntro='held';setTimeout(function(){if(d.dataset.nypIntro==='held')d.dataset.nypIntro='released'},3500)}}catch(e){}</script>
+    <!-- focus-guard (_tools/focus-guard): a focus ring only for people using a keyboard.
+         Safari and every touch tap never focus a pressed button, so a dialog that moves
+         focus into itself (the photo zoom on /rooms/) painted a ring on its close button
+         on the first tap. This remembers the last input kind on <html data-input>; the
+         CSS at the end of nypugardar.css drops the ring while it is a pointer. -->
+    <script>(function(){var r=document.documentElement;function s(v){if(r.getAttribute("data-input")!==v)r.setAttribute("data-input",v)}addEventListener("pointerdown",function(){s("pointer")},true);addEventListener("keydown",function(e){if(e.key==="Shift"||e.key==="Control"||e.key==="Alt"||e.key==="Meta")return;s("key")},true)})();</script>
     <link rel="icon" href="/nypugardar/brand/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="icon" href="/nypugardar/brand/favicon-48.png" type="image/png" sizes="48x48" />
     <link rel="apple-touch-icon" href="/nypugardar/brand/apple-touch-icon.png" />
