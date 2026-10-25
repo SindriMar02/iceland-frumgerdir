@@ -897,7 +897,27 @@ function Booking({
   const [note, setNote] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'error'>('idle')
   /** Why the platform said no, when it says: a full departure reads differently from a dropped connection. */
-  const [errorKind, setErrorKind] = useState<'full' | 'soon' | 'day' | 'other'>('other')
+  const contactErrors = {
+    'email-reserved': tri(lang, 'Sláðu inn þitt eigið netfang, ekki dæmið úr forminu.', 'Please enter your own email address, not the example from the form.', 'Bitte geben Sie Ihre eigene E-Mail-Adresse ein, nicht das Beispiel aus dem Formular.'),
+    'email-domain-no-mail': tri(lang, 'Lénið í netfanginu getur ekki tekið við tölvupósti. Athugaðu netfangið.', 'That email domain cannot receive mail. Please check the address.', 'Diese E-Mail-Domain kann keine Nachrichten empfangen. Bitte prüfen Sie die Adresse.'),
+    'phone-invalid': tri(lang, 'Sláðu inn gilt símanúmer með landsnúmeri.', 'Please enter a valid phone number with the country code.', 'Bitte geben Sie eine gültige Telefonnummer mit Ländervorwahl ein.'),
+    'name-invalid': tri(lang, 'Sláðu inn nafnið þitt.', 'Please enter your name.', 'Bitte geben Sie Ihren Namen ein.'),
+    'contact-blocked': tri(lang, 'Við gátum ekki tekið við þessari fyrirspurn á netinu. Hringdu í', 'We could not take this request online. Please call', 'Wir konnten diese Anfrage online nicht annehmen. Bitte rufen Sie an:'),
+    'contact-invalid': tri(lang, 'Athugaðu upplýsingarnar þínar og reyndu aftur.', 'Please check your details and try again.', 'Bitte prüfen Sie Ihre Angaben und versuchen Sie es erneut.'),
+    'rate-limited': tri(lang, 'Ekkert var sent. Of margar tilraunir hafa borist frá tengingunni þinni. Bíddu í nokkrar mínútur eða hringdu í', 'Nothing was sent. There have been too many tries from your connection. Please wait a few minutes or call', 'Es wurde nichts gesendet. Über Ihre Verbindung gab es zu viele Versuche. Bitte warten Sie ein paar Minuten oder rufen Sie an:'),
+  }
+  const [errorKind, setErrorKind] = useState<'full' | 'soon' | 'day' | 'other' | keyof typeof contactErrors>('other')
+  const [errorField, setErrorField] = useState<'name' | 'email' | 'phone' | null>(null)
+  const nameRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
+  const phoneRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (status !== 'error' || !errorField) return
+    const input = { name: nameRef, email: emailRef, phone: phoneRef }[errorField].current
+    if (input?.isConnected && !input.disabled && input.getClientRects().length && window.getComputedStyle(input).visibility === 'visible') {
+      input.focus()
+    }
+  }, [status, errorField])
   // a departure that has come inside the 12 hours (late on the first day) is swapped for the next one
   useEffect(() => {
     if (!tour.times?.length) return
@@ -956,6 +976,7 @@ function Booking({
     e.preventDefault()
     if (status === 'sending' || tooFew || (tour.times?.length && !time)) return
     setStatus('sending')
+    setErrorField(null)
     // a hung network must never leave the button stuck at "Sendi…"
     const ctrl = new AbortController()
     const kill = window.setTimeout(() => ctrl.abort(), 15000)
@@ -991,9 +1012,25 @@ function Booking({
         }),
       })
       const json = (await res.json().catch(() => null)) as
-        | { ok?: boolean; quote?: { total?: number }; reasons?: string[] }
+        | { ok?: boolean; quote?: { total?: number }; reasons?: string[]; reason?: string; code?: string; field?: string }
         | null
       const why = json?.reasons ?? []
+      const { reason, code, field } = json ?? {}
+      if (res.status === 429) {
+        setErrorKind('rate-limited')
+        setStatus('error')
+        return
+      }
+      if (res.status === 422 && reason === 'contact-invalid') {
+        setErrorKind(
+          code === 'email-reserved' || code === 'email-domain-no-mail' || code === 'phone-invalid' || code === 'name-invalid' || code === 'contact-blocked'
+            ? code
+            : 'contact-invalid',
+        )
+        setErrorField(field === 'name' || field === 'email' || field === 'phone' ? field : null)
+        setStatus('error')
+        return
+      }
       setErrorKind(
         why.includes('OVER_CAPACITY') || why.includes('ALREADY_BOOKED')
           ? 'full'
@@ -1293,6 +1330,9 @@ function Booking({
                     type="text"
                     required
                     autoComplete="name"
+                    ref={nameRef}
+                    aria-invalid={status === 'error' && errorField === 'name' ? true : undefined}
+                    aria-describedby={status === 'error' && errorField === 'name' ? 'ph-booking-error' : undefined}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full rounded-xl border px-3.5 py-3 font-hanken text-sm outline-none"
@@ -1308,6 +1348,9 @@ function Booking({
                       type="email"
                       required
                       autoComplete="email"
+                      ref={emailRef}
+                      aria-invalid={status === 'error' && errorField === 'email' ? true : undefined}
+                      aria-describedby={status === 'error' && errorField === 'email' ? 'ph-booking-error' : undefined}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full rounded-xl border px-3.5 py-3 font-hanken text-sm outline-none"
@@ -1322,6 +1365,9 @@ function Booking({
                       type="tel"
                       required
                       autoComplete="tel"
+                      ref={phoneRef}
+                      aria-invalid={status === 'error' && errorField === 'phone' ? true : undefined}
+                      aria-describedby={status === 'error' && errorField === 'phone' ? 'ph-booking-error' : undefined}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="w-full rounded-xl border px-3.5 py-3 font-hanken text-sm outline-none"
@@ -1346,15 +1392,19 @@ function Booking({
             </div>
 
             {status === 'error' && (
-              <p role="alert" className="mt-3 rounded-xl px-3.5 py-2.5 font-hanken text-xs leading-relaxed" style={{ background: '#FBE9E9', color: '#8C2B2B' }}>
-                {errorKind === 'full'
-                  ? tri(lang, 'Ekki nógu mörg pláss laus í þessari brottför. Veldu annan tíma eða hringdu í', 'There are not enough places left on this departure. Pick another time or call', 'Für diesen Termin sind nicht mehr genug Plätze frei. Wählen Sie eine andere Startzeit oder rufen Sie an:')
-                  : errorKind === 'soon'
-                    ? tri(lang, 'Þessi brottför er of nálægt í tíma til að bóka á netinu. Hringdu í', 'This departure is too soon to request online. Please call', 'Für diesen Termin ist eine Online-Anfrage nicht mehr möglich. Bitte rufen Sie an:')
-                    : errorKind === 'day'
-                      ? tri(lang, 'Þessi dagur er ekki í boði. Veldu annan dag eða hringdu í', 'This day is not available. Pick another day or call', 'Dieser Tag ist nicht verfügbar. Wählen Sie einen anderen Tag oder rufen Sie an:')
-                      : t.errorText}{' '}
-                <a className="font-semibold underline underline-offset-2" href={PHONE_HREF}>{PHONE_DISPLAY}</a>
+              <p id="ph-booking-error" role="alert" className="mt-3 rounded-xl px-3.5 py-2.5 font-hanken text-xs leading-relaxed" style={{ background: '#FBE9E9', color: '#8C2B2B' }}>
+                {errorKind in contactErrors
+                  ? contactErrors[errorKind as keyof typeof contactErrors]
+                  : errorKind === 'full'
+                    ? tri(lang, 'Ekki nógu mörg pláss laus í þessari brottför. Veldu annan tíma eða hringdu í', 'There are not enough places left on this departure. Pick another time or call', 'Für diesen Termin sind nicht mehr genug Plätze frei. Wählen Sie eine andere Startzeit oder rufen Sie an:')
+                    : errorKind === 'soon'
+                      ? tri(lang, 'Þessi brottför er of nálægt í tíma til að bóka á netinu. Hringdu í', 'This departure is too soon to request online. Please call', 'Für diesen Termin ist eine Online-Anfrage nicht mehr möglich. Bitte rufen Sie an:')
+                      : errorKind === 'day'
+                        ? tri(lang, 'Þessi dagur er ekki í boði. Veldu annan dag eða hringdu í', 'This day is not available. Pick another day or call', 'Dieser Tag ist nicht verfügbar. Wählen Sie einen anderen Tag oder rufen Sie an:')
+                        : t.errorText}
+                {(!(errorKind in contactErrors) || errorKind === 'contact-blocked' || errorKind === 'rate-limited') && (
+                  <>{' '}<a className="font-semibold underline underline-offset-2" href={PHONE_HREF}>{PHONE_DISPLAY}</a></>
+                )}
               </p>
             )}
 
