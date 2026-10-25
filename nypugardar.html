@@ -27,6 +27,20 @@
          comes, and tells Hero.tsx not to replay it late. Reduced motion and
          deep links (#hash) never hold. -->
     <script>try{var d=document.documentElement;if(!matchMedia('(prefers-reduced-motion: reduce)').matches&&!location.hash){history.scrollRestoration='manual';d.dataset.nypIntro='held';setTimeout(function(){if(d.dataset.nypIntro==='held')d.dataset.nypIntro='released'},3500)}}catch(e){}</script>
+    <!-- The hero arrival, started early. The hold above used to wait for React to
+         hydrate, and on a phone that sits behind a 173 KB lazy chunk: the wordmark
+         and the tagline stayed hidden until the 3.5 s failsafe let go. Everything the
+         arrival needs is already in the prerendered page, so it starts as soon as the
+         hero is parsed, the stylesheet is in, the photograph is decoded and the two
+         Erode faces are loaded (or at 3 s, so a slow photo never keeps the name
+         hidden). It only flips data-nyp-intro held -> playing, after two painted
+         frames so the held state has been drawn once; the transitions themselves
+         are CSS in Hero.tsx, with the same easing, durations and delays as the React
+         path, which stays as the fallback and leaves a running arrival alone.
+         Past 1.7 s the whole arrival (tagline fully up about 1.9 s after it starts)
+         would land later than the 3.5 s failsafe, so it is skipped and the page is
+         simply released, as the failsafe does, only sooner. -->
+    <script>try{(function(){var d=document.documentElement;if(d.dataset.nypIntro!=='held')return;var on=false,seen=false,mo;function go(){if(on)return;on=true;if(mo)mo.disconnect();requestAnimationFrame(function(){requestAnimationFrame(function(){if(d.dataset.nypIntro!=='held')return;if(performance.now()>1700){d.dataset.nypIntro='released';return}d.dataset.nypIntro='playing';setTimeout(function(){if(d.dataset.nypIntro==='playing')d.dataset.nypIntro='released'},2800)})})}function ready(){var l=document.querySelector('link[rel=stylesheet]');if(l&&!l.sheet){l.addEventListener('load',ready,{once:true});return}var i=document.querySelector('.nyp-hero-photo'),w=[];if(i&&i.decode)w.push(i.decode());if(document.fonts&&document.fonts.load)w.push(document.fonts.load('300 1em Erode'),document.fonts.load('italic 300 1em Erode'));Promise.all(w.map(function(p){return p.catch(function(){})})).then(go)}function look(){if(seen||!document.querySelector('.nyp-fog--near'))return;seen=true;if(mo)mo.disconnect();ready()}look();if(!seen){mo=new MutationObserver(look);mo.observe(d,{childList:true,subtree:true})}setTimeout(go,Math.max(0,3000-performance.now()))})()}catch(e){}</script>
     <!-- focus-guard (_tools/focus-guard): a focus ring only for people using a keyboard.
          Safari and every touch tap never focus a pressed button, so a dialog that moves
          focus into itself (the photo zoom on /rooms/) painted a ring on its close button

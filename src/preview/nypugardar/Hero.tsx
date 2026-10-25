@@ -30,6 +30,7 @@ import { isTouch, loadMotion, scrub } from './motion'
 const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
 const EASE_REVEAL = 'cubic-bezier(0.16, 1, 0.3, 1)'
 const WORDMARK = 'Nýpugarðar'
+const LETTER_DELAY = (i: number) => 250 + i * 45
 const BASE = import.meta.env.BASE_URL
 
 const HERO_CSS = `
@@ -54,6 +55,14 @@ const HERO_CSS = `
 html[data-nyp-intro="held"] .nyp-letter { transform: translateY(105%); }
 html[data-nyp-intro="held"] .nyp-hero-photo { transform: scale(1.06); }
 html[data-nyp-intro="held"] .nyp-kicker { opacity: 0; }
+/* The arrival, started by nypugardar.html the moment the photograph and the
+   type are ready instead of when React has hydrated. The SAME numbers as the
+   inline transitions below (photo 2.2s, letters 1.4s staggered 45ms from
+   250ms, kicker 0.9s after 900ms); keep the two in step. */
+html[data-nyp-intro="playing"] .nyp-hero-photo { transform: scale(1); transition: transform 2.2s ${EASE_REVEAL}; }
+html[data-nyp-intro="playing"] .nyp-letter { transform: translateY(0); transition: transform 1.4s ${EASE_REVEAL} 250ms; }
+${Array.from(WORDMARK, (_, i) => `html[data-nyp-intro="playing"] .nyp-letter:nth-child(${i + 1}) { transition-delay: ${LETTER_DELAY(i)}ms; }`).join('\n')}
+html[data-nyp-intro="playing"] .nyp-kicker { opacity: 1; transition: opacity 0.9s ease 900ms; }
 /* The drift only runs while the hero can be seen: three full-viewport layers
    compositing behind the rest of the page is cost with nothing to show. */
 header[data-offscreen] .nyp-fog img { animation-play-state: paused; }
@@ -77,12 +86,15 @@ export default function Hero({ t, reduced }: { t: Copy; reduced: boolean }) {
    * takes the hold over inline (no transition, so nothing moves), drops the
    * attribute, and releases on the next frames with the transitions on.
    * If the failsafe already released it, the page has been readable for a
-   * while: never replay. Catalogue (client render, no attribute): the layout
-   * effect runs before first paint, so it can hide and release the same way. */
+   * while: never replay. If nypugardar.html already started the arrival
+   * ('playing', plain CSS transitions on the prerendered nodes), leave it be:
+   * an inline style here would cancel it mid-flight. Catalogue (client render,
+   * no attribute): the layout effect runs before first paint, so it can hide
+   * and release the same way. */
   useIsoLayoutEffect(() => {
     const root = document.documentElement
     const mark = root.dataset.nypIntro
-    if (mark === 'released') return
+    if (mark === 'released' || mark === 'playing') return
     if (reduced || (!mark && window.scrollY > 40)) {
       delete root.dataset.nypIntro
       return
@@ -227,7 +239,7 @@ export default function Hero({ t, reduced }: { t: Copy; reduced: boolean }) {
                         phase === 'static'
                           ? undefined
                           : on
-                            ? { transform: 'translateY(0)', transition: `transform 1.4s ${EASE_REVEAL} ${250 + i * 45}ms` }
+                            ? { transform: 'translateY(0)', transition: `transform 1.4s ${EASE_REVEAL} ${LETTER_DELAY(i)}ms` }
                             : { transform: 'translateY(105%)', transition: 'none' }
                       }
                     >
