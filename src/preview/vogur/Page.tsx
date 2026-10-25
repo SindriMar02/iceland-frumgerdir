@@ -7,8 +7,9 @@ import { getPreviewCompany } from '../companies'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { setThemeColor } from '../../lib/preview'
+import { Booking, BOOKING_CSS } from './Booking'
 import {
-  IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, ADDRESS, BOOKING_URL,
+  IMG, EMAIL, EMAIL_HREF, PHONE_DISPLAY, PHONE_HREF, ADDRESS,
   NAV, HERO, ARRIVAL, STATEMENT, STATEMENT_BODY, QUOTE, ROOMS, ROOMS_NOTE, HOUSE,
   EVENINGS, ISLANDS, WINTER, DALIR, DISTANCES, CIERRE, CREDIT_NOTE, JSON_LD,
   MAP, PLACES, RATING, REVIEWS,
@@ -404,6 +405,8 @@ const PAGE_STYLES = `
 .vg-saga-fig .vg-m-src img { height: 118%; }
 .vg-saga-copy { max-width: 36rem; }
 .vg-saga-title { overflow-wrap: normal; hyphens: manual; }
+/* headings break into even lines, never a lone word (SplitText keeps the browser's breaks) */
+.vg-root h1, .vg-root h2, .vg-root h3, .vg-saga-title, .vg-barn-title, .vg-cierre-word, .vg-statement .vg-sline { text-wrap: balance; }
 .vg-saga-title { font-family: ${DISPLAY}; font-weight: 200; font-size: min(3.6vw, 8svh); line-height: 1.04; }
 .vg-saga-credit { margin-top: .9rem; color: ${INK_MUTE}; font-size: .8rem; }
 .vg-saga-rows { margin-top: 2.2rem; }
@@ -719,11 +722,28 @@ function Media(props: {
   )
 }
 
+/* the booking sheet speaks Vogur: its tokens, and a button reset at zero
+   specificity so the sheet's own class rules always win */
+const BOOK_STYLES = `
+.vg-root { --forest: ${INK}; --secondary: ${INK_MUTE}; --line: ${HAIR_INK}; --mist: rgba(35,53,66,.06);
+  --paper: ${PLASTER}; --display: ${DISPLAY}; --body: ${GROTESK}; --mono: ${MONO}; --ease: cubic-bezier(.23,1,.32,1); }
+:where(.bk) button, :where(.vg-plain) { appearance: none; background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; cursor: pointer; text-align: inherit; }
+button.vg-btn { background: none; font-family: ${GROTESK}; font-size: 12px; padding: calc(.85em - 1.5px) calc(1.9em - 1.5px); border: 1.5px solid currentColor; }
+.bk { font-family: ${GROTESK}; }
+${BOOKING_CSS}`
+
 export default function VogurPage() {
   const rootRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  useBodyLock(menuOpen)
+  /* the SNDR booking sheet: which room, and whether it was opened from the
+     keyboard (e.detail === 0) so focus lands on a day, never a boxed control */
+  const [book, setBook] = useState({ open: false, room: 'double', kb: false })
+  const openBook = (room: string | null, e: { detail: number }) => {
+    setMenuOpen(false)
+    setBook((b) => ({ open: true, room: room ?? b.room, kb: e.detail === 0 }))
+  }
+  useBodyLock(menuOpen || book.open)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -980,7 +1000,12 @@ export default function VogurPage() {
       ctx.add(fn)
       pumpId = window.setTimeout(pump, 0)
     }
-    pumpId = window.setTimeout(pump, 160)
+    /* split headings only once the real fonts are in: lines measured in the
+       fallback face re-wrap when the font swaps ("into / the / New World") */
+    let pumpCancelled = false
+    Promise.race([document.fonts.ready, new Promise((r) => window.setTimeout(r, 2500))]).then(() => {
+      if (!pumpCancelled) pumpId = window.setTimeout(pump, 60)
+    })
     let refreshId = 0
     const onImg = (e: Event) => {
       if ((e.target as HTMLElement).tagName !== 'IMG') return
@@ -988,7 +1013,7 @@ export default function VogurPage() {
       refreshId = window.setTimeout(() => ScrollTrigger.refresh(), 250)
     }
     root.addEventListener('load', onImg, true)
-    cleanupFns.push(() => { window.clearTimeout(pumpId); window.clearTimeout(refreshId); root.removeEventListener('load', onImg, true) })
+    cleanupFns.push(() => { pumpCancelled = true; window.clearTimeout(pumpId); window.clearTimeout(refreshId); root.removeEventListener('load', onImg, true) })
 
     /* cursor — lerp + swell + content-swap */
     let cursorCleanup: (() => void) | undefined
@@ -1094,7 +1119,7 @@ export default function VogurPage() {
 
   return (
     <div ref={rootRef} className="vg-root" style={{ minHeight: '100svh' }}>
-      <style dangerouslySetInnerHTML={{ __html: PAGE_STYLES }} />
+      <style dangerouslySetInnerHTML={{ __html: PAGE_STYLES + BOOK_STYLES }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
       <div className="vg-cursor" ref={cursorRef} aria-hidden="true">
@@ -1145,9 +1170,9 @@ export default function VogurPage() {
               </div>
             ))}
             <div className="vg-menu-item">
-              <a href={BOOKING_URL} target="_blank" rel="noreferrer" className={`vg-menu-link ${FOCUS}`}>
+              <button type="button" aria-haspopup="dialog" className={`vg-menu-link vg-plain ${FOCUS}`} onClick={(e) => openBook(null, e)}>
                 <em>Book a room</em>
-              </a>
+              </button>
             </div>
           </nav>
           <div className="vg-menu-foot vg-caps">
@@ -1245,17 +1270,17 @@ export default function VogurPage() {
                         <div style={{ overflow: 'clip' }}><span className="vg-pop vg-acc-line">{r.line} <b style={{ fontWeight: 500 }}>{r.price}</b> a night.</span></div>
                         <div style={{ overflow: 'clip' }}>
                           <span className="vg-pop vg-acc-cta">
-                            <a
-                              href={BOOKING_URL}
-                              target="_blank"
-                              rel="noreferrer"
-                              className={`vg-btn ${FOCUS}`}
+                            <button
+                              type="button"
+                              aria-haspopup="dialog"
+                              onClick={(e) => openBook(r.id, e)}
+                              className={`vg-btn vg-plain ${FOCUS}`}
                               style={{ ['--vg-fill' as string]: PLASTER, color: 'inherit' }}
                               data-cursor="Book"
                               data-fill-ink={INK}
                             >
                               <span>Book</span>
-                            </a>
+                            </button>
                           </span>
                         </div>
                       </div>
@@ -1397,11 +1422,11 @@ export default function VogurPage() {
                 </h2>
                 <p className="vg-cierre-sub">{CIERRE.sub}</p>
                 <div className="vg-cierre-ctas">
-                  <a href={BOOKING_URL} target="_blank" rel="noreferrer" data-cursor="Book"
-                    className={`vg-btn ${FOCUS}`} style={{ ['--vg-fill' as string]: PLASTER, color: PLASTER }}
+                  <button type="button" aria-haspopup="dialog" onClick={(e) => openBook(null, e)} data-cursor="Book"
+                    className={`vg-btn vg-plain ${FOCUS}`} style={{ ['--vg-fill' as string]: PLASTER, color: PLASTER }}
                     data-fill-ink={ACCENT}>
                     <span>Check availability</span>
-                  </a>
+                  </button>
                   <a href={EMAIL_HREF} className={`vg-under ${FOCUS}`} style={{ color: PLASTER, textDecoration: 'none', fontSize: '12px', letterSpacing: '.16em', textTransform: 'uppercase' }}>
                     or write to them
                   </a>
@@ -1429,7 +1454,7 @@ export default function VogurPage() {
               <dt>Call</dt>
               <dd><a className={`vg-rollify ${FOCUS}`} href={PHONE_HREF}>{PHONE_DISPLAY}</a></dd>
               <dt>Book</dt>
-              <dd><a className={`vg-rollify ${FOCUS}`} href={BOOKING_URL} target="_blank" rel="noreferrer">Live availability</a></dd>
+              <dd><button type="button" aria-haspopup="dialog" className={`vg-rollify vg-plain ${FOCUS}`} onClick={(e) => openBook(null, e)}>Book a room</button></dd>
             </dl>
             <dl>
               <dt>Find us</dt>
@@ -1450,6 +1475,9 @@ export default function VogurPage() {
 
       <PreviewChrome company={company} />
       <PreviewFooter company={company} />
+      <Booking open={book.open} room={book.room} viaKeyboard={book.kb}
+        onRoom={(room) => setBook((b) => ({ ...b, room }))}
+        onClose={() => setBook((b) => ({ ...b, open: false }))} />
     </div>
   )
 }
