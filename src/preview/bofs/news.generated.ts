@@ -6,30 +6,14 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-10-25T11:27:49.874Z
+ * Last synced: 2026-10-26T13:01:48.623Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 25. október 2026', en: 'Updated 25 October 2026' }
+export const SYNCED_AT = { is: 'Uppfært 26. október 2026', en: 'Updated 26 October 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
-  {
-    "date": "20.10.2026",
-    "source": "Stjórnarráðið",
-    "topic": "samstarf",
-    "title": {
-      "is": "Framtíðarsýn um samhæfða stafræna innviði í þágu farsældar barna",
-      "en": "Framtíðarsýn um samhæfða stafræna innviði í þágu farsældar barna"
-    },
-    "href": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/framtidarsyn-um-samhaefda-stafraena-innvidi-i-thagu-farsaeldar-barna",
-    "untranslated": true,
-    "summary": {
-      "is": "St&#253;rih&#243;pur mennta- og barnam&#225;lar&#225;&#240;uneytisins og Sambands &#237;slenskra sveitarf&#233;laga um samh&#230;f&#240;a stafr&#230;na innvi&#240;i &#237; &#254;&#225;gu fars&#230;ldar barna hefur loki&#240; st&#246;rfum. H&#243;purinn...",
-      "en": "St&#253;rih&#243;pur mennta- og barnam&#225;lar&#225;&#240;uneytisins og Sambands &#237;slenskra sveitarf&#233;laga um samh&#230;f&#240;a stafr&#230;na innvi&#240;i &#237; &#254;&#225;gu fars&#230;ldar barna hefur loki&#240; st&#246;rfum. H&#243;purinn..."
-    },
-    "summaryUntranslated": true
-  },
   {
     "date": "15.10.2026",
     "source": "BOFS",
