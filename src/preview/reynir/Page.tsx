@@ -18,8 +18,8 @@
 
 import { noticeIsActive, shortDate, upcomingExceptions, type DateException } from './availability'
 import { useModalFocus } from './useModalFocus'
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import Chrome from './Chrome'
 import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
@@ -1260,6 +1260,25 @@ function ReynirPageInner() {
      Deterministic false on first render, so the prerendered HTML and the
      browser agree. */
   const [menu, setMenu] = useState(false)
+  const navigate = useNavigate()
+  const pendingHome = useRef(false)
+  const scrollHome = () => window.scrollTo({ top: 0, left: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
+  const onHomeClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    e.preventDefault()
+    navigate(P.home, { replace: true, state: { keepScroll: true } })
+    if (menu) {
+      pendingHome.current = true
+      setMenu(false)
+    } else {
+      scrollHome()
+    }
+  }
+  useEffect(() => {
+    if (menu || !pendingHome.current) return
+    pendingHome.current = false
+    scrollHome()
+  }, [menu])
 
   /* Anchor links inside the panel cannot rely on the browser's own jump: at
      the instant of the click the body is still overflow:hidden for the scroll
@@ -1449,7 +1468,7 @@ function ReynirPageInner() {
       
       <div className="rb-awning" id="top" aria-hidden="true" />
       <div className="rb-stickybar">
-        <a href="#top" className="rb-sticky-logo" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
+        <a href={P.home} onClick={onHomeClick} className="rb-sticky-logo" aria-label="Reynir bakari" style={{ display: 'flex', alignItems: 'center' }}>
           <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 96, height: 'auto', display: 'block' }} />
         </a>
         {/* FOUR destinations, not five. "Úr ofninum" and "Brauð" read as two
@@ -1524,7 +1543,9 @@ function ReynirPageInner() {
           bottom as the only filled button, where a thumb already is. */}
       <div className="rb-menu" id="rb-mobile-menu" data-open={menu} aria-hidden={!menu}>
         <div className="rb-menu-top">
-          <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 104, height: 'auto', display: 'block' }} />
+          <a href={P.home} onClick={onHomeClick} aria-label="Reynir bakari" tabIndex={menu ? 0 : -1}>
+            <img src={LOGO} alt="" width={132} height={57} decoding="async" style={{ width: 104, height: 'auto', display: 'block' }} />
+          </a>
           <button
             type="button"
             className="rb-burger rb-burger-close"

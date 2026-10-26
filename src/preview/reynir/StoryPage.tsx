@@ -158,7 +158,9 @@ function StoryPageInner() {
           </svg>
           {t.storyBack}
         </Link>
-        <img src={LOGO} alt="Reynir bakari" width={132} height={57} decoding="async" style={{ width: 92, height: 'auto' }} />
+        <Link to={P.home} style={{ display: 'flex' }}>
+          <img src={LOGO} alt="Reynir bakari" width={132} height={57} decoding="async" style={{ width: 92, height: 'auto' }} />
+        </Link>
         <div role="group" aria-label="Language" style={{ display: 'flex', gap: 2 }}>
           <button className="rb-st-lang" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
           <span aria-hidden="true" style={{ color: FAINT, alignSelf: 'center' }}>/</span>
