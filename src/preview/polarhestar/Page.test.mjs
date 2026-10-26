@@ -21,7 +21,7 @@ async function request(httpStatus, body, failure = false) {
   const env = {
     status: 'idle', tooFew: false, tour: { id: 'test', name: { en: 'Ride' }, times: ['10:00'] }, time: '10:00',
     date: '2027-06-01', adults: 1, children: 0, name: 'Guest', email: 'guest@example.org', phone: '+3541234567', note: '',
-    lang: 'en', riders: [{ experience: 'some' }], total: 100, BOOKING_API: 'https://offline.invalid', AbortController,
+    timeOpen: () => true, lang: 'en', riders: [{ experience: 'some' }], total: 100, BOOKING_API: 'https://offline.invalid', AbortController,
     window: { setTimeout: () => 1, clearTimeout: () => { result.cleared = true } },
     fetch: async (_url, options) => {
       result.payload = JSON.parse(options.body)
@@ -95,5 +95,17 @@ test('failed submit focuses only an existing visible field, for either input mod
         assert.equal(focused, state === 'visible' ? 1 : 0, `${modality}/${field}/${state}`)
       }
     }
+  }
+})
+
+test('submit refuses an unavailable or stale departure before contacting the booking API', async () => {
+  for (const time of ['09:00', null]) {
+    let contacted = false
+    await compile(submit, {
+      status: 'idle', tooFew: false, tour: { times: ['09:00', '10:00'] }, time,
+      timeOpen: () => false,
+      fetch: () => { contacted = true },
+    })({ preventDefault() {} })
+    assert.equal(contacted, false)
   }
 })

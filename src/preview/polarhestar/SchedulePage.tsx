@@ -1,3 +1,4 @@
+import { timesOn, departureNote } from './shortRideTimes'
 /**
  * Pólar Hestar — the schedule page (/preview/polarhestar/dagskra).
  *
@@ -444,7 +445,6 @@ function SchedulePageInner() {
                   {tri(lang, 'Börn', 'Children', 'Kinder')} {isk(Math.max(0, t.price - CHILD_DISCOUNT), lang)}
                   {' · '}
                   {t.level[lang]}
-                  {t.minRiders > 1 ? ` · ${tri(lang, `lágmark ${t.minRiders} knapar`, `min. ${t.minRiders} riders`, `mind. ${t.minRiders} Reiter`)}` : ''}
                 </p>
                 <dl className="mt-4 grid grid-cols-2 gap-3 border-t pt-4 text-[0.84rem]" style={{ borderColor: '#161B3C14', color: INK }}>
                   <div>
@@ -455,7 +455,7 @@ function SchedulePageInner() {
                     <dt className="text-[0.68rem] font-semibold tracking-[0.1em] uppercase" style={{ color: SLATE }}>{tri(lang, 'Brottför', 'Departs', 'Startzeiten')}</dt>
                     <dd className="mt-0.5 flex flex-wrap gap-1.5">
                       {t.times?.length ? (
-                        t.times.map((h) => (
+                        timesOn(t).map((h) => (
                           <span key={h} className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 tabular-nums" style={{ background: `${INK}0a` }}>
                             <Clock className="h-3 w-3" aria-hidden="true" style={{ color: SLATE }} />
                             {h}
@@ -467,6 +467,7 @@ function SchedulePageInner() {
                           {tri(lang, 'Eftir samkomulagi', 'By arrangement', 'Nach Absprache')}
                         </span>
                       )}
+                      {departureNote(t, lang) && <span className="w-full text-xs">{departureNote(t, lang)}</span>}
                     </dd>
                   </div>
                 </dl>

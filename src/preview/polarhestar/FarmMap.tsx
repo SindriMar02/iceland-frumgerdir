@@ -26,8 +26,10 @@ const WATER = '#D9EAF6'
 const ROAD = '#C9D1DE'
 
 const GRYTUBAKKI: [number, number] = [65.934, -18.115]
-/** The riding area: centre and half-extents in degrees, from the farthest points the ride texts name. */
-const AREA = { lat: 65.945, lon: -18.128, dLat: 0.031, dLon: 0.068 }
+/** Expanded envelope: 65.907–65.983 N, -18.255–-18.055 E.
+ * Extends west beyond Höfði into the fjord, then the real coastline mask
+ * clips it to shore; FARM.land is water in this frame, not land. */
+const AREA = { lat: 65.945, lon: -18.155, dLat: 0.038, dLon: 0.100 }
 // the frame shows the area with its surroundings (the fjord, Grenivík, Laufás)
 const VIEW = (() => {
   const [x0, y0] = project(FARM, 65.995, -18.29)

@@ -6,7 +6,8 @@
  * used as a CSS mask so the ink line takes any colour (currentColor) and stays
  * one file. It does the same job here: it stands next to a departure's places
  * status, turns away when the departure is full, and trots once along a
- * hairline at the end of a tour page.
+ * hairline at the end of a tour page, where their designer's elf (forwarded
+ * 26 Oct 2026, `_docs/polarhestar-2026-10-26/`) pops up and waves it in.
  */
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
@@ -14,6 +15,7 @@ const SRC = {
   right: `${import.meta.env.BASE_URL}polarhestar/horse-right.svg`,
   left: `${import.meta.env.BASE_URL}polarhestar/horse-left.svg`,
 }
+const ELF = `url("${import.meta.env.BASE_URL}polarhestar/elf.svg")`
 
 export function Horse({ facing = 'right', className = '', style }: { facing?: 'left' | 'right'; className?: string; style?: CSSProperties }) {
   const url = `url("${SRC[facing]}")`
@@ -42,7 +44,8 @@ export function horseFor(status: string, tone: 'dark' | 'light') {
 
 /**
  * A hairline with the horse trotting in from the left once, the first time it
- * scrolls into view, and resting a little right of centre. Still for reduced motion.
+ * scrolls into view, and resting a little right of centre, where the elf pops
+ * up and waves as it arrives. Still for reduced motion.
  */
 export function HorseRule({ color, line }: { color: string; line: string }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -68,17 +71,23 @@ export function HorseRule({ color, line }: { color: string; line: string }) {
         .ph-horse-rule .ph-hr-horse{position:absolute;bottom:7px;left:58%;width:72px;transform:translateX(-60vw);opacity:0}
         .ph-horse-rule[data-go="true"] .ph-hr-horse{animation:phTrot 2.6s cubic-bezier(.25,.6,.3,1) forwards}
         .ph-horse-rule[data-go="true"] .ph-hr-step{animation:phStep .32s ease-in-out 8 alternate}
+        .ph-horse-rule .ph-hr-elf{position:absolute;bottom:7px;left:calc(58% + 84px);width:40px;aspect-ratio:1;transform-origin:50% 100%;transform:scale(.4);opacity:0}
+        .ph-horse-rule[data-go="true"] .ph-hr-elf{animation:phElfUp .45s cubic-bezier(.3,1.5,.5,1) 2.1s forwards,phElfWave .5s ease-in-out 2.6s 4 alternate}
+        @keyframes phElfUp{to{transform:none;opacity:1}}
+        @keyframes phElfWave{from{transform:rotate(0)}to{transform:rotate(-7deg)}}
         @keyframes phTrot{0%{transform:translateX(-60vw);opacity:0}12%{opacity:1}100%{transform:none;opacity:1}}
         @keyframes phStep{from{transform:translateY(0)}to{transform:translateY(-2px)}}
         @media (prefers-reduced-motion: reduce){
           .ph-horse-rule .ph-hr-horse,.ph-horse-rule[data-go="true"] .ph-hr-horse{animation:none;transform:none;opacity:1}
           .ph-horse-rule[data-go="true"] .ph-hr-step{animation:none}
+          .ph-horse-rule .ph-hr-elf,.ph-horse-rule[data-go="true"] .ph-hr-elf{animation:none;transform:none;opacity:1}
         }
       ` }} />
       <span className="absolute inset-x-0 bottom-2 h-px" style={{ background: line }} />
       <span className="ph-hr-horse">
         <Horse className="ph-hr-step block w-full" style={{ color }} />
       </span>
+      <span className="ph-hr-elf" style={{ background: color, WebkitMask: `${ELF} center / contain no-repeat`, mask: `${ELF} center / contain no-repeat` }} />
     </div>
   )
 }

@@ -281,9 +281,9 @@ export const SCHEDULE_COPY = {
     de: 'Alle Mehrtagesritte mit ihren Terminen und die kurzen Ausritte nach Jahreszeit. Die Termine kommen direkt von uns vom Hof.',
   } as L3,
   longTerms: {
-    is: 'Við bókun greiðist 20% staðfestingargjald og eftirstöðvar tveimur vikum fyrir brottför. Við sækjum gesti á flugvöllinn eða umferðarmiðstöðina á Akureyri síðdegis fyrsta daginn, oftast milli kl. 16 og 18. Fullt fæði er innifalið. Því miður getum við ekki tekið á móti vegan gestum eða fólki með alvarlegt fæðuofnæmi.',
-    en: 'A 20% deposit is due on booking and the rest two weeks before departure. We pick guests up at the airport or bus station in Akureyri on the first afternoon, usually between 4 and 6 pm. Full board is included. We are sorry that we cannot accommodate vegan guests or people with severe food allergies.',
-    de: 'Bei der Buchung sind 20 % Anzahlung fällig, der Rest zwei Wochen vor Reisebeginn. Wir holen unsere Gäste am ersten Nachmittag am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16:00 und 18:00 Uhr. Vollpension ist inbegriffen. Leider können wir keine veganen Gäste oder Menschen mit schweren Lebensmittelallergien aufnehmen.',
+    is: 'Í janúar óskum við eftir 20% staðfestingargjaldi og eftirstöðvunum, 80%, tveimur vikum fyrir brottför. Við sækjum gesti á flugvöllinn eða umferðarmiðstöðina á Akureyri síðdegis fyrsta daginn, oftast milli kl. 16 og 18. Fullt fæði er innifalið. Því miður getum við ekki tekið á móti vegan gestum eða fólki með alvarlegt fæðuofnæmi.',
+    en: 'A 20% deposit is requested in January and the remaining 80% two weeks before departure. We pick guests up at the airport or bus station in Akureyri on the first afternoon, usually between 4 and 6 pm. Full board is included. We are sorry that we cannot accommodate vegan guests or people with severe food allergies.',
+    de: 'Im Januar bitten wir um 20 % Anzahlung und zwei Wochen vor Reisebeginn um die restlichen 80 %. Wir holen unsere Gäste am ersten Nachmittag am Flughafen oder Busbahnhof in Akureyri ab, meist zwischen 16:00 und 18:00 Uhr. Vollpension ist inbegriffen. Leider können wir keine veganen Gäste oder Menschen mit schweren Lebensmittelallergien aufnehmen.',
   } as L3,
   shortTerms: {
     is: 'Stuttar ferðir má bóka í tölvupósti eða síma, +354 896 1879. Greitt er eftir ferðina og við tökum við greiðslukortum. Hámarksþyngd knapa er 95 kg. Henti tímarnir ekki, hafðu samband og við finnum tíma.',
@@ -480,9 +480,9 @@ export const GOOD_TO_KNOW: GoodToKnowData = {
       audience: 'long',
       title: { is: 'Greiðsla', en: 'Payment', de: 'Bezahlung' },
       body: {
-        is: 'Engin greiðsla fer fram á netinu. Við bókun er 20% staðfestingargjald og eftirstöðvar greiðast tveimur vikum fyrir brottför.',
-        en: 'No payment is taken online. A 20% deposit is due on booking, with the rest due two weeks before departure.',
-        de: 'Es wird nichts online bezahlt. Bei der Buchung bitten wir um 20 % Anzahlung, der Rest ist zwei Wochen vor Beginn fällig.',
+        is: 'Engin greiðsla fer fram á netinu. Í janúar óskum við eftir 20% staðfestingargjaldi og eftirstöðvunum, 80%, tveimur vikum fyrir brottför.',
+        en: 'No payment is taken online. A 20% deposit is requested in January and the remaining 80% two weeks before departure.',
+        de: 'Es wird nichts online bezahlt. Im Januar bitten wir um 20 % Anzahlung und zwei Wochen vor Beginn um die restlichen 80 %.',
       },
     },
     {
@@ -592,7 +592,7 @@ export const COPY = {
     statHorses: 'hross',
 
     storyEyebrow: 'Grýtubakki II · Eyjafjörður',
-    storyH2: 'Frá 1985 við lengsta fjörðinn',
+    storyH2: 'Reiðtúrar á Norðurlandi síðan 1985',
     storyP1:
       'Pólar Hestar hafa boðið upp á hestaferðir frá árinu 1985. Það byrjaði allt með rúmlega 15 hestum en í dag erum við með um 160 hross og bjóðum upp á ýmiss konar reiðtúra.',
     storyP2:
@@ -658,7 +658,7 @@ export const COPY = {
     longBadge: 'Júní–sept',
     longQuestions: 'Spurningar? Sendu á',
     longBody:
-      'Frá júní og fram í september leggjum við í lengri ferðir um óbyggðir Norðurlands. Gisting, fullt fæði og skutl frá Akureyri eru innifalin og 20% staðfestingargjald tryggir sætið.',
+      'Frá júní til september förum við í lengri reiðferðir um óbyggðir Norðurlands. Gisting, fullt fæði og akstur frá Akureyri eru innifalin. Þegar þú hefur fyllt út bókunareyðublaðið sem við sendum þér í tölvupósti staðfestum við bókunina. Í janúar færðu beiðni um greiðslu á 20% af heildarverðinu. Tveimur vikum áður en ferðin hefst óskum við eftir greiðslu á eftirstöðvunum, 80%.',
     enquireBtn: 'Fá tilboð',
 
     galleryH2: 'Svipmyndir frá bænum',
@@ -707,7 +707,7 @@ export const COPY = {
     statHorses: 'horses',
 
     storyEyebrow: 'Grýtubakki II · Eyjafjörður',
-    storyH2: 'By the longest fjord since 1985',
+    storyH2: 'Riding Tours in North Iceland since 1985',
     storyP1:
       'Pólar Hestar has offered riding tours since 1985. It all began with a small herd of about 15 horses; today around 160 horses live on the farm and we offer all kinds of rides.',
     storyP2:
@@ -772,7 +772,7 @@ export const COPY = {
     longBadge: 'June–Sept',
     longQuestions: 'Questions? Write to',
     longBody:
-      'From June to September we set out on longer tours across the wilds of North Iceland. Lodging, full board and the Akureyri transfer are included, and a 20% deposit secures your place.',
+      'From June to September we set out on longer tours across the wilds of North Iceland. Lodging, full board and the Akureyri transfer are included. After filling out our booking form, that was sent to you via email we will confirm and in January you will get a request for the payment of 20%. 2 weeks before the ride starts we ask for the remaining amount of 80%.',
     enquireBtn: 'Request a quote',
 
     galleryH2: 'Snapshots from the farm',
@@ -821,7 +821,7 @@ export const COPY = {
     statHorses: 'Pferde',
 
     storyEyebrow: 'Grýtubakki II · Eyjafjörður',
-    storyH2: 'Seit 1985 am längsten Fjord',
+    storyH2: 'Reittouren in Nordisland seit 1985',
     storyP1:
       'Pólar Hestar bietet seit 1985 Reittouren im Norden Islands an. Angefangen hat alles mit einer kleinen Herde von rund fünfzehn Pferden, heute leben etwa 160 Pferde auf dem Hof.',
     storyP2:
@@ -888,7 +888,7 @@ export const COPY = {
     longBadge: 'Juni–Sept.',
     longQuestions: 'Fragen? Schreiben Sie an',
     longBody:
-      'Von Juni bis September brechen wir zu längeren Touren durch die unberührte Natur Nordislands auf. Preise und Termine sind veröffentlicht, eine Anzahlung von 20 % sichert den Platz.',
+      'Von Juni bis September unternehmen wir längere Touren durch die unberührte Natur Nordislands. Übernachtungen, Vollpension und der Transfer von Akureyri sind im Preis inbegriffen.\n\nNachdem Sie unser Buchungsformular ausgefüllt haben, das Ihnen per E-Mail zugesandt wurde, bestätigen wir Ihre Buchung. Im Januar erhalten Sie eine Zahlungsaufforderung von 20 % des Gesamtbetrags. Zwei Wochen vor Beginn der Reittour bitten wir Sie, die restlichen 80 % zu bezahlen.',
     enquireBtn: 'Angebot anfragen',
 
     galleryH2: 'Bilder vom Hof',

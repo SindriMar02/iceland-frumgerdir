@@ -57,16 +57,19 @@ export function LongTourSlider({ tours, lang }: { tours: LongTourX[]; lang: Lang
   // drag to scroll on mouse; touch keeps native momentum + snap
   const onDown = (e: RPointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== 'mouse' || !ref.current) return
+    // no pointer capture yet: capturing on press retargets the click to the slider, so links never open
     drag.current = { x: e.clientX, left: ref.current.scrollLeft, moved: false }
-    ref.current.setPointerCapture(e.pointerId)
   }
   const onMove = (e: RPointerEvent<HTMLDivElement>) => {
     const d = drag.current
     const el = ref.current
     if (!d || !el) return
     const dx = e.clientX - d.x
-    if (Math.abs(dx) > 4) d.moved = true
-    el.scrollLeft = d.left - dx
+    if (!d.moved && Math.abs(dx) > 4) {
+      d.moved = true
+      el.setPointerCapture(e.pointerId)
+    }
+    if (d.moved) el.scrollLeft = d.left - dx
   }
   const onUp = (e: RPointerEvent<HTMLDivElement>) => {
     const el = ref.current
@@ -76,7 +79,7 @@ export function LongTourSlider({ tours, lang }: { tours: LongTourX[]; lang: Lang
       el.addEventListener('click', (ev) => ev.preventDefault(), { once: true, capture: true })
     }
     drag.current = null
-    el.releasePointerCapture(e.pointerId)
+    if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId)
   }
 
   return (

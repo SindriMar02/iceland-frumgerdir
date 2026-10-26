@@ -1,3 +1,4 @@
+import { timesOn, departureNote } from './shortRideTimes'
 /**
  * Pólar Hestar — one short tour (/preview/polarhestar/reidtur/:id).
  *
@@ -143,11 +144,10 @@ function ShortTourInner() {
           [tri(lang, 'Börn 12 ára og yngri 2027', 'Children 12 and under 2027', 'Kinder bis 12 Jahre 2027'), isk(Math.max(0, tour.price2027 - CHILD_DISCOUNT), lang)],
         ] as Array<[string, string]>)
       : []),
-    [tri(lang, 'Brottfarir', 'Departure times', 'Startzeiten'), tour.times?.length ? tour.times.join(', ') : tri(lang, 'Eftir samkomulagi', 'On request', 'Auf Anfrage')],
+    [tri(lang, 'Brottfarir', 'Departure times', 'Startzeiten'), tour.times?.length ? [timesOn(tour).join(', '), departureNote(tour, lang)].filter(Boolean).join(' · ') : tri(lang, 'Eftir samkomulagi', 'On request', 'Auf Anfrage')],
     [tri(lang, 'Árstími', 'Season', 'Saison'), monthsLabel(tour.months, lang)],
     [tri(lang, 'Reynsla', 'Riding level', 'Reiterfahrung'), tri(lang, 'Fyrir alla', 'All levels', 'Alle Erfahrungsstufen')],
     [tri(lang, 'Lágmarksaldur', 'Minimum age', 'Mindestalter'), tri(lang, `${tour.minAge} ára`, `${tour.minAge} years`, `${tour.minAge} Jahre`)],
-    [tri(lang, 'Lágmarksfjöldi', 'Min. participants', 'Mind. Teilnehmer'), String(tour.minRiders)],
     [tri(lang, 'Hámarksþyngd', 'Weight limit', 'Gewichtslimit'), '95 kg'],
   ]
 

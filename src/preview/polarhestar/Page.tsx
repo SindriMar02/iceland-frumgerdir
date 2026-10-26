@@ -1,3 +1,4 @@
+import { timesOn } from './shortRideTimes'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import {
@@ -27,7 +28,7 @@ import { RideTable } from './RideTable'
 import { faqEntries } from './faq'
 import { ClientOnly, useLang } from './lang'
 import { useLiveClock } from './now'
-import { STANDALONE, linkHref, ridePath, schedulePath } from './paths'
+import { STANDALONE, asset, linkHref, ridePath, schedulePath } from './paths'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { COPY, FOUNDED, INSTAGRAM, TRIPADVISOR, priceOn, type GtkAudience, type Lang } from './data'
@@ -166,14 +167,14 @@ function bookable(iso: string, minute: number, now = Date.now()) {
   const hours = (Date.UTC(y, m - 1, d) + minute * 60000 - now) / 3600000
   return hours >= LEAD_HOURS && hours / 24 <= HORIZON_DAYS
 }
-const startsOf = (tour: Pick<TourX, 'times'>) => (tour.times?.length ? tour.times.map(toMinute) : [0])
+const startsOf = (tour: Pick<TourX, 'times'>, date: string) => (tour.times?.length ? timesOn(tour, date).map(toMinute) : [0])
 /** First and last day a request for this tour can be made right now. */
 function requestWindow(tour: Pick<TourX, 'times'>, now = Date.now()) {
   const t = new Date(now)
   const day = (i: number) => new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() + i)).toISOString().slice(0, 10)
-  const open = (iso: string) => startsOf(tour).some((m) => bookable(iso, m, now))
+  const open = (iso: string) => startsOf(tour, iso).some((m) => bookable(iso, m, now))
   let lo = 0
-  while (lo < 3 && !open(day(lo))) lo++
+  while (lo <= HORIZON_DAYS && !open(day(lo))) lo++
   let hi = HORIZON_DAYS + 1
   while (hi > lo && !open(day(hi))) hi--
   return { minIso: day(lo), maxIso: day(hi) }
@@ -856,8 +857,8 @@ function Booking({
   // only days and departures the platform will take: 12 hours ahead at the soonest, a year at the latest
   const { minIso, maxIso } = requestWindow(tour)
   const [date, setDate] = useState(() => isoDay(new Date(today.getTime() + 7 * 864e5)))
-  const [time, setTime] = useState<string | null>(tour.times?.[0] ?? null)
-  const timeOpen = (slot: string) => bookable(date, toMinute(slot))
+  const [time, setTime] = useState<string | null>(timesOn(tour, date)[0] ?? null)
+  const timeOpen = (slot: string) => timesOn(tour, date).includes(slot) && bookable(date, toMinute(slot))
   const [adults, setAdults] = useState(1)
   const [children, setChildren] = useState(0)
   const [done, setDone] = useState(false)
@@ -877,7 +878,7 @@ function Booking({
   }, [done])
   // Picking a different tour starts a fresh request (and keeps its published times valid)
   useEffect(() => {
-    setTime(tour.times?.[0] ?? null)
+    setTime(timesOn(tour, date)[0] ?? null)
     setDone(false)
     // a date the new tour can't run on is nudged forward to the first one it can
     setDate((d0) => {
@@ -921,9 +922,9 @@ function Booking({
   // a departure that has come inside the 12 hours (late on the first day) is swapped for the next one
   useEffect(() => {
     if (!tour.times?.length) return
-    setTime((cur) => (cur && bookable(date, toMinute(cur)) ? cur : tour.times!.find((x) => bookable(date, toMinute(x))) ?? null))
+    setTime((cur) => (cur && timesOn(tour, date).includes(cur) && bookable(date, toMinute(cur)) ? cur : timesOn(tour, date).find((x) => bookable(date, toMinute(x))) ?? null))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, tour.id])
+  }, [date, tour.id, tour.times])
   /* One line per rider, the question the farm asks every guest: how much has
      each person ridden, and how old is each child. Adults first, then children,
      resized as the steppers move without losing what was already chosen. */
@@ -974,7 +975,7 @@ function Booking({
    */
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (status === 'sending' || tooFew || (tour.times?.length && !time)) return
+    if (status === 'sending' || tooFew || (tour.times?.length && (!time || !timeOpen(time)))) return
     setStatus('sending')
     setErrorField(null)
     // a hung network must never leave the button stuck at "Sendi…"
@@ -1194,7 +1195,7 @@ function Booking({
                     <span aria-hidden="true" className="mr-1 font-hanken text-xs tracking-wide uppercase" style={{ color: SLATE }}>
                       {t.timeLabel}
                     </span>
-                    {tour.times.map((slot) => {
+                    {timesOn(tour, date).map((slot) => {
                       const active = slot === time
                       const open = timeOpen(slot)
                       return (
@@ -1241,9 +1242,9 @@ function Booking({
               <p className="mt-2 font-hanken text-xs leading-relaxed" style={{ color: CLAY_TX }}>
                 {tri(
                   lang,
-                  `Í mesta lagi ${cap} knapar í þessa ferð. Fyrir stærri hópa, hringdu í `,
-                  `This ride takes up to ${cap} riders. For a larger group, call `,
-                  `Bis zu ${cap} Reiter pro Ritt. Für größere Gruppen rufen Sie an: `,
+                  'Fyrir stærri hópa, hringdu í ',
+                  'For a larger group, call ',
+                  'Für größere Gruppen rufen Sie an: ',
                 )}
                 <a className="font-semibold underline underline-offset-2" href={PHONE_HREF}>{PHONE_DISPLAY}</a>
               </p>
@@ -1252,9 +1253,9 @@ function Booking({
               <p className="mt-2 font-hanken text-xs leading-relaxed" style={{ color: CLAY_TX }}>
                 {tri(
                   lang,
-                  `Þessi ferð er farin fyrir minnst ${tour.minRiders} knapa.`,
-                  `This ride needs at least ${tour.minRiders} riders.`,
-                  `Dieser Ritt findet ab ${tour.minRiders} Reitern statt.`,
+                  'Bættu við knapa til að geta sent bókunarbeiðnina.',
+                  'Add another rider to send your booking request.',
+                  'Fügen Sie einen weiteren Reiter hinzu, um Ihre Buchungsanfrage zu senden.',
                 )}
               </p>
             )}
@@ -1429,7 +1430,7 @@ function Booking({
               </div>
               <button
                 type="submit"
-                disabled={status === 'sending' || tooFew}
+                disabled={status === 'sending' || tooFew || (!!tour.times?.length && (!time || !timeOpen(time)))}
                 data-busy={status === 'sending'}
                 className="ph-cta-send inline-flex items-center gap-2 rounded-full px-5 py-3 font-hanken text-sm font-semibold text-white shadow-lg transition-transform duration-500 ease-[cubic-bezier(.2,.7,.2,1)] hover:-translate-y-0.5 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
                 style={{ background: CLAY_FILL }}
@@ -2431,9 +2432,9 @@ function PolarHestarPageInner() {
               </a>
             </p>
           </Reveal>
-          <p className="mt-4 max-w-2xl font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
-            {t.longBody}
-          </p>
+          <div className="mt-4 max-w-2xl space-y-4 font-hanken text-sm leading-relaxed" style={{ color: BODY }}>
+            {t.longBody.split(/\n\s*\n/).map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+          </div>
 
           <Reveal className="mt-7">
             <LongTourSlider tours={LONG_TOURS} lang={lang} />
@@ -2915,6 +2916,28 @@ function PolarHestarPageInner() {
           </Reveal>
         </div>
       </section>
+        {/* Their Ferðamálastofa licence seal, bottom of the home page (owners asked 26 Oct 2026) */}
+        <section className="px-5 pt-4 pb-14 md:px-8" aria-label={t.credLicensed}>
+          <div className="mx-auto flex max-w-6xl items-center justify-center gap-5">
+            <img
+              src={asset('polarhestar/ferdamalastofa-leyfi.webp')}
+              alt={`Ferðamálastofa · ${t.credLicensed} · 2006-071`}
+              width={288}
+              height={299}
+              loading="lazy"
+              decoding="async"
+              className="h-auto w-24 md:w-28"
+            />
+            <span className="text-left font-hanken">
+              <span className="block text-sm font-semibold" style={{ color: INK }}>
+                {t.credLicensed}
+              </span>
+              <span className="block text-xs" style={{ color: SLATE }}>
+                {t.credAuthority}
+              </span>
+            </span>
+          </div>
+        </section>
       </main>
 
       <div className="pb-20 md:pb-0">

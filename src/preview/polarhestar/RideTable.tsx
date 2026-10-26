@@ -2,7 +2,7 @@
  * Pólar Hestar — the short rides side by side, as a real HTML table.
  *
  * The ride cards are the way to browse; this is the way to compare: how long,
- * when it runs, from what age, how many riders, what it costs this year and
+ * when it runs, from what age, what it costs this year and
  * next. A <table> with a caption and scoped headers, so a screen reader reads
  * it cell by cell and a search or answer engine can lift "which ride is
  * longest / cheapest / open in winter" straight out of it. Every cell comes
@@ -61,7 +61,6 @@ export function RideTable({ lang }: { lang: Lang }) {
               <th scope="col" className={head}>{tri(lang, 'Lengd', 'Duration', 'Dauer')}</th>
               <th scope="col" className={head}>{tri(lang, 'Árstími', 'Season', 'Saison')}</th>
               <th scope="col" className={head}>{tri(lang, 'Lágmarksaldur', 'Minimum age', 'Mindestalter')}</th>
-              <th scope="col" className={head}>{tri(lang, 'Knapar', 'Riders', 'Reiter')}</th>
               <th scope="col" className={`${head} text-right`}>{tri(lang, 'Verð 2026', 'Price 2026', 'Preis 2026')}</th>
               {has2027 && <th scope="col" className={`${head} text-right`}>{tri(lang, 'Verð 2027', 'Price 2027', 'Preis 2027')}</th>}
             </tr>
@@ -78,7 +77,6 @@ export function RideTable({ lang }: { lang: Lang }) {
                 <td className="px-4 py-3.5 whitespace-nowrap">{stegaClean(t.meta[lang]).split(' · ')[0]}</td>
                 <td className="px-4 py-3.5 whitespace-nowrap">{monthsLabel(t.months, lang)}</td>
                 <td className="px-4 py-3.5 whitespace-nowrap">{tri(lang, `${t.minAge} ára`, `${t.minAge} years`, `${t.minAge} Jahre`)}</td>
-                <td className="px-4 py-3.5 whitespace-nowrap">{t.minRiders === t.maxRiders ? t.maxRiders : `${t.minRiders}–${t.maxRiders}`}</td>
                 <td className="px-4 py-3.5 text-right whitespace-nowrap tabular-nums">{isk(t.price, lang)}</td>
                 {has2027 && (
                   <td className="px-4 py-3.5 text-right whitespace-nowrap tabular-nums">
