@@ -2933,7 +2933,8 @@ function PolarHestarPageInner() {
                 {t.credLicensed}
               </span>
               <span className="block text-xs" style={{ color: SLATE }}>
-                {t.credAuthority}
+                {/* non-breaking hyphen: the licence number never splits on a phone */}
+                {t.credAuthority.replace('2006-071', '2006‑071')}
               </span>
             </span>
           </div>
