@@ -196,7 +196,7 @@ const PAGE_CSS = `
 .hb-galI img{position:absolute;inset:10%;width:80%;height:80%;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(28,18,12,.3));
   transform:translateY(130%);transition:transform var(--dur,2.44s) var(--ease);transition-delay:var(--d,0s)}
 .on .hb-galI img{transform:none}
-@media (hover:hover) and (pointer:fine) and (min-width:992px){
+@media (hover:hover) and (pointer:fine){
   .hb-galL li{overflow:visible}
   .hb-galK{padding-top:9vh;margin-top:-4.5vh;padding-bottom:9rem;margin-bottom:-9rem;position:relative;z-index:3;pointer-events:none}
   .hb-galL{pointer-events:auto}
@@ -211,7 +211,7 @@ const PAGE_CSS = `
   .hb-galInfo small{color:var(--c-ink-med);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hb-galL li:hover .hb-galInfo,.hb-galI:focus-visible .hb-galInfo{opacity:1;transform:none}
 }
-@media not ((hover:hover) and (pointer:fine) and (min-width:992px)){.hb-galInfo{display:none}}
+@media not ((hover:hover) and (pointer:fine)){.hb-galInfo{display:none}}
 @media (prefers-reduced-motion:reduce){.hb-galI,.hb-galInfo,.hb-galI img{transition:none !important}}
 @media (max-width:991px){
   .hb-gal{row-gap:3.788vh}
@@ -220,6 +220,7 @@ const PAGE_CSS = `
   .hb-galK::-webkit-scrollbar{display:none}
   .hb-galL li{width:14.714vw;height:19.01vw;scroll-snap-align:start}
 }
+@media (hover:hover) and (pointer:fine) and (max-width:991px){.hb-galK{padding-top:2rem;margin-top:-1rem;padding-bottom:4.5rem;margin-bottom:-4.5rem}.hb-galL li{overflow:visible}}
 @media (max-width:479px){.hb-gal{row-gap:3.75vh}.hb-galL li{width:34.167vw;height:44.444vw}}
 
 
