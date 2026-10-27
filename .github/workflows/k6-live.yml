@@ -32,7 +32,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  TARGET: preview
+  TARGET: live
   CLOUDFLARE_ACCOUNT_ID: 381fb216c6a65237476b5583061b3648
 
 jobs:
