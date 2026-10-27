@@ -2,14 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import type { Body as MBody, Constraint as MConstraint } from 'matter-js'
 import { Merki } from './ui'
 import { ASSETS } from './assets.gen'
-import { BASE, PK, PRODUCTS } from './vorur'
+import { BASE, PK, PRODUCTS, V } from './vorur'
 
 
 
 type Mynd = { src: string; w: number; h: number; n: string; k: 'poki' | 'stong' | 'kassi' | 'egg' | 'laus' }
 
 // Lausar hnetur og ávextir: 40 stakir bitar (loose/ í hberg-build), dreift á milli pokanna.
-const LAUSIR: Mynd[] = Array.from({ length: 40 }, (_, i) => ({ src: `${BASE}hberg/laus/p${String(i).padStart(2, '0')}.webp`, w: 1, h: 1, n: '', k: 'laus' as const }))
+const LAUSIR: Mynd[] = Array.from({ length: 40 }, (_, i) => ({ src: `${BASE}hberg/laus/p${String(i).padStart(2, '0')}.webp${V}`, w: 1, h: 1, n: '', k: 'laus' as const }))
 const blanda = (pokar: Mynd[], nPoka: number, nLausra: number) => {
   const ut: Mynd[] = []
   const p = pokar.slice(0, nPoka)

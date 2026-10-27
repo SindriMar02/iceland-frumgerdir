@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 import { PokaHnappur, poki } from './poki'
 import { pop } from './popup'
-import { BASE } from './vorur'
+import { BASE, V } from './vorur'
 
 
 
@@ -506,7 +506,7 @@ export function Haus() {
     <header ref={haus} className={`hb-haus${valmynd ? ' opin' : ''}`}>
       <a className="hb-merkid" href="#top" aria-label="H-Berg, á forsíðu"
         onClick={(e) => { e.preventDefault(); setOpid(null); const l = lenisOf(); if (l) l.scrollTo(0); else window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) }}>
-        <img src={`${import.meta.env.BASE_URL}hberg/brand/logo.svg`} alt="H-Berg" width={460} height={212} decoding="async" />
+        <img src={`${import.meta.env.BASE_URL}hberg/brand/logo.svg${V}`} alt="H-Berg" width={460} height={212} decoding="async" />
       </a>
       <div className="hb-hausH">
         <nav className="hb-nav" aria-label="Aðalvalmynd">
@@ -536,10 +536,10 @@ export function Haus() {
           <div id="hb-valPan" tabIndex={-1} className={`hb-pan hb-valPan${valmynd ? ' opid' : ''}`}>
             <div className="hb-valKort">
               <a href="#vorur" onClick={(e) => fara(e, { h: '#vorur', t: '' })}>
-                <img src={`${BASE}hberg/laus/p00.webp`} alt="" width={128} height={128} style={{ height: 64, width: 'auto' }} />Hnetur
+                <img src={`${BASE}hberg/laus/p00.webp${V}`} alt="" width={128} height={128} style={{ height: 64, width: 'auto' }} />Hnetur
               </a>
               <a href="#vorur" onClick={(e) => fara(e, { h: '#vorur', t: '' })}>
-                <img src={`${BASE}hberg/laus/p06.webp`} alt="" width={128} height={128} style={{ height: 64, width: 'auto' }} />Ávextir
+                <img src={`${BASE}hberg/laus/p06.webp${V}`} alt="" width={128} height={128} style={{ height: 64, width: 'auto' }} />Ávextir
               </a>
             </div>
             {HOPAR.map((g, gi) => (

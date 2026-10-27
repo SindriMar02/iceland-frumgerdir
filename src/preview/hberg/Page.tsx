@@ -12,7 +12,7 @@ import { Eydublad, EYD_CSS } from './eydublad'
 import { SPYRJA } from './forms'
 import { KATALOGUR } from './katalogur'
 import { leita, skilmali, stutt } from './ofnaemi'
-import { ALLERGENS, PK, PRODUCTS, productBySlug, type Allergen } from './vorur'
+import { ALLERGENS, PK, PRODUCTS, productBySlug, type Allergen, V } from './vorur'
 import {
   ERINDI, FYRIRTAEKI, GALLERI, HERO_REITIR, JSON_LD, KORT3, LINUR, SETNING, SETNING_HRINGUR, SOGUHOPAR, SPJOLD, SPURT, TEXTI,
   TEYMI, TILVITNUN, type Leid,
@@ -23,8 +23,8 @@ import {
 const B = import.meta.env.BASE_URL
 const M = (slug: string) => PK(slug, 'pack', 'm')
 // 'laus:pNN' = a single loose nut or fruit (hberg/laus), everything else a pack shot.
-const Ms = (slug: string) => slug.startsWith('laus:') ? `${B}hberg/laus/${slug.slice(5)}.webp`
-  : slug.startsWith('hero:') ? `${B}hberg/hero/${slug.slice(5)}.webp` : PK(slug, 'pack', 's')
+const Ms = (slug: string) => slug.startsWith('laus:') ? `${B}hberg/laus/${slug.slice(5)}.webp${V}`
+  : slug.startsWith('hero:') ? `${B}hberg/hero/${slug.slice(5)}.webp${V}` : PK(slug, 'pack', 's')
 
 
 function bezier(p1x: number, p1y: number, p2x: number, p2y: number) {
@@ -1003,7 +1003,7 @@ function Fotur() {
           <button className="hb-fotUpp hb-casH" onClick={upp}><Cas t="Aftur upp" /> ↑</button>
         </div>
         <div className="hb-fotMerki">
-          <a href="#top" aria-label="H-Berg, forsíða"><img src={`${B}hberg/brand/logo.svg`} alt="H-Berg" width={280} height={129} loading="lazy" /></a>
+          <a href="#top" aria-label="H-Berg, forsíða"><img src={`${B}hberg/brand/logo.svg${V}`} alt="H-Berg" width={280} height={129} loading="lazy" /></a>
         </div>
         <p className="hb-slogan" ref={slag} aria-label={SLAGORD}>
           {[...SLAGORD].map((c, i) => <span key={i} aria-hidden="true"><span>{c === ' ' ? '\u00A0' : c}</span></span>)}
