@@ -86,7 +86,7 @@ const PAGE_CSS = `
 .hb-rist{background:var(--c-el);display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);
   gap:1.04vw;padding:14.72svh var(--gut) 5svh 3.75vw;height:100%}
 .hb-reit{margin:0;overflow:hidden;position:relative;background:var(--grunnur)}
-.hb-reit img{position:absolute;inset:10% 9%;width:82%;height:80%;object-fit:contain;filter:drop-shadow(0 14px 18px rgba(28,18,12,.28))}
+.hb-reit img{position:absolute;inset:10% 9%;width:82%;height:80%;object-fit:contain;scale:var(--k,1);filter:drop-shadow(0 14px 18px rgba(28,18,12,.28))}
 .hb-rist:not(.on) .hb-reit img{transform:translateY(125%)}
 .hb-reit:nth-child(1){grid-area:1/1/2/2}.hb-reit:nth-child(2){grid-area:1/2/2/3}
 .hb-reit:nth-child(3){grid-area:2/2/3/3}.hb-reit:nth-child(4){grid-area:2/3/3/4}
@@ -454,7 +454,7 @@ function Hero() {
         </Reveal>
         <Reveal className="hb-rist">
           {HERO_REITIR.map((r, i) => (
-            <figure className="hb-reit hb-mask" key={r.img} style={{ '--grunnur': r.grunnur } as CSSProperties}>
+            <figure className="hb-reit hb-mask" key={r.img} style={{ '--grunnur': r.grunnur, '--k': r.k } as CSSProperties}>
               <img className="hb-up" style={step(i)} src={Ms(r.img)} alt={r.n} width={300} height={340}
                 loading={i < 4 ? 'eager' : 'lazy'} decoding="async" />
             </figure>
