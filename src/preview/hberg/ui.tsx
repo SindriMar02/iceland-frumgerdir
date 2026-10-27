@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 import { PokaHnappur, poki } from './poki'
 import { pop } from './popup'
-import { PK } from './vorur'
+import { BASE } from './vorur'
 
 
 
@@ -536,10 +536,10 @@ export function Haus() {
           <div id="hb-valPan" tabIndex={-1} className={`hb-pan hb-valPan${valmynd ? ' opid' : ''}`}>
             <div className="hb-valKort">
               <a href="#vorur" onClick={(e) => fara(e, { h: '#vorur', t: '' })}>
-                <img src={PK('mondlur', 'pack', 's')} alt="" width={460} height={520} style={{ height: 64, width: 'auto' }} />Hnetur
+                <img src={`${BASE}hberg/laus/p00.webp`} alt="" width={128} height={128} style={{ height: 64, width: 'auto' }} />Hnetur
               </a>
               <a href="#vorur" onClick={(e) => fara(e, { h: '#vorur', t: '' })}>
-                <img src={PK('aprikosur-2', 'pack', 's')} alt="" width={460} height={520} style={{ height: 64, width: 'auto' }} />Ávextir
+                <img src={`${BASE}hberg/laus/p06.webp`} alt="" width={128} height={128} style={{ height: 64, width: 'auto' }} />Ávextir
               </a>
             </div>
             {HOPAR.map((g, gi) => (

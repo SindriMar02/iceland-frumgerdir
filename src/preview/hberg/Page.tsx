@@ -22,7 +22,9 @@ import {
 
 const B = import.meta.env.BASE_URL
 const M = (slug: string) => PK(slug, 'pack', 'm')
-const Ms = (slug: string) => PK(slug, 'pack', 's')
+// 'laus:pNN' = a single loose nut or fruit (hberg/laus), everything else a pack shot.
+const Ms = (slug: string) => slug.startsWith('laus:') ? `${B}hberg/laus/${slug.slice(5)}.webp`
+  : slug.startsWith('hero:') ? `${B}hberg/hero/${slug.slice(5)}.webp` : PK(slug, 'pack', 's')
 
 
 function bezier(p1x: number, p1y: number, p2x: number, p2y: number) {
@@ -84,7 +86,7 @@ const PAGE_CSS = `
 .hb-rist{background:var(--c-el);display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);
   gap:1.04vw;padding:14.72svh var(--gut) 5svh 3.75vw;height:100%}
 .hb-reit{margin:0;overflow:hidden;position:relative;background:var(--grunnur)}
-.hb-reit img{position:absolute;inset:2% -6%;width:112%;height:96%;object-fit:contain;filter:drop-shadow(0 14px 18px rgba(28,18,12,.28))}
+.hb-reit img{position:absolute;inset:10% 9%;width:82%;height:80%;object-fit:contain;filter:drop-shadow(0 14px 18px rgba(28,18,12,.28))}
 .hb-rist:not(.on) .hb-reit img{transform:translateY(125%)}
 .hb-reit:nth-child(1){grid-area:1/1/2/2}.hb-reit:nth-child(2){grid-area:1/2/2/3}
 .hb-reit:nth-child(3){grid-area:2/2/3/3}.hb-reit:nth-child(4){grid-area:2/3/3/4}
