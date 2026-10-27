@@ -198,17 +198,17 @@ const PAGE_CSS = `
 .on .hb-galI img{transform:none}
 @media (hover:hover) and (pointer:fine) and (min-width:992px){
   .hb-galL li{overflow:visible}
-  .hb-galK{padding-top:9vh;margin-top:-4.5vh}
+  .hb-galK{padding-top:9vh;margin-top:-4.5vh;padding-bottom:9rem;margin-bottom:-9rem;position:relative;z-index:3;pointer-events:none}
+  .hb-galL{pointer-events:auto}
+  .hb-galL li{position:relative}
   .hb-galI{border-radius:4px;transition:transform .45s var(--ease),box-shadow .45s var(--ease)}
   .hb-galL li:hover .hb-galI,.hb-galI:focus-visible{transform:translateY(-6px);box-shadow:0 18px 34px -18px rgba(28,18,12,.45)}
   .hb-galI img{transition:transform var(--dur,2.44s) var(--ease),inset .45s var(--ease)}
-  .hb-galL li:hover .hb-galI img,.hb-galI:focus-visible img{inset:4% 14% 34% 14%;width:72%;height:62%}
-  .hb-galInfo{position:absolute;left:6px;right:6px;bottom:6px;padding:.55rem .6rem .5rem;border-radius:3px;background:var(--c-bg);
-    color:var(--c-ink);text-align:left;display:grid;gap:.12rem;font-size:.72rem;line-height:1.25;
-    opacity:0;transform:translateY(8px);transition:opacity .25s ease,transform .45s var(--ease);pointer-events:none}
-  .hb-galInfo b{font-weight:600;font-size:.8rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .hb-galInfo small{color:var(--c-ink-med);font-size:.68rem}
-  .hb-galInfo em{font-style:normal;font-weight:600;color:var(--c-rautt);font-size:.7rem;margin-top:.15rem}
+  .hb-galInfo{position:absolute;left:2px;right:2px;top:calc(100% + 12px);display:grid;gap:.15rem;text-align:left;
+    color:var(--c-ink);font-size:.78rem;line-height:1.3;pointer-events:none;
+    opacity:0;transform:translateY(-4px);transition:opacity .2s ease,transform .35s var(--ease)}
+  .hb-galInfo b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hb-galInfo small{color:var(--c-ink-med);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hb-galL li:hover .hb-galInfo,.hb-galI:focus-visible .hb-galInfo{opacity:1;transform:none}
 }
 @media not ((hover:hover) and (pointer:fine) and (min-width:992px)){.hb-galInfo{display:none}}
@@ -608,9 +608,7 @@ function Galleri() {
                 <img src={Ms(g.img)} alt="" width={300} height={340} loading="lazy" decoding="async" />
                 <span className="hb-galInfo" aria-hidden="true">
                   <b>{g.n}</b>
-                  <small>{g.d}</small>
-                  {g.a.length > 0 && <small>Inniheldur: {g.a.join(', ')}</small>}
-                  <em>Skoða nánar</em>
+                  <small>{g.a.length > 0 ? `${g.d} · Inniheldur ${g.a.join(', ').toLowerCase()}` : g.d}</small>
                 </span>
               </button>
             </li>
