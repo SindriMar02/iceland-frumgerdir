@@ -36,7 +36,7 @@ export const REGN_CSS = `
 .hb-svid img{position:absolute;left:0;top:0;will-change:transform;pointer-events:none;
   filter:drop-shadow(0 10px 14px rgba(28,18,12,.22));-webkit-user-drag:none}
 @media (max-width:640px){.hb-svid{height:clamp(24rem,64svh,34rem);margin-top:-5rem}}
-.hb-svid img.laus{filter:drop-shadow(0 3px 3px rgba(28,18,12,.22))}
+.hb-svid img.laus{filter:none}
 .hb-svid.grip{cursor:grab}
 .hb-svid.grip.held{cursor:grabbing}
 .hb-golf{position:absolute;left:var(--gut);right:var(--gut);bottom:0;height:1px;background:var(--c-lina)}
@@ -75,7 +75,7 @@ export function VoruRegn() {
       const H = el.clientHeight
       const simi = W < 640
       const u = Math.max(58, Math.min(118, W / (simi ? 5.6 : 12.5)))
-      const listi = simi ? blanda(MYNDIR, 4, 46) : blanda(MYNDIR, 7, 96)
+      const listi = simi ? blanda(MYNDIR, 4, 22) : blanda(MYNDIR, 6, 40)
 
       const engine = Engine.create({ enableSleeping: true })
       engine.gravity.y = 1.15
