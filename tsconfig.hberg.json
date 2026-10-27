@@ -1,0 +1,1 @@
+{ "extends": "./tsconfig.app.json", "compilerOptions": { "noEmit": true }, "include": ["src/preview/hberg", "src/focus-guard.ts", "src/vite-env.d.ts"] }
