@@ -506,7 +506,7 @@ export function Haus() {
     <header ref={haus} className={`hb-haus${valmynd ? ' opin' : ''}`}>
       <a className="hb-merkid" href="#top" aria-label="H-Berg, á forsíðu"
         onClick={(e) => { e.preventDefault(); setOpid(null); const l = lenisOf(); if (l) l.scrollTo(0); else window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) }}>
-        <img src={`${import.meta.env.BASE_URL}hberg/brand/logo.png`} alt="H-Berg" width={460} height={197} decoding="async" />
+        <img src={`${import.meta.env.BASE_URL}hberg/brand/logo.svg`} alt="H-Berg" width={460} height={212} decoding="async" />
       </a>
       <div className="hb-hausH">
         <nav className="hb-nav" aria-label="Aðalvalmynd">

@@ -1003,7 +1003,7 @@ function Fotur() {
           <button className="hb-fotUpp hb-casH" onClick={upp}><Cas t="Aftur upp" /> ↑</button>
         </div>
         <div className="hb-fotMerki">
-          <a href="#top" aria-label="H-Berg, forsíða"><img src={`${B}hberg/brand/logo.png`} alt="H-Berg" width={280} height={121} loading="lazy" /></a>
+          <a href="#top" aria-label="H-Berg, forsíða"><img src={`${B}hberg/brand/logo.svg`} alt="H-Berg" width={280} height={129} loading="lazy" /></a>
         </div>
         <p className="hb-slogan" ref={slag} aria-label={SLAGORD}>
           {[...SLAGORD].map((c, i) => <span key={i} aria-hidden="true"><span>{c === ' ' ? '\u00A0' : c}</span></span>)}

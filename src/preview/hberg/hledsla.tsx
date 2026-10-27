@@ -120,7 +120,7 @@ export function Hledsla() {
   return (
     <div className={`hb-plota${inn ? ' inn' : ''}`} aria-hidden="true">
       <div className="hb-plotaM">
-        <img src={`${import.meta.env.BASE_URL}hberg/brand/logo.png`} alt="" width={820} height={351} />
+        <img src={`${import.meta.env.BASE_URL}hberg/brand/logo.svg`} alt="" width={820} height={378} />
       </div>
     </div>
   )
