@@ -629,7 +629,11 @@ function GalleriDrift() {
   useEffect(() => {
     const k = document.querySelector<HTMLElement>('.hb-galK')
     const l = document.querySelector<HTMLElement>('.hb-galL')
-    if (!k || !l || isCompact() || reduced()) return
+    if (!k || !l) return
+    // the drift brings far tiles in faster than lazy loading fetches them; start them all once the strip is near
+    const pre = new IntersectionObserver(([e]) => { if (e.isIntersecting) { l.querySelectorAll('img').forEach((i) => { i.loading = 'eager' }); pre.disconnect() } }, { rootMargin: '100% 0px' })
+    pre.observe(k)
+    if (isCompact() || reduced()) return () => pre.disconnect()
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     let tx = 0, cx = 0, raf = 0
     // 57 tiles make the strip ~9x the window, so the follow is capped at 12 px a frame or it races
@@ -641,7 +645,7 @@ function GalleriDrift() {
       if (!raf) raf = requestAnimationFrame(tick)
     }
     k.addEventListener('mousemove', move)
-    return () => { k.removeEventListener('mousemove', move); cancelAnimationFrame(raf) }
+    return () => { pre.disconnect(); k.removeEventListener('mousemove', move); cancelAnimationFrame(raf) }
   }, [])
   return null
 }
