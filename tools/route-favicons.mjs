@@ -59,6 +59,7 @@ const BRAND = {
   '/preview/rafmidlun': 'rafmidlun/brand',
   '/preview/sambo': 'sambo/brand',
   '/preview/stod': 'stod/brand',
+  '/preview/exton': 'exton/brand',
   '/preview/vatt': 'vatt/brand',
   '/preview/xpeng': 'xpeng/brand',
   '/preview/steingardur': 'steingardur/brand',

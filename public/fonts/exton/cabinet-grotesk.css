@@ -1,0 +1,22 @@
+/**
+* @license
+*
+* Font Family: Cabinet Grotesk
+* Designed by: ITF
+* URL: https://www.fontshare.com/fonts/cabinet-grotesk
+* © 2026 Indian Type Foundry
+*
+* Cabinet Grotesk Thin 
+* Cabinet Grotesk Extralight 
+* Cabinet Grotesk Light 
+* Cabinet Grotesk Regular 
+* Cabinet Grotesk Medium 
+* Cabinet Grotesk Bold 
+* Cabinet Grotesk Extrabold 
+* Cabinet Grotesk Black 
+* Cabinet Grotesk Variable (Variable font)
+
+*
+*/
+@font-face {font-family:"CabinetGrotesk-Regular";src:url("./CabinetGrotesk-Regular.woff2") format("woff2");font-display:swap;}
+@font-face {font-family:"CabinetGrotesk-Medium";src:url("./CabinetGrotesk-Medium.woff2") format("woff2");font-display:swap;}
