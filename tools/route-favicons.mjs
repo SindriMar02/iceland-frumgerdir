@@ -52,6 +52,7 @@ const BRAND = {
   '/preview/bygg': 'bygg/brand',
   '/preview/benni': 'benni/brand',
   '/preview/isband': 'isband/brand',
+  '/preview/islyft': 'islyft/brand',
   '/preview/aegir': 'aegir/brand',
   '/preview/reykjafell': 'reykjafell/brand',
   '/preview/matvelar': 'matvelar/brand',
