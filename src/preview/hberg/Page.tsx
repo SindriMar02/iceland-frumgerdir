@@ -192,7 +192,7 @@ const PAGE_CSS = `
 .hb-galL{display:flex;gap:.7vw;padding:0 var(--gut);list-style:none;margin:0;will-change:transform;width:max-content}
 .hb-galL li{width:21.1111vh;height:25.9259vh;flex:none;overflow:hidden}
 .hb-galI{display:block;width:100%;height:100%;border:0;padding:0;cursor:pointer;background:var(--g);position:relative;
-  transform-origin:50% 100%;transition:transform .6s var(--ease)}
+  transform-origin:50% 100%;transition:transform .6s var(--ease);overflow:hidden}
 .hb-galI img{position:absolute;inset:10%;width:80%;height:80%;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(28,18,12,.3));
   transform:translateY(130%);transition:transform var(--dur,2.44s) var(--ease);transition-delay:var(--d,0s)}
 .on .hb-galI img{transform:none}
@@ -632,7 +632,8 @@ function GalleriDrift() {
     if (!k || !l || isCompact() || reduced()) return
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     let tx = 0, cx = 0, raf = 0
-    const tick = () => { cx += (tx - cx) * 0.045; l.style.transform = `translate3d(${cx.toFixed(1)}px,0,0)`; raf = Math.abs(tx - cx) > 0.3 ? requestAnimationFrame(tick) : 0 }
+    // 57 tiles make the strip ~9x the window, so the follow is capped at 12 px a frame or it races
+    const tick = () => { const d = (tx - cx) * 0.045; cx += Math.max(-12, Math.min(12, d)); l.style.transform = `translate3d(${cx.toFixed(1)}px,0,0)`; raf = Math.abs(tx - cx) > 0.3 ? requestAnimationFrame(tick) : 0 }
     const move = (e: MouseEvent) => {
       const r = k.getBoundingClientRect()
       const max = Math.max(0, l.scrollWidth - r.width)
