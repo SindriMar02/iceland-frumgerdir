@@ -189,7 +189,9 @@ const PAGE_CSS = `
 .hb-gal{display:flex;flex-direction:column;row-gap:9.2593vh}
 .hb-galT{width:62vw}
 .hb-galK{overflow:hidden;padding:4.5vh 0 0}
-.hb-galL{display:flex;gap:.7vw;padding:0 var(--gut);list-style:none;margin:0;will-change:transform;width:max-content}
+.hb-galL{display:flex;gap:.7vw;padding:0 var(--gut);list-style:none;margin:0;width:max-content}
+.hb-galW{position:relative}
+.hb-galNav{display:none}
 .hb-galL li{width:21.1111vh;height:25.9259vh;flex:none;overflow:hidden}
 .hb-galI{display:block;width:100%;height:100%;border:0;padding:0;cursor:pointer;background:var(--g);position:relative;
   transform-origin:50% 100%;transition:transform .6s var(--ease);overflow:hidden}
@@ -211,8 +213,16 @@ const PAGE_CSS = `
 .hb-galInfo b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hb-galInfo small{color:var(--c-ink-med);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (hover:hover) and (pointer:fine){
-  .hb-galK{position:relative;z-index:3;padding-bottom:5.5rem;margin-bottom:-5.5rem;pointer-events:none}
-  .hb-galL{pointer-events:auto}
+  /* the strip scrolls like a normal row: trackpad swipe, drag, or the arrows */
+  .hb-galK{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding-bottom:3.4rem;cursor:grab;user-select:none;-webkit-user-select:none}
+  .hb-galK::-webkit-scrollbar{display:none}
+  .hb-galK.drag{cursor:grabbing}
+  .hb-galK.drag .hb-galI{pointer-events:none}
+  .hb-galNav{display:flex;gap:.5rem;position:absolute;right:var(--gut);bottom:calc(100% + .25rem);z-index:4}
+  .hb-galNav button{width:2.75rem;height:2.75rem;border-radius:50%;border:1px solid var(--c-lina);background:transparent;color:var(--c-ink);
+    display:grid;place-items:center;cursor:pointer;transition:background .25s ease,color .25s ease,opacity .25s ease}
+  .hb-galNav button:hover:not(:disabled){background:var(--c-ink);color:var(--c-bg)}
+  .hb-galNav button:disabled{opacity:.3;cursor:default}
   .hb-galL li:hover .hb-galInfo,.hb-galL li:focus-within .hb-galInfo{opacity:1;transform:none}
 }
 @media (hover:hover) and (pointer:fine) and (max-width:991px){.hb-galK{padding-top:2rem;margin-top:-1rem}.hb-galL li{overflow:visible}}
@@ -603,6 +613,8 @@ function Galleri() {
       <Reveal className="hb-galT hb-midja" margin="0px 0px -40% 0px">
         <Ord id="hb-gal-t" className="hb-disp" text={"Allt H-Berg | í einni | hillu"} />
       </Reveal>
+      <div className="hb-galW">
+      <GalleriOrvar />
       <div className="hb-galK">
         <Reveal as="ul" className="hb-galL" margin="0px 0px -40% 0px">
           {GALLERI.map((g, i) => (
@@ -620,32 +632,74 @@ function Galleri() {
           ))}
         </Reveal>
       </div>
+      </div>
     </section>
   )
 }
 
+
+const Or = ({ d }: { d: string }) => (
+  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d={d} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+)
+function GalleriOrvar() {
+  const [endar, setEndar] = useState<[boolean, boolean]>([true, false])
+  useEffect(() => {
+    const k = document.querySelector<HTMLElement>('.hb-galK')
+    if (!k) return
+    const upd = () => setEndar([k.scrollLeft < 4, k.scrollLeft > k.scrollWidth - k.clientWidth - 4])
+    upd()
+    k.addEventListener('scroll', upd, { passive: true })
+    window.addEventListener('resize', upd)
+    return () => { k.removeEventListener('scroll', upd); window.removeEventListener('resize', upd) }
+  }, [])
+  const fara = (d: number) => {
+    const k = document.querySelector<HTMLElement>('.hb-galK')
+    if (k) k.scrollBy({ left: d * k.clientWidth * 0.8, behavior: reduced() ? 'auto' : 'smooth' })
+  }
+  return (
+    <div className="hb-galNav">
+      <button type="button" aria-label="Fyrri vörur" disabled={endar[0]} onClick={() => fara(-1)}><Or d="M10 3 5 8l5 5" /></button>
+      <button type="button" aria-label="Næstu vörur" disabled={endar[1]} onClick={() => fara(1)}><Or d="M6 3l5 5-5 5" /></button>
+    </div>
+  )
+}
 
 function GalleriDrift() {
   useEffect(() => {
     const k = document.querySelector<HTMLElement>('.hb-galK')
     const l = document.querySelector<HTMLElement>('.hb-galL')
     if (!k || !l) return
-    // the drift brings far tiles in faster than lazy loading fetches them; start them all once the strip is near
+    // far tiles scroll in faster than lazy loading fetches them; start them all once the strip is near
     const pre = new IntersectionObserver(([e]) => { if (e.isIntersecting) { l.querySelectorAll('img').forEach((i) => { i.loading = 'eager' }); pre.disconnect() } }, { rootMargin: '100% 0px' })
     pre.observe(k)
-    if (isCompact() || reduced()) return () => pre.disconnect()
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
-    let tx = 0, cx = 0, raf = 0
-    // 57 tiles make the strip ~9x the window, so the follow is capped at 12 px a frame or it races
-    const tick = () => { const d = (tx - cx) * 0.045; cx += Math.max(-12, Math.min(12, d)); l.style.transform = `translate3d(${cx.toFixed(1)}px,0,0)`; raf = Math.abs(tx - cx) > 0.3 ? requestAnimationFrame(tick) : 0 }
-    const move = (e: MouseEvent) => {
-      const r = k.getBoundingClientRect()
-      const max = Math.max(0, l.scrollWidth - r.width)
-      tx = -Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * max
-      if (!raf) raf = requestAnimationFrame(tick)
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return () => pre.disconnect()
+    // drag to scroll; no pointer capture (it kills the tile clicks), and a drag swallows the click it ends on
+    let x0 = 0, s0 = 0, nidri = false, dregid = false
+    const nidur = (e: MouseEvent) => { if (e.button !== 0) return; nidri = true; dregid = false; x0 = e.clientX; s0 = k.scrollLeft }
+    const hreyfa = (e: MouseEvent) => {
+      if (!nidri) return
+      const dx = e.clientX - x0
+      if (!dregid && Math.abs(dx) > 6) { dregid = true; k.classList.add('drag') }
+      if (dregid) { e.preventDefault(); k.scrollLeft = s0 - dx }
     }
-    k.addEventListener('mousemove', move)
-    return () => { pre.disconnect(); k.removeEventListener('mousemove', move); cancelAnimationFrame(raf) }
+    const gleypa = (e: Event) => { e.preventDefault(); e.stopPropagation() }
+    const upp = () => {
+      if (!nidri) return
+      nidri = false
+      if (!dregid) return
+      k.classList.remove('drag')
+      k.addEventListener('click', gleypa, { capture: true })
+      window.setTimeout(() => k.removeEventListener('click', gleypa, { capture: true }), 0)
+    }
+    const ekkiDraga = (e: DragEvent) => e.preventDefault()
+    k.addEventListener('mousedown', nidur)
+    k.addEventListener('dragstart', ekkiDraga)
+    window.addEventListener('mousemove', hreyfa)
+    window.addEventListener('mouseup', upp)
+    return () => {
+      pre.disconnect(); k.removeEventListener('mousedown', nidur); k.removeEventListener('dragstart', ekkiDraga)
+      window.removeEventListener('mousemove', hreyfa); window.removeEventListener('mouseup', upp)
+    }
   }, [])
   return null
 }
