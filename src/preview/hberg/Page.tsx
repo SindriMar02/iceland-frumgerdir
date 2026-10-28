@@ -196,23 +196,28 @@ const PAGE_CSS = `
 .hb-galI img{position:absolute;inset:10%;width:80%;height:80%;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(28,18,12,.3));
   transform:translateY(130%);transition:transform var(--dur,2.44s) var(--ease);transition-delay:var(--d,0s)}
 .on .hb-galI img{transform:none}
-@media (hover:hover) and (pointer:fine){
+@media (hover:hover) and (pointer:fine) and (min-width:992px){
   .hb-galL li{overflow:visible}
-  .hb-galK{padding-top:9vh;margin-top:-4.5vh;padding-bottom:9rem;margin-bottom:-9rem;position:relative;z-index:3;pointer-events:none}
-  .hb-galL{pointer-events:auto}
-  .hb-galL li{position:relative}
-  .hb-galI{border-radius:4px;transition:transform .45s var(--ease),box-shadow .45s var(--ease)}
-  .hb-galL li:hover .hb-galI,.hb-galI:focus-visible{transform:translateY(-6px);box-shadow:0 18px 34px -18px rgba(28,18,12,.45)}
-  .hb-galI img{transition:transform var(--dur,2.44s) var(--ease),inset .45s var(--ease)}
-  .hb-galInfo{position:absolute;left:2px;right:2px;top:calc(100% + 12px);display:grid;gap:.15rem;text-align:left;
-    color:var(--c-ink);font-size:.78rem;line-height:1.3;pointer-events:none;
-    opacity:0;transform:translateY(-4px);transition:opacity .2s ease,transform .35s var(--ease)}
-  .hb-galInfo b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .hb-galInfo small{color:var(--c-ink-med);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .hb-galL li:hover .hb-galInfo,.hb-galI:focus-visible .hb-galInfo{opacity:1;transform:none}
+.hb-galK{padding-top:9vh;margin-top:-4.5vh}
+  .hb-galL li:hover .hb-galI{transform:scale(1.3)}
+  .hb-galL li:hover ~ li .hb-galI{transform:translateX(15%)}
+  .hb-galL li:has(~ li:hover) .hb-galI{transform:translateX(-15%)}
 }
+/* caption under the tile: a sibling of the zooming button, so it never scales; fades in on hover */
+.hb-galL li{position:relative}
+.hb-galInfo{position:absolute;left:0;right:0;top:calc(100% + 14px);display:grid;gap:.15rem;text-align:left;
+  color:var(--c-ink);font-size:.78rem;line-height:1.3;pointer-events:none;opacity:0;transform:translateY(-4px);
+  transition:opacity .3s ease,transform .6s var(--ease)}
+.hb-galInfo b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb-galInfo small{color:var(--c-ink-med);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (hover:hover) and (pointer:fine){
+  .hb-galK{position:relative;z-index:3;padding-bottom:5.5rem;margin-bottom:-5.5rem;pointer-events:none}
+  .hb-galL{pointer-events:auto}
+  .hb-galL li:hover .hb-galInfo,.hb-galL li:focus-within .hb-galInfo{opacity:1;transform:none}
+}
+@media (hover:hover) and (pointer:fine) and (max-width:991px){.hb-galK{padding-top:2rem;margin-top:-1rem}.hb-galL li{overflow:visible}}
 @media not ((hover:hover) and (pointer:fine)){.hb-galInfo{display:none}}
-@media (prefers-reduced-motion:reduce){.hb-galI,.hb-galInfo,.hb-galI img{transition:none !important}}
+@media (prefers-reduced-motion:reduce){.hb-galInfo{transition:none}}
 @media (max-width:991px){
   .hb-gal{row-gap:3.788vh}
   .hb-galT{width:auto;padding:0 var(--gut)}
@@ -220,7 +225,6 @@ const PAGE_CSS = `
   .hb-galK::-webkit-scrollbar{display:none}
   .hb-galL li{width:14.714vw;height:19.01vw;scroll-snap-align:start}
 }
-@media (hover:hover) and (pointer:fine) and (max-width:991px){.hb-galK{padding-top:2rem;margin-top:-1rem;padding-bottom:4.5rem;margin-bottom:-4.5rem}.hb-galL li{overflow:visible}}
 @media (max-width:479px){.hb-gal{row-gap:3.75vh}.hb-galL li{width:34.167vw;height:44.444vw}}
 
 
@@ -604,14 +608,14 @@ function Galleri() {
           {GALLERI.map((g, i) => (
             <li key={g.img}>
               <button className="hb-galI" style={{ ['--g' as string]: g.g, ['--d' as string]: `${(Math.min(i, 10) * 0.06).toFixed(2)}s` }}
-                aria-label={`${g.n}, nánar`}
+                data-bendill="Skoða" aria-label={`${g.n}, nánar`}
                 onClick={() => pop.open({ k: 'vara', slug: g.img })}>
                 <img src={Ms(g.img)} alt="" width={300} height={340} loading="lazy" decoding="async" />
-                <span className="hb-galInfo" aria-hidden="true">
-                  <b>{g.n}</b>
-                  <small>{g.a.length > 0 ? `${g.d} · Inniheldur ${g.a.join(', ').toLowerCase()}` : g.d}</small>
-                </span>
               </button>
+              <span className="hb-galInfo" aria-hidden="true">
+                <b>{g.n}</b>
+                <small>{g.a.length > 0 ? `${g.d} · Inniheldur ${g.a.join(', ').toLowerCase()}` : g.d}</small>
+              </span>
             </li>
           ))}
         </Reveal>
@@ -627,23 +631,16 @@ function GalleriDrift() {
     const l = document.querySelector<HTMLElement>('.hb-galL')
     if (!k || !l || isCompact() || reduced()) return
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
-    // drift only when the pointer sits in the outer 18% of the strip; stop over the middle so a tile can be aimed at
-    let cx = 0, v = 0, raf = 0
-    const tick = () => {
-      const max = Math.max(0, l.scrollWidth - k.getBoundingClientRect().width)
-      cx = Math.min(0, Math.max(-max, cx - v))
-      l.style.transform = `translate3d(${cx.toFixed(1)}px,0,0)`
-      raf = v !== 0 ? requestAnimationFrame(tick) : 0
-    }
+    let tx = 0, cx = 0, raf = 0
+    const tick = () => { cx += (tx - cx) * 0.045; l.style.transform = `translate3d(${cx.toFixed(1)}px,0,0)`; raf = Math.abs(tx - cx) > 0.3 ? requestAnimationFrame(tick) : 0 }
     const move = (e: MouseEvent) => {
-      const r = k.getBoundingClientRect(), f = (e.clientX - r.left) / r.width, z = 0.18
-      v = f < z ? -((z - f) / z) * 14 : f > 1 - z ? ((f - (1 - z)) / z) * 14 : 0
-      if (v && !raf) raf = requestAnimationFrame(tick)
+      const r = k.getBoundingClientRect()
+      const max = Math.max(0, l.scrollWidth - r.width)
+      tx = -Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * max
+      if (!raf) raf = requestAnimationFrame(tick)
     }
-    const leave = () => { v = 0 }
-    k.addEventListener('mouseleave', leave)
     k.addEventListener('mousemove', move)
-    return () => { k.removeEventListener('mousemove', move); k.removeEventListener('mouseleave', leave); cancelAnimationFrame(raf) }
+    return () => { k.removeEventListener('mousemove', move); cancelAnimationFrame(raf) }
   }, [])
   return null
 }
