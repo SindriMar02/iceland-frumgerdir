@@ -720,7 +720,7 @@ export default function IslyftPage() {
                 {shown.map((m) => (
                   <motion.li key={m.key} layout initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                     transition={{ duration: still() ? 0 : 0.5, ease: [0.625, 0.05, 0, 1] }}>
-                    <a className="car" href={m.href} target="_blank" rel="noopener">
+                    <a className="car" href={`#reynsluakstur?taeki=${m.key}`}>
                       <div className={`ph${m.studio ? ' studio' : ''}`}><Pic p={m.img} sizes="(min-width: 1100px) 30vw, (min-width: 700px) 46vw, 92vw" /></div>
                       <p className="meta"><span translate="no">{m.brand}</span><span>{m.kind}</span></p>
                       <h3 translate="no">{m.name}</h3>
