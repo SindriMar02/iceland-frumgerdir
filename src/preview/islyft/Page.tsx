@@ -120,7 +120,7 @@ const NAV = [
   { k: 'opid', label: 'Hafa samband' },
 ]
 
-function HeaderRow({ layer, focusKey, onFocusKey, onMenu }: { layer: 'base' | 'top'; focusKey: string | null; onFocusKey: (k: string | null) => void; onMenu: () => void }) {
+function HeaderRow({ layer, focusKey, onFocusKey, onMenu }: { layer: 'base' | 'top'; focusKey: string | null; onFocusKey: (k: string | null) => void; onMenu: (e: React.MouseEvent) => void }) {
   const hidden = layer === 'top'
   const tab = hidden ? -1 : undefined
   const f = (k: string) => (hidden ? {} : { onFocus: () => onFocusKey(k), onBlur: () => onFocusKey(null) })
@@ -288,6 +288,8 @@ export default function IslyftPage() {
 
   /* menu: lock scroll, Esc closes, D14 motion */
   const menuRef = useRef<HTMLDivElement>(null)
+  /* keyboard opens focus the first item; pointer opens focus the panel itself, so nothing is ringed */
+  const menuByKey = useRef(false)
   useEffect(() => {
     const html = document.documentElement
     html.classList.toggle('il-menu', menu)
@@ -299,7 +301,8 @@ export default function IslyftPage() {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false) }
     document.addEventListener('keydown', onKey)
     const panel = menuRef.current
-    panel?.querySelector<HTMLElement>('a,button')?.focus()
+    if (menuByKey.current) panel?.querySelector<HTMLElement>('a,button')?.focus()
+    else panel?.focus({ preventScroll: true })
     if (panel && !still()) {
       gsap.fromTo(panel, { yPercent: -100 }, { yPercent: 0, duration: 0.8, ease: 'il' })
       gsap.fromTo(panel.querySelectorAll('[data-mi]'), { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.4, stagger: 0.07, delay: 0.3, ease: 'il' })
@@ -584,17 +587,17 @@ export default function IslyftPage() {
         </div>
         <header className="hdr">
           <div className="plate base">
-            <HeaderRow layer="base" focusKey={focusKey} onFocusKey={setFocusKey} onMenu={() => setMenu(true)} />
+            <HeaderRow layer="base" focusKey={focusKey} onFocusKey={setFocusKey} onMenu={(e) => { menuByKey.current = e.detail === 0; setMenu(true) }} />
           </div>
           <div className="plate top" ref={topPlate} aria-hidden="true">
-            <HeaderRow layer="top" focusKey={focusKey} onFocusKey={setFocusKey} onMenu={() => setMenu(true)} />
+            <HeaderRow layer="top" focusKey={focusKey} onFocusKey={setFocusKey} onMenu={(e) => { menuByKey.current = e.detail === 0; setMenu(true) }} />
           </div>
         </header>
       </div>
 
       {/* ── mobile menu ── */}
       {menu && (
-        <div className="il-menu-panel" ref={menuRef} role="dialog" aria-modal="true" aria-label="Valmynd" data-lenis-prevent="">
+        <div className="il-menu-panel" ref={menuRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Valmynd" data-lenis-prevent="">
           <div className="mtop">
             <img src={A('logo-white.svg')} alt="Íslyft" width={144} height={26} />
             <button type="button" className="mx" onClick={() => setMenu(false)} aria-label="Loka valmynd"><X size={24} strokeWidth={1.6} aria-hidden="true" /></button>

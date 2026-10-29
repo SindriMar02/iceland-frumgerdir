@@ -35,6 +35,7 @@ html.il-menu,html.il-menu body{overflow:hidden}
 .il .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .il .skip{position:fixed;left:16px;top:-120px;z-index:300;background:var(--r);color:#fff;padding:12px 18px;border-radius:4px;font-weight:600}
 .il .skip:focus{top:16px}
+.il-menu-panel:focus{outline:none}
 .il section[id]{scroll-margin-top:84px}
 .il .wrap{width:100%;max-width:1440px;margin:0 auto;padding-inline:var(--pad)}
 .il .tab,.il .up,.il .tel,.il .pr{font-variant-numeric:tabular-nums}

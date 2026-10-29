@@ -18,6 +18,8 @@ const quote = (key?: string): Answer => {
   return { reply: m ? `Þú getur valið ${fullName(m)} í tilboðsforminu. Tækið fylgir með þegar þú opnar formið. Formið er sýnishorn; hringdu í söludeild 514 1610 til að fá tilboð.` : 'Veldu tæki í tilboðsforminu og skráðu nafn og síma. Formið er sýnishorn; hringdu í söludeild 514 1610 til að fá tilboð.', card: { title: m ? fullName(m) : 'Fáðu tilboð', rows: [{ k: 'Söludeild', v: sales.phone }], cta: { label: 'Fáðu tilboð', href: m ? `#reynsluakstur?taeki=${encodeURIComponent(m.key)}` : '#reynsluakstur' } } }
 }
 export function answer(history: Msg[]): Answer {
+  /* Prototype: the assistant is a design only, every question gets this line. */
+  if (history.length) return { reply: 'Þú þarft að kaupa vefsíðuna af Sindra fyrir svarið.' }
   const q = fold([...history].reverse().find((m) => m.role === 'user')?.content ?? '')
   if (/opnun|opid|opnar|lokar|hours|open|leig|rent|abyrgd|warranty|fjarmogn|finance|\blan|neyd|emergency|afhending|lager|kostar|verd|price|cost/.test(q)) return refer()
   if (/hvar|heimilis|stadset|address|where/.test(q)) return { reply: 'Íslyft er að Vesturvör 32, 200 Kópavogi og Lækjarvöllum 6, 604 Akureyri.', card: { title: 'Heimilisföng', rows: CONTACT.addresses.map((v) => ({ k: 'Íslyft', v })), cta: { label: 'Kort að Vesturvör', href: LINKS.map } } }
