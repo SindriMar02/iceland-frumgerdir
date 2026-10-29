@@ -4529,6 +4529,8 @@ import { companyEntry as BENNI_ENTRY } from './benni/data'
 PREVIEW_COMPANIES.push(BENNI_ENTRY)
 import { companyEntry as ISBAND_ENTRY } from './isband/data'
 PREVIEW_COMPANIES.push(ISBAND_ENTRY)
+import { companyEntry as ISLYFT_ENTRY } from './islyft/data'
+PREVIEW_COMPANIES.push(ISLYFT_ENTRY)
 import { companyEntry as GOA_ENTRY } from './goa/data'
 PREVIEW_COMPANIES.push(GOA_ENTRY)
 import { companyEntry as FAGRAVIK_ENTRY } from './fagravik/data'
