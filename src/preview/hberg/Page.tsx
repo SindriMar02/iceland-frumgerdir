@@ -87,7 +87,7 @@ const PAGE_CSS = `
 @keyframes hbSvif{from{translate:0 -10px;rotate:var(--r)}to{translate:0 12px;rotate:calc(var(--r) + 14deg)}}
 .hb-hero{isolation:isolate;overflow:hidden;--mx:0;--my:0}
 .hb-svifH{z-index:3}
-.hb-svifH > span{transform:translate3d(calc(var(--mx) * var(--d) * -9px),calc(var(--my) * var(--d) * -7px),0);transition:transform 1.6s var(--ease)}
+.hb-svifH > span{transform:translate3d(calc(var(--mx) * var(--d) * -22px),calc(var(--my) * var(--d) * -16px),0) rotate(calc(var(--mx) * var(--d) * 8deg));will-change:transform}
 @media (max-width:991px){.hb-svifH{display:none}}
 @media (max-width:479px){.hb-svif > span{width:calc(var(--s) * 2.4)}.hb-svifS{display:none}}
 @media (prefers-reduced-motion:reduce){.hb-svif img{animation:none}}
@@ -543,18 +543,25 @@ function Hero() {
   useEffect(() => {
     const el = ref.current
     if (!el || reduced() || !window.matchMedia('(hover:hover) and (pointer:fine)').matches) return
-    let raf = 0
-    const fara = (e: PointerEvent) => {
-      if (raf) return
-      raf = requestAnimationFrame(() => {
-        raf = 0
-        const r = el.getBoundingClientRect()
-        el.style.setProperty('--mx', ((e.clientX - r.left) / r.width - .5).toFixed(3))
-        el.style.setProperty('--my', ((e.clientY - r.top) / r.height - .5).toFixed(3))
-      })
+    // Mjúk fjöðrun: músin gefur markgildi, rammi fyrir ramma eltir staðan það með lerp, svo hreyfingin rennur.
+    let raf = 0, tx = 0, ty = 0, cx = 0, cy = 0
+    const tick = () => {
+      cx += (tx - cx) * 0.055
+      cy += (ty - cy) * 0.055
+      el.style.setProperty('--mx', cx.toFixed(4))
+      el.style.setProperty('--my', cy.toFixed(4))
+      raf = Math.abs(tx - cx) > 0.0005 || Math.abs(ty - cy) > 0.0005 ? requestAnimationFrame(tick) : 0
     }
+    const fara = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect()
+      tx = (e.clientX - r.left) / r.width - .5
+      ty = (e.clientY - r.top) / r.height - .5
+      if (!raf) raf = requestAnimationFrame(tick)
+    }
+    const ut = () => { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(tick) }
     el.addEventListener('pointermove', fara)
-    return () => { el.removeEventListener('pointermove', fara); cancelAnimationFrame(raf) }
+    el.addEventListener('pointerleave', ut)
+    return () => { el.removeEventListener('pointermove', fara); el.removeEventListener('pointerleave', ut); cancelAnimationFrame(raf) }
   }, [])
   return (
     <div className="hb-heroP">
