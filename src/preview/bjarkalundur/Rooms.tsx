@@ -1,9 +1,10 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Home as House, Plus } from 'lucide-react'
-import { IMG, ROOMS } from './data'
+import { IMG, ROOMS, matchesRoomFilter as match } from './data'
 import type { Room } from './data'
 import { PageHero, Photo, Title, inertIf, refreshSoon } from './shell'
+import { UpcomingCottages } from './Additions'
 import { StayPicker } from './StayPicker'
 import { godoBookingUrl } from './godo'
 import { useSite } from './site'
@@ -31,6 +32,9 @@ export const ROOMS_CSS = `
 
 .bj3 .rgroup+.rgroup{margin-top:clamp(64px,8vw,112px)}
 .bj3 .rgroup .t-h2{margin-bottom:clamp(20px,2.4vw,32px)}
+.bj3 .filtered-room{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .6s var(--ease),opacity .4s}
+.bj3 .filtered-room[data-visible="true"]{grid-template-rows:1fr;opacity:1}
+.bj3 .filtered-room>div{overflow:hidden}
 .bj3 .rlist{border-top:1px solid var(--line)}
 .bj3 .rrow{border-bottom:1px solid var(--line);scroll-margin-top:calc(90px + env(safe-area-inset-top))}
 .bj3 .rrow h3{margin:0}
@@ -72,9 +76,6 @@ export const ROOMS_CSS = `
 `
 
 type FilterId = 'allt' | 'hotel' | 'sumarhus' | 'bad' | 'eldhus'
-const match = (r: Room, f: FilterId) =>
-  f === 'allt' || (f === 'hotel' && r.group === 'hotel') || (f === 'sumarhus' && r.group === 'sumarhus') ||
-  (f === 'bad' && r.privateBath) || (f === 'eldhus' && r.kitchen)
 
 function RoomRow({ r, initial }: { r: Room; initial: boolean }) {
   const { t, lang, stay } = useSite()
@@ -121,6 +122,7 @@ function RoomRow({ r, initial }: { r: Room; initial: boolean }) {
           </div>
           <div className="rdet">
             <p className="body">{c.text}</p>
+            {r.group === 'sumarhus' && <p className="note">{t.cottageDiscount}</p>}
             {r.noPower && <p className="note">{t.noPower}</p>}
             <dl className="facts">
               <dt>{L.size}</dt><dd>{r.size} m²</dd>
@@ -156,8 +158,8 @@ export function Rooms() {
   }, [target])
   const shown = useMemo(() => ROOMS.filter((r) => match(r, f)), [f])
   const groups = (['hotel', 'sumarhus'] as const)
-    .map((g) => ({ g, list: shown.filter((r) => r.group === g) }))
-    .filter((x) => x.list.length)
+    .map((g) => ({ g, list: ROOMS.filter((r) => r.group === g) }))
+
   const count = (id: FilterId) => ROOMS.filter((r) => match(r, id)).length
   const anyTarget = !!target
   return (
@@ -183,11 +185,16 @@ export function Rooms() {
               </div>
             )}
             {groups.map(({ g, list }) => (
-              <div key={`${f}-${g}`} className="rgroup">
+              <div key={g} className="rgroup">
+                {g === 'sumarhus' && <UpcomingCottages compact />}
                 <Title text={t.roomsPage.groups[g]} className="t-h2" />
-                <p className="sr">{t.roomsPage.count(list.length)}</p>
+                <p className="sr">{t.roomsPage.count(list.filter((r) => match(r, f)).length)}</p>
                 <div className="rlist rv-up">
-                  {list.map((r) => <RoomRow key={r.id} r={r} initial={anyTarget && r.id === target} />)}
+                  {list.map((r) => (
+                    <div key={r.id} className="filtered-room" data-visible={match(r, f)} {...inertIf(!match(r, f))} aria-hidden={!match(r, f)}>
+                      <div><RoomRow r={r} initial={anyTarget && r.id === target} /></div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}

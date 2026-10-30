@@ -8,6 +8,7 @@ import {
 } from './data'
 import type { Review } from './data'
 import { Accordion, Eyebrow, Link, Photo, Stars, Title, useNavTo } from './shell'
+import { Activities, UpcomingCottages } from './Additions'
 import { StayPicker } from './StayPicker'
 import { useSite } from './site'
 import { SECTION, pathFor, roomHref, sectionHref } from './paths'
@@ -450,6 +451,8 @@ export function Home() {
           </article>
         </section>
 
+        <Activities />
+
         <section id={SECTION.stay[lang]} data-anchor="stay" className="stay" aria-labelledby="bj3-stay">
           <div className="wrap">
             <div className="head">
@@ -483,6 +486,8 @@ export function Home() {
           </div>
         </section>
 
+        <UpcomingCottages />
+
         <section className="owners on-dark" data-anchor="owners" aria-labelledby="bj3-owners">
           <div className="panel rv-settle"><Photo pic={IMG.lamp} sizes="(max-width: 899px) 100vw, 44vw" ratio="auto" /></div>
           <div className="text">
@@ -509,6 +514,7 @@ export function Home() {
                 {t.food.cards.map((c) => <li key={c.h} className="meal"><h3 className="t-h3">{c.h}</h3><p>{c.t}</p></li>)}
               </ul>
               <p className="body rv-up guests">{t.food.guests}</p>
+              <p className="body rv-up guests">{t.cottageDiscount}</p>
             </div>
           </div>
         </section>

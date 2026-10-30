@@ -179,3 +179,13 @@ export const REVIEWS: Review[] = [
 
 /** A quote in its original language, with the right quotation marks. */
 export const quote = (r: Review) => (r.lang === 'en' ? `“${r.text}${r.excerpt ? ' …' : ''}”` : `„${r.text}${r.excerpt ? ' …' : ''}“`)
+
+/** Shared by the rooms catalogue and the in-page picker. */
+export const matchesRoomFilter = (room: Room, filter: string) =>
+  filter === 'allt' || room.group === filter ||
+  (filter === 'bad' && room.privateBath) || (filter === 'eldhus' && room.kitchen)
+
+/** Godo's large cottage allows at most four adults plus one child. */
+export function fitsParty(room: Room, adults: number, children: number) {
+  return room.maxGuests >= adults + children && (room.id !== 'hus-stort' || adults <= 4)
+}

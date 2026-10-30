@@ -64,6 +64,147 @@ html:has(.bj3),body:has(.bj3){background-color:#232421}
 .bj3 .small{font-size:.9rem;line-height:1.55}
 .bj3 .mute{color:var(--mute)}
 
+/* v4.1: drawings remain on the ground, without a frame or shadow. */
+.bj3 .upcoming {
+  padding:0 0 var(--sec);
+  background:var(--ground);
+  color:var(--ink);
+}
+.bj3 .upcoming.compact {
+  padding:0 0 56px;
+}
+.bj3 .new-cottage-grid {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:48px;
+  align-items:center;
+}
+.bj3 .new-cottage-copy {
+  display:grid;
+  gap:28px;
+}
+.bj3 .new-facts {
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:grid;
+  gap:14px;
+}
+.bj3 .new-facts li {
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.bj3 .new-facts svg {
+  flex:none;
+}
+.bj3 .drawing {
+  margin:0;
+  background:var(--ground);
+}
+.bj3 .drawing picture,.bj3 .drawing img {
+  display:block;
+  width:100%;
+  height:auto;
+}
+/* The sketch files are graded so their paper IS the ground colour (#ECEBE8);
+   no blend mode, because the reveal's clip-path isolates the image in Safari. */
+/* Activity drawings share the 3:2 frame of the activity photographs. */
+.bj3 .activity-card .drawing img {
+  aspect-ratio:3/2;
+  object-fit:cover;
+}
+.bj3 .drawing figcaption {
+  padding:0 12px 12px;
+}
+.bj3 .new-cottage-drawings {
+  display:grid;
+  gap:24px;
+}
+.bj3 .activities {
+  padding:var(--sec) 0 0;
+}
+.bj3 .activity-icons {
+  display:flex;
+  justify-content:space-between;
+  gap:24px;
+  flex-wrap:wrap;
+  list-style:none;
+  margin:48px 0;
+  padding:0;
+}
+.bj3 .activity-icons li {
+  display:grid;
+  gap:12px;
+  max-width:18ch;
+}
+.bj3 .activity-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:48px 28px;
+}
+.bj3 .activity-card {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:18px;
+}
+.bj3 .activity-card>.pic,.bj3 .activity-card>.drawing {
+  width:100%;
+}
+.bj3 .activity-card .tlink {
+  min-height:40px;
+}
+.bj3 .activity-symbol {
+  display:grid;
+  place-items:center;
+  width:100%;
+  aspect-ratio:3/2;
+  border-bottom:1px solid var(--line);
+}
+@media(max-width:899px) {
+  .bj3 .new-cottage-grid,.bj3 .activity-grid {
+    grid-template-columns:1fr;
+  }
+  .bj3 .activity-icons {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+  /* Phones: the cards become a snap carousel at 78%, like the rooms strip. */
+  .bj3 .activity-grid {
+    grid-template-columns:none;
+    grid-auto-flow:column;
+    grid-auto-columns:78%;
+    gap:16px;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    overscroll-behavior-x:contain;
+    margin:0 calc(-1 * var(--gut, 20px));
+    padding:0 var(--gut, 20px) 8px;
+    scroll-padding:0 var(--gut, 20px);
+    scrollbar-width:none;
+  }
+  .bj3 .activity-grid::-webkit-scrollbar {
+    display:none;
+  }
+  .bj3 .activity-card {
+    scroll-snap-align:start;
+  }
+}
+@media(max-width:399px) {
+  .bj3 .closing {
+    padding-left:8px;
+    padding-right:8px;
+  }
+  .bj3 .rbook {
+    margin-left:calc(8px - var(--gut));
+    margin-right:calc(8px - var(--gut));
+  }
+  .bj3 .picker {
+    padding:12px;
+  }
+}
+
 /* controls */
 .bj3 .pill{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:0 24px;border-radius:999px;border:1px solid currentColor;
   font-size:.92rem;font-weight:520;text-decoration:none;white-space:nowrap;background:transparent;color:inherit;cursor:pointer;
@@ -106,7 +247,7 @@ html:has(.bj3),body:has(.bj3){background-color:#232421}
 .bj3 .hdr .back svg{transition:transform .45s var(--ease)}
 @media (hover:hover) and (pointer:fine){.bj3 .hdr .back:hover{opacity:1}.bj3 .hdr .back:hover svg{transform:translateX(-4px)}}
 .bj3 .lang{display:inline-flex;align-items:center;border:1px solid currentColor;border-radius:999px;padding:3px;gap:2px;opacity:.95}
-.bj3 .lang a{display:grid;place-items:center;min-width:38px;height:36px;border-radius:999px;font-size:.78rem;font-weight:600;letter-spacing:.12em;text-decoration:none;color:inherit;transition:background-color .35s var(--ease),color .35s var(--ease)}
+.bj3 .lang a{display:grid;place-items:center;min-width:40px;height:40px;border-radius:999px;font-size:.78rem;font-weight:600;letter-spacing:.12em;text-decoration:none;color:inherit;transition:background-color .35s var(--ease),color .35s var(--ease)}
 .bj3 .lang a[aria-current]{background:currentColor}
 .bj3 .hdr[data-state="over"] .lang a[aria-current],.bj3 .lang.light a[aria-current]{background:var(--on);color:var(--ink)}
 .bj3 .hdr[data-state="solid"] .lang a[aria-current]{background:var(--ink);color:var(--on)}
@@ -354,6 +495,37 @@ export function useMotion(root: RefObject<HTMLDivElement>, key: string) {
         gsap.fromTo(g.children, { y: 40, opacity: 0 }, { y: 0, opacity: 1, ease: 'none', stagger: 0.12, scrollTrigger: { trigger: g, start: 'top 92%', end: 'top 55%', scrub: 0.5 } })
       })
 
+      /* Drawings wipe from left to right with the history picture's curve. */
+      q('.rv-draw').forEach((drawing) => {
+        gsap.fromTo(drawing, { clipPath: 'inset(0 100% 0 0)' }, {
+          clipPath: 'inset(0 0% 0 0)', duration: 0.95,
+          ease: (p: number) => {
+            // CSS cubic-bezier(.16, 1, .3, 1), solved for x.
+            let low = 0, high = 1
+            for (let i = 0; i < 14; i++) {
+              const t = (low + high) / 2
+              const x = 3 * (1 - t) ** 2 * t * 0.16 + 3 * (1 - t) * t ** 2 * 0.3 + t ** 3
+              if (x < p) low = t
+              else high = t
+            }
+            return 1 - (1 - (low + high) / 2) ** 3
+          },
+          scrollTrigger: { trigger: drawing, start: 'top 92%', once: true },
+        })
+      })
+      q('.option-grid').forEach((grid) => {
+        gsap.fromTo(grid.querySelectorAll('.stay-option'), { opacity: 0 }, {
+          opacity: 1, duration: 0.6, stagger: 0.08,
+          scrollTrigger: { trigger: grid, start: 'top 92%', once: true },
+        })
+      })
+      q('.rv-icons').forEach((row) => {
+        gsap.fromTo(row.children, { y: 20, opacity: 0 }, {
+          y: 0, opacity: 1, duration: 0.6, stagger: 0.04,
+          scrollTrigger: { trigger: row, start: 'top 92%', once: true },
+        })
+      })
+
       const refresh = () => ScrollTrigger.refresh()
       document.fonts?.ready.then(refresh)
       window.addEventListener('load', refresh)
@@ -592,6 +764,7 @@ export function Header() {
   const bookHref = useBookHref()
   const burger = useRef<HTMLButtonElement>(null)
   const panel = useRef<HTMLDivElement>(null)
+  const keyboardOpen = useRef(false)
   /* the header is inert until the closing render lands, so focus waits a frame */
   const refocus = () => requestAnimationFrame(() => burger.current?.focus())
 
@@ -619,7 +792,8 @@ export function Header() {
     if (!open) return
     /* the panel itself takes focus: inside the dialog for keyboard and screen readers,
        without a focus ring landing on "Loka" after a tap */
-    panel.current?.focus({ preventScroll: true })
+    const focusTarget = keyboardOpen.current ? panel.current?.querySelector<HTMLElement>('ul a') : panel.current
+    focusTarget?.focus({ preventScroll: true })
     /* aria-modal alone is not honoured everywhere: everything beside the dialog goes inert */
     const shut = [...(panel.current?.parentElement?.children ?? [])]
       .filter((el): el is HTMLElement => el instanceof HTMLElement && el !== panel.current && !el.classList.contains('scrim') && el.tagName !== 'STYLE' && !el.hasAttribute('inert'))
@@ -646,7 +820,7 @@ export function Header() {
         <a className="skip" href="#efni">{t.ui.skip}</a>
         <div className="wrap bar">
           <div className="left">
-            <button ref={burger} type="button" className="burger" aria-expanded={open} aria-controls="bj3-menu" onClick={() => setOpen(true)}>
+            <button ref={burger} type="button" className="burger" aria-expanded={open} aria-controls="bj3-menu" onClick={(e) => { keyboardOpen.current = e.detail === 0; setOpen(true) }}>
               <b aria-hidden="true" /><span>{t.ui.menu}</span>
             </button>
             {page !== 'home' ? (

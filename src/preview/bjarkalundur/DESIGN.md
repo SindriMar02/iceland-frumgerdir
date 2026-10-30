@@ -96,6 +96,24 @@ Max width 1360px, gutter `clamp(20px, 4.6vw, 72px)`, section rhythm
   the exact scroll position; `/gisting#room` lands on that room with it open.
 - **Reduced motion:** no Lenis, no film (poster), no transforms; everything visible.
 
+### v4.1 surfaces (30 October 2026)
+
+| Surface | Entrance and interaction | Reduced motion |
+|---|---|---|
+| Upcoming cottages, home and rooms | Masked Title lines with accent padding; copy lifts 34px; fact icons use the house stagger | Visible, no transforms |
+| Cottage sketches, mini golf and e-bike drawings, including picker | Left-to-right clip-path wipe, 0.95s, cubic-bezier(.16,1,.3,1), matching the history picture; no CSS visibility gate | Visible, no wipe |
+| Activities title and copy | House masked title and lifting copy; cards use the 0.12s group stagger | Visible, no transforms |
+| Activity icon row | 40ms stagger, 20px lift and 0.6s fade on entry | Visible, no transforms |
+| Activity and option photographs | House settle from 1.15 to 1, clipped by their frames | Scale 1 |
+| Stay option cards | 80ms entry fade stagger; hover lifts 2px and border becomes band red; press scales to 0.97; selected ring in band red | No transforms; ring remains |
+| Picker filters | Framer Motion layout (FLIP), 0.45s, entry/exit fade; native pressed buttons | Immediate layout, no transforms |
+| Rooms catalogue filters | Persistent rows collapse with grid-template-rows, 0.6s; hidden rows are inert | Immediate layout |
+| Booking summary | Stable row after options, polite status announcement when complete | Same visible row |
+
+The activities chapter follows the lake, keeping the surrounding-land story together
+before accommodation. Upcoming cottages follow the existing cottages, before owners.
+The calendar, options and booking summary stay at the bottom of home and rooms.
+
 ## 8. Banned here
 
 Numbers strips, before/after sliders, invented facts, reworded or split reviews, photos
