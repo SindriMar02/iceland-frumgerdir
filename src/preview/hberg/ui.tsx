@@ -238,6 +238,8 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
 .hb-bendill.stor.yta i{transform:scale(.9)}
 .hb-bendill b{position:relative;font-weight:500;opacity:0;transition:opacity .25s var(--ease)}
 .hb-bendill.stor b{opacity:1}
+.hb-bendill{opacity:0;transition:opacity .3s var(--ease)}.hb-bendill.syn{opacity:1}
+.hb-root.hb-laest .hb-bendill{opacity:0!important}
 @media (hover:none),(pointer:coarse){.hb-bendill{display:none}}
 
 @media (prefers-reduced-motion:reduce){
@@ -383,6 +385,7 @@ export function Bendill() {
   const ref = useRef<HTMLDivElement | null>(null)
   const [ord, setOrd] = useState('')
   const [yta, setYta] = useState(false)
+  const [syn, setSyn] = useState(false)
   useEffect(() => {
     if (!finePointer() || reduced()) return
     const el = ref.current
@@ -400,7 +403,9 @@ export function Bendill() {
       setOrd(t?.dataset.bendill ?? '')
     }
     const move = (e: PointerEvent) => {
-      x = e.clientX; y = e.clientY; har = true
+      x = e.clientX; y = e.clientY
+      if (!har) { cx = x; cy = y; har = true }
+      setSyn(true)
       if (!raf) raf = requestAnimationFrame(tick)
       const t = (e.target as HTMLElement)?.closest?.('[data-bendill]') as HTMLElement | null
       setOrd(t?.dataset.bendill ?? '')
@@ -410,16 +415,23 @@ export function Bendill() {
       window.clearTimeout(idle); idle = window.setTimeout(lesa, 120)
     }
     const nidur = () => { setYta(true); window.setTimeout(() => setYta(false), 200) }
+    // Bendillinn fer þegar músin fer út af síðunni og les aftur hvað er undir eftir hleðsluna.
+    const ut = (e: globalThis.MouseEvent) => { if (!e.relatedTarget) { setSyn(false); setOrd('') } }
+    const root = document.querySelector('.hb-root')
+    const mo = root ? new MutationObserver(() => { if (!root.classList.contains('hb-laest')) lesa() }) : null
+    if (root && mo) mo.observe(root, { attributes: true, attributeFilter: ['class'] })
+    document.addEventListener('mouseout', ut)
     window.addEventListener('pointermove', move, { passive: true })
     window.addEventListener('scroll', skrun, { passive: true })
     window.addEventListener('pointerdown', nidur, { passive: true })
     return () => {
       window.removeEventListener('pointermove', move); window.removeEventListener('scroll', skrun)
       window.removeEventListener('pointerdown', nidur); cancelAnimationFrame(raf); window.clearTimeout(idle)
+      document.removeEventListener('mouseout', ut); mo?.disconnect()
     }
   }, [])
   return (
-    <div className={`hb-bendill${ord ? ' stor' : ''}${yta ? ' yta' : ''}`} ref={ref} aria-hidden="true">
+    <div className={`hb-bendill${ord ? ' stor' : ''}${yta ? ' yta' : ''}${syn ? ' syn' : ''}`} ref={ref} aria-hidden="true">
       <i /><b>{ord}</b>
     </div>
   )
