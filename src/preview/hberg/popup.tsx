@@ -48,7 +48,7 @@ export const POP_CSS = `
 .hb-popS .hb-mask > *{transform:translateY(105%);transition:transform .9s var(--ease);transition-delay:calc(.25s + var(--i,0) * .06s)}
 .hb-pop.opid .hb-popS .hb-mask > *{transform:none}
 .hb-vMynd{background:var(--grunnur,var(--c-el));aspect-ratio:4/3;position:relative;margin-bottom:1.6rem;display:flex;align-items:center;justify-content:center;gap:4%;padding:7% 6%}
-.hb-vMynd img{height:100%;width:auto;max-width:48%;object-fit:contain;filter:drop-shadow(0 18px 24px rgba(28,18,12,.3))}
+.hb-vMynd img{height:100%;width:auto;max-width:48%;object-fit:contain;border-radius:12px}
 .hb-vMynd img + img{transform:rotate(5deg)}
 .hb-vMynd.einn img{max-width:80%}
 .hb-vMynd.ljos{aspect-ratio:auto;height:auto;padding:0}
@@ -83,12 +83,12 @@ export const POP_CSS = `
   .hb-fLisi .hb-fM{width:3rem;height:3.4rem}}
 .hb-verslun{list-style:none;margin:1.6rem 0 2rem;padding:0;display:grid;gap:.35rem}
 .hb-verslun a{display:grid;gap:.15rem;padding:1rem 1.1rem;background:var(--c-el);border-radius:var(--r,0);min-height:44px;transition:background .25s var(--ease)}
-.hb-verslun b{font-family:var(--f-disp);font-weight:400;font-size:1.5rem;line-height:1.1;letter-spacing:-.02em}
+.hb-verslun b{font-family:var(--f-disp);font-weight:600;font-size:1.5rem;line-height:1.1;letter-spacing:-.02em}
 .hb-verslun span{font-size:.88rem;color:var(--c-ink-med)}
 @media (hover:hover) and (pointer:fine){.hb-verslun a:hover{background:var(--c-el2)}}
 .hb-pEgg{list-style:none;margin:1.4rem 0 2rem;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}
 .hb-pEgg li{background:var(--grunnur);border-radius:var(--r,0);aspect-ratio:3/4;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:.7rem .5rem .6rem}
-.hb-pEgg img{height:78%;width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(28,18,12,.28))}
+.hb-pEgg img{height:78%;width:auto;max-width:100%;object-fit:contain;border-radius:8px}
 .hb-pEgg span{font-size:.8rem;font-weight:500;text-align:center;line-height:1.2}
 .hb-matrix{overflow-x:auto;margin:1.4rem 0 1rem;-webkit-overflow-scrolling:touch;box-shadow:inset 0 0 0 1px var(--c-lina);border-radius:var(--r,0)}
 .hb-matrix table{width:100%;min-width:36rem;border-collapse:collapse;font-size:.9rem}

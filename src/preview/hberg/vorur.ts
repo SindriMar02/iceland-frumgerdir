@@ -58,7 +58,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CB9583",
     "allergens": [
       "peanut",
       "milk",
@@ -125,7 +125,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#C99481",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -155,7 +155,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "annad"
     ],
-    "tint": "#A7B9BD",
+    "tint": "#A4B5BC",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -217,7 +217,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "bakstur"
     ],
-    "tint": "#D6C7A4",
+    "tint": "#D2BF9D",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -280,7 +280,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "smjor"
     ],
-    "tint": "#D7B45D",
+    "tint": "#D3A854",
     "allergens": [
       "peanut"
     ],
@@ -346,7 +346,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CA9685",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -413,7 +413,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "bakstur"
     ],
-    "tint": "#D6C7A4",
+    "tint": "#D4C09C",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -476,7 +476,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CA9684",
     "allergens": [
       "nuts",
       "milk",
@@ -543,7 +543,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CD9481",
     "allergens": [
       "nuts",
       "milk",
@@ -609,7 +609,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CA9586",
     "allergens": [
       "peanut",
       "gluten",
@@ -675,7 +675,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#C99482",
     "allergens": [
       "nuts",
       "milk",
@@ -741,7 +741,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CC9782",
     "allergens": [
       "nuts",
       "milk",
@@ -807,7 +807,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "smjor"
     ],
-    "tint": "#D7B45D",
+    "tint": "#D2AA5A",
     "allergens": [
       "nuts"
     ],
@@ -871,7 +871,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "smjor"
     ],
-    "tint": "#D7B45D",
+    "tint": "#D1AC5D",
     "allergens": [
       "nuts"
     ],
@@ -935,7 +935,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "smjor"
     ],
-    "tint": "#D7B45D",
+    "tint": "#D3AB59",
     "allergens": [
       "peanut"
     ],
@@ -1001,7 +1001,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CA9683",
     "allergens": [
       "gluten"
     ],
@@ -1065,7 +1065,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B0825E",
     "allergens": [
       "nuts"
     ],
@@ -1129,7 +1129,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CC9683",
     "allergens": [
       "nuts",
       "soy"
@@ -1194,7 +1194,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CA9582",
     "allergens": [
       "nuts",
       "milk",
@@ -1261,7 +1261,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B5865F",
     "allergens": [
       "nuts"
     ],
@@ -1325,7 +1325,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "avextir"
     ],
-    "tint": "#DE935E",
+    "tint": "#DE8E59",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -1387,7 +1387,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "avextir"
     ],
-    "tint": "#DE935E",
+    "tint": "#E19159",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -1450,7 +1450,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B5855D",
     "allergens": [
       "peanut"
     ],
@@ -1514,7 +1514,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B4855F",
     "allergens": [
       "nuts"
     ],
@@ -1578,7 +1578,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B2855E",
     "allergens": [
       "nuts"
     ],
@@ -1642,7 +1642,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CC9784",
     "allergens": [
       "nuts",
       "peanut",
@@ -1708,7 +1708,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CA9584",
     "allergens": [
       "nuts",
       "peanut",
@@ -1774,7 +1774,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B4845C",
     "allergens": [
       "nuts"
     ],
@@ -1838,7 +1838,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B2835D",
     "allergens": [
       "nuts"
     ],
@@ -1902,7 +1902,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B58560",
     "allergens": [
       "nuts"
     ],
@@ -1966,7 +1966,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B4845D",
     "allergens": [
       "nuts"
     ],
@@ -2030,7 +2030,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "bakstur"
     ],
-    "tint": "#D6C7A4",
+    "tint": "#D3BF9B",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -2092,7 +2092,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "bakstur"
     ],
-    "tint": "#D6C7A4",
+    "tint": "#D4C0A2",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -2154,7 +2154,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "bakstur"
     ],
-    "tint": "#D6C7A4",
+    "tint": "#D2BC9B",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -2216,7 +2216,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "frae"
     ],
-    "tint": "#A8B77D",
+    "tint": "#A0AE80",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -2278,7 +2278,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B3845E",
     "allergens": [
       "nuts"
     ],
@@ -2343,7 +2343,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "frae"
     ],
-    "tint": "#A8B77D",
+    "tint": "#A2AF80",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -2405,7 +2405,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B3845E",
     "allergens": [
       "nuts"
     ],
@@ -2470,7 +2470,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B6875B",
     "allergens": [
       "nuts"
     ],
@@ -2535,7 +2535,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CB9483",
     "allergens": [
       "nuts",
       "peanut",
@@ -2604,7 +2604,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "avextir"
     ],
-    "tint": "#DE935E",
+    "tint": "#DF9058",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -2666,7 +2666,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CC9684",
     "allergens": [
       "gluten"
     ],
@@ -2731,7 +2731,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "avextir"
     ],
-    "tint": "#DE935E",
+    "tint": "#E3945D",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -2793,7 +2793,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "hnetur"
     ],
-    "tint": "#B98B60",
+    "tint": "#B4845C",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -2855,7 +2855,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "avextir"
     ],
-    "tint": "#DE935E",
+    "tint": "#DC8E5A",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -2917,7 +2917,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "avextir"
     ],
-    "tint": "#DE935E",
+    "tint": "#DF905A",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -2979,7 +2979,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "avextir"
     ],
-    "tint": "#DE935E",
+    "tint": "#DF8E57",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -3041,7 +3041,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "bakstur"
     ],
-    "tint": "#D6C7A4",
+    "tint": "#D5C29C",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -3103,7 +3103,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CB9582",
     "allergens": [
       "gluten",
       "soy"
@@ -3168,7 +3168,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "avextir"
     ],
-    "tint": "#DE935E",
+    "tint": "#DC8C5A",
     "allergens": [
       "sulphites"
     ],
@@ -3232,7 +3232,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "bakstur"
     ],
-    "tint": "#D6C7A4",
+    "tint": "#D3BF9D",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -3295,7 +3295,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "bakstur"
     ],
-    "tint": "#D6C7A4",
+    "tint": "#D4C19E",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -3357,7 +3357,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "frae"
     ],
-    "tint": "#A8B77D",
+    "tint": "#A4B281",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -3420,7 +3420,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "bakstur"
     ],
-    "tint": "#D6C7A4",
+    "tint": "#D3BF9E",
     "allergens": [
       "nuts"
     ],
@@ -3484,7 +3484,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "snakk"
     ],
-    "tint": "#CF9B89",
+    "tint": "#CB9484",
     "allergens": [
       "milk"
     ],
@@ -3548,7 +3548,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "frae"
     ],
-    "tint": "#A8B77D",
+    "tint": "#A1AF7F",
     "allergens": [],
     "unverified": [],
     "labels": {},
@@ -3610,7 +3610,7 @@ export const PRODUCTS:Product[]=[
     "tags": [
       "frae"
     ],
-    "tint": "#A8B77D",
+    "tint": "#A3B17F",
     "allergens": [],
     "unverified": [],
     "labels": {},

@@ -19,7 +19,7 @@ const netfangGott = (v: string) => /^\S+@\S+\.\S+$/.test(v.trim())
 
 export const EYD_CSS = `
 .hb-eyd{display:grid;gap:1rem;min-width:0}
-.hb-eydT{margin:0;font-family:var(--f-disp);font-weight:400;font-size:clamp(1.5rem,2.08vw,2.4rem);line-height:1.05;letter-spacing:-.02em}
+.hb-eydT{margin:0;font-family:var(--f-disp);font-weight:600;font-size:clamp(1.5rem,2.08vw,2.4rem);line-height:1.05;letter-spacing:-.02em}
 .hb-eydL{margin:0;max-width:44ch}
 .hb-eyd .hb-reitir{grid-template-columns:1fr 1fr}
 .hb-reitir select{width:100%;border:0;background:var(--c-form);color:#172D4D;font:inherit;font-size:16px;appearance:none;-webkit-appearance:none;

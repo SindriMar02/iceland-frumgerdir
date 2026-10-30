@@ -62,7 +62,9 @@ export function Skjahvila() {
       ctx.translate(x + w / 2, y + h / 2)
       ctx.scale(2 - sx, sx)
       ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 18
+      ctx.save(); ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, w * 0.08); ctx.clip()
       ctx.drawImage(s.img, -w / 2, -h / 2, w, h)
+      ctx.restore()
       ctx.restore()
       if (hit) { hit.style.width = `${w}px`; hit.style.height = `${h}px`; hit.style.transform = `translate3d(${x}px,${y}px,0)` }
     }

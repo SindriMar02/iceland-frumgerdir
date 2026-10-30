@@ -9,12 +9,13 @@ import { VoruRegn, REGN_CSS } from './regn'
 import { Popup, POP_CSS, pop, type PopState } from './popup'
 import { Skjahvila, SKJAHVILA_CSS } from './skjahvila'
 import { Eydublad, EYD_CSS } from './eydublad'
+import { Soluadilar, MERKI_CSS } from './merki'
 import { SPYRJA } from './forms'
 import { KATALOGUR } from './katalogur'
 import { leita, skilmali, stutt } from './ofnaemi'
 import { ALLERGENS, PK, PRODUCTS, productBySlug, type Allergen, V } from './vorur'
 import {
-  ERINDI, FYRIRTAEKI, GALLERI, HERO_REITIR, JSON_LD, KORT3, LINUR, SETNING, SETNING_HRINGUR, SOGUHOPAR, SPJOLD, SPURT, TEXTI,
+  ERINDI, FYRIRTAEKI, GALLERI, HERO_REITIR, JSON_LD, LINUR, SETNING, SETNING_HRINGUR, SOGUHOPAR, SPJOLD, SPURT, TEXTI,
   TEYMI, TILVITNUN, type Leid,
 } from './data'
 
@@ -70,13 +71,55 @@ const PAGE_CSS = `
 
 .hb-reit img{filter:drop-shadow(0 18px 16px rgba(20,12,8,.30)) drop-shadow(0 3px 3px rgba(20,12,8,.25))}
 .hb-spjaldM img{filter:drop-shadow(0 34px 30px rgba(20,12,8,.30)) drop-shadow(0 4px 4px rgba(20,12,8,.22))}
-@media(hover:hover) and (pointer:fine){.hb-reit:hover img{transform:translateY(-4%) rotate(-3deg);transition:transform .45s var(--ease)}.hb-spjaldM:hover img.nu{transform:translateY(-3%)}}
+@media(hover:hover) and (pointer:fine){.hb-spjaldM:hover img.nu{transform:translateY(-3%)}}
 
 @media (hover:none),(pointer:coarse){
   .hb-reit img,.hb-spjaldM img,.hb-galI img,.hb-lina2 figure img,.hb-faqM img,.hb-vMynd img,.hb-regn img{filter:none !important}
 }
 
 .hb-heroP{position:relative}
+
+/* Svífandi hnetur (setningin): lausar hnetur sem lyftast og snúast hægt. */
+.hb-svif{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.hb-svif > span{position:absolute;width:var(--s);aspect-ratio:1}
+.hb-svif img{width:100%;height:100%;object-fit:contain;rotate:var(--r);animation:hbSvif var(--t) ease-in-out var(--w) infinite alternate;
+  filter:drop-shadow(0 10px 12px rgba(40,24,10,.18))}
+@keyframes hbSvif{from{translate:0 -10px;rotate:var(--r)}to{translate:0 12px;rotate:calc(var(--r) + 14deg)}}
+.hb-hero{isolation:isolate;overflow:hidden;--mx:0;--my:0}
+.hb-svifH{z-index:3}
+.hb-svifH > span{transform:translate3d(calc(var(--mx) * var(--d) * -9px),calc(var(--my) * var(--d) * -7px),0);transition:transform 1.6s var(--ease)}
+@media (max-width:991px){.hb-svifH{display:none}}
+@media (max-width:479px){.hb-svif > span{width:calc(var(--s) * 2.4)}}
+@media (prefers-reduced-motion:reduce){.hb-svif img{animation:none}}
+
+/* Hero 30.10: upprunalega uppsetningin, betur gerð. Ferkantaðir reitir með vörumynd á eigin lit. */
+.hb-hero .hb-heroT h1{font-size:clamp(3rem,5.4vw,6.4rem);font-weight:800;letter-spacing:-.045em;line-height:.92}
+.hb-heroT h1 .hb-mask{padding-bottom:.05em}
+.hb-heroNe{margin-top:auto;display:grid;gap:1.4rem;max-width:36rem}
+.hb-heroNe .hb-heroSlag{margin:0;font-size:clamp(1rem,1.15vw,1.15rem);line-height:1.5}
+.hb-heroCta{margin:-8px;padding:8px}
+.hb-heroCta > div{display:flex;flex-wrap:wrap;gap:.6rem}
+.hb-reit{border:0;padding:0;cursor:pointer;border-radius:18px;
+  transition:transform .7s var(--ease),box-shadow .7s var(--ease)}
+.hb-reit img{scale:1!important;filter:none!important;inset:auto!important;left:3%!important;top:50%!important;width:94%!important;height:auto!important;
+  aspect-ratio:1;translate:0 -50%;object-fit:cover;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent),linear-gradient(180deg,transparent,#000 8%,#000 92%,transparent);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent),linear-gradient(180deg,transparent,#000 8%,#000 92%,transparent);mask-composite:intersect}
+@media (hover:hover) and (pointer:fine){
+  .hb-reit:hover{transform:translateY(-4px);box-shadow:0 22px 34px -24px rgba(40,24,10,.5)}
+  .hb-rist.on .hb-reit:hover img{transform:translateY(-2%) scale(1.035)!important;transition:transform .7s var(--ease)!important}
+}
+@media (max-width:991px){.hb-heroNe{margin-top:2rem}}
+@media (max-width:479px){.hb-heroCta .hb-btn{flex:1 1 100%;justify-content:center}}
+
+/* Vörumyndir 30.10: ógegnsæjar myndir á eigin lit, enginn skuggi utan um ferninginn. */
+.hb-spjaldM img,.hb-galI img,.hb-lina2 figure img,.hb-faqM img{filter:none!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain}
+.hb-galInfo b,.hb-galInfo small{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+/* Ferningsmynd í óferningslaga reit: mjúkar brúnir svo hún renni inn í litinn. */
+.hb-faqM img,.hb-spjaldM img,.hb-lina2 figure img,.hb-umM img{
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent),linear-gradient(180deg,transparent,#000 7%,#000 93%,transparent);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent),linear-gradient(180deg,transparent,#000 7%,#000 93%,transparent);
+  mask-composite:intersect}
 .hb-hero{height:100svh;min-height:34rem;display:grid;grid-template-columns:1fr 1fr;position:relative;background:var(--c-bg)}
 
 .hb-heroT{display:flex;flex-direction:column;padding:max(12.96vh,calc(2.0833vw + 56px + 1.5rem)) var(--gut) var(--gut) var(--gut)}
@@ -112,7 +155,7 @@ const PAGE_CSS = `
 }
 
 
-.hb-tilvS{display:flex;justify-content:center}
+.hb-tilvS{display:flex;justify-content:center;position:relative;isolation:isolate;padding:10vh 0}
 .hb-setning{width:56.6146vw;text-align:center}
 @media (max-width:991px){.hb-setning{width:80.078vw}}
 @media (max-width:479px){.hb-setning{width:auto;text-align:left;padding:0 var(--gut)}}
@@ -138,7 +181,7 @@ const PAGE_CSS = `
 .hb-root.hb-allt .hb-spjaldM img.nu{transform:none}
 .hb-stika{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:1.2rem;align-items:end;padding-top:1rem}
 .hb-stika small{display:block;color:var(--c-ink-med);font-size:.78rem}
-.hb-stika b{display:block;font-family:var(--f-disp);font-weight:400;font-size:1.9vw;letter-spacing:-.02em;line-height:1.05}
+.hb-stika b{display:block;font-family:var(--f-disp);font-weight:600;font-size:1.9vw;letter-spacing:-.02em;line-height:1.05}
 .hb-stika .hb-pk{font-size:.86rem;font-variant-numeric:tabular-nums}
 .hb-lit{display:flex;flex-direction:column;gap:.4rem}
 .hb-lit div{display:flex;gap:.25rem}
@@ -163,12 +206,23 @@ const PAGE_CSS = `
 
 
 .hb-kostir{display:flex;flex-direction:column;row-gap:6.4815vh;padding:0 var(--gut)}
+.hb-tolur{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--col)}
+.hb-tala{background:var(--g);border-radius:24px;min-height:min(26vw,24rem);position:relative}
+.hb-tala > div{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(1rem,1.6vw,1.8rem)}
+.hb-tala b{font-family:var(--f-disp);font-weight:800;font-size:clamp(3rem,6.4vw,7rem);line-height:.9;letter-spacing:-.05em;color:#1d2a40}
+.hb-tala span{max-width:16ch;font-size:clamp(.95rem,1.1vw,1.15rem);line-height:1.3;color:#1d2a40;position:relative;z-index:1}
+.hb-tala img{position:absolute;right:-6%;bottom:-8%;width:44%;rotate:-14deg;transition:rotate .8s var(--ease),translate .8s var(--ease);
+  filter:drop-shadow(0 12px 14px rgba(40,24,10,.22))}
+@media (hover:hover) and (pointer:fine){.hb-tala:hover img{rotate:12deg;translate:-6% -10%}}
+@media (max-width:991px){.hb-tolur{grid-template-columns:1fr 1fr}.hb-tala{min-height:44vw}}
+@media (max-width:479px){.hb-tolur{grid-template-columns:1fr}.hb-tala{min-height:52vw}.hb-tala img{width:34%}}
+
 .hb-kortin{display:flex;justify-content:space-between;gap:var(--col)}
 .hb-kort{width:31.25vw;height:30.625vw;background:var(--c-el);position:relative;overflow:hidden}
 .hb-kort:nth-child(2){background:var(--c-el3)}
 .hb-kort > div{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:1.25vw}
 .hb-kort small{font-size:.8rem;color:var(--c-ink-med)}
-.hb-kort h3{margin:0;font-weight:400;text-align:center;font-family:var(--f-disp);font-size:2.08vw;line-height:1.05;letter-spacing:-.02em;padding:0 8%}
+.hb-kort h3{margin:0;font-weight:600;text-align:center;font-family:var(--f-disp);font-size:2.08vw;line-height:1.05;letter-spacing:-.02em;padding:0 8%}
 .hb-kort i{font-style:normal;font-size:.8rem;font-variant-numeric:tabular-nums}
 @media (max-width:991px){
   .hb-kostir{row-gap:2.273vh}
@@ -314,8 +368,8 @@ const PAGE_CSS = `
 .hb-umC{width:50vw;min-height:54.1667vh;background:var(--c-el);display:flex}
 .hb-umI{flex:1;padding:var(--gut);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);grid-template-rows:auto 1fr auto;gap:1.2rem 2vw}
 .hb-umC:nth-child(2){background:var(--c-el3)}
-.hb-umM{width:9vw;aspect-ratio:1;position:relative;overflow:hidden;background:var(--grunnur)}
-.hb-umM img{position:absolute;inset:10%;width:80%;height:80%;object-fit:contain;transition:transform .7s var(--ease)}
+.hb-umM{width:9vw;aspect-ratio:1;position:relative;overflow:hidden;background:var(--grunnur);border-radius:18px}
+.hb-umM img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:transform .7s var(--ease)}
 .hb-umM img + img{transform:translateY(135%)}
 @media (hover:hover) and (pointer:fine){.hb-umC:hover .hb-umM img:first-child{transform:translateY(-135%)}
   .hb-umC:hover .hb-umM img + img{transform:none}}
@@ -333,7 +387,7 @@ const PAGE_CSS = `
 .hb-sagaH > p{margin:0;color:var(--c-ink-med);font-size:.92rem}
 .hb-sagaR{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:1rem;padding:.35rem 0}
 .hb-sagaR span{display:inline-block;padding:.35rem .8333vw;margin-left:-.8333vw;transition:transform .4s var(--ease),background-color 0s}
-.hb-sagaR b{font-family:var(--f-disp);font-weight:400;font-size:2.08vw;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.hb-sagaR b{font-family:var(--f-disp);font-weight:600;font-size:2.08vw;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 @media (hover:hover) and (pointer:fine){.hb-sagaR:hover span{background:var(--c-form);color:#172D4D;transform:translateX(.8333vw)}}
 @media (max-width:991px){.hb-sagaR b{font-size:3.255vw}}
 @media (max-width:479px){.hb-sagaH{grid-template-columns:1fr}.hb-sagaR b{font-size:6.4vw}}
@@ -350,7 +404,7 @@ const PAGE_CSS = `
   transition:transform .8s var(--ease)}
 @media (hover:hover) and (pointer:fine){.hb-lina2:hover figure img{transform:scale(1.06) rotate(-2deg)}}
 .hb-lina2 > div{display:flex;flex-direction:column;padding:1.25vw;gap:.6rem}
-.hb-lina2 h3{margin:0;font-family:var(--f-disp);font-weight:400;font-size:2.08vw;line-height:1.05;letter-spacing:-.02em}
+.hb-lina2 h3{margin:0;font-family:var(--f-disp);font-weight:600;font-size:2.08vw;line-height:1.05;letter-spacing:-.02em}
 .hb-lina2 p{margin:0;font-size:.86rem;color:var(--c-ink-med)}
 .hb-lina2 .hb-lf{margin-top:auto;display:flex;justify-content:space-between;font-size:.8rem}
 @media (max-width:991px){
@@ -370,7 +424,7 @@ const PAGE_CSS = `
 .hb-panta{display:flex;align-items:center;gap:2.5vw;contain:layout}
 .hb-panta p{margin:0;max-width:24ch;font-size:.92rem}
 .hb-pantaM{width:0;overflow:hidden;flex-shrink:0;transition:width .5s var(--ease);height:max(3vw,44px)}
-.hb-pantaM img{height:100%;width:auto;max-width:none}
+.hb-pantaM img{height:100%;width:auto;max-width:none;border-radius:10px;background:var(--grunnur)}
 @media (hover:hover) and (pointer:fine){.hb-panta:has(.hb-btn:hover) .hb-pantaM{width:var(--bw,10rem)}}
 @media (max-width:991px){.hb-yfirl .hb-sub{width:80vw}.hb-panta{flex-direction:column;text-align:center}}
 @media (max-width:479px){.hb-yfirl{align-items:flex-start}.hb-yfirl .hb-sub{width:auto;text-align:left}
@@ -378,10 +432,15 @@ const PAGE_CSS = `
 
 
 .hb-faq{display:grid;grid-template-columns:46.875vw 1fr;gap:var(--col);padding:0 var(--gut);align-items:start}
-.hb-faqK{position:sticky;top:var(--gut);height:79.4444vh;background:var(--c-el);display:flex;flex-direction:column;
-  justify-content:space-between;padding:1.25vw;overflow:hidden}
+.hb-faqK{position:sticky;top:calc(var(--haus-h,64px) + 1.2rem);height:calc(100svh - var(--haus-h,64px) - 3.6rem);max-height:52rem;
+  background:var(--fk,var(--c-el));transition:background .6s var(--ease);border-radius:24px;display:flex;flex-direction:column;
+  justify-content:space-between;padding:clamp(1.1rem,1.6vw,1.8rem);overflow:hidden;color:#172D4D}
+.hb-faqK .hb-disp{position:relative;z-index:2}
+.hb-faqM{margin:0 -4%}
+.hb-faqT{position:relative;z-index:2}
+.hb-faqR{border-radius:14px}
 .hb-faqM{position:relative;flex:1;overflow:hidden}
-.hb-faqM img{position:absolute;inset:10% 15%;width:70%;height:80%;object-fit:contain;filter:drop-shadow(0 24px 30px rgba(28,18,12,.28));
+.hb-faqM img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
   transform:translateY(135%);transition:transform .8s var(--ease)}
 .hb-faqM img.nu{transform:none}.hb-faqM img.farin{transform:translateY(-135%)}
 .hb-faqT{display:flex;justify-content:space-between;gap:.5rem}
@@ -411,7 +470,7 @@ const PAGE_CSS = `
 .hb-fotUpp{border:0;background:none;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;min-height:44px;align-self:flex-start}
 .hb-fotMerki{width:clamp(12rem,26vw,24rem);margin:8.1481vh auto 4vh}
 .hb-fotMerki img{width:100%;height:auto}
-.hb-slogan{font-family:var(--f-disp);font-weight:400;font-size:12.2vw;line-height:1;letter-spacing:-.035em;
+.hb-slogan{font-family:var(--f-disp);font-weight:600;font-size:12.2vw;line-height:1;letter-spacing:-.035em;
   white-space:nowrap;text-align:center;overflow:hidden;padding:.12em 0 .16em;margin:0 0 .5rem;user-select:none}
 .hb-slogan span{display:inline-block;will-change:transform;transition:color .18s ease-out}
 .hb-slogan span > span{display:inline-block;transition:transform .28s ease-out}
@@ -448,7 +507,7 @@ const PAGE_CSS = `
 .hb-ofnR li{min-width:0}
 .hb-ofnK{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:.3rem;width:100%;height:100%;padding:.6rem .3rem .5rem;border:0;cursor:pointer;
   background:var(--g);color:#172D4D;font-size:.72rem;font-weight:500;line-height:1.15;text-align:center;min-height:44px;transition:transform .25s var(--ease)}
-.hb-ofnK img{height:4.4rem;width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(16,32,56,.25))}
+.hb-ofnK img{height:4.4rem;width:auto;max-width:100%;object-fit:contain;border-radius:10px}
 @media (hover:hover) and (pointer:fine){.hb-ofnK:hover{transform:translateY(-3px)}}
 .hb-ofn .hb-val label{min-height:3.4rem}
 @media (max-width:991px){.hb-ofn .hb-val label{min-height:4.4rem}}
@@ -457,10 +516,50 @@ const PAGE_CSS = `
 
 
 
+// Lausar hnetur sem svífa í bakgrunni: hver með sína dýpt (d) fyrir músarhliðrun og sinn takt.
+const SVIF: { p: string; x: number; y: number; s: number; d: number; r: number }[] = [
+  { p: 'p00', x: 41, y: 11, s: 2.6, d: 1.2, r: -18 }, { p: 'p06', x: 33, y: 58, s: 2.2, d: .8, r: 24 },
+  { p: 'p02', x: 45, y: 70, s: 3.0, d: 1.4, r: 12 }, { p: 'p08', x: 60, y: 5, s: 2.4, d: 1, r: -30 },
+  { p: 'p05', x: 90, y: 6, s: 2.8, d: 1.3, r: 40 }, { p: 'p11', x: 71, y: 92, s: 2.4, d: .9, r: -8 },
+  { p: 'p14', x: 94, y: 89, s: 2.2, d: 1.1, r: 16 }, { p: 'p20', x: 53, y: 88, s: 2.6, d: .7, r: -22 },
+]
+const VERSLANIR = ['Bónus', 'Krónunni', 'Hagkaup', 'Nettó', 'Fjarðarkaupum', 'Melabúðinni', 'Samkaupum', '10-11', 'Iceland', 'N1', 'Olís',
+  'Kaupfélagi Skagfirðinga', 'Hlíðarkaupum', 'Vöruvali', 'Albínu', 'Fjölvali', 'Skeljungi', 'Kaupfélagi Steingrímsfjarðar', 'Kaupfélagi V-Húnvetninga']
+
+export function Svif({ listi = SVIF, k = '' }: { listi?: typeof SVIF; k?: string }) {
+  return (
+    <div className={`hb-svif ${k}`} aria-hidden="true">
+      {listi.map((n, i) => (
+        <span key={i} style={{ left: `${n.x}%`, top: `${n.y}%`, '--s': `${n.s}vw`, '--d': n.d, '--r': `${n.r}deg`, '--t': `${7 + (i % 4) * 1.7}s`, '--w': `${-i * 1.3}s` } as CSSProperties}>
+          <img src={`${B}hberg/laus/${n.p}.webp${V}`} alt="" width={160} height={160} decoding="async" />
+        </span>
+      ))}
+    </div>
+  )
+}
+
 function Hero() {
+  const ref = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || reduced() || !window.matchMedia('(hover:hover) and (pointer:fine)').matches) return
+    let raf = 0
+    const fara = (e: PointerEvent) => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        const r = el.getBoundingClientRect()
+        el.style.setProperty('--mx', ((e.clientX - r.left) / r.width - .5).toFixed(3))
+        el.style.setProperty('--my', ((e.clientY - r.top) / r.height - .5).toFixed(3))
+      })
+    }
+    el.addEventListener('pointermove', fara)
+    return () => { el.removeEventListener('pointermove', fara); cancelAnimationFrame(raf) }
+  }, [])
   return (
     <div className="hb-heroP">
-      <section className="hb-hero" id="top">
+      <section className="hb-hero" id="top" ref={ref}>
+        <Svif k="hb-svifH" />
         <Reveal className="hb-heroT">
           <div>
             <Merki>H-Berg · Grandatröð 12, Hafnarfirði</Merki>
@@ -473,16 +572,23 @@ function Hero() {
               </span>
             </h1>
           </div>
-          <p className="hb-heroSlag hb-mask hb-maskP">
-            <span className="hb-up" style={{ ...step(4), ['--dur' as string]: '.75s' }}>{TEXTI.heroUndir}</span>
-          </p>
+          <div className="hb-heroNe">
+            <p className="hb-heroSlag hb-mask hb-maskP"><span className="hb-up" style={{ ...step(3), ['--dur' as string]: '.75s' }}>
+              {PRODUCTS.length} vörur undir eigin merki, pakkaðar í Hafnarfirði. Fást í Bónus, Krónunni, Hagkaup og hjá {VERSLANIR.length - 3} öðrum söluaðilum.
+            </span></p>
+            <div className="hb-heroCta hb-mask"><div className="hb-up" style={step(4)}>
+              <button className="hb-btn hb-casH" onClick={() => faraA('#vorur')}><Cas t="Skoða vörurnar" /></button>
+              <button className="hb-btn sc hb-casH" onClick={() => poki.open(true)}><Cas t="Pöntun fyrir verslanir" /></button>
+            </div></div>
+          </div>
         </Reveal>
         <Reveal className="hb-rist">
           {HERO_REITIR.map((r, i) => (
-            <figure className="hb-reit hb-mask" key={r.img} style={{ '--grunnur': r.grunnur, '--k': r.k } as CSSProperties}>
-              <img className="hb-up" style={step(i)} src={Ms(r.img)} alt={r.n} width={300} height={340}
+            <button className="hb-reit hb-mask" key={r.img} style={{ '--grunnur': r.grunnur } as CSSProperties}
+              data-bendill="Skoða" aria-label={`${r.n}, nánar`} onClick={() => pop.open({ k: 'vara', slug: r.img.replace(/^hero:/, '') })}>
+              <img className="hb-up" style={step(i)} src={PK(r.img.replace(/^hero:/, ''), 'pack', 'm')} alt="" width={800} height={800}
                 loading={i < 4 ? 'eager' : 'lazy'} decoding="async" />
-            </figure>
+            </button>
           ))}
         </Reveal>
       </section>
@@ -526,6 +632,8 @@ function Tilvitnun() {
   let chip = 0
   return (
     <section className="hb-tilvS" aria-label="H-Berg í einni setningu">
+      <Svif k="hb-svifS" listi={[{ p: 'p03', x: 8, y: 10, s: 3.4, d: 1, r: 20 }, { p: 'p09', x: 86, y: 4, s: 4, d: 1.3, r: -16 },
+        { p: 'p12', x: 90, y: 78, s: 3, d: .8, r: 30 }, { p: 'p17', x: 12, y: 74, s: 3.8, d: 1.2, r: -28 }, { p: 'p24', x: 52, y: 96, s: 2.6, d: .6, r: 8 }]} />
       <Reveal margin="0px 0px -25% 0px">
         <h2 className="hb-disp hb-setning">
           {SETNING.map((lina, li) => (
@@ -590,15 +698,24 @@ function Vorur() {
   )
 }
 
+// Tölur af hberg.is (um-fyrirtaekid, soluadilar, vörulisti), 30.10.
+const TOLUR = [
+  { n: '2007', t: 'Stofnað af Halldóri Berg og fjölskyldu', g: '#F2C98A', h: 'p00' },
+  { n: String(PRODUCTS.length), t: 'Vörur undir merki H-Berg', g: '#E9B3A1', h: 'p06' },
+  { n: '19', t: 'Söluaðilar um allt land, frá Bónus til Melabúðarinnar', g: '#C9D3A2', h: 'p02' },
+  { n: '800', t: 'Fermetrar fyrir framleiðslu og pökkun í Hafnarfirði', g: '#B9CBD9', h: 'p08' },
+]
+
 function Kostir() {
   return (
     <section className="hb-kostir">
       <Reveal><Ord className="hb-disp" text="H-Berg | frá 2007" /></Reveal>
-      <Reveal className="hb-kortin" hver>
-        {KORT3.map((k, i) => (
-          <div className="hb-kort hb-mask" key={k.nr}>
-            <div className="hb-up" style={{ ...step(i), ['--dur' as string]: '1.24s' }}>
-              <small>{k.m}</small><h3>{k.t}</h3><i>{k.nr}</i>
+      <Reveal className="hb-tolur" hver>
+        {TOLUR.map((k, i) => (
+          <div className="hb-tala hb-mask" key={k.n} style={{ '--g': k.g } as CSSProperties}>
+            <div className="hb-up" style={{ ...step(i), ['--dur' as string]: '1.1s' }}>
+              <b>{k.n}</b><span>{k.t}</span>
+              <img src={`${B}hberg/laus/${k.h}.webp${V}`} alt="" width={160} height={160} loading="lazy" />
             </div>
           </div>
         ))}
@@ -841,9 +958,9 @@ function Um() {
       <Reveal className="hb-wrap"><Ord id="hb-um-t" className="hb-disp" text="Nokkur orð | um okkur" /></Reveal>
       <Reveal className="hb-umK" hver margin="0px 0px -20% 0px">
         {kort.map((k, i) => (
-          <article className="hb-umC hb-mask" key={k.n} style={{ '--grunnur': k.g } as CSSProperties}>
+          <article className="hb-umC hb-mask" key={k.n} style={{ '--grunnur': productBySlug(k.a)?.tint ?? k.g } as CSSProperties}>
             <div className="hb-up hb-umI" style={{ ...step(i), ['--dur' as string]: '1.12s' }}>
-              <div className="hb-umM"><img src={Ms(k.a)} alt="" width={300} height={340} loading="lazy" /><img src={Ms(k.b)} alt="" width={300} height={340} loading="lazy" /></div>
+              <div className="hb-umM"><img src={Ms(k.a)} style={{ background: productBySlug(k.a)?.tint }} alt="" width={300} height={340} loading="lazy" /><img src={Ms(k.b)} style={{ background: productBySlug(k.b)?.tint }} alt="" width={300} height={340} loading="lazy" /></div>
               <p className="hb-umT">{k.t}</p>
               <div className="hb-umN"><b>{k.n}</b><small>{k.m}</small></div>
               <p className="hb-umQ">{k.q}</p>
@@ -908,7 +1025,7 @@ function Linur() {
           {LINUR.map((l) => {
             const f = KATALOGUR.find((x) => x.s === l.s)
             return (
-              <button className="hb-lina2" key={l.s} data-bendill="Opna" style={{ ['--g' as string]: l.g }}
+              <button className="hb-lina2" key={l.s} data-bendill="Opna" style={{ ['--g' as string]: productBySlug(l.img)?.tint ?? l.g }}
                 onClick={() => pop.open({ k: 'flokkur', s: l.s })}>
                 <figure><img src={M(l.img)} alt="" width={400} height={450} loading="lazy" /></figure>
                 <div>
@@ -942,7 +1059,7 @@ function Yfirlysing() {
       </Reveal>
       <div className="hb-panta">
         <p>Pantar þú fyrir verslun eða stóreldhús? Settu vörur á listann og opnaðu pöntunina í tölvupósti.</p>
-        <span className="hb-pantaM"><img ref={mynd} src={Ms('kasjusmjor')} alt="" width={460} height={110} /></span>
+        <span className="hb-pantaM"><img ref={mynd} style={{ background: productBySlug('kasjusmjor')?.tint }} src={Ms('kasjusmjor')} alt="" width={460} height={110} /></span>
         <button className="hb-btn hb-casH" onClick={() => poki.open(true)}><Cas t="Opna pöntunarlistann" /></button>
       </div>
     </section>
@@ -956,7 +1073,7 @@ function Faq() {
   const [fyrri, setFyrri] = useState(-1)
   return (
     <section className="hb-faq" id="spurt">
-      <div className="hb-faqK">
+      <div className="hb-faqK" style={{ '--fk': productBySlug(MYNDIR[k])?.tint } as CSSProperties}>
         <Reveal><Ord className="hb-disp" text="Spurt og | svarað" /></Reveal>
         <div className="hb-faqM" role="button" tabIndex={0} aria-label="Næsta vörumynd" onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setFyrri(k);setK((k+1)%MYNDIR.length)}}} data-bendill="Næsta" onClick={() => { setFyrri(k); setK((k + 1) % MYNDIR.length) }}>
           {MYNDIR.map((m, j) => (
@@ -1116,7 +1233,7 @@ function HbergExperience() {
 
   return (
     <div className="hb-root">
-      <style>{CSS}{PAGE_CSS}{POKA_CSS}{HLEDSLA_CSS}{REGN_CSS}{POP_CSS}{SKJAHVILA_CSS}{EYD_CSS}</style>
+      <style>{CSS}{PAGE_CSS}{POKA_CSS}{HLEDSLA_CSS}{REGN_CSS}{POP_CSS}{SKJAHVILA_CSS}{EYD_CSS}{MERKI_CSS}</style>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <Bendill />
       <Haus />
@@ -1127,6 +1244,7 @@ function HbergExperience() {
       <GalleriDrift />
       <main>
         <Hero />
+        <Soluadilar />
         <Tilvitnun />
         <Vorur />
         <Kostir />

@@ -37,8 +37,11 @@ const TOK: [string, string][] = [
 ]
 
 export const CSS = `
-@font-face{font-family:'HB Fraunces';src:url('${import.meta.env.BASE_URL}hberg/fonts/fraunces.woff2') format('woff2');
-  font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'HB Bricolage';src:url('${import.meta.env.BASE_URL}hberg/fonts/bricolage-latin.woff2') format('woff2');
+  font-weight:200 800;font-stretch:75% 100%;font-style:normal;font-display:swap;
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'HB Bricolage';src:url('${import.meta.env.BASE_URL}hberg/fonts/bricolage-latinext.woff2') format('woff2');
+  font-weight:200 800;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113}
 @font-face{font-family:'HB General';src:url('${D('GeneralSans-Regular.woff2')}') format('woff2');
   font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:'HB General';src:url('${D('GeneralSans-Medium.woff2')}') format('woff2');
@@ -56,7 +59,7 @@ ${TOK.map(([k, v]) => `@property ${k}{syntax:'<color>';inherits:true;initial-val
   --ease:cubic-bezier(.17,.17,0,1);
   --ease-popup:cubic-bezier(.6,0,0,1);
   --ease-cas:cubic-bezier(.2,0,.1,1);
-  --f-disp:'HB Fraunces',Georgia,serif;
+  --f-disp:'HB Bricolage',system-ui,sans-serif;
   
   --gut:2.0833vw;
   --gap:22.2222vh;
@@ -89,11 +92,11 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
 :where(.hb-root) button{font:inherit;color:inherit}
 
 
-.hb-disp{font-family:var(--f-disp);font-weight:400;letter-spacing:-.03em;line-height:1;
+.hb-disp{font-family:var(--f-disp);font-weight:600;letter-spacing:-.03em;line-height:1;
   font-size:4.17vw;margin:0;text-wrap:balance}
 @media (max-width:991px){.hb-disp{font-size:6.25vw;line-height:.95}}
 @media (max-width:479px){.hb-disp{font-size:min(13.333vw,3.4rem);line-height:.95}}
-.hb-sub{font-family:var(--f-disp);font-weight:400;letter-spacing:-.02em;line-height:1.05;
+.hb-sub{font-family:var(--f-disp);font-weight:600;letter-spacing:-.02em;line-height:1.05;
   font-size:2.08vw;margin:0}
 @media (max-width:991px){.hb-sub{font-size:3.255vw}}
 @media (max-width:479px){.hb-sub{font-size:max(1.35rem,6.4vw)}}

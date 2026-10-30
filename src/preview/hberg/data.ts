@@ -7,7 +7,7 @@ export const JSON_LD={'@context':'https://schema.org','@type':'Organization',nam
 export type Reitur={img:string;n:string;grunnur:string}
 const reitur=(slug:string):Reitur=>({img:slug,n:productBySlug(slug)!.name.is,grunnur:productBySlug(slug)!.tint})
 // Hero: only opaque packs (pouch, jars, bars, bottle). Clear bags cut out hazy on these photos.
-export const HERO_REITIR=([["hnetusmjor","#D7B45D"],["strasaet-erytritol","#CF9B89"],["kasjusmjor","#A7B57E"],["orkustykki","#DD8F5E",1.22],["kasjusmjor-2","#B98B60"],["husk","#A7B57E"],["dodlusirop-2","#D7B45D"]] as [string,string,number?][]).map(([s,g,k])=>({...reitur(s),img:`hero:${s}`,grunnur:g,k:k??1}))
+export const HERO_REITIR=['hnetusmjor','orkustykki','chia-frae-2','aprikosur-2','mondlur','graskersfrae-2','kasjusmjor-2'].map(s=>({...reitur(s),k:1}))
 export type Biti={t:string}|{img:string;n:string;grunnur:string;b?:number}
 export const SETNING:Biti[][]=[[{"t": "Hnetur"}, {"img": "laus:p00", "n": "Hnetur", "grunnur": "#B98B60"}, {"t": "og fræ,"}], [{"t": "þurrkaðir ávextir"}, {"img": "laus:p06", "n": "Ávextir", "grunnur": "#DE935E"}], [{"t": "hnetusmjör"}, {"img": "hnetusmjor", "n": "Smjör", "grunnur": "#D7B45D"}, {"t": "og súkkulaði."}]]
 export const SETNING_HRINGUR:Record<string,string[]>={"Hnetur": ["laus:p00", "laus:p02", "laus:p01", "laus:p05"], "Ávextir": ["laus:p06", "laus:p08", "laus:p07"], "Smjör": ["hnetusmjor", "kasjusmjor", "kasjusmjor-2"]}

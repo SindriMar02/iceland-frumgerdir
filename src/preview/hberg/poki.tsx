@@ -71,7 +71,7 @@ export const POKA_CSS = `
 .hb-pokiS:not(.on){transition:transform .25s cubic-bezier(.4,0,1,1),visibility 0s .25s}
 .hb-pokiT{display:flex;align-items:center;justify-content:space-between;gap:1rem;
   padding:calc(1rem + env(safe-area-inset-top)) var(--gut) 1rem;box-shadow:inset 0 -1px 0 var(--c-lina)}
-.hb-pokiT h2{margin:0;font-family:var(--f-disp);font-weight:400;font-size:1.55rem;letter-spacing:-.02em}
+.hb-pokiT h2{margin:0;font-family:var(--f-disp);font-weight:600;font-size:1.55rem;letter-spacing:-.02em}
 .hb-pokiX{width:44px;height:44px;border:0;background:transparent;cursor:pointer;color:inherit;
   font-size:1.5rem;line-height:1;display:grid;place-items:center}
 .hb-pokiB{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:1.2rem var(--gut) 2rem;-webkit-overflow-scrolling:touch}

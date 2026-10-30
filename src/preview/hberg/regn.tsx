@@ -75,7 +75,8 @@ export function VoruRegn() {
       const H = el.clientHeight
       const simi = W < 640
       const u = Math.max(58, Math.min(118, W / (simi ? 5.6 : 12.5)))
-      const listi = simi ? blanda(MYNDIR, 4, 22) : blanda(MYNDIR, 6, 40)
+      // Bara lausar hnetur og ávextir, engir pokar (Sindri 30.10).
+      const listi = simi ? blanda(MYNDIR, 0, 54) : blanda(MYNDIR, 0, 120)
 
       const engine = Engine.create({ enableSleeping: true })
       engine.gravity.y = 1.15
@@ -91,7 +92,7 @@ export function VoruRegn() {
       listi.forEach((m, i) => {
         const laus = m.k === 'laus'
         const langt = m.k === 'stong'
-        const bw = laus ? u * 0.42 : langt ? u * 1.55 : m.k === 'egg' ? u * 0.62 : (m.w / m.h) * u * 1.3
+        const bw = laus ? u * (0.42 + Math.random() * 0.16) : langt ? u * 1.55 : m.k === 'egg' ? u * 0.62 : (m.w / m.h) * u * 1.3
         const bh = laus ? bw : langt ? bw * (m.h / m.w) : m.k === 'egg' ? bw * (m.h / m.w) : u * 1.3
         const x = laus ? W * (0.3 + 0.4 * Math.random()) : bw / 2 + ((i * 0.618) % 1) * (W - bw)
         const y = -bh - i * (u * (laus ? 0.22 : 0.55)) - Math.random() * u
