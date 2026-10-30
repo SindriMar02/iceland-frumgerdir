@@ -89,7 +89,7 @@ const PAGE_CSS = `
 .hb-svifH{z-index:3}
 .hb-svifH > span{transform:translate3d(calc(var(--mx) * var(--d) * -9px),calc(var(--my) * var(--d) * -7px),0);transition:transform 1.6s var(--ease)}
 @media (max-width:991px){.hb-svifH{display:none}}
-@media (max-width:479px){.hb-svif > span{width:calc(var(--s) * 2.4)}}
+@media (max-width:479px){.hb-svif > span{width:calc(var(--s) * 2.4)}.hb-svifS{display:none}}
 @media (prefers-reduced-motion:reduce){.hb-svif img{animation:none}}
 
 /* Hero 30.10: upprunalega uppsetningin, betur gerð. Ferkantaðir reitir með vörumynd á eigin lit. */
