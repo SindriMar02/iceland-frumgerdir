@@ -215,7 +215,7 @@ const PAGE_CSS = `
   filter:drop-shadow(0 12px 14px rgba(40,24,10,.22))}
 @media (hover:hover) and (pointer:fine){.hb-tala:hover img{rotate:12deg;translate:-6% -10%}}
 @media (max-width:991px){.hb-tolur{grid-template-columns:1fr 1fr}.hb-tala{min-height:44vw}}
-@media (max-width:479px){.hb-tolur{grid-template-columns:1fr}.hb-tala{min-height:52vw}.hb-tala img{width:34%}}
+@media (max-width:479px){.hb-tolur{grid-template-columns:1fr}.hb-tala{min-height:52vw}.hb-tala img{width:30%}.hb-tala span{max-width:62%}}
 
 .hb-kortin{display:flex;justify-content:space-between;gap:var(--col)}
 .hb-kort{width:31.25vw;height:30.625vw;background:var(--c-el);position:relative;overflow:hidden}
