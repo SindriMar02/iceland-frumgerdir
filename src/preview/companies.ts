@@ -4531,6 +4531,8 @@ import { companyEntry as ISBAND_ENTRY } from './isband/data'
 PREVIEW_COMPANIES.push(ISBAND_ENTRY)
 import { companyEntry as ISLYFT_ENTRY } from './islyft/data'
 PREVIEW_COMPANIES.push(ISLYFT_ENTRY)
+import { companyEntry as BRIMBORG_ENTRY } from './brimborg/data'
+PREVIEW_COMPANIES.push(BRIMBORG_ENTRY)
 import { companyEntry as GOA_ENTRY } from './goa/data'
 PREVIEW_COMPANIES.push(GOA_ENTRY)
 import { companyEntry as FAGRAVIK_ENTRY } from './fagravik/data'

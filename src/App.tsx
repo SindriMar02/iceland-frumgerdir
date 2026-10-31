@@ -217,6 +217,7 @@ const UmbudagerdinPage = lazy(() => import('./preview/umbudagerdin/Page'))
 const BenniPage = lazy(() => import('./preview/benni/Page'))
 const IsbandPage = lazy(() => import('./preview/isband/Page'))
 const IslyftPage = lazy(() => import('./preview/islyft/Page'))
+const BrimborgPage = lazy(() => import('./preview/brimborg/Page'))
 const GoaPage = lazy(() => import('./preview/goa/Page'))
 const FagravikPage = lazy(() => import('./preview/fagravik/Page'))
 const EyvikPage = lazy(() => import('./preview/eyvik/Page'))
@@ -540,6 +541,7 @@ export default function App() {
             <Route path="/preview/benni" element={<BenniPage />} />
             <Route path="/preview/isband" element={<IsbandPage />} />
             <Route path="/preview/islyft/*" element={<IslyftPage />} />
+            <Route path="/preview/brimborg" element={<BrimborgPage />} />
             <Route path="/preview/goa" element={<GoaPage />} />
             <Route path="/preview/fagravik" element={<FagravikPage />} />
             <Route path="/preview/eyvik" element={<EyvikPage />} />
