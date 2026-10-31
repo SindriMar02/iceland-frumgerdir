@@ -189,7 +189,8 @@ type ChatEl = HTMLElement & { answerer?: typeof answer; open?: () => void }
 export default function BrimborgPage() {
   const root = useRef<HTMLDivElement>(null)
   const [loader, setLoader] = useState(() => {
-    try { return !sessionStorage.getItem(SEEN) && !window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false }
+    /* the loader plays once per session; add ?intro to the address to see it again */
+    try { return (!sessionStorage.getItem(SEEN) || /[?&]intro\b/.test(window.location.search)) && !window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false }
   })
   const [menu, setMenu] = useState(false)
   const [focusKey, setFocusKey] = useState<string | null>(null)
@@ -265,7 +266,10 @@ export default function BrimborgPage() {
       chrome.style.setProperty('--bar', `${-Math.min(y, 38)}px`)
       chrome.dataset.solid = y > 60 ? '1' : '0'
       const heroFrame = root.current?.querySelector<HTMLElement>('.bb-hero .hframe')
-      if (root.current) root.current.dataset.sticky = heroFrame && heroFrame.getBoundingClientRect().bottom <= 0 ? '1' : '0'
+      /* the phone bar steps aside while the test-drive form is on screen, it would cover the fields */
+      const dr = root.current?.querySelector<HTMLElement>('.bb-drive')?.getBoundingClientRect()
+      const inDrive = !!dr && dr.top < window.innerHeight * 0.75 && dr.bottom > 0
+      if (root.current) root.current.dataset.sticky = heroFrame && heroFrame.getBoundingClientRect().bottom <= 0 && !inDrive ? '1' : '0'
       if (!document.documentElement.classList.contains('bb-menu')) {
         if (y > 320 && y > lastY + 4) chrome.dataset.hide = '1'
         else if (y < lastY - 4 || y <= 320) chrome.dataset.hide = '0'

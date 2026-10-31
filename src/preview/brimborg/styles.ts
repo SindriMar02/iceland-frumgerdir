@@ -422,6 +422,7 @@ html.bb-menu,html.bb-menu body{overflow:hidden}
 .bb-drive select{background-image:linear-gradient(45deg,transparent 50%,#fff 50%),linear-gradient(135deg,#fff 50%,transparent 50%);background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;background-size:5px 5px;background-repeat:no-repeat}
 .bb-drive select option{color:var(--ink);background-color:#fff}
 .bb-drive input:focus,.bb-drive select:focus{border-bottom-color:var(--r);box-shadow:0 1px 0 0 var(--r)}
+.bb .bb-drive input:focus-visible,.bb .bb-drive select:focus-visible{outline:none}
 .bb-drive .dform .btn{justify-self:start;margin-top:8px}
 .bb-drive .done{font-size:14px;background:rgba(255,255,255,.08);padding:12px 14px;border-left:3px solid var(--r);border-radius:2px}
 @media (max-width:899px){
@@ -461,6 +462,7 @@ html.bb-menu,html.bb-menu body{overflow:hidden}
 @media (max-width:899px){.bb-sticky{display:grid}}
 .bb[data-sticky="1"] .bb-sticky{transform:none}
 .bb.menu-open .bb-sticky{transform:translateY(calc(100% + 24px))}
+.bb:has(sndr-chat[data-open]) .bb-sticky{transform:translateY(calc(100% + 24px))}
 
 /* ── the assistant takes Brimborg's colours, never SNDR's ── */
 .bb sndr-chat{--chat-accent:${TEAL};--chat-on-accent:${INK};--chat-bg:#FFFFFF;--chat-ink:${INK};--chat-muted:#62625C;--chat-line:#E6E5E0;--chat-sunk:#F3F2EE;--chat-radius:14px;--chat-font:'BbF',system-ui,sans-serif}
