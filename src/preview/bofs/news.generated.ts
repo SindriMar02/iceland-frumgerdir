@@ -6,14 +6,30 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-10-30T12:55:18.209Z
+ * Last synced: 2026-10-31T12:28:14.770Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 30. október 2026', en: 'Updated 30 October 2026' }
+export const SYNCED_AT = { is: 'Uppfært 31. október 2026', en: 'Updated 31 October 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
+  {
+    "date": "30.10.2026",
+    "source": "BOFS",
+    "topic": "barnavernd",
+    "title": {
+      "is": "Nýtt handleiðsluteymi Barna-og fjölskyldustofu eflir stuðning við börn í fóstri og fósturforeldra",
+      "en": "Nýtt handleiðsluteymi Barna-og fjölskyldustofu eflir stuðning við börn í fóstri og fósturforeldra"
+    },
+    "href": "https://island.is/s/bofs/frett/nytt-handleidsluteymi-barna-og-fjoelskyldustofu-eflir-studning-vid-boern-i-fostri-og-fosturforeldra",
+    "untranslated": true,
+    "summary": {
+      "is": "Barna- og fjölskyldustofa hefur komið á fót nýju handleiðsluteymi innan fósturteymis í samræmi við framkvæmdaáætlun á sviði barnaverndar 2023 til 2027. Þjónustan er fyrst og fremst ætluð börnum sem þurfa sérstaka umönnun og þjálfun á fósturheimili í afmarkaðan tíma. Markmiðið er að stuðla að auknum stöðugleika í lífi barnanna og draga úr líkum á ótímabærum fósturlokum.",
+      "en": "Barna- og fjölskyldustofa hefur komið á fót nýju handleiðsluteymi innan fósturteymis í samræmi við framkvæmdaáætlun á sviði barnaverndar 2023 til 2027. Þjónustan er fyrst og fremst ætluð börnum sem þurfa sérstaka umönnun og þjálfun á fósturheimili í afmarkaðan tíma. Markmiðið er að stuðla að auknum stöðugleika í lífi barnanna og draga úr líkum á ótímabærum fósturlokum."
+    },
+    "summaryUntranslated": true
+  },
   {
     "date": "20.10.2026",
     "source": "Stjórnarráðið",
@@ -292,20 +308,6 @@ export const SYNCED_NEWS: NewsItem[] = [
       "en": "GEV hefur lokið við frumkvæðisathugun á gæðum þjónustu meðferðarheimila Barna- og fjölskyldustofu sem hófst í maí 2024."
     },
     "summaryUntranslated": true
-  },
-  {
-    "date": "20.04.2026",
-    "source": "BOFS",
-    "topic": "samstarf",
-    "title": {
-      "is": "Bráða- og viðbragðsteymið Púlsinn tekur til starfa gegn ofbeldi meðal barna",
-      "en": "The Púlsinn rapid response team begins work against violence among children"
-    },
-    "href": "https://island.is/s/bofs/frett/brada-og-vidbragdsteymid-pulsinn-tekur-til-starfa-gegn-ofbeldi-medal-barna",
-    "summary": {
-      "is": "Púlsinn er nýtt bráða- og viðbragðsteymi gegn ofbeldi meðal barna, samstarfsverkefni sveitarfélaganna á höfuðborgarsvæðinu, lögreglu og Barna- og fjölskyldustofu. Níu sérfræðingar starfa í teyminu, og skólar, félagsmiðstöðvar, lögregla og þjónustuaðilar geta kallað það til þegar áhyggjur vakna.",
-      "en": "Púlsinn is a new rapid response team against violence among children, run jointly by the capital area municipalities, the police and Barna- og fjölskyldustofa. Nine specialists staff the team, and schools, youth centres, police and service providers can call on it when concerns arise."
-    }
   },
   {
     "date": "27.03.2026",
