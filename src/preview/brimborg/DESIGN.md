@@ -7,7 +7,7 @@ A transplant of `../isband/` (itself the Bílabúð Benna system, then Íslyft).
 | ÍSBAND | Brimborg |
 |---|---|
 | Red #E0123D surfaces, white text | Teal #00B6AD sampled from Brimborg's own mark. Teal is only 2.5:1 against white, so every teal surface carries INK text (about 8:1), the way Benni's yellow did. Hover shade #009F96. |
-| Logo traced from a wordmark | Brimborg's badge (teal emblem, white wordmark, #231F20 plate) traced with potrace from `logo.png` (190×108, the only file they publish). Plate variant on light, plate-less white variant on dark. **Needs their real vector before go-live.** |
+| Logo traced from a wordmark | Brimborg's mark (teal crescent with its dot, lettering) with NO background: the #231F20 badge was only the ground the white lettering sat on. Traced with potrace from the 267 px OG image (the sharpest file they publish; `_docs/brimborg-build-2026-10-31/trace-logo.py`): ink lettering for light grounds, white for dark. **Needs their real vector before go-live.** |
 | RAM hero | Polestar 5 hero, Polestar's own press image, mirrored in the file so the car sits right and the copy sits on open road. Headline "Polestar 5 er kominn.", the price rolling in under it. |
 | (none) | **Polestar 5 chapter** (`#polestar5`, dark): price as giant rolling digits, tags, a wide frame that pans, lease and three figures that count up, a five-picture gallery rail, and the Polestar Reykjavík showroom with a card (address, hours with today marked, open/closed state, phone, test-drive CTA that preselects the car). |
 | Six type cards | Rafbílar, Jeppar, Sjö manna bílar, Sendibílar, Pallbílar, Notaðir bílar (Brimborg's own category names). Same rail. |
@@ -20,7 +20,7 @@ A transplant of `../isband/` (itself the Bílabúð Benna system, then Íslyft).
 | Heritage 1998 | "Síðan 1964": founded as a specialist workshop, 60 years in 2024. Five float captions are literal (car names), not dated claims. |
 | Four departments | Bíldshöfða 6, Bíldshöfða 8, workshop and parts, Akureyri, plus the emergency line. |
 | Chat | Same widget, greeting and chips; **every question gets "Þú þarft að kaupa vefsíðuna af Sindra fyrir svarið."** No network, no facts. |
-| Loader: logo mask + slogan | Logo mask opens, a real 00–100% counter, a teal progress edge that leads the lift. The plate lifts only when the fonts are ready AND the hero picture is decoded (guarded: 3 s fonts, 3.5 s decode), so the page opens on a finished frame. |
+| Loader: logo mask + slogan | A light bar ignites across a black screen with the mark above it and one line below; when the fonts are ready and the hero picture is decoded the light flares and the screen parts along it like a shutter, spilling teal light, onto the hero. No counter, no progress bar. Replays with `?intro`. |
 
 ## Contradictions and limits (read 31.10.2026)
 
