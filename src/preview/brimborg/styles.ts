@@ -101,7 +101,7 @@ html.bb-menu,html.bb-menu body{overflow:hidden}
 .bb-chrome[data-solid="1"] .plate.top{background:rgba(12,12,11,.78);-webkit-backdrop-filter:saturate(1.5) blur(16px);backdrop-filter:saturate(1.5) blur(16px);box-shadow:0 1px 0 rgba(255,255,255,.06)}
 .bb .row{display:flex;align-items:center;gap:28px;height:74px;max-width:1440px;margin:0 auto;padding-inline:var(--pad)}
 .bb .row .logo{display:block;flex:none}
-.bb .row .logo img{height:44px;width:auto}
+.bb .row .logo img{height:38px;width:auto}
 .bb .row .links{display:flex;gap:32px;margin:0 auto;font-size:15px;font-weight:500;letter-spacing:-.01em}
 .bb .row .nl{position:relative;padding:6px 0}
 .bb .row .nl::after{content:'';position:absolute;left:0;right:0;bottom:2px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:right;transition:transform .45s var(--ease)}
@@ -118,7 +118,7 @@ html.bb-menu,html.bb-menu body{overflow:hidden}
   .bb .row .links{display:none}
   .bb .row .burger{display:grid}
   .bb .row .links + .acts{margin-left:auto}
-  .bb .row .logo img{height:40px}
+  .bb .row .logo img{height:34px}
 }
 @media (max-width:639px){
   .bb .row .pill{display:none}
@@ -130,7 +130,7 @@ html.bb-menu,html.bb-menu body{overflow:hidden}
 .bb-menu-panel{position:fixed;inset:0;z-index:120;background:${INK};color:#fff;display:flex;flex-direction:column;
   padding:calc(12px + env(safe-area-inset-top)) var(--pad) calc(24px + env(safe-area-inset-bottom));overflow-y:auto}
 .bb-menu-panel .mtop{display:flex;justify-content:space-between;align-items:center;min-height:56px}
-.bb-menu-panel .mtop img{height:44px;width:auto}
+.bb-menu-panel .mtop img{height:38px;width:auto}
 .bb-menu-panel .mx{width:48px;height:48px;display:grid;place-items:center}
 .bb-menu-panel nav{display:flex;flex-direction:column;margin-top:40px}
 .bb-menu-panel nav a{font-size:clamp(34px,9.4vw,52px);font-weight:500;letter-spacing:-.04em;line-height:1.18;padding:4px 0}

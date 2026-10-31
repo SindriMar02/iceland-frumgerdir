@@ -145,7 +145,7 @@ function HeaderRow({ layer, focusKey, onFocusKey, onMenu }: { layer: 'base' | 't
     <div className="row">
       <a className={`logo${kf('logo')}`} href="#efst" tabIndex={tab} {...f('logo')} aria-label="Brimborg, efst á síðu"
         onClick={(e) => { e.preventDefault(); if (pageLenis) pageLenis.scrollTo(0); else window.scrollTo({ top: 0, behavior: still() ? 'auto' : 'smooth' }) }}>
-        <img src={A(hidden ? 'logo-white.svg' : 'logo.svg')} alt="" width={97} height={44} />
+        <img src={A(hidden ? 'logo-white.svg' : 'logo.svg')} alt="" width={110} height={38} />
       </a>
       <nav className="links" aria-label={hidden ? undefined : 'Aðalvalmynd'}>
         {NAV.map((n) => (
@@ -635,7 +635,7 @@ export default function BrimborgPage() {
       {loader && (
         <div className="bb-loader" ref={loaderRef} aria-hidden="true">
           <div className="mk">
-            <img src={A('logo-white.svg')} alt="" width={340} height={154} />
+            <img src={A('logo-white.svg')} alt="" width={340} height={117} />
             <p className="yr ld-fade">{CONTACT.slogan}</p>
           </div>
           <div className="ld-foot">
@@ -670,7 +670,7 @@ export default function BrimborgPage() {
       {menu && (
         <div className="bb-menu-panel" ref={menuRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Valmynd" data-lenis-prevent="">
           <div className="mtop">
-            <img src={A('logo-white.svg')} alt="Brimborg" width={97} height={44} />
+            <img src={A('logo-white.svg')} alt="Brimborg" width={110} height={38} />
             <button type="button" className="mx" onClick={() => setMenu(false)} aria-label="Loka valmynd"><X size={24} strokeWidth={1.6} aria-hidden="true" /></button>
           </div>
           <nav aria-label="Valmynd">
@@ -1065,7 +1065,7 @@ export default function BrimborgPage() {
       <footer className="bb-foot">
         <div className="wrap fgrid">
           <div className="fbrand">
-            <img src={A('logo.svg')} alt="Brimborg" width={160} height={72} />
+            <img src={A('logo.svg')} alt="Brimborg" width={200} height={69} />
             <p>{CONTACT.slogan}</p>
           </div>
           <nav className="fnav" aria-label="Neðst á síðu">
