@@ -1,21 +1,22 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Home as House, Plus } from 'lucide-react'
-import { IMG, ROOMS, matchesRoomFilter as match } from './data'
+import { Check, Home as House, Plus } from 'lucide-react'
+import { IMG, ROOMS, fitsParty, matchesRoomFilter as match } from './data'
 import type { Room } from './data'
 import { PageHero, Photo, Title, inertIf, refreshSoon } from './shell'
 import { UpcomingCottages } from './Additions'
-import { StayPicker } from './StayPicker'
-import { godoBookingUrl } from './godo'
+import { StayPicker, Stepper } from './StayPicker'
+import { BookingDock } from './Dock'
+import { prices } from './availability'
 import { useSite } from './site'
-import { ROOM_SLUG, SECTION } from './paths'
+import { LIST_ANCHOR, ROOM_SLUG, SECTION } from './paths'
 
-/* /gisting and /en/rooms: every Godo room type as a row that folds open (the
-   same 0fr → 1fr grammar as the home page), grouped hotel / cottages, filtered
-   by ?tegund= so a filtered list can be shared and survives Back. Each row's
-   Book link opens Godo on THAT room, carrying the dates and party chosen in the
-   calendar at the foot of the page (roomid verified per room, see godo.ts). */
-
+/* /gisting and /en/rooms: the booking flow in reading order. The party sits above
+   the list (it decides what fits), every Godo room type is a row that folds open
+   (the same 0fr → 1fr grammar as the home page) with one "Velja" control, the
+   calendar follows, and the dock ("Dvölin þín", Dock.tsx) floats over the page
+   saying what is chosen and naming the next step. The list is filtered by
+   ?tegund= so a filtered list can be shared and survives Back. */
 export const ROOMS_CSS = `
 .bj3 .rooms{padding:clamp(64px,8vw,120px) 0 var(--sec)}
 .bj3 .rooms .bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 32px;margin-bottom:clamp(40px,5vw,72px)}
@@ -37,7 +38,32 @@ export const ROOMS_CSS = `
 .bj3 .filtered-room>div{overflow:hidden}
 .bj3 .rlist{border-top:1px solid var(--line)}
 .bj3 .rrow{border-bottom:1px solid var(--line);scroll-margin-top:calc(90px + env(safe-area-inset-top))}
-.bj3 .rrow h3{margin:0}
+.bj3 .rrow h3{margin:0;min-width:0}
+.bj3 .rhead{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:clamp(12px,2vw,28px)}
+.bj3 .rsel{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;min-width:96px;padding:0 18px;border-radius:999px;
+  border:1px solid var(--ink);font-size:.92rem;font-weight:560;white-space:nowrap;transition:background-color .25s ease,color .25s ease,border-color .25s ease,transform .16s var(--ease)}
+@media (hover:hover){.bj3 .rsel:not([aria-disabled="true"]):hover{background:var(--ink);color:var(--on)}}
+.bj3 .rsel:active{transform:scale(.97)}
+.bj3 .rsel[aria-pressed="true"]{background:var(--band);border-color:var(--band);color:var(--on)}
+.bj3 .rsel[aria-disabled="true"]{cursor:default;border-color:var(--line);color:var(--mute)}
+.bj3 .rsel:focus-visible{outline:2px solid var(--band);outline-offset:3px}
+.bj3 .rrow[data-selected="true"] .rbtn .name b{color:var(--band)}
+.bj3 .rrow[data-selected="true"] .rbtn .thumb{box-shadow:0 0 0 2px var(--band)}
+.bj3 .rrow[data-fits="false"] .rbtn .thumb{opacity:.55;filter:grayscale(.6)}
+.bj3 .rbtn .name .why{color:var(--band);font-weight:560}
+.bj3 .party{display:flex;align-items:center;gap:8px 28px;flex-wrap:wrap}
+.bj3 .party .step{gap:14px}
+.bj3 .rooms{scroll-margin-top:calc(70px + env(safe-area-inset-top))}
+/* phones: the whole row already opens on tap, so the plus gives its width to the name */
+/* phones: the whole row already opens on tap, so the plus gives its width to the name,
+   and "Velja" drops under the facts, lined up with the text (76px thumb + 14px gap) */
+@media (max-width:520px){
+  .bj3 .rhead{grid-template-columns:1fr;gap:0}
+  .bj3 .rhead .rbtn{grid-template-columns:auto minmax(0,1fr);padding-bottom:10px}
+  .bj3 .rhead .rbtn>i{display:none}
+  .bj3 .rbtn .name b{font-size:1.3rem}
+  .bj3 .rhead>.rsel{justify-self:start;margin:0 0 16px 90px;min-height:40px;padding:0 16px}
+}
 .bj3 .rbtn{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:clamp(16px,2.4vw,36px);padding:18px 0}
 .bj3 .rbtn:focus-visible{outline:2px solid var(--band);outline-offset:4px}
 .bj3 .rbtn .thumb{width:clamp(88px,10vw,148px);aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#DAD9D5;transition:transform .6s var(--ease)}
@@ -78,26 +104,42 @@ export const ROOMS_CSS = `
 type FilterId = 'allt' | 'hotel' | 'sumarhus' | 'bad' | 'eldhus'
 
 function RoomRow({ r, initial }: { r: Room; initial: boolean }) {
-  const { t, lang, stay } = useSite()
+  const { t, lang, stay, setStay } = useSite()
   const [open, setOpen] = useState(initial)
   const [i, setI] = useState(0)
   const uid = useId()
   const pics = r.pics.map((k) => IMG[k])
   const c = t.rooms[r.id]
   const L = t.roomsPage.labels
-  const href = godoBookingUrl({ checkin: stay.checkin, checkout: stay.checkout, adults: stay.adults, children: stay.children, room: r.id, lang })
+  const chosen = stay.room === r.id
+  const fits = fitsParty(r, stay.adults, stay.children)
+  const party = stay.adults + stay.children
+  /* the build-time snapshot's lowest bookable rate, only once Godo's keys exist */
+  const from = prices?.currency === 'ISK' ? prices.rooms[r.id]?.from : null
+  const fromText = typeof from === 'number' && from > 0 ? t.picker.from(String(from).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'is' ? '.' : ',')) : ''
+  /* choosing is one tap; a second tap on the chosen row lets it go */
+  const choose = () => { if (fits) setStay({ room: chosen ? null : r.id }) }
+  const sel = (
+    <button type="button" className="rsel" aria-pressed={chosen} aria-disabled={!fits || undefined} onClick={choose}
+      aria-label={chosen ? t.dock.chosenAria(c.name) : t.dock.chooseAria(c.name)}>
+      {chosen ? <><Check size={16} strokeWidth={2} aria-hidden="true" />{t.picker.selected}</> : t.picker.select}
+    </button>
+  )
   useEffect(() => { if (initial) setOpen(true) }, [initial])
   return (
-    <article className="rrow" id={ROOM_SLUG[r.id][lang]} data-anchor={`room-${r.id}`}>
+    <article className="rrow" id={ROOM_SLUG[r.id][lang]} data-anchor={`room-${r.id}`} data-selected={chosen} data-fits={fits}>
+      <div className="rhead">
       <h3>
         <button type="button" className="rbtn" aria-expanded={open} aria-controls={`${uid}-p`} onClick={() => { setOpen((o) => !o); refreshSoon() }}>
           {pics.length
             ? <span className="thumb"><img src={pics[0].srcS ?? pics[0].src} alt="" width={148} height={111} loading="lazy" decoding="async" /></span>
             : <span className="thumb plain"><House size={22} strokeWidth={1.2} aria-hidden="true" /></span>}
-          <span className="name"><b>{c.name}</b><span>{r.size} m² · {L.guests}: {c.guests}</span></span>
+          <span className="name"><b>{c.name}</b><span>{r.size} m² · {L.guests}: {c.guests}{fromText ? ` · ${fromText}` : ''}</span>{!fits && <span className="why">{party > r.maxGuests ? t.picker.tooSmall(party) : t.picker.partyMismatch}</span>}</span>
           <i aria-hidden="true"><Plus size={18} strokeWidth={1.4} /></i>
         </button>
       </h3>
+      {sel}
+      </div>
       <div id={`${uid}-p`} className="acc-panel rpanel" data-open={open} role="region" aria-label={c.name} {...inertIf(!open)}>
         <div><div className="acc-inner">
           <div className="gal">
@@ -130,7 +172,7 @@ function RoomRow({ r, initial }: { r: Room; initial: boolean }) {
               <dt>{L.beds}</dt><dd>{c.beds}</dd>
               <dt>{L.bath}</dt><dd>{c.bath}</dd>
             </dl>
-            <a className="pill pill-solid" href={href} aria-label={t.booking.roomFor(c.name)}>{t.roomsPage.book}</a>
+            {sel}
           </div>
         </div></div>
       </div>
@@ -139,7 +181,7 @@ function RoomRow({ r, initial }: { r: Room; initial: boolean }) {
 }
 
 export function Rooms() {
-  const { t, lang } = useSite()
+  const { t, lang, stay, setStay } = useSite()
   const { hash } = useLocation()
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -166,9 +208,13 @@ export function Rooms() {
     <>
       <PageHero pic={IMG.window} title={t.roomsPage.title} sub={t.roomsPage.sub} id="bj3-rooms-h1" />
       <div className="over">
-        <section className="rooms" aria-label={t.meta.rooms.title.split(' | ')[0]}>
+        <section className="rooms" id={LIST_ANCHOR[lang]} aria-label={t.meta.rooms.title.split(' | ')[0]}>
           <div className="wrap">
             <div className="bar">
+              <div className="party" role="group" aria-label={t.dock.partyAria}>
+                <Stepper label={t.booking.adults} value={stay.adults} min={1} max={5} onChange={(n) => setStay({ adults: n })} />
+                <Stepper label={t.booking.children} value={stay.children} min={0} max={4} onChange={(n) => setStay({ children: n })} />
+              </div>
               <div className="filters" role="group" aria-label={t.ui.filterAria}>
                 {t.roomsPage.filters.map((x) => (
                   <button key={x.id} type="button" aria-pressed={f === x.id} onClick={() => setF(x.id as FilterId)}>
@@ -211,11 +257,12 @@ export function Rooms() {
                 <Title id="bj3-rbook" text={t.booking.title} stagger />
                 <p className="body rv-up">{t.booking.lede}</p>
               </div>
-              <StayPicker />
+              <StayPicker guests={false} />
             </section>
           </div>
         </section>
       </div>
+      <BookingDock placement="fixed" />
     </>
   )
 }

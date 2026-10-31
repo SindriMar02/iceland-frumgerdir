@@ -105,14 +105,15 @@ Max width 1360px, gutter `clamp(20px, 4.6vw, 72px)`, section rhythm
 | Activities title and copy | House masked title and lifting copy; cards use the 0.12s group stagger | Visible, no transforms |
 | Activity icon row | 40ms stagger, 20px lift and 0.6s fade on entry | Visible, no transforms |
 | Activity and option photographs | House settle from 1.15 to 1, clipped by their frames | Scale 1 |
-| Stay option cards | 80ms entry fade stagger; hover lifts 2px and border becomes band red; press scales to 0.97; selected ring in band red | No transforms; ring remains |
-| Picker filters | Framer Motion layout (FLIP), 0.45s, entry/exit fade; native pressed buttons | Immediate layout, no transforms |
+| Room rows, "Velja" (rooms page) | Press 0.97; chosen fills band red with a check, the row name turns band red and the thumbnail gets a 2px band ring (.25s); a second press lets it go; rows too small for the party dim the thumbnail and say why | Colour change only |
+| Booking dock "Dvölin þín" (rooms page) | Floats in from below (translateY, .55s house ease) once the hero has scrolled 55% away, leaves the same way on the way back up; its text fades in (.3s) whenever room, dates or party change; the arrow nudges 3px on hover; press 0.97. Phones: full-width bottom bar in place of the awning, back control kept | No slide, no fade; it is simply there |
+| Booking dock inline (home) | Hangs 8px under the calendar card, same width; same text fade | No fade |
+| Dock "Velja gistingu / dagsetningar" | Glides (Lenis, the house glide) to the room list or to the calendar itself, which lands with every week above the dock | Jump |
 | Rooms catalogue filters | Persistent rows collapse with grid-template-rows, 0.6s; hidden rows are inert | Immediate layout |
-| Booking summary | Stable row after options, polite status announcement when complete | Same visible row |
 
 The activities chapter follows the lake, keeping the surrounding-land story together
 before accommodation. Upcoming cottages follow the existing cottages, before owners.
-The calendar, options and booking summary stay at the bottom of home and rooms.
+The booking flow (2026-10-31, Sindri: "a better system, user friendlier and premium"): one choice of room shared by the whole site. Rooms page = party above the list, one "Velja" per room row, the calendar after the list, and the dock naming the next step (choose a room, choose dates, Bóka). Home = calendar at the foot with the dock hanging under it; its button continues to the rooms list with the dates kept. The old option-card grid that repeated the room list was removed.
 
 ## 8. Banned here
 

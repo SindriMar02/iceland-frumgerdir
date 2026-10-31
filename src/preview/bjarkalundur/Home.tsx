@@ -10,6 +10,7 @@ import type { Review } from './data'
 import { Accordion, Eyebrow, Link, Photo, Stars, Title, useNavTo } from './shell'
 import { Activities, UpcomingCottages } from './Additions'
 import { StayPicker } from './StayPicker'
+import { BookingDock } from './Dock'
 import { useSite } from './site'
 import { SECTION, pathFor, roomHref, sectionHref } from './paths'
 import { whenLifted } from './curtain'
@@ -180,6 +181,8 @@ export const HOME_CSS = `
 .bj3 .closing .t-h2{position:relative;font-size:clamp(2.8rem,7vw,6rem)}
 .bj3 .closing .lede{position:relative;max-width:52ch;color:rgba(245,244,241,.9)}
 .bj3 .closing .picker{position:relative;width:min(1080px,100%)}
+/* the stay summary hangs straight under the calendar card: one booking unit, not two */
+.bj3 .closing .dock-inline{position:relative;width:min(1080px,100%);text-align:left;margin-top:calc(8px - clamp(28px,3.4vw,44px));background:var(--paper)}
 .bj3 .closing .ctas{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
 .bj3 .closing .pill-light{background:rgba(18,18,16,.46);border-color:rgba(245,244,241,.62)}
 .bj3 .closing .pill-light:hover{background:var(--on);color:var(--ink)}
@@ -543,6 +546,7 @@ export function Home() {
           <Title id="bj3-close" text={t.closing.title} center />
           <p className="lede rv-up">{t.booking.lede}</p>
           <StayPicker />
+          <BookingDock placement="inline" />
           <div className="ctas rv-up">
             <a className="pill pill-light" href={PHONE_HREF}>{t.closing.call}</a>
             <a className="pill pill-light" href={EMAIL_HREF}>{t.ui.email}</a>

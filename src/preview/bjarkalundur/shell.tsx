@@ -873,6 +873,8 @@ export function Awning() {
   const navTo = useNavTo()
   const back = useBack()
   const bookHref = useBookHref()
+  /* the rooms page has its own bottom bar: the booking dock, back control included */
+  if (page === 'rooms') return null
   return (
     <div className={`awning${page !== 'home' ? ' has-back' : ''}`} role="region" aria-label={t.ui.quick}>
       {page !== 'home' ? (

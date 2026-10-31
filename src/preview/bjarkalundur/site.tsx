@@ -7,7 +7,9 @@ import { createContext, useContext } from 'react'
 import type { Copy } from './copy'
 import type { Lang, PageKey } from './paths'
 
-export type Stay = { checkin: Date | null; checkout: Date | null; adults: number; children: number }
+/** `room` is the Godo type the guest chose (a ROOMS id), or null: one choice, shared by
+   the rooms list, the calendar and the booking dock. */
+export type Stay = { checkin: Date | null; checkout: Date | null; adults: number; children: number; room: string | null }
 
 export type Site = {
   lang: Lang

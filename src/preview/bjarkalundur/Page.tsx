@@ -15,6 +15,7 @@ import { Rooms, ROOMS_CSS } from './Rooms'
 import { Reviews, REVIEWS_CSS } from './Reviews'
 import { Campsite, CAMPSITE_CSS } from './Campsite'
 import { PICKER_CSS } from './StayPicker'
+import { DOCK_CSS } from './Dock'
 
 /* Hótel Bjarkalundur v4 (the Edelhaus board × the MRC scroll), in Icelandic at
    the root and English under /en. DESIGN.md beside this file is the locked
@@ -23,7 +24,7 @@ import { PICKER_CSS } from './StayPicker'
      /  /gisting  /umsagnir  /tjaldsvaedi   ·   /en  /en/rooms  /en/reviews  /en/campsite
    moved between with view transitions; the language switch crossfades in place. */
 
-const ALL_CSS = CSS + HOME_CSS + ROOMS_CSS + REVIEWS_CSS + PICKER_CSS + CAMPSITE_CSS
+const ALL_CSS = CSS + HOME_CSS + ROOMS_CSS + REVIEWS_CSS + PICKER_CSS + DOCK_CSS + CAMPSITE_CSS
 /* layout effects do nothing on the server and warn there; the prerender renders this tree */
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 const PreviewShell = STANDALONE ? null : lazy(() => import('./PreviewShell'))
@@ -44,7 +45,7 @@ export default function Page() {
   useMotion(root, page)
 
   /* the stay the calendar and every room link share */
-  const [stay, setStayState] = useState<Stay>({ checkin: null, checkout: null, adults: 2, children: 0 })
+  const [stay, setStayState] = useState<Stay>({ checkin: null, checkout: null, adults: 2, children: 0, room: null })
   const setStay = useCallback((next: Partial<Stay>) => setStayState((p) => ({ ...p, ...next })), [])
   /* the clock arrives after mount: a prerendered page must not bake in the build day */
   const [today, setToday] = useState<Date | null>(null)

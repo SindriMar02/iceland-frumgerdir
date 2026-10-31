@@ -43,6 +43,12 @@ export const SECTION: Record<SectionKey, Record<Lang, string>> = {
   booking: { is: 'boka', en: 'book' },
 }
 
+/** The list of stays on the rooms page, where the dock's "choose a room" lands. */
+export const LIST_ANCHOR: Record<Lang, string> = { is: 'veldu-gistingu', en: 'choose-a-stay' }
+
+/** The calendar itself, so a glide lands with every week above the booking dock. */
+export const CAL_ANCHOR: Record<Lang, string> = { is: 'dagatal', en: 'calendar' }
+
 /** Room anchors on the rooms page, per language (ids are the Icelandic ones). */
 export const ROOM_SLUG: Record<string, Record<Lang, string>> = {
   thaegindi: { is: 'thaegindi', en: 'comfort' },
