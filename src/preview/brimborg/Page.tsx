@@ -483,34 +483,40 @@ export default function BrimborgPage() {
     let alive = true
     if (ld) {
       pageLenis?.stop()
-      const mk = ld.querySelector<HTMLElement>('.mk img')!
-      const num = ld.querySelector<HTMLElement>('.pct .n')!
-      const bar = ld.querySelector<HTMLElement>('.bar i')!
-      const prog = { v: 0 }
-      const paint = () => { num.textContent = String(Math.round(prog.v)).padStart(2, '0'); bar.style.transform = `scaleX(${prog.v / 100})` }
+      const barBox = ld.querySelector<HTMLElement>('.ld-bar')!
+      const bar = ld.querySelector<HTMLElement>('.ld-bar i')!
+      const top = ld.querySelector<HTMLElement>('.ld-half.top')!
+      const bot = ld.querySelector<HTMLElement>('.ld-half.bot')!
+      const mark = ld.querySelector<HTMLElement>('.ld-mark')!
+      const note = ld.querySelector<HTMLElement>('.ld-note')!
       const pic = hero.querySelector<HTMLImageElement>('img.hpic')
       const guard = (p: Promise<unknown>, ms: number) => Promise.race([p, new Promise((r) => window.setTimeout(r, ms))])
       const gate = Promise.all([
         guard(document.fonts?.ready ?? Promise.resolve(), 3000),
         guard(pic?.decode?.().catch(() => undefined) ?? Promise.resolve(), 3500),
-        new Promise((r) => window.setTimeout(r, 1700)),
+        new Promise((r) => window.setTimeout(r, 2000)),
       ])
+      /* the light bar ignites from the middle, the mark and one line settle either side of it */
       live.push(
         gsap.timeline({ defaults: { ease: 'bb' } })
-          .fromTo(mk, { clipPath: 'inset(0 50% 0 50%)' }, { clipPath: 'inset(0 0% 0 0%)', duration: 0.7 })
-          .fromTo(ld.querySelectorAll('.ld-fade'), { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.6, stagger: 0.08 }, 0.35),
-        gsap.to(prog, { v: 86, duration: 1.6, ease: 'power2.out', onUpdate: paint }),
+          .fromTo(bar, { scaleX: 0 }, { scaleX: 1, duration: 1.15 }, 0.15)
+          .fromTo(mark, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.9 }, 0.7)
+          .fromTo(note, { autoAlpha: 0, y: -10 }, { autoAlpha: 1, y: 0, duration: 0.9 }, 0.85),
       )
+      /* once the fonts are ready and the hero is decoded: the light flares, the screen parts along it
+         and spills teal on its own edges, and the hero opens through the gap */
       gate.then(() => {
         if (!alive) return
         live.push(
-          gsap.to(prog, { v: 100, duration: 0.5, ease: 'power2.inOut', onUpdate: paint, onComplete: () => {
-            if (!alive) return
-            live.push(gsap.timeline({ defaults: { ease: 'bb' }, onComplete: () => { pageLenis?.start(); try { sessionStorage.setItem(SEEN, '1') } catch { /* private mode */ } setLoader(false) } })
-              .to(ld.querySelectorAll('.mk, .ld-foot'), { autoAlpha: 0, y: -8, duration: 0.4, ease: 'power1.out' }, 0)
-              .to(ld, { yPercent: -100, duration: 0.9 }, 0.2)
-              .add(() => { tl.play() }, 0.38))
-          } }),
+          gsap.timeline({ defaults: { ease: 'bb' }, onComplete: () => { pageLenis?.start(); try { sessionStorage.setItem(SEEN, '1') } catch { /* private mode */ } setLoader(false) } })
+            .to(bar, { scaleY: 2.6, duration: 0.28, ease: 'power2.out' }, 0)
+            .to([top, bot], { '--spill': 1, duration: 0.3, ease: 'power2.out' }, 0)
+            .to([mark, note], { autoAlpha: 0, duration: 0.3, ease: 'power1.out' }, 0.06)
+            .to(top, { yPercent: -100, duration: 1.15 }, 0.3)
+            .to(bot, { yPercent: 100, duration: 1.15 }, 0.3)
+            .to([top, bot], { '--spill': 0, duration: 0.9, ease: 'power1.out' }, 0.55)
+            .to(barBox, { autoAlpha: 0, duration: 0.5, ease: 'power1.in' }, 0.5)
+            .add(() => { tl.play() }, 0.62),
         )
       })
     } else tl.play()
@@ -634,15 +640,9 @@ export default function BrimborgPage() {
 
       {loader && (
         <div className="bb-loader" ref={loaderRef} aria-hidden="true">
-          <div className="mk">
-            <img src={A('logo-white.svg')} alt="" width={340} height={117} />
-            <p className="yr ld-fade">{CONTACT.slogan}</p>
-          </div>
-          <div className="ld-foot">
-            <p className="pct ld-fade"><span className="n">00</span><small>%</small></p>
-            <p className="note ld-fade">Polestar 5 er kominn.<br />Frumsýndur í október 2026</p>
-          </div>
-          <div className="bar"><i /></div>
+          <div className="ld-half top"><img className="ld-mark" src={A('logo-white.svg')} alt="" width={300} height={104} /></div>
+          <div className="ld-half bot"><p className="ld-note"><i />Polestar 5 er kominn</p></div>
+          <div className="ld-bar"><i /></div>
         </div>
       )}
 

@@ -69,17 +69,22 @@ html.bb-menu,html.bb-menu body{overflow:hidden}
   .bb .btn-line:hover{box-shadow:inset 0 0 0 1px var(--ink)}
 }
 
-/* ── loader: the mark opens, a real progress count, one teal edge that leads the lift ── */
-.bb-loader{position:fixed;inset:0;z-index:250;background:${INK};color:#fff;display:grid;grid-template-rows:1fr auto 1fr;justify-items:center;overflow:hidden}
-.bb-loader .mk{grid-row:2;display:grid;justify-items:center;gap:22px}
-.bb-loader .mk img{width:min(56vw,340px);height:auto}
-.bb-loader .yr{font-size:15px;font-weight:500;letter-spacing:-.01em;color:rgba(255,255,255,.72)}
-.bb-loader .ld-foot{position:absolute;left:var(--pad);right:var(--pad);bottom:calc(30px + env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
-.bb-loader .pct{font-size:clamp(76px,13vw,184px);font-weight:500;letter-spacing:-.065em;line-height:.78;font-variant-numeric:tabular-nums}
-.bb-loader .pct small{font-size:.2em;color:var(--r);margin-left:.18em;letter-spacing:0;vertical-align:top;line-height:1}
-.bb-loader .note{font-size:13.5px;line-height:1.45;color:rgba(255,255,255,.62);text-align:right;max-width:230px}
-.bb-loader .bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.12)}
-.bb-loader .bar i{display:block;height:100%;background:var(--r);transform-origin:left center;transform:scaleX(0)}
+/* ── loader: a light bar ignites across a black screen; when the page is ready the screen parts along it ── */
+.bb-loader{position:fixed;inset:0;z-index:250;color:#fff}
+.bb-loader .ld-half{position:absolute;left:0;right:0;height:50%;background:${INK};overflow:hidden;will-change:transform}
+.bb-loader .ld-half.top{top:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:clamp(22px,3.4vh,34px)}
+.bb-loader .ld-half.bot{bottom:0;display:flex;align-items:flex-start;justify-content:center;padding-top:clamp(20px,3vh,30px)}
+.bb-loader .ld-half::after{content:'';position:absolute;left:0;right:0;height:190px;opacity:var(--spill,0);pointer-events:none}
+.bb-loader .ld-half.top::after{bottom:0;background:linear-gradient(0deg,rgba(0,182,173,.4),rgba(0,182,173,0))}
+.bb-loader .ld-half.bot::after{top:0;background:linear-gradient(180deg,rgba(0,182,173,.4),rgba(0,182,173,0))}
+.bb-loader .ld-mark{position:relative;z-index:1;width:min(52vw,280px);height:auto}
+.bb-loader .ld-note{position:relative;z-index:1;display:inline-flex;align-items:center;gap:10px;font-size:12.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.62)}
+.bb-loader .ld-note i{width:6px;height:6px;border-radius:50%;background:var(--r);box-shadow:0 0 0 4px rgba(0,182,173,.22)}
+.bb-loader .ld-bar{position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;z-index:2;filter:drop-shadow(0 0 9px rgba(0,182,173,.75)) drop-shadow(0 0 34px rgba(0,182,173,.35))}
+.bb-loader .ld-bar i{position:relative;display:block;height:100%;overflow:hidden;transform-origin:center center;transform:scaleX(0);
+  background:linear-gradient(90deg,rgba(255,255,255,0),#fff 14%,#fff 86%,rgba(255,255,255,0))}
+.bb-loader .ld-bar i::after{content:'';position:absolute;top:0;bottom:0;left:0;width:22%;background:linear-gradient(90deg,rgba(0,182,173,0),rgba(0,182,173,.95),rgba(0,182,173,0));transform:translateX(-110%);animation:bbLdSweep 1.6s cubic-bezier(.625,.05,0,1) infinite 1.1s}
+@keyframes bbLdSweep{to{transform:translateX(560%)}}
 
 /* ── chrome ── */
 .bb-chrome{position:fixed;inset:0 0 auto 0;z-index:60;padding-top:env(safe-area-inset-top);translate:0 var(--iy,0px);transition:transform .55s var(--ease)}
