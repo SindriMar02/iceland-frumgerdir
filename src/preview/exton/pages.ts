@@ -1,13 +1,14 @@
-import { BRANDS, FT, OCCASIONS, brandOf, guestBand, COLLECTIONS, OTHER_RENTALS, MAIL, MAP_URL, PHONE, PILLARS, PRODUCTS, ROUTE_EN, ROUTE_IS, SITE_URL, T, brand, img, pick, type Collection, type Lang, } from './data'
+import { BRANDS, EXTRA_CATS, FT, OCCASIONS, SHOP, SHOP_CATS, ST, brandOf, guestBand, COLLECTIONS, OTHER_RENTALS, MAIL, MAP_URL, PHONE, PILLARS, PRODUCTS, ROUTE_EN, ROUTE_IS, SITE_URL, T, brand, img, pick, type Collection, type Lang, } from './data'
 
 
 
-export type PageId = 'home' | 'bunadur' | 'hljod' | 'svid' | 'tjold' | 'hljodfaeri' | 'about' | 'contact' | 'requests' | '404'
-export const PAGE_IDS: PageId[] = ['home', 'bunadur', 'hljod', 'svid', 'tjold', 'hljodfaeri', 'about', 'contact', 'requests', '404']
+export type PageId = 'home' | 'bunadur' | 'verslun' | 'hljod' | 'svid' | 'tjold' | 'hljodfaeri' | 'about' | 'contact' | 'requests' | '404'
+export const PAGE_IDS: PageId[] = ['home', 'bunadur', 'verslun', 'hljod', 'svid', 'tjold', 'hljodfaeri', 'about', 'contact', 'requests', '404']
 
 const SLUG: Record<PageId, { is: string; en: string }> = {
   home: { is: '', en: '' },
   bunadur: { is: '/bunadur', en: '/equipment' },
+  verslun: { is: '/verslun', en: '/shop' },
   hljod: { is: '/hljod', en: '/sound' },
   svid: { is: '/svid', en: '/stages' },
   tjold: { is: '/tjold', en: '/tents' },
@@ -17,7 +18,7 @@ const SLUG: Record<PageId, { is: string; en: string }> = {
   requests: { is: '/beidnir', en: '/requests' },
   '404': { is: '/404', en: '/404' },
 }
-const VIEW: Record<PageId, string> = { home: 'home', bunadur: 'finder', hljod: 'category', svid: 'category', tjold: 'category', hljodfaeri: 'category', about: 'about', contact: 'contact', requests: 'about', '404': '404' }
+const VIEW: Record<PageId, string> = { home: 'home', bunadur: 'finder', verslun: 'shop', hljod: 'category', svid: 'category', tjold: 'category', hljodfaeri: 'category', about: 'about', contact: 'contact', requests: 'about', '404': '404' }
 
 export const basePath = (lang: Lang) => (lang === 'is' ? ROUTE_IS : ROUTE_EN)
 export const keyOf = (id: PageId, lang: Lang) => SLUG[id][lang] || '/'
@@ -32,6 +33,7 @@ const pf = (o: Record<string, string>) => esc(JSON.stringify(o))
 
 
 const WIDTHS: Record<string, [number, number]> = {
+  "ljosabord": [694, 640], "lysing": [1024, 640], "streymi": [1000, 640],
   "hero": [
     900,
     450
@@ -174,7 +176,7 @@ const ticker = (word: string, cls = '', attrs = '') => `<div class="ticker${cls}
             </div>`
 
 
-const TILE: Record<string, string> = { hljod: 'sea', svid: 'green', tjold: 'urban', hljodfaeri: 'rare' }
+const TILE: Record<string, string> = { hljod: 'sea', svid: 'green', tjold: 'urban', hljodfaeri: 'rare', ljos: 'amber', mynd: 'teal' }
 
 const NAME_EM: Record<string, { is: number; en: number }> = { hljod: { is: 5.2, en: 3.4 }, svid: { is: 2.8, en: 3.8 }, tjold: { is: 6.2, en: 3.3 }, hljodfaeri: { is: 5.6, en: 7.1 } }
 
@@ -214,7 +216,7 @@ const rollIcon = (kind: 'tel' | 'globe') => {
 
 const drawer = (lang: Lang, t: Record<string, string>) => {
   const other: Lang = lang === 'is' ? 'en' : 'is'
-  const label: Partial<Record<PageId, string>> = { home: t.home, bunadur: FT[lang].nav, about: t.about, contact: t.contact, requests: t.requests }
+  const label: Partial<Record<PageId, string>> = { home: t.home, bunadur: FT[lang].nav, verslun: ST[lang].nav, about: t.about, contact: t.contact, requests: t.requests }
   const link = (id: PageId, cls = '') => `<a${cls ? ` class="${cls}"` : ''} href="${hrefOf(id, lang)}">${esc(label[id] ?? '')}</a>`
   return `<div class="drawer" aria-hidden="true">
     <div class="drawer__scrim"></div>
@@ -226,6 +228,7 @@ const drawer = (lang: Lang, t: Record<string, string>) => {
       <nav class="drawer__links" aria-label="${esc(t.navPrimary)}">
         ${link('home')}
         ${link('bunadur')}
+        ${link('verslun')}
         ${link('contact')}
         ${link('about')}
         ${link('requests', 'drawer__links--minor')}
@@ -408,7 +411,7 @@ const occasionRow = (lang: Lang) => {
   return `<section class="home-occ" aria-labelledby="occ-title">
           <header class="home-occ__head" data-reveal>
             <h2 class="home-occ__title" id="occ-title">${esc(f.homeTitle)}</h2>
-            <p class="home-occ__text">${esc(f.homeText)}</p>
+            <p class="home-occ__text">${esc(f.homeText)} <a class="home-occ__shop" href="${hrefOf('verslun', lang)}">${esc(f.shopLink)} ${arrow(true)}</a></p>
           </header>
           <ul class="home-occ__grid" data-reveal>
             ${OCCASIONS.map(tile).join('\n            ')}
@@ -417,13 +420,22 @@ const occasionRow = (lang: Lang) => {
         </section>`
 }
 
+/* search word forms per category: Icelandic inflects (tjald, tjöld, veislutjöld), so each card also carries its family's common forms */
+const WORDS: Record<string, string> = {
+  hljod: 'hljóð hljóðkerfi hátalari hátalarar hljóðnemi míkrafónn sound speaker speakers microphone pa',
+  svid: 'svið sviðið sviðsvagn sviðspallur pallur stage stages platform',
+  tjold: 'tjald tjöld tjaldið veislutjald veislutjöld tent tents marquee',
+  hljodfaeri: 'hljóðfæri trommur trommusett magnari gítar bassi hljómborð instruments drums amplifier guitar keyboard',
+  ljos: 'ljós lýsing ljósabúnaður ljósaborð light lights lighting console',
+  mynd: 'mynd streymi streymisbúnaður myndavél útsending video streaming camera broadcast',
+}
 function finder(lang: Lang) {
   const t = T[lang], f = FT[lang]
-  const catName = (k: string) => pick(COLLECTIONS.find((c) => c.key === k)!.name, lang)
+  const catName = (k: string) => pick((COLLECTIONS.find((c) => c.key === k) ?? EXTRA_CATS.find((c) => c.key === k))!.name, lang)
   const occOf = (k: string) => OCCASIONS.filter((o) => o.items.includes(k)).map((o) => o.key).join(' ')
   const card = (p: (typeof PRODUCTS)[number]) => {
     const label = pick(p.label, lang)
-    return `<li class="fcard" data-key="${p.key}" data-cat="${p.cat}" data-occ="${occOf(p.key)}" data-guests="${p.cat === 'tjold' ? guestBand(p.coverage.is) : ''}" data-brand="${p.cat === 'hljod' ? brandOf(p.label.is) : ''}" style="--tile: var(--c-${TILE[p.cat]})">
+    return `<li class="fcard" data-key="${p.key}" data-text="${esc(`${label} ${pick(p.spec, lang)} ${pick(p.coverage, lang)} ${catName(p.cat)} ${WORDS[p.cat] ?? ''}`.toLowerCase())}" data-cat="${p.cat}" data-occ="${occOf(p.key)}" data-guests="${p.cat === 'tjold' ? guestBand(p.coverage.is) : ''}" data-brand="${p.cat === 'hljod' ? brandOf(p.label.is) : ''}" style="--tile: var(--c-${TILE[p.cat]})">
               <figure class="fcard__img"><img ${src(p.image, '(max-width: 650px) 92vw, (max-width: 1024px) 45vw, 24vw', ' alt="" loading="lazy" decoding="async"')}></figure>
               <div class="fcard__body">
                 <p class="fcard__cat">${esc(catName(p.cat))}</p>
@@ -446,7 +458,7 @@ function finder(lang: Lang) {
   const group = (legend: string, inner: string) => `<fieldset class="fgroup"><legend class="fgroup__legend">${esc(legend)}</legend>${inner}</fieldset>`
   const lines = Object.fromEntries([['', f.allLine], ...OCCASIONS.map((o) => [o.key, pick(o.line, lang)])])
   const also = OTHER_RENTALS.map((r, i) => `<li class="falso__row" data-also="${OCCASIONS.filter((o) => o.extra.includes(i)).map((o) => o.key).join(' ')}"><span class="falso__name">${esc(pick(r.name, lang))}</span><a class="btn" href="${r.url}" target="_blank" rel="noopener noreferrer">${esc(f.more)} <svg class="glyph" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a></li>`).join('')
-  return `<div class="page" data-view="finder" data-lines='${pf(lines)}' data-words='${pf({ one: f.count1, many: f.countN, tent: f.chipTent, sound: f.chipSound, remove: f.remove, g50: f.g50, g100: f.g100, g250: f.g250, ...Object.fromEntries(COLLECTIONS.map((c) => [c.key, pick(c.name, lang)])), ...Object.fromEntries(OCCASIONS.map((o) => ['o-' + o.key, pick(o.name, lang)])), occasion: f.occasion })}'>
+  return `<div class="page" data-view="finder" data-lines='${pf(lines)}' data-words='${pf({ one: f.count1, many: f.countN, tent: f.chipTent, sound: f.chipSound, remove: f.remove, g50: f.g50, g100: f.g100, g250: f.g250, ...Object.fromEntries([...COLLECTIONS, ...EXTRA_CATS].map((c) => [c.key, pick(c.name, lang)])), ...Object.fromEntries(OCCASIONS.map((o) => ['o-' + o.key, pick(o.name, lang)])), occasion: f.occasion, search: f.searchChip })}'>
       <main class="page__main finder" id="main" tabindex="-1">
         <section class="frame finder-top" aria-labelledby="finder-title">
           ${masthead(lang, t, 'white')}
@@ -455,12 +467,14 @@ function finder(lang: Lang) {
             <p class="finder-top__lead">${esc(f.lead)}</p>
           </div>
           <div class="occ" data-intro-fade>
+            ${searchBox(f.search, 'finder-q')}
             <p class="occ__ask" id="occ-ask">${esc(f.ask)}</p>
             <div class="occ__row" role="group" aria-labelledby="occ-ask">
               ${occTile('', f.all, '')}
               ${OCCASIONS.map((o) => occTile(o.key, pick(o.name, lang), o.img)).join('\n              ')}
             </div>
             <p class="occ__line" data-occ-line>${esc(f.allLine)}</p>
+            <p class="occ__shop"><a href="${hrefOf('verslun', lang)}">${esc(f.shopLink)} ${arrow(true)}</a></p>
           </div>
         </section>
 
@@ -471,7 +485,7 @@ function finder(lang: Lang) {
             <aside class="fpanel" tabindex="-1" aria-label="${esc(f.filters)}" data-panel>
               <div class="fpanel__head"><h2 class="fpanel__title">${esc(f.filters)}</h2><button type="button" class="fpanel__close" data-sheet-close aria-label="${esc(f.close)}"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2 2 12" stroke="currentColor" stroke-width="1.6"/></svg></button></div>
               <div class="fpanel__scroll" data-lenis-prevent>
-                ${group(f.fCat, COLLECTIONS.map((c) => box('cat', c.key, pick(c.name, lang))).join(''))}
+                ${group(f.fCat, [...COLLECTIONS, ...EXTRA_CATS].map((c) => box('cat', c.key, pick(c.name, lang))).join(''))}
                 ${group(f.fGuests, ['g50', 'g100', 'g250'].map((g) => box('guests', g, f[g])).join(''))}
                 ${group(f.fBrand, BRANDS.map((b) => box('brand', b, b)).join(''))}
               </div>
@@ -506,6 +520,91 @@ function finder(lang: Lang) {
       </main>
     </div>`
 }
+
+/* v2b (2026-11-03): webshop slice with real exton.is products, prices and stock; light surroundings, same filter system. */
+const kr = (n: number, lang: Lang) => `${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'is' ? '.' : ',')} kr.`
+function shop(lang: Lang) {
+  const t = T[lang], s = ST[lang], f = FT[lang]
+  const band = (n: number) => (n < 10000 ? 'p1' : n < 50000 ? 'p2' : n < 150000 ? 'p3' : 'p4')
+  const brands = [...new Set(SHOP.map((p) => p.brand).filter(Boolean))].sort((a, b) => a.localeCompare(b))
+  const glyph = '<svg class="glyph" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>'
+  const card = (p: (typeof SHOP)[number], i: number) => `<li class="fcard scard" data-id="${p.id}" data-cat="${p.cat}" data-brand="${esc(p.brand)}" data-band="${band(p.price)}" data-stock="${p.stock ? 1 : 0}" data-price="${p.price}" data-pop="${i}" data-name="${esc(p.name.toLowerCase())}" data-text="${esc(`${p.name} ${p.brand} ${pick(SHOP_CATS.find((c) => c.key === p.cat)!.name, lang)}`.toLowerCase())}">
+              <a class="scard__img" href="${p.url}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true"><img src="${img(`shop/${p.id}`)}" alt="" width="324" height="324" loading="lazy" decoding="async"></a>
+              <div class="fcard__body">
+                <p class="scard__brand">${esc(p.brand || pick(SHOP_CATS.find((c) => c.key === p.cat)!.name, lang))}</p>
+                <h3 class="scard__name">${esc(p.name)}</h3>
+                <p class="scard__price">${kr(p.price, lang)}</p>
+                <p class="scard__stock${p.stock ? ' is-in' : ''}">${esc(p.stock ? s.inStock : s.outStock)}</p>
+                <div class="fcard__go">
+                  <button type="button" class="fcard__add" data-cart-add="${p.id}" data-name="${esc(p.name)}" data-price="${p.price}" aria-pressed="false"${p.stock ? '' : ' disabled'}><span class="fcard__off">${esc(p.stock ? s.add : s.outStock)}</span><span class="fcard__on">${esc(s.added)} <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5 5.5 10.5 11.5 3.5"/></svg></span></button>
+                  <a class="fcard__more" href="${p.url}" target="_blank" rel="noopener noreferrer">${esc(s.more)} ${glyph}</a>
+                </div>
+              </div>
+            </li>`
+  const box = (name: string, value: string, label: string) => `<label class="fopt"><input type="checkbox" name="${name}" value="${esc(value)}"><span class="fopt__box" aria-hidden="true"></span><span class="fopt__label">${esc(label)}</span><span class="fopt__n" data-n="${name}:${esc(value)}"></span></label>`
+  const group = (legend: string, inner: string) => `<fieldset class="fgroup"><legend class="fgroup__legend">${esc(legend)}</legend>${inner}</fieldset>`
+  const words = { one: s.items1, many: s.itemsN, remove: f.remove, search: f.searchChip, inStock: s.inStock, p1: s.p1, p2: s.p2, p3: s.p3, p4: s.p4, ...Object.fromEntries(SHOP_CATS.map((c) => [c.key, pick(c.name, lang)])), lang }
+  return `<div class="page" data-view="shop" data-words='${pf(words)}'>
+      <main class="page__main shop" id="main" tabindex="-1">
+        <section class="frame shop-top" aria-labelledby="shop-title">
+          ${masthead(lang, t, 'ink')}
+          <div class="finder-top__body" data-intro-fade>
+            <h1 id="shop-title" class="finder-top__title">${esc(s.h1)}</h1>
+            <p class="finder-top__lead">${esc(s.lead)}</p>
+          </div>
+          <div class="shop-top__tools" data-intro-fade>
+            ${searchBox(s.search, 'shop-q')}
+            <p class="shop-top__back">${esc(s.backText)} <a href="${hrefOf('bunadur', lang)}">${esc(s.back)} ${arrow()}</a></p>
+          </div>
+        </section>
+
+        <section class="finder-body" aria-label="${esc(s.h1)}">
+          <button class="finder-open btn" type="button" aria-haspopup="dialog" aria-expanded="false" data-sheet-open><svg viewBox="0 0 16 12" aria-hidden="true"><path d="M0 2h16M3 6h10M6 10h4" stroke="currentColor" stroke-width="1.6"/></svg>${esc(f.open)} <span class="finder-open__n" data-filter-n></span></button>
+          <div class="fsheet" data-sheet>
+            <div class="fsheet__scrim" data-sheet-close></div>
+            <aside class="fpanel" tabindex="-1" aria-label="${esc(f.filters)}" data-panel>
+              <div class="fpanel__head"><h2 class="fpanel__title">${esc(f.filters)}</h2><button type="button" class="fpanel__close" data-sheet-close aria-label="${esc(f.close)}"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2 2 12" stroke="currentColor" stroke-width="1.6"/></svg></button></div>
+              <div class="fpanel__scroll" data-lenis-prevent>
+                ${group(s.fStock, box('stock', '1', s.inStock))}
+                ${group(s.fCat, SHOP_CATS.map((c) => box('cat', c.key, pick(c.name, lang))).join(''))}
+                ${group(s.fPrice, ['p1', 'p2', 'p3', 'p4'].map((b) => box('band', b, s[b])).join(''))}
+                ${group(s.fBrand, brands.map((b) => box('brand', b, b)).join(''))}
+              </div>
+              <div class="fpanel__foot"><button type="button" class="btn btn--solid" data-sheet-done>${esc(f.show)} <span data-count>${SHOP.length}</span>&nbsp;<span data-count-word>${esc(s.itemsN)}</span></button></div>
+            </aside>
+          </div>
+          <div class="fres">
+            <div class="fres__bar">
+              <p class="fres__count" aria-live="polite"><b data-count>${SHOP.length}</b> <span data-count-word>${esc(s.itemsN)}</span></p>
+              <ul class="fchips" data-chips></ul>
+              <button type="button" class="fres__clear" data-clear hidden>${esc(s.clear)}</button>
+              <label class="fsort"><span>${esc(s.sort)}</span><select data-sort><option value="pop">${esc(s.sPop)}</option><option value="low">${esc(s.sLow)}</option><option value="high">${esc(s.sHigh)}</option><option value="name">${esc(s.sName)}</option></select></label>
+            </div>
+            <ul class="fgrid sgrid" data-grid>
+            ${SHOP.map(card).join('\n            ')}
+            </ul>
+            <div class="fempty" data-empty hidden><p class="fempty__text">${esc(s.empty)}</p><button type="button" class="btn" data-clear>${esc(s.clear)}</button></div>
+          </div>
+        </section>
+
+        <div class="ftray" data-tray hidden>
+          <p class="ftray__label"><b>${esc(s.cart)}</b> <span class="ftray__n" data-tray-n>0</span><span class="ftray__names" data-cart-total></span></p>
+          <button type="button" class="btn btn--solid ftray__send" data-cart-open aria-haspopup="dialog" aria-expanded="false">${esc(s.view)} ${arrow(true)}</button>
+        </div>
+        <div class="fsheet csheet" data-csheet>
+          <div class="fsheet__scrim" data-cart-close></div>
+          <aside class="fpanel cpanel" tabindex="-1" role="dialog" aria-modal="true" aria-label="${esc(s.cart)}" inert data-cpanel>
+            <div class="fpanel__head"><h2 class="fpanel__title">${esc(s.cart)}</h2><button type="button" class="fpanel__close" data-cart-close aria-label="${esc(s.close)}"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2 2 12" stroke="currentColor" stroke-width="1.6"/></svg></button></div>
+            <ul class="fpanel__scroll clist" data-clist data-lenis-prevent></ul>
+            <div class="fpanel__foot cfoot"><p class="ctotal"><span>${esc(s.total)}</span><b data-cart-sum>0 kr.</b></p><button type="button" class="btn btn--solid" data-checkout>${esc(s.checkout)}</button><p class="cnote" data-cnote hidden>${esc(s.note)}</p></div>
+          </aside>
+        </div>
+
+        <footer class="colophon home-colophon finder-colophon"><small>${esc(t.colophon)}</small>${credit(t)}</footer>
+      </main>
+    </div>`
+}
+const searchBox = (label: string, id: string) => `<label class="fsearch" for="${id}"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m11 11 4 4" stroke="currentColor" stroke-width="1.6"/></svg><span class="fsearch__label">${esc(label)}</span><input type="search" id="${id}" name="q" placeholder="${esc(label)}" autocomplete="off" enterkeyhint="search"></label>`
 
 function ledger(c: Collection, lang: Lang) {
   const t = T[lang]
@@ -947,6 +1046,7 @@ export function renderPage(id: PageId, lang: Lang): Rendered {
   const heroes: string[] = []
   if (id === 'home') { pageHtml = home(lang); title = t.homeTitle; description = t.homeDesc; heroes.push(img('hero')); theme = '#0C1125' }
   else if (id === 'bunadur') { pageHtml = finder(lang); title = FT[lang].title; description = FT[lang].desc; theme = '#0C1125' }
+  else if (id === 'verslun') { pageHtml = shop(lang); title = ST[lang].title; description = ST[lang].desc }
   else if (c) { pageHtml = collection(c, lang); title = `${pick(c.name, lang)} | Exton`; description = pick(c.description, lang); heroes.push(img(c.hero)); theme = '#000000' }
   else if (id === 'about') { pageHtml = about(lang); title = t.aboutTitle; description = t.aboutDesc; heroes.push(img('branches')) }
   else if (id === 'contact') { pageHtml = contact(lang); title = t.contactTitle; description = t.contactDesc }

@@ -1604,5 +1604,105 @@ html.exton-on:has(body[data-page="finder"].is-picking) { height: 100svh; overflo
   :where(html.exton-on) :is(.otile, .otile__img img, .occ__tile, .occ__img img, .fcard__add) { transition: none; }
   :where(html.exton-on) :is(.otile:active, .occ__tile:active) { transform: none; }
 }
+/* ── v2b (2026-11-03): lighting + video categories, search, the webshop slice, and the wide-screen cap ── */
+:root { --c-amber: #8A5A00; --c-amber-muted: #8A5A00; --c-teal: #0B6E78; --c-teal-muted: #0B6E78; }
+/* search */
+:where(html.exton-on) .fsearch { position: relative; display: flex; align-items: center; gap: 0.7em; max-width: 640px; min-height: 52px; margin-bottom: 1.1em; padding: 0 1em; border: 1px solid rgba(255,255,255,0.4); color: var(--white); cursor: text; }
+:where(html.exton-on) .fsearch svg { width: 17px; height: 17px; flex: none; }
+:where(html.exton-on) .fsearch__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html.exton-on .fsearch input[type="search"] { flex: 1; min-width: 0; height: 50px; margin: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; color: inherit; font: inherit; font-size: max(16px, var(--t-p)); outline: none; -webkit-appearance: none; appearance: none; } /* beats the form-field styles */
+html.exton-on .fsearch input[type="search"]::-webkit-search-cancel-button { filter: grayscale(1); }
+:where(html.exton-on) .fsearch input::placeholder { color: rgba(255,255,255,0.62); }
+:where(html.exton-on) .fsearch:focus-within { border-color: var(--white); box-shadow: 0 0 0 1px var(--white); }
+:where(html.exton-on) .occ__shop, :where(html.exton-on) .home-occ__shop { margin-top: 0.6em; }
+:where(html.exton-on) .occ__shop a, :where(html.exton-on) .home-occ__shop { display: inline-flex; align-items: center; gap: 0.5em; min-height: 44px; color: var(--white); text-decoration: underline; text-underline-offset: 0.2em; }
+:where(html.exton-on) .home-occ__shop { margin-top: 0.3em; }
+:where(html.exton-on) :is(.occ__shop a, .home-occ__shop) img { width: 1em; height: auto; }
+:where(html.exton-on) :is(.occ__shop a, .home-occ__shop):focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
+
+/* shop: a scrolling page with a light header */
+:where(html.exton-on) body[data-page="shop"] { height: auto; min-height: 100svh; background: var(--white); color: var(--navy); }
+html.exton-on body[data-page="shop"] { overflow: clip visible !important; }
+html.exton-on:has(body[data-page="shop"]) { height: auto; min-height: 100%; overflow-x: hidden; overflow-y: auto; }
+html.exton-on:has(body[data-page="shop"].is-smooth) { overflow-y: hidden; }
+html.exton-on:has(body[data-page="shop"].is-picking) { height: 100svh; overflow: hidden; }
+:where(html.exton-on) body[data-page="shop"] .shell { height: auto; min-height: 100svh; overflow: visible; }
+:where(html.exton-on) .page[data-view="shop"] { height: auto; min-height: 100svh; overflow: visible; }
+:where(html.exton-on) body.is-picking .page[data-view="shop"] { height: 100svh; min-height: 0; overflow: clip; }
+:where(html.exton-on) .shop-top.frame { height: auto; min-height: 0; max-height: none; overflow: visible; padding-bottom: calc(var(--pad) * 0.6); border-bottom: 1px solid var(--swap-bg); }
+:where(html.exton-on) .shop-top .finder-top__lead { color: var(--muted); }
+:where(html.exton-on) .shop-top__tools { grid-column: 1 / -1; grid-row: 3; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6em 2em; margin-top: calc(var(--gap) * 0.6); }
+:where(html.exton-on) .shop-top .fsearch { flex: 1 1 420px; margin: 0; border-color: var(--navy); color: var(--navy); }
+:where(html.exton-on) .shop-top .fsearch input::placeholder { color: var(--muted); }
+:where(html.exton-on) .shop-top .fsearch:focus-within { border-color: var(--navy); box-shadow: 0 0 0 1px var(--navy); }
+:where(html.exton-on) .shop-top__back { color: var(--muted); }
+:where(html.exton-on) .shop-top__back a { display: inline-flex; align-items: center; gap: 0.5em; min-height: 44px; color: var(--navy); text-decoration: underline; text-underline-offset: 0.2em; }
+:where(html.exton-on) .shop-top__back img { width: 1em; height: auto; }
+:where(html.exton-on) .fsort { display: inline-flex; align-items: center; gap: 0.6em; margin-left: auto; }
+:where(html.exton-on) .fsort span { color: var(--muted); }
+:where(html.exton-on) .fsort select { min-height: 44px; padding: 0 2.2em 0 0.9em; border: 1px solid var(--navy); background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%230C1125' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 0.8em center / 10px; color: var(--navy); font: inherit; appearance: none; border-radius: 0; cursor: pointer; }
+:where(html.exton-on) .fsort select:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+:where(html.exton-on) .fres__bar .fres__clear + .fsort, :where(html.exton-on) .fres__clear[hidden] + .fsort { margin-left: auto; }
+:where(html.exton-on) .sgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: calc(var(--gap) * 0.7); }
+:where(html.exton-on) .scard__img { display: block; aspect-ratio: 1; padding: 8%; background: var(--white); border-bottom: 1px solid var(--swap-bg); }
+:where(html.exton-on) .scard__img img { width: 100%; height: 100%; max-width: none; object-fit: contain; }
+:where(html.exton-on) .scard__brand { color: var(--muted); font-size: 0.85em; }
+:where(html.exton-on) .scard__name { font-weight: 500; line-height: 1.3; font-size: 0.98em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+:where(html.exton-on) .scard__price { margin-top: auto; padding-top: 0.5em; font-family: var(--f-serif); font-size: clamp(22px, 1.9vw, 30px); line-height: 1; letter-spacing: 0.01em; }
+:where(html.exton-on) .scard__stock { display: inline-flex; align-items: center; gap: 0.45em; color: var(--muted); font-size: 0.88em; }
+:where(html.exton-on) .scard__stock::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #a8b0bb; }
+:where(html.exton-on) .scard__stock.is-in { color: #1d6b45; }
+:where(html.exton-on) .scard__stock.is-in::before { background: #1d8a52; }
+:where(html.exton-on) .scard .fcard__add:disabled { border-color: var(--swap-bg); color: var(--muted); cursor: not-allowed; background: var(--white); }
+
+/* cart sheet: from the right on desktop, from the bottom on phones */
+:where(html.exton-on) .fsheet.csheet { position: fixed; inset: 0; z-index: 130; display: none; top: 0; grid-column: auto; }
+:where(html.exton-on) .fsheet.csheet.is-open { display: block; }
+:where(html.exton-on) .csheet .fsheet__scrim { display: block; position: absolute; inset: 0; background: rgba(12,17,37,0.55); }
+:where(html.exton-on) .csheet .cpanel { position: absolute; top: 0; right: 0; bottom: 0; width: min(460px, 100vw); display: flex; flex-direction: column; background: var(--white); color: var(--navy); }
+:where(html.exton-on) .csheet .fpanel__head { display: flex; align-items: center; justify-content: space-between; padding: 0.9em 1.4em; border-bottom: 1px solid var(--swap-bg); }
+:where(html.exton-on) .csheet .fpanel__close { display: grid; place-items: center; width: 44px; height: 44px; margin-right: -10px; border: 0; background: none; color: var(--navy); cursor: pointer; }
+:where(html.exton-on) .csheet .fpanel__close svg { width: 14px; height: 14px; }
+:where(html.exton-on) .clist { flex: 1; overflow: auto; overscroll-behavior: contain; list-style: none; margin: 0; padding: 0.4em 1.4em; }
+:where(html.exton-on) .citem { display: grid; grid-template-columns: 1fr auto; gap: 0.4em 1em; align-items: center; padding: 0.9em 0; border-bottom: 1px solid var(--swap-bg); }
+:where(html.exton-on) .citem__name { grid-column: 1 / -1; font-weight: 500; line-height: 1.3; }
+:where(html.exton-on) .citem__qty { justify-self: start; display: inline-flex; align-items: center; border: 1px solid var(--navy); }
+:where(html.exton-on) .citem__qty button { width: 40px; height: 40px; border: 0; background: none; color: var(--navy); font: inherit; font-size: 18px; cursor: pointer; }
+:where(html.exton-on) .citem__qty b { min-width: 2em; text-align: center; font-weight: 500; }
+:where(html.exton-on) .citem__sum { justify-self: end; font-weight: 500; }
+:where(html.exton-on) .citem__rm { grid-column: 1 / -1; justify-self: start; min-height: 36px; padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 0.9em; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+:where(html.exton-on) :is(.citem__qty button, .citem__rm):focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+:where(html.exton-on) .csheet .cfoot { display: block; padding: 1em 1.4em calc(1em + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--swap-bg); }
+:where(html.exton-on) .ctotal { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.8em; }
+:where(html.exton-on) .ctotal b { font-family: var(--f-serif); font-weight: 400; font-size: 30px; letter-spacing: 0.01em; }
+:where(html.exton-on) .csheet .cfoot .btn { width: 100%; }
+:where(html.exton-on) .cnote { margin-top: 0.8em; color: var(--muted); font-size: 0.9em; line-height: 1.4; }
+:where(html.exton-on) .cnote[hidden] { display: none; }
+@media (max-width: 1280px) { :where(html.exton-on) .sgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1024px) { :where(html.exton-on) .sgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } :where(html.exton-on) .fsort { margin-left: 0; } }
+@media (max-width: 650px) and (orientation: portrait) {
+  :where(html.exton-on) .sgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  :where(html.exton-on) .scard .fcard__body { padding: 0.75em; }
+  :where(html.exton-on) .scard .fcard__go { flex-direction: column; align-items: stretch; }
+  :where(html.exton-on) .scard .fcard__add { justify-content: center; padding: 0 0.6em; font-size: 0.92em; }
+  :where(html.exton-on) .scard .fcard__more { justify-content: center; }
+  :where(html.exton-on) .csheet .cpanel { top: auto; left: 0; width: auto; max-height: 86svh; }
+  :where(html.exton-on) .fsearch { margin-bottom: 0.9em; }
+}
+
+/* wide screens (Erling: "everything is blown apart" on his wide monitor): above 1800 px the content holds one centred
+   width and the vw-based type is scaled back to match; navy bands still run edge to edge. */
+@media (min-width: 1800px) {
+  :root { --wide: 0.9; --s: calc(var(--s-base) * var(--wide) * min(1, calc(100svh / 950px))); }
+  :where(html.exton-on) .shell { max-width: calc(100vw * var(--wide)); margin-inline: auto; }
+  :where(html.exton-on) :is(.home-hero--navy, .home-occ, .finder-top) { box-shadow: 0 0 0 100vmax var(--navy); clip-path: inset(0 -100vmax); }
+  :where(html.exton-on) .dock { right: calc((100vw - 100vw * var(--wide)) / 2 + var(--pad)); }
+  :where(html.exton-on) .ftray { left: calc((100vw - 100vw * var(--wide)) / 2 + var(--pad) + 3 * ((100vw * var(--wide) - 2 * var(--pad) - 11 * var(--gap)) / 12 + var(--gap))); width: min(760px, calc(100vw * var(--wide) * 0.5)); }
+}
+@media (min-width: 2100px) { :root { --wide: 0.8; } }
+@media (min-width: 2400px) { :root { --wide: 0.7; } }
+@media (min-width: 2800px) { :root { --wide: 0.6; } }
+@media (min-width: 3200px) { :root { --wide: 0.52; } }
+@media (min-width: 3600px) { :root { --wide: 0.46; } }
 `
 }

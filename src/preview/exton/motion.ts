@@ -1098,16 +1098,18 @@ export function mountExton(cfg: EngineConfig): () => void {
       sheet.before(slot); shell.appendChild(tray);
       const place = () => { if (narrow.matches) { if (sheet.parentElement !== shell) shell.appendChild(sheet); } else if (sheet.parentElement === shell) slot.after(sheet); };
       const both = (sel) => [...new Set([...$$(sel, root), ...$$(sel, sheet)])];
-      const st = { occ: "", cat: new Set(), guests: new Set(), brand: new Set() };
+      const st = { occ: "", q: "", cat: new Set(), guests: new Set(), brand: new Set() }, qIn = $("#finder-q", root);
       const q = new URLSearchParams(location.search);
       st.occ = Flow.occasion ?? q.get("occ") ?? ""; Flow.occasion = null;
       if (st.occ && !$(`.occ__tile[data-occasion="${st.occ}"]`, root)) st.occ = "";
       GROUPS.forEach((k) => (q.get(k) || "").split(",").filter(Boolean).forEach((v) => st[k].add(v)));
+      st.q = (q.get("q") || "").toLowerCase(); qIn.value = st.q;
       $$(".fopt input", panel).forEach((i) => { i.checked = st[i.name].has(i.value); });
       let picked = []; try { picked = JSON.parse(sessionStorage.getItem(KEY) || "[]").filter((k) => cards.some((c) => c.dataset.key === k)); } catch {}
 
       const fits = (c, s) => {
         const d = c.dataset;
+        if (s.q && !d.text.includes(s.q)) return false;
         if (s.occ && !d.occ.split(" ").includes(s.occ)) return false;
         if (s.cat.size && !s.cat.has(d.cat)) return false;
         if (s.guests.size && d.cat === "tjold" && !s.guests.has(d.guests)) return false; // guests narrow tents only
@@ -1145,14 +1147,15 @@ export function mountExton(cfg: EngineConfig): () => void {
           i.closest(".fopt").classList.toggle("is-zero", !k && !i.checked);
         });
         chips.replaceChildren();
+        if (st.q) chips.appendChild(chip(`${words.search}: ${st.q}`, () => { st.q = ""; qIn.value = ""; apply(true); }));
         if (st.occ) chips.appendChild(chip(`${words.occasion}: ${words["o-" + st.occ]}`, () => { st.occ = ""; apply(true); }));
         GROUPS.forEach((g) => st[g].forEach((v) => chips.appendChild(chip(g === "cat" ? words[v] : g === "guests" ? `${words.tent}: ${words[v]}` : `${words.sound}: ${v}`, () => { st[g].delete(v); const i = $(`.fopt input[name="${g}"][value="${v}"]`, panel); if (i) i.checked = false; apply(true); }))));
         if (motion) $$(".fchip", chips).forEach((b) => b.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: "ease-out" }));
-        $$("[data-clear]", root).forEach((b) => { if (b.classList.contains("fres__clear")) b.hidden = !(st.occ || active()); });
+        $$("[data-clear]", root).forEach((b) => { if (b.classList.contains("fres__clear")) b.hidden = !(st.q || st.occ || active()); });
         const fn = $("[data-filter-n]", root); if (fn) fn.textContent = active() ? `(${active()})` : "";
         const wrap = $("[data-also-wrap]", root); let any = false;
         $$(".falso__row", wrap).forEach((r) => { const on = !!st.occ && r.dataset.also.split(" ").includes(st.occ); r.hidden = !on; any ||= on; }); wrap.hidden = !any;
-        const p = new URLSearchParams(); if (st.occ) p.set("occ", st.occ); GROUPS.forEach((g) => { if (st[g].size) p.set(g, [...st[g]].join(",")); });
+        const p = new URLSearchParams(); if (st.q) p.set("q", st.q); if (st.occ) p.set("occ", st.occ); GROUPS.forEach((g) => { if (st[g].size) p.set(g, [...st[g]].join(",")); });
         history.replaceState(history.state, "", location.pathname + (p.toString() ? "?" + p : ""));
       };
 
@@ -1199,11 +1202,13 @@ export function mountExton(cfg: EngineConfig): () => void {
         const add = t.closest(".fcard__add");
         if (add) { const k = add.dataset.add, i = picked.indexOf(k); if (i < 0) picked.push(k); else picked.splice(i, 1); sync(i < 0); return; }
         if (t.closest("[data-tray-clear]")) { picked = []; sync(false); return; }
-        if (t.closest("[data-clear]")) { st.occ = ""; GROUPS.forEach((g) => st[g].clear()); $$(".fopt input", panel).forEach((i) => { i.checked = false; }); apply(true); return; }
+        if (t.closest("[data-clear]")) { st.q = ""; qIn.value = ""; st.occ = ""; GROUPS.forEach((g) => st[g].clear()); $$(".fopt input", panel).forEach((i) => { i.checked = false; }); apply(true); return; }
         if (t.closest("[data-sheet-open]")) { openSheet(e.detail === 0); return; }
         if (t.closest("[data-sheet-close]") || t.closest("[data-sheet-done]")) { closeSheet(); return; }
       }, { signal });
       panel.addEventListener("change", (e) => { const i = e.target; if (!i.matches?.(".fopt input")) return; if (i.checked) st[i.name].add(i.value); else st[i.name].delete(i.value); apply(true); }, { signal });
+      let qt = null; qIn.addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(() => { st.q = qIn.value.trim().toLowerCase(); apply(true); }, 140); }, { signal });
+      qIn.addEventListener("keydown", (e) => { if (e.key === "Escape" && qIn.value) { e.stopPropagation(); qIn.value = ""; st.q = ""; apply(true); } }, { signal });
       document.addEventListener("keydown", (e) => {
         if (!sheetState.open) return;
         if (e.key === "Escape") { e.preventDefault(); closeSheet(); return; }
@@ -1214,6 +1219,120 @@ export function mountExton(cfg: EngineConfig): () => void {
       }, { signal });
       narrow.addEventListener("change", setMode, { signal });
       signal?.addEventListener("abort", () => { if (sheetState.open) Scroll.lock(false); document.documentElement.classList.remove("finder-tray"); tray.remove(); if (sheet.parentElement === shell) sheet.remove(); slot.remove(); });
+      setMode(); apply(false); sync(false);
+    },
+  };
+
+  /* ── v2b shop (2026-11-03): real exton.is products; filters, sort, search and a cart, same system as the finder ── */
+  const Shop = {
+    mount(root) {
+      const signal = Scope.signal, words = JSON.parse(root.dataset.words || "{}"), is = words.lang === "is";
+      const grid = $("[data-grid]", root), cards = $$(".scard", grid), panel = $("[data-panel]", root), sheet = $("[data-sheet]", root);
+      const opener = $("[data-sheet-open]", root), tray = $("[data-tray]", root), csheet = $("[data-csheet]", root), cpanel = $("[data-cpanel]", root);
+      const chips = $("[data-chips]", root), sortSel = $("[data-sort]", root), qIn = $("#shop-q", root), narrow = matchMedia("(max-width: 1024px)");
+      const GROUPS = ["stock", "cat", "band", "brand"], KEY = "exton-cart";
+      const shell = root.closest(".shell") || body, slot = document.createComment("fsheet");
+      sheet.before(slot); shell.appendChild(tray); shell.appendChild(csheet); // .page has will-change: transform (see Finder)
+      const place = () => { if (narrow.matches) { if (sheet.parentElement !== shell) shell.appendChild(sheet); } else if (sheet.parentElement === shell) slot.after(sheet); };
+      const both = (sel) => [...new Set([...$$(sel, root), ...$$(sel, sheet)])];
+      const kr = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, is ? "." : ",") + " kr.";
+      const st = { q: "", sort: "pop", stock: new Set(), cat: new Set(), band: new Set(), brand: new Set() };
+      const q = new URLSearchParams(location.search);
+      st.q = (q.get("q") || "").toLowerCase(); st.sort = q.get("sort") || "pop"; GROUPS.forEach((k) => (q.get(k) || "").split(",").filter(Boolean).forEach((v) => st[k].add(v)));
+      qIn.value = st.q; sortSel.value = st.sort; $$(".fopt input", panel).forEach((i) => { i.checked = st[i.name].has(i.value); });
+      let cart = {}; try { cart = JSON.parse(sessionStorage.getItem(KEY) || "{}"); } catch {}
+      const fits = (c, s) => { const d = c.dataset;
+        if (s.q && !d.text.includes(s.q)) return false;
+        if (s.stock.size && d.stock !== "1") return false;
+        if (s.cat.size && !s.cat.has(d.cat)) return false;
+        if (s.band.size && !s.band.has(d.band)) return false;
+        if (s.brand.size && !s.brand.has(d.brand)) return false; return true; };
+      const word = (n) => (n % 10 === 1 && n % 100 !== 11 ? words.one : words.many);
+      const active = () => st.stock.size + st.cat.size + st.band.size + st.brand.size;
+      const chip = (label, off) => { const li = document.createElement("li"), b = document.createElement("button"); b.type = "button"; b.className = "fchip"; b.setAttribute("aria-label", `${words.remove}: ${label}`);
+        b.innerHTML = `<span></span><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2l6 6M8 2 2 8" stroke="currentColor" stroke-width="1.4"/></svg>`; b.firstChild.textContent = label; b.addEventListener("click", off); li.appendChild(b); return li; };
+      const order = () => { const by = { pop: (a, b) => a.dataset.pop - b.dataset.pop, low: (a, b) => a.dataset.price - b.dataset.price, high: (a, b) => b.dataset.price - a.dataset.price, name: (a, b) => a.dataset.name.localeCompare(b.dataset.name) }[st.sort] || ((a, b) => a.dataset.pop - b.dataset.pop);
+        [...cards].sort(by).forEach((c) => grid.appendChild(c)); };
+      const apply = (animate) => {
+        const motion = animate && !reduced(), before = new Map(); if (motion) cards.forEach((c) => { if (!c.hidden) before.set(c, c.getBoundingClientRect()); });
+        order(); let n = 0; const entering = [];
+        cards.forEach((c) => { const ok = fits(c, st); if (ok) { n++; if (c.hidden) entering.push(c); } c.hidden = !ok; });
+        if (motion) {
+          cards.forEach((c) => { const r0 = before.get(c); if (!r0 || c.hidden) return; const r1 = c.getBoundingClientRect(), dx = r0.left - r1.left, dy = r0.top - r1.top;
+            if (Math.abs(dx) + Math.abs(dy) > 1) c.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.7,.2,1)" }); });
+          entering.forEach((c, i) => c.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: Math.min(i, 8) * 25, easing: "ease-out", fill: "backwards" }));
+        }
+        both("[data-count]").forEach((e) => { e.textContent = n; }); both("[data-count-word]").forEach((e) => { e.textContent = word(n); });
+        $("[data-empty]", root).hidden = n > 0;
+        $$(".fopt input", panel).forEach((i) => { const k = cards.filter((c) => fits(c, { ...st, [i.name]: new Set([i.value]) })).length;
+          $(`[data-n="${i.name}:${CSS.escape(i.value)}"]`, panel).textContent = k; i.closest(".fopt").classList.toggle("is-zero", !k && !i.checked); });
+        chips.replaceChildren();
+        if (st.q) chips.appendChild(chip(`${words.search}: ${st.q}`, () => { st.q = ""; qIn.value = ""; apply(true); }));
+        GROUPS.forEach((g) => st[g].forEach((v) => chips.appendChild(chip(g === "stock" ? words.inStock : g === "brand" ? v : words[v], () => { st[g].delete(v); const i = $$(`.fopt input[name="${g}"]`, panel).find((x) => x.value === v); if (i) i.checked = false; apply(true); }))));
+        $$("[data-clear]", root).forEach((b) => { if (b.classList.contains("fres__clear")) b.hidden = !(st.q || active()); });
+        const fn = $("[data-filter-n]", root); if (fn) fn.textContent = active() ? `(${active()})` : "";
+        const p = new URLSearchParams(); if (st.q) p.set("q", st.q); if (st.sort !== "pop") p.set("sort", st.sort); GROUPS.forEach((g) => { if (st[g].size) p.set(g, [...st[g]].join(",")); });
+        history.replaceState(history.state, "", location.pathname + (p.toString() ? "?" + p : ""));
+      };
+
+      /* cart */
+      const shown = { on: false };
+      const items = () => Object.entries(cart).map(([id, qty]) => { const b = $(`[data-cart-add="${id}"]`, grid); return b ? { id, qty, name: b.dataset.name, price: +b.dataset.price } : null; }).filter(Boolean);
+      const sync = (bump) => {
+        const list = items(); cart = Object.fromEntries(list.map((x) => [x.id, x.qty]));
+        try { sessionStorage.setItem(KEY, JSON.stringify(cart)); } catch {}
+        $$(".fcard__add", grid).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.cartAdd in cart)));
+        const count = list.reduce((a, x) => a + x.qty, 0), sum = list.reduce((a, x) => a + x.qty * x.price, 0);
+        $("[data-tray-n]", tray).textContent = count; $("[data-cart-total]", tray).textContent = `${count} ${word(count)} · ${kr(sum)}`; $("[data-cart-sum]", cpanel).textContent = kr(sum);
+        const ul = $("[data-clist]", cpanel); ul.replaceChildren(...list.map((x) => { const li = document.createElement("li"); li.className = "citem"; li.dataset.id = x.id;
+          li.innerHTML = `<span class="citem__name"></span><span class="citem__qty"><button type="button" data-qty="-1" aria-label="${is ? "Fækka" : "Fewer"}">−</button><b></b><button type="button" data-qty="1" aria-label="${is ? "Fjölga" : "More"}">+</button></span><span class="citem__sum"></span><button type="button" class="citem__rm" data-rm>${is ? "Fjarlægja" : "Remove"}</button>`;
+          li.querySelector(".citem__name").textContent = x.name; li.querySelector("b").textContent = x.qty; li.querySelector(".citem__sum").textContent = kr(x.qty * x.price); return li; }));
+        const want = count > 0; root.classList.toggle("has-tray", want); document.documentElement.classList.toggle("finder-tray", want);
+        if (want && !shown.on) { shown.on = true; tray.hidden = false; if (!reduced()) tray.animate([{ transform: "translateY(110%)" }, { transform: "none" }], { duration: 280, easing: "cubic-bezier(.2,.7,.2,1)" }); }
+        else if (!want && shown.on) { shown.on = false; if (cs.open) closeCart(false); if (reduced()) tray.hidden = true; else tray.animate([{ transform: "none" }, { transform: "translateY(110%)" }], { duration: 220, easing: "ease-in" }).finished.then(() => { if (!shown.on) tray.hidden = true; }).catch(() => {}); }
+        else if (bump && want && !reduced()) $("[data-tray-n]", tray).animate([{ transform: "scale(1)" }, { transform: "scale(1.12)" }, { transform: "scale(1)" }], { duration: 180, easing: "ease-out" });
+      };
+
+      /* sheets: filters (small screens) and the cart (all screens) */
+      const mk = (wrap, pnl, btn, onFocus) => ({ open: false, show(keyboard) { if (this.open) return; this.open = true;
+          pnl.getAnimations().forEach((x) => x.cancel()); wrap.classList.add("is-open"); pnl.inert = false; btn?.setAttribute("aria-expanded", "true"); Scroll.lock(true);
+          if (!reduced()) { pnl.animate([{ transform: narrow.matches || !wrap.classList.contains("csheet") ? "translateY(100%)" : "translateX(100%)" }, { transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.7,.2,1)" }); $(".fsheet__scrim", wrap).animate([{ opacity: 0 }, { opacity: 1 }], { duration: 320, easing: "ease-out" }); }
+          (keyboard && onFocus ? onFocus() : pnl).focus({ preventScroll: true }); },
+        hide(restore = true) { if (!this.open) return; this.open = false; btn?.setAttribute("aria-expanded", "false");
+          const done = () => { if (this.open) return; wrap.classList.remove("is-open"); pnl.inert = wrap === sheet ? narrow.matches : true; Scroll.lock(false); if (restore) btn?.focus({ preventScroll: true }); };
+          if (reduced()) return done(); pnl.animate([{ transform: "none" }, { transform: narrow.matches || !wrap.classList.contains("csheet") ? "translateY(100%)" : "translateX(100%)" }], { duration: 240, easing: "ease-in" });
+          $(".fsheet__scrim", wrap).animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: "ease-in" }).finished.then(done).catch(done); } });
+      const fs = mk(sheet, panel, opener, () => $("input", panel)), cs = mk(csheet, cpanel, $("[data-cart-open]", tray), () => $("button", cpanel));
+      const closeCart = (r) => cs.hide(r);
+      const setMode = () => { const small = narrow.matches; if (!small && fs.open) fs.hide(false); place();
+        if (small) { panel.setAttribute("role", "dialog"); panel.setAttribute("aria-modal", "true"); panel.inert = !fs.open; } else { panel.removeAttribute("role"); panel.removeAttribute("aria-modal"); panel.inert = false; } };
+
+      document.addEventListener("click", (e) => {
+        const t = e.target; if (!(root.contains(t) || sheet.contains(t) || tray.contains(t) || csheet.contains(t))) return;
+        const add = t.closest("[data-cart-add]"); if (add && !add.disabled) { const id = add.dataset.cartAdd, had = id in cart; if (had) delete cart[id]; else cart[id] = 1; sync(!had); return; }
+        const qb = t.closest("[data-qty]"); if (qb) { const id = qb.closest(".citem").dataset.id; cart[id] = Math.max(0, (cart[id] || 0) + +qb.dataset.qty); if (!cart[id]) delete cart[id]; sync(false); const again = $(`.citem[data-id="${id}"] [data-qty="${qb.dataset.qty}"]`, cpanel); (again || cpanel).focus({ preventScroll: true }); return; }
+        if (t.closest("[data-rm]")) { delete cart[t.closest(".citem").dataset.id]; sync(false); cpanel.focus({ preventScroll: true }); return; }
+        if (t.closest("[data-cart-open]")) { cs.show(e.detail === 0); return; }
+        if (t.closest("[data-cart-close]")) { cs.hide(); return; }
+        if (t.closest("[data-checkout]")) { $("[data-cnote]", cpanel).hidden = false; return; }
+        if (t.closest("[data-clear]")) { st.q = ""; qIn.value = ""; GROUPS.forEach((g) => st[g].clear()); $$(".fopt input", panel).forEach((i) => { i.checked = false; }); apply(true); return; }
+        if (t.closest("[data-sheet-open]")) { fs.show(e.detail === 0); return; }
+        if (t.closest("[data-sheet-close]") || t.closest("[data-sheet-done]")) { fs.hide(); return; }
+      }, { signal });
+      panel.addEventListener("change", (e) => { const i = e.target; if (!i.matches?.(".fopt input")) return; if (i.checked) st[i.name].add(i.value); else st[i.name].delete(i.value); apply(true); }, { signal });
+      sortSel.addEventListener("change", () => { st.sort = sortSel.value; apply(true); }, { signal });
+      let qt = null; qIn.addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(() => { st.q = qIn.value.trim().toLowerCase(); apply(true); }, 140); }, { signal });
+      qIn.addEventListener("keydown", (e) => { if (e.key === "Escape" && qIn.value) { e.stopPropagation(); qIn.value = ""; st.q = ""; apply(true); } }, { signal });
+      document.addEventListener("keydown", (e) => {
+        const s = cs.open ? cs : fs.open ? fs : null, pnl = cs.open ? cpanel : panel; if (!s) return;
+        if (e.key === "Escape") { e.preventDefault(); s.hide(); return; }
+        if (e.key !== "Tab") return;
+        const f = $$("button, input, select, a[href]", pnl).filter((x) => !x.disabled && x.offsetParent !== null); if (!f.length) return;
+        if (e.shiftKey && (document.activeElement === f[0] || document.activeElement === pnl)) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+      }, { signal });
+      narrow.addEventListener("change", setMode, { signal });
+      signal?.addEventListener("abort", () => { if (fs.open || cs.open) Scroll.lock(false); document.documentElement.classList.remove("finder-tray"); tray.remove(); csheet.remove(); if (sheet.parentElement === shell) sheet.remove(); slot.remove(); });
       setMode(); apply(false); sync(false);
     },
   };
@@ -1231,6 +1350,7 @@ export function mountExton(cfg: EngineConfig): () => void {
       else if (root.dataset.view === "about") About.mount(root);
       else if (root.dataset.view === "home") Home.mount(root);
       else if (root.dataset.view === "finder") Finder.mount(root);
+      else if (root.dataset.view === "shop") Shop.mount(root);
       else if (root.dataset.view === "contact" || root.dataset.view === "404") Contact.mount(root);
       ScrollTrigger.refresh();
     },
