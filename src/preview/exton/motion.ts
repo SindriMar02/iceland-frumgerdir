@@ -901,7 +901,7 @@ export function mountExton(cfg: EngineConfig): () => void {
 
   /* ── Contact + 404 (M13) ─────────────────────────────────────── */
   const esc = (v) => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const Flow = { prefill: null }; // BYGG: a ledger button carries its project and size band to the enquiry form
+  const Flow = { prefill: null, occasion: null }; // BYGG: a ledger button carries its project and size band to the enquiry form
 
   const Phone = { // guarded dial prefix in the phone field (t0()/Qv() A:10440-10489)
     prefix: (el) => (el.dataset.dial ? el.dataset.dial + " " : ""),
@@ -1064,6 +1064,11 @@ export function mountExton(cfg: EngineConfig): () => void {
       const f = $(pf.tab === "partners" ? "#enquiry-partners" : "#enquiry-investors", root); if (!f) return;
       if (pf.tab) $('[data-tab="' + pf.tab + '"]', root)?.click(); // the job tab for scaffolding, netting and set-up
       Object.entries(pf).forEach(([k, v]) => { if (k === "tab") return; const el = $('[name="' + k + '"]', f); if (el) { el.value = v; el.dispatchEvent(new Event("change", { bubbles: true })); } });
+      if (pf.items) String(pf.items).split(",").filter(Boolean).forEach((key, i) => { // v2: every item in the finder's request list gets its own row
+        if (i) $("[data-add-equipment]", f)?.click();
+        const sel = $("select", $$("[data-equipment-row]", f)[i]); if (sel) { sel.value = key; sel.dispatchEvent(new Event("change", { bubbles: true })); }
+      });
+      if (pf.occasion) { const m = $('[name="message"]', f); if (m && !m.value) m.value = (cfg.lang === "is" ? "Tilefni: " : "Occasion: ") + pf.occasion; }
     },
     forms(root, signal) {
       $$(".enquiry__form", root).forEach((f) => f.addEventListener("submit", (e) => {
@@ -1080,6 +1085,133 @@ export function mountExton(cfg: EngineConfig): () => void {
     },
   };
 
+  /* ── v2 finder (2026-11-03): occasion first, filters that combine, a running request list ─────────────── */
+  const Finder = {
+    mount(root) {
+      const signal = Scope.signal, words = JSON.parse(root.dataset.words || "{}"), lines = JSON.parse(root.dataset.lines || "{}");
+      const grid = $("[data-grid]", root), cards = $$(".fcard", grid), panel = $("[data-panel]", root), sheet = $("[data-sheet]", root);
+      const opener = $("[data-sheet-open]", root), tray = $("[data-tray]", root), send = $("[data-tray-send]", root), chips = $("[data-chips]", root);
+      const GROUPS = ["cat", "guests", "brand"], KEY = "exton-request", narrow = matchMedia("(max-width: 1024px)");
+      const st = { occ: "", cat: new Set(), guests: new Set(), brand: new Set() };
+      const q = new URLSearchParams(location.search);
+      st.occ = Flow.occasion ?? q.get("occ") ?? ""; Flow.occasion = null;
+      if (st.occ && !$(`.occ__tile[data-occasion="${st.occ}"]`, root)) st.occ = "";
+      GROUPS.forEach((k) => (q.get(k) || "").split(",").filter(Boolean).forEach((v) => st[k].add(v)));
+      $$(".fopt input", panel).forEach((i) => { i.checked = st[i.name].has(i.value); });
+      let picked = []; try { picked = JSON.parse(sessionStorage.getItem(KEY) || "[]").filter((k) => cards.some((c) => c.dataset.key === k)); } catch {}
+
+      const fits = (c, s) => {
+        const d = c.dataset;
+        if (s.occ && !d.occ.split(" ").includes(s.occ)) return false;
+        if (s.cat.size && !s.cat.has(d.cat)) return false;
+        if (s.guests.size && d.cat === "tjold" && !s.guests.has(d.guests)) return false; // guests narrow tents only
+        if (s.brand.size && d.cat === "hljod" && !s.brand.has(d.brand)) return false;   // brands narrow sound only
+        return true;
+      };
+      const word = (n) => (n % 10 === 1 && n % 100 !== 11 ? words.one : words.many);
+      const active = () => st.cat.size + st.guests.size + st.brand.size;
+      const chip = (label, onRemove) => {
+        const li = document.createElement("li"), b = document.createElement("button");
+        b.type = "button"; b.className = "fchip"; b.setAttribute("aria-label", `${words.remove}: ${label}`);
+        b.innerHTML = `<span></span><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2l6 6M8 2 2 8" stroke="currentColor" stroke-width="1.4"/></svg>`;
+        b.firstChild.textContent = label; b.addEventListener("click", onRemove); li.appendChild(b); return li;
+      };
+
+      const apply = (animate) => {
+        const motion = animate && !reduced();
+        const before = new Map(); if (motion) cards.forEach((c) => { if (!c.hidden) before.set(c, c.getBoundingClientRect()); });
+        let n = 0; const entering = [];
+        cards.forEach((c) => { const ok = fits(c, st); if (ok) { n++; if (c.hidden) entering.push(c); } c.hidden = !ok; });
+        if (motion) {
+          cards.forEach((c) => { const r0 = before.get(c); if (!r0 || c.hidden) return; const r1 = c.getBoundingClientRect(), dx = r0.left - r1.left, dy = r0.top - r1.top;
+            if (Math.abs(dx) + Math.abs(dy) > 1) c.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.7,.2,1)" }); });
+          entering.forEach((c, i) => c.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: Math.min(i, 8) * 25, easing: "ease-out", fill: "backwards" }));
+        }
+        $$("[data-count]", root).forEach((e) => { e.textContent = n; }); $$("[data-count-word]", root).forEach((e) => { e.textContent = word(n); });
+        $("[data-empty]", root).hidden = n > 0;
+        $$(".occ__tile", root).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.occasion === st.occ)));
+        $("[data-occ-line]", root).textContent = lines[st.occ] ?? lines[""];
+        // faceted counts: each option counted as if it were the only choice in its group
+        $$(".fopt input", panel).forEach((i) => {
+          const s2 = { ...st, [i.name]: new Set([i.value]) }, scope = i.name === "guests" ? "tjold" : i.name === "brand" ? "hljod" : "";
+          const k = cards.filter((c) => (!scope || c.dataset.cat === scope) && fits(c, s2)).length;
+          $(`[data-n="${i.name}:${i.value}"]`, panel).textContent = k;
+          i.closest(".fopt").classList.toggle("is-zero", !k && !i.checked);
+        });
+        chips.replaceChildren();
+        if (st.occ) chips.appendChild(chip(`${words.occasion}: ${words["o-" + st.occ]}`, () => { st.occ = ""; apply(true); }));
+        GROUPS.forEach((g) => st[g].forEach((v) => chips.appendChild(chip(g === "cat" ? words[v] : g === "guests" ? `${words.tent}: ${words[v]}` : `${words.sound}: ${v}`, () => { st[g].delete(v); const i = $(`.fopt input[name="${g}"][value="${v}"]`, panel); if (i) i.checked = false; apply(true); }))));
+        if (motion) $$(".fchip", chips).forEach((b) => b.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: "ease-out" }));
+        $$("[data-clear]", root).forEach((b) => { if (b.classList.contains("fres__clear")) b.hidden = !(st.occ || active()); });
+        const fn = $("[data-filter-n]", root); if (fn) fn.textContent = active() ? `(${active()})` : "";
+        const wrap = $("[data-also-wrap]", root); let any = false;
+        $$(".falso__row", wrap).forEach((r) => { const on = !!st.occ && r.dataset.also.split(" ").includes(st.occ); r.hidden = !on; any ||= on; }); wrap.hidden = !any;
+        const p = new URLSearchParams(); if (st.occ) p.set("occ", st.occ); GROUPS.forEach((g) => { if (st[g].size) p.set(g, [...st[g]].join(",")); });
+        history.replaceState(history.state, "", location.pathname + (p.toString() ? "?" + p : ""));
+      };
+
+      /* the request list */
+      const shown = { on: false };
+      const sync = (bump) => {
+        cards.forEach((c) => $(".fcard__add", c).setAttribute("aria-pressed", String(picked.includes(c.dataset.key))));
+        try { sessionStorage.setItem(KEY, JSON.stringify(picked)); } catch {}
+        const names = picked.map((k) => $(`.fcard__add[data-add="${k}"]`, grid)?.dataset.name).filter(Boolean);
+        $("[data-tray-n]", tray).textContent = picked.length;
+        $("[data-tray-names]", tray).textContent = names.slice(0, 3).join(", ") + (names.length > 3 ? ` +${names.length - 3}` : "");
+        send.dataset.prefill = JSON.stringify({ items: picked.join(","), occasion: st.occ ? words["o-" + st.occ] : "" });
+        const want = picked.length > 0; root.classList.toggle("has-tray", want); document.documentElement.classList.toggle("finder-tray", want);
+        if (want && !shown.on) { shown.on = true; tray.hidden = false; if (!reduced()) tray.animate([{ transform: "translateY(110%)" }, { transform: "none" }], { duration: 280, easing: "cubic-bezier(.2,.7,.2,1)" }); }
+        else if (!want && shown.on) { shown.on = false; if (reduced()) tray.hidden = true; else tray.animate([{ transform: "none" }, { transform: "translateY(110%)" }], { duration: 220, easing: "ease-in" }).finished.then(() => { if (!shown.on) tray.hidden = true; }).catch(() => {}); }
+        else if (bump && want && !reduced()) $("[data-tray-n]", tray).animate([{ transform: "scale(1)" }, { transform: "scale(1.12)" }, { transform: "scale(1)" }], { duration: 180, easing: "ease-out" });
+      };
+
+      /* the filter sheet on phones and tablets; on desktop the same panel sits in the column */
+      const sheetState = { open: false, busy: false };
+      const setMode = () => {
+        const small = narrow.matches;
+        if (small) { panel.setAttribute("role", "dialog"); panel.setAttribute("aria-modal", "true"); panel.inert = !sheetState.open; }
+        else { if (sheetState.open) closeSheet(false); panel.removeAttribute("role"); panel.removeAttribute("aria-modal"); panel.inert = false; }
+      };
+      const openSheet = (keyboard) => {
+        if (sheetState.open || sheetState.busy) return; sheetState.open = true;
+        panel.getAnimations().forEach((x) => x.cancel()); $(".fsheet__scrim", sheet).getAnimations().forEach((x) => x.cancel()); // retarget from a running exit
+        sheet.classList.add("is-open"); panel.inert = false; opener.setAttribute("aria-expanded", "true"); Scroll.lock(true);
+        if (!reduced()) { sheetState.busy = true; panel.animate([{ transform: "translateY(100%)" }, { transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.7,.2,1)" }).finished.finally(() => { sheetState.busy = false; }); $(".fsheet__scrim", sheet).animate([{ opacity: 0 }, { opacity: 1 }], { duration: 320, easing: "ease-out" }); }
+        (keyboard ? $("input", panel) : panel).focus({ preventScroll: true }); // pointer opens focus the panel, never box the first control
+      };
+      const closeSheet = (restore = true) => {
+        if (!sheetState.open) return; sheetState.open = false; opener.setAttribute("aria-expanded", "false");
+        const done = () => { if (sheetState.open) return; sheet.classList.remove("is-open"); panel.inert = narrow.matches; Scroll.lock(false); if (restore) opener.focus({ preventScroll: true }); }; // a reopen during the exit keeps it open
+        if (reduced()) return done();
+        panel.animate([{ transform: "none" }, { transform: "translateY(100%)" }], { duration: 240, easing: "ease-in" });
+        $(".fsheet__scrim", sheet).animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: "ease-in" }).finished.then(done).catch(done);
+      };
+
+      root.addEventListener("click", (e) => {
+        const t = e.target;
+        const occ = t.closest(".occ__tile"); if (occ) { st.occ = occ.dataset.occasion; apply(true); return; }
+        const add = t.closest(".fcard__add");
+        if (add) { const k = add.dataset.add, i = picked.indexOf(k); if (i < 0) picked.push(k); else picked.splice(i, 1); sync(i < 0); return; }
+        if (t.closest("[data-tray-clear]")) { picked = []; sync(false); return; }
+        if (t.closest("[data-clear]")) { st.occ = ""; GROUPS.forEach((g) => st[g].clear()); $$(".fopt input", panel).forEach((i) => { i.checked = false; }); apply(true); return; }
+        if (t.closest("[data-sheet-open]")) { openSheet(e.detail === 0); return; }
+        if (t.closest("[data-sheet-close]") || t.closest("[data-sheet-done]")) { closeSheet(); return; }
+      }, { signal });
+      panel.addEventListener("change", (e) => { const i = e.target; if (!i.matches?.(".fopt input")) return; if (i.checked) st[i.name].add(i.value); else st[i.name].delete(i.value); apply(true); }, { signal });
+      document.addEventListener("keydown", (e) => {
+        if (!sheetState.open) return;
+        if (e.key === "Escape") { e.preventDefault(); closeSheet(); return; }
+        if (e.key !== "Tab") return; // keep focus inside the open sheet
+        const f = $$("button, input, a[href]", panel).filter((x) => !x.disabled && x.offsetParent !== null); if (!f.length) return;
+        if (e.shiftKey && (document.activeElement === f[0] || document.activeElement === panel)) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+      }, { signal });
+      narrow.addEventListener("change", setMode, { signal });
+      signal?.addEventListener("abort", () => { if (sheetState.open) Scroll.lock(false); document.documentElement.classList.remove("finder-tray"); });
+      setMode(); apply(false); sync(false);
+    },
+  };
+
   /* ── page lifecycle ─────────────────────────────────────────── */
   const Page = {
     mount(root) {
@@ -1092,6 +1224,7 @@ export function mountExton(cfg: EngineConfig): () => void {
       if (root.dataset.view === "category") Category.mount(root);
       else if (root.dataset.view === "about") About.mount(root);
       else if (root.dataset.view === "home") Home.mount(root);
+      else if (root.dataset.view === "finder") Finder.mount(root);
       else if (root.dataset.view === "contact" || root.dataset.view === "404") Contact.mount(root);
       ScrollTrigger.refresh();
     },
@@ -1247,6 +1380,7 @@ export function mountExton(cfg: EngineConfig): () => void {
         if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
         const a = e.target.closest("a[href]"); if (!a || a.target === "_blank" || a.closest(".picker, .drawer")) return;
         if (a.dataset.prefill) { try { Flow.prefill = JSON.parse(a.dataset.prefill); } catch {} }
+        if (a.dataset.occasion !== undefined) Flow.occasion = a.dataset.occasion; // v2: a home tile opens the finder on its occasion
         const href = a.getAttribute("href"); if (!href || href.startsWith("#") || /^(mailto|tel):/.test(href)) return;
         const p = this.path(href); if (!p) return;
         e.preventDefault();

@@ -2545,3 +2545,45 @@ export const T: Record<Lang, Record<string, string>> = {
 export const companyEntry: PreviewCompany = {
  slug: 'exton', route: '/preview/exton', name: 'Exton leiga', sector: 'Viðburðabúnaður til leigu', location: 'Kópavogur og Akureyri', region: 'Ísland', established: '', currentUrl: 'https://exton.is/leiga/', ownerEmail: '', concept: 'Búnaður, staður og tími', conceptTagline: 'Leigufyrirspurn með búnaði, magni, stað og tíma. Leiga eða viðburður með mannskap.', accent: '#71D2FF', dark: false, status: 'Concept ready', thumb: `${BASE}exton/hero-s.webp`, ownPhotography: true, photoCredit: 'Myndir og merki af exton.is. Upplýsingar sóttar 28. október 2026.', audit: { strengths: ['Leiga með eða án mannskaps', 'Tvær starfsstöðvar'], weaknesses: ['Almenn leigufyrirspurn spyr um nafn, netfang, síma og skilaboð'], opportunities: ['Búnaður og magn í beiðni', 'Viðburðarstaður og tímasetningar'] }, positioning: 'Frumgerð fyrir leiguhluta Exton.', outreach: { subject: '', body: '' }
 }
+
+/* v2 (2026-11-03): Erling's structure on our system. Occasion → product mapping is an editorial decision taken from each
+ * product's own coverage text on exton.is; `extra` points at OTHER_RENTALS (0 lights, 1 streaming, 2 party gear, 3 bouncy castles),
+ * which live on exton.is and are linked out, labelled as such. */
+export interface Occasion { key: string; name: Bi; line: Bi; img: string; items: string[]; extra: number[] }
+export const OCCASIONS: Occasion[] = [
+  { key: 'afmaeli', name: { is: 'Afmæli', en: 'Birthdays' }, line: { is: 'Hljóð fyrir ræður og tónlist, og tjöld fyrir garðinn.', en: 'Sound for speeches and music, and tents for the garden.' }, img: 'party', items: ['rcf1', 'rcf2', 'evox1', 'evox2', 'r6-36', 'r6-54', 'top16', 'top25', 'gala20', 'gala30'], extra: [2, 3] },
+  { key: 'brudkaup', name: { is: 'Brúðkaup', en: 'Weddings' }, line: { is: 'Hljóð fyrir veisluna og hljómsveitina, tjöld fyrir gestina og pallur fyrir ræðurnar.', en: 'Sound for the party and the band, tents for the guests and a platform for the speeches.' }, img: 'furniture', items: ['evox2', 'nexo', 'meyer', 'r6-72', 'r6-90', 'r8-72', 'r8-96', 'r8-120', 'gala45', 'deck'], extra: [2, 0] },
+  { key: 'streymi', name: { is: 'Streymi', en: 'Streaming' }, line: { is: 'Hljóð fyrir þann sem talar. Streymisbúnaður og ljós eru á exton.is.', en: 'Sound for the speaker. Streaming gear and lights are on exton.is.' }, img: 'mixer', items: ['rcf1'], extra: [1, 0] },
+  { key: 'fundur', name: { is: 'Fundur og ráðstefna', en: 'Meetings' }, line: { is: 'Hljóð fyrir ræðuhöld og pallur fyrir þann sem talar.', en: 'Sound for speeches and a platform for the speaker.' }, img: 'mic', items: ['rcf1', 'rcf2', 'evox1', 'deck'], extra: [1, 0] },
+  { key: 'tonleikar', name: { is: 'Tónleikar', en: 'Concerts' }, line: { is: 'Hljóðkerfi, svið og hljóðfæri, frá litlum sal upp í stórtónleika.', en: 'Sound systems, stages and instruments, from a small hall to a festival.' }, img: 'lights', items: ['nexo', 'meyer', 'stage8', 'stage10', 'seelite', 'deck', 'drums', 'guitaramp', 'bassamp', 'keys'], extra: [0] },
+  { key: 'uti', name: { is: 'Útiviðburður', en: 'Outdoor events' }, line: { is: 'Svið, stór tjöld og hljóð sem ber út á túnið.', en: 'Stages, large tents and sound that carries across the field.' }, img: 'stage', items: ['nexo', 'meyer', 'stage8', 'stage10', 'seelite', 'r8-96', 'r8-120', 'r8-144', 'top16', 'top25', 'gala30', 'gala45'], extra: [3, 2] },
+  { key: 'arshatid', name: { is: 'Árshátíð', en: 'Company parties' }, line: { is: 'Hljóð fyrir sal og hljómsveit, og pallur fyrir veislustjórann.', en: 'Sound for the hall and the band, and a platform for the host.' }, img: 'hero', items: ['evox2', 'nexo', 'meyer', 'deck', 'drums', 'keys'], extra: [0, 2] },
+]
+export const BRANDS = ['RCF', 'EVOX', 'NEXO', 'Meyer'] as const
+export const brandOf = (label: string) => BRANDS.find((b) => label.toUpperCase().startsWith(b.toUpperCase())) ?? ''
+export const guestBand = (coverage: string) => { // "Um 30-50 manns" → band of the upper number; unconfirmed counts get none
+  const m = coverage.match(/(\d+)\s*[-–]\s*(\d+)/); if (!m) return ''
+  const hi = Number(m[2]); return hi <= 50 ? 'g50' : hi <= 100 ? 'g100' : 'g250'
+}
+export const FT: Record<Lang, Record<string, string>> = {
+  is: {
+    nav: 'Búnaður', title: 'Búnaður til leigu | Exton', desc: 'Veldu tilefnið og síaðu leigubúnað Exton eftir flokki, stærð og gerð. Það sem þú velur fer beint í beiðnina.',
+    h1: 'Búnaður til leigu', ask: 'Hvað ert þú að fara að gera?', lead: 'Veldu tilefnið og síaðu svo eftir flokki, stærð og gerð. Það sem þú velur fer beint í beiðnina.',
+    all: 'Allt', allLine: 'Allur leigubúnaðurinn á einum stað.', filters: 'Síur', fCat: 'Flokkur', fGuests: 'Tjöld eftir gestafjölda', fBrand: 'Hljóðkerfi',
+    g50: 'Allt að 50 gestir', g100: '50 til 100 gestir', g250: 'Yfir 100 gestir', chipTent: 'Tjöld', chipSound: 'Hljóðkerfi',
+    count1: 'hlutur', countN: 'hlutir', clear: 'Hreinsa síur', empty: 'Ekkert passar við þessar síur.', emptyGo: 'Hreinsa síur',
+    add: 'Bæta í beiðni', added: 'Í beiðni', more: 'Á exton.is', also: 'Líka fyrir þetta tilefni, á exton.is', price: 'Verð á fyrirspurn',
+    list: 'Beiðnin þín', send: 'Senda beiðni', empty2: 'Tæma', show: 'Sýna', close: 'Loka síum', open: 'Síur', remove: 'Fjarlægja síu',
+    homeTitle: 'Hvað ert þú að fara að gera?', homeText: 'Veldu tilefnið og sjáðu aðeins búnaðinn sem passar.', homeAll: 'Allur búnaður', occasion: 'Tilefni',
+  },
+  en: {
+    nav: 'Equipment', title: 'Equipment for hire | Exton', desc: 'Choose the occasion and filter Exton’s hire equipment by category, size and model. What you pick goes straight into the request.',
+    h1: 'Equipment for hire', ask: 'What are you planning?', lead: 'Choose the occasion, then filter by category, size and model. What you pick goes straight into the request.',
+    all: 'All', allLine: 'All hire equipment in one place.', filters: 'Filters', fCat: 'Category', fGuests: 'Tents by guest count', fBrand: 'Sound systems',
+    g50: 'Up to 50 guests', g100: '50 to 100 guests', g250: 'Over 100 guests', chipTent: 'Tents', chipSound: 'Sound',
+    count1: 'item', countN: 'items', clear: 'Clear filters', empty: 'Nothing matches these filters.', emptyGo: 'Clear filters',
+    add: 'Add to request', added: 'In request', more: 'On exton.is', also: 'Also for this occasion, on exton.is', price: 'Price on request',
+    list: 'Your request', send: 'Send request', empty2: 'Clear', show: 'Show', close: 'Close filters', open: 'Filters', remove: 'Remove filter',
+    homeTitle: 'What are you planning?', homeText: 'Choose the occasion and see only the equipment that fits.', homeAll: 'All equipment', occasion: 'Occasion',
+  },
+}

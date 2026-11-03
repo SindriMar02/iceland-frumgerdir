@@ -1436,5 +1436,173 @@ html.exton-on[data-input="pointer"] .pcard__link:focus-visible::after {outline:n
 :where(html.exton-on) .glyph {display:inline-block;width:0.7em;height:0.7em;margin-left:0.35em;vertical-align:-0.02em;}
 @media (max-width:650px){ :where(html.exton-on) .ledger__size {font-size:28px;} }
 :where(html.exton-on) .fact__stat {font-size:clamp(30px,3.4vw,54px);overflow-wrap:normal;hyphens:manual;} /* stats sit in a narrow column: whole words only */
+/* ── v2 (2026-11-03): Erling's structure on our system. Navy is the system's own primary, used for the home hero, the occasion row and
+   the finder header; reading surfaces stay white. Square buttons, 44 px targets, Tanker headings, category colours from the tiles. ── */
+:where(html.exton-on) .home-hero--navy { background: var(--navy); color: var(--white); }
+:where(html.exton-on) .home-hero--navy .navlink { color: var(--white); }
+:where(html.exton-on) .home-hero--navy .home-hero__sub { color: rgba(255,255,255,0.86); }
+:where(html.exton-on) .home-hero--navy .home-facts { border-top-color: rgba(255,255,255,0.22); }
+:where(html.exton-on) .home-hero--navy .home-facts dt { color: rgba(255,255,255,0.7); }
+:where(html.exton-on) :is(.home-hero--navy, .finder-top, .ftray) .btn { border-color: var(--white); color: var(--white); background: transparent; }
+:where(html.exton-on) :is(.home-hero--navy, .finder-top, .ftray) .btn--solid { background: var(--white); color: var(--navy); }
+:where(html.exton-on) :is(.home-hero--navy, .finder-top, .ftray) .btn:focus-visible { outline-color: var(--white); }
+@media (hover: hover) {
+  :where(html.exton-on) :is(.home-hero--navy, .finder-top, .ftray) .btn:hover { background: var(--white); color: var(--navy); }
+  :where(html.exton-on) :is(.home-hero--navy, .finder-top, .ftray) .btn--solid:hover { background: transparent; color: var(--white); }
+}
+
+/* occasion row on the home page */
+:where(html.exton-on) .home-occ { background: var(--navy); color: var(--white); padding: calc(var(--pad) * 0.6) var(--pad) calc(var(--pad) * 1.3); }
+:where(html.exton-on) .home-occ__head { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); column-gap: var(--gap); row-gap: 0.8em; align-items: end; margin-bottom: calc(var(--gap) * 1.1); }
+:where(html.exton-on) .home-occ__title { grid-column: 1 / 8; font-family: var(--f-serif); font-weight: 400; font-size: var(--d2); line-height: 0.95; letter-spacing: 0.01em; text-wrap: balance; }
+:where(html.exton-on) .home-occ__text { grid-column: 8 / -1; max-width: 30em; color: rgba(255,255,255,0.78); line-height: 1.4; }
+:where(html.exton-on) .home-occ__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: calc(var(--gap) * 0.55); }
+:where(html.exton-on) .otile { position: relative; isolation: isolate; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; min-height: clamp(150px, 15vw, 240px); padding: 1em 1.1em; overflow: hidden; color: var(--white); background: #19203a; transition: transform 0.12s ease-out, border-color 0.2s; }
+:where(html.exton-on) .otile__img { position: absolute; inset: 0; z-index: -1; }
+:where(html.exton-on) .otile__img img { width: 100%; height: 100%; max-width: none; object-fit: cover; transition: transform 0.6s var(--ease); }
+:where(html.exton-on) .otile__img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,17,37,0.05) 25%, rgba(12,17,37,0.88) 100%); }
+:where(html.exton-on) .otile__name { font-family: var(--f-serif); font-weight: 400; font-size: var(--d3); line-height: 0.95; letter-spacing: 0.01em; }
+:where(html.exton-on) .otile__n { display: inline-flex; align-items: center; gap: 0.55em; margin-top: 0.45em; font-size: max(14px, calc(var(--t-p) * 0.95)); color: rgba(255,255,255,0.8); }
+:where(html.exton-on) .otile__n img { width: 1em; height: auto; }
+:where(html.exton-on) .otile--all { background: transparent; border: 1px solid rgba(255,255,255,0.38); }
+:where(html.exton-on) .otile:active { transform: scale(0.98); }
+:where(html.exton-on) .otile:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
+@media (hover: hover) { :where(html.exton-on) .otile:hover .otile__img img { transform: scale(1.05); } :where(html.exton-on) .otile--all:hover { border-color: var(--white); } }
+
+/* finder: a scrolling page like home (the shell is one screen tall by default) */
+:where(html.exton-on) body[data-page="finder"] { height: auto; min-height: 100svh; overflow-x: clip; /* clip, not hidden: hidden makes body a scroller and breaks the sticky filter column */ background: var(--white); color: var(--navy); }
+html.exton-on:has(body[data-page="finder"]) { height: auto; min-height: 100%; overflow-x: hidden; overflow-y: auto; }
+html.exton-on:has(body[data-page="finder"].is-smooth) { overflow-y: hidden; }
+html.exton-on body[data-page="finder"] { overflow: clip visible !important; } /* body must not become a scroller, or the filter column cannot stick */
+html.exton-on:has(body[data-page="finder"].is-picking) { height: 100svh; overflow: hidden; }
+:where(html.exton-on) body[data-page="finder"] .shell { height: auto; min-height: 100svh; overflow: visible; }
+:where(html.exton-on) .page[data-view="finder"] { height: auto; min-height: 100svh; overflow: visible; }
+:where(html.exton-on) body.is-picking .page[data-view="finder"] { height: 100svh; min-height: 0; overflow: clip; }
+/* finder: navy header with the occasion tabs */
+:where(html.exton-on) .finder-top.frame { height: auto; min-height: 0; max-height: none; overflow: visible; background: var(--navy); color: var(--white); padding-bottom: calc(var(--pad) * 0.8); }
+:where(html.exton-on) .finder-top .navlink { color: var(--white); }
+:where(html.exton-on) .finder-top__body { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); column-gap: var(--gap); row-gap: 0.8em; align-items: end; padding-top: calc(var(--gap) * 1.2); }
+:where(html.exton-on) .finder-top__title { grid-column: 1 / 8; font-family: var(--f-serif); font-weight: 400; font-size: clamp(46px, 7.4vw, 118px); line-height: 0.95; letter-spacing: 0.01em; }
+:where(html.exton-on) .finder-top__lead { grid-column: 8 / -1; max-width: 30em; color: rgba(255,255,255,0.8); line-height: 1.4; font-size: max(16px, var(--t-p)); }
+:where(html.exton-on) .occ { grid-column: 1 / -1; grid-row: 3; margin-top: calc(var(--gap) * 0.6); }
+:where(html.exton-on) .occ__ask { font-size: max(17px, var(--t-h5)); margin-bottom: 0.7em; }
+:where(html.exton-on) .occ__row { display: flex; flex-wrap: wrap; gap: 0.55em; }
+:where(html.exton-on) .occ__tile { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 0.7em; min-height: 52px; padding: 5px 1.1em 5px 5px; border: 1px solid rgba(255,255,255,0.32); background: transparent; color: var(--white); font: inherit; font-size: max(15px, var(--t-p)); cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.12s ease-out; }
+:where(html.exton-on) .occ__img { width: 42px; height: 42px; flex: none; overflow: hidden; background: rgba(255,255,255,0.08); }
+:where(html.exton-on) .occ__img img { width: 100%; height: 100%; max-width: none; object-fit: cover; transition: transform 0.6s var(--ease); }
+:where(html.exton-on) .occ__all { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; width: 100%; height: 100%; padding: 10px; }
+:where(html.exton-on) .occ__all i { background: currentColor; opacity: 0.85; }
+:where(html.exton-on) .occ__name { white-space: nowrap; }
+:where(html.exton-on) .occ__tile[aria-pressed="true"] { background: var(--white); color: var(--navy); border-color: var(--white); }
+:where(html.exton-on) .occ__tile:active { transform: scale(0.98); }
+:where(html.exton-on) .occ__tile:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
+@media (hover: hover) { :where(html.exton-on) .occ__tile:hover { border-color: var(--white); } :where(html.exton-on) .occ__tile:hover .occ__img img { transform: scale(1.08); } }
+:where(html.exton-on) .occ__line { margin-top: 0.9em; min-height: 1.4em; color: rgba(255,255,255,0.8); font-size: max(15px, var(--t-p)); }
+
+/* finder: filters + results */
+:where(html.exton-on) .finder-body { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); column-gap: var(--gap); align-items: start; padding: calc(var(--pad) * 0.8) var(--pad) calc(var(--pad) * 1.2); font-size: max(15px, var(--t-p)); }
+:where(html.exton-on) .finder-open { display: none; }
+:where(html.exton-on) .fsheet { grid-column: 1 / 4; position: sticky; top: var(--pad); }
+:where(html.exton-on) .fsheet__scrim, :where(html.exton-on) .fpanel__close, :where(html.exton-on) .fpanel__foot { display: none; }
+:where(html.exton-on) .fpanel:focus { outline: none; }
+:where(html.exton-on) .fpanel__title { font-family: var(--f-serif); font-weight: 400; font-size: var(--d3); line-height: 1; letter-spacing: 0.01em; }
+:where(html.exton-on) .fgroup { margin: 1.1em 0 0; padding: 0.9em 0 0; border: 0; border-top: 1px solid var(--swap-bg); min-width: 0; }
+:where(html.exton-on) .fgroup__legend { float: left; width: 100%; padding: 0; margin-bottom: 0.35em; font-weight: 500; }
+:where(html.exton-on) .fopt { position: relative; clear: both; display: flex; align-items: center; gap: 0.7em; min-height: 42px; cursor: pointer; transition: opacity 0.2s; }
+:where(html.exton-on) .fopt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+:where(html.exton-on) .fopt__box { position: relative; width: 18px; height: 18px; flex: none; border: 1.5px solid var(--navy); transition: background 0.15s; }
+:where(html.exton-on) .fopt input:checked + .fopt__box { background: var(--navy); }
+:where(html.exton-on) .fopt input:checked + .fopt__box::after { content: ""; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px; border: solid var(--white); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+:where(html.exton-on) .fopt input:focus-visible + .fopt__box { outline: 2px solid var(--teal); outline-offset: 2px; }
+:where(html.exton-on) .fopt__label { flex: 1; }
+:where(html.exton-on) .fopt__n { color: var(--muted); font-variant-numeric: tabular-nums; }
+:where(html.exton-on) .fopt.is-zero { opacity: 0.42; }
+:where(html.exton-on) .fres { grid-column: 4 / -1; min-width: 0; }
+:where(html.exton-on) .fres__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6em 1em; min-height: 48px; margin-bottom: calc(var(--gap) * 0.7); }
+:where(html.exton-on) .fres__count b { font-family: var(--f-serif); font-weight: 400; font-size: var(--d3); line-height: 1; letter-spacing: 0.01em; }
+:where(html.exton-on) .fchips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4em; margin: 0; padding: 0; }
+:where(html.exton-on) .fchip { display: inline-flex; align-items: center; gap: 0.55em; min-height: 38px; padding: 0 0.85em; border: 0; background: var(--navy); color: var(--white); font: inherit; font-size: 0.92em; cursor: pointer; }
+:where(html.exton-on) .fchip svg { width: 10px; height: 10px; }
+:where(html.exton-on) .fchip:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+:where(html.exton-on) .fres__clear { margin-left: auto; min-height: 44px; padding: 0; border: 0; background: none; color: var(--navy); font: inherit; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+:where(html.exton-on) .fres__clear[hidden] { display: none; }
+:where(html.exton-on) .fgrid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); }
+:where(html.exton-on) .fcard { display: flex; flex-direction: column; background: var(--white); border: 1px solid var(--swap-bg); }
+:where(html.exton-on) .fcard[hidden] { display: none; }
+:where(html.exton-on) .fcard__img { margin: 0; aspect-ratio: 4 / 3; overflow: hidden; background: #f3f5f7; border-bottom: 3px solid var(--tile); }
+:where(html.exton-on) .fcard__img img { width: 100%; height: 100%; max-width: none; object-fit: cover; }
+:where(html.exton-on) .fcard__body { flex: 1; display: flex; flex-direction: column; gap: 0.35em; padding: 1em 1.05em 1.1em; }
+:where(html.exton-on) .fcard__cat { color: var(--tile); font-weight: 500; font-size: 0.9em; }
+:where(html.exton-on) [data-cat="svid"] .fcard__cat { color: var(--muted); }
+:where(html.exton-on) .fcard__name { font-family: var(--f-serif); font-weight: 400; font-size: var(--d3); line-height: 0.98; letter-spacing: 0.01em; }
+:where(html.exton-on) .fcard__fit { font-weight: 500; line-height: 1.3; }
+:where(html.exton-on) .fcard__spec { color: var(--muted); font-size: 0.9em; line-height: 1.35; }
+:where(html.exton-on) .fcard__price { margin-top: auto; padding-top: 0.5em; color: var(--muted); font-size: 0.9em; }
+:where(html.exton-on) .fcard__go { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4em 0.8em; margin-top: 0.4em; }
+:where(html.exton-on) .fcard__add { display: inline-flex; align-items: center; min-height: 44px; padding: 0 1.1em; border: 1px solid var(--navy); background: var(--white); color: var(--navy); font: inherit; cursor: pointer; transition: background 0.15s, color 0.15s; }
+:where(html.exton-on) .fcard__on { display: none; align-items: center; gap: 0.45em; }
+:where(html.exton-on) .fcard__on svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+:where(html.exton-on) .fcard__add[aria-pressed="true"] { background: var(--navy); color: var(--white); }
+:where(html.exton-on) .fcard__add[aria-pressed="true"] .fcard__on { display: inline-flex; }
+:where(html.exton-on) .fcard__add[aria-pressed="true"] .fcard__off { display: none; }
+:where(html.exton-on) .fcard__add:focus-visible, :where(html.exton-on) .fcard__more:focus-visible { outline: 2px solid var(--navy); outline-offset: 3px; }
+:where(html.exton-on) .fcard__more { display: inline-flex; align-items: center; min-height: 44px; color: var(--muted); font-size: 0.9em; text-decoration: underline; text-underline-offset: 0.2em; }
+@media (hover: hover) { :where(html.exton-on) .fcard__add:hover { background: var(--navy); color: var(--white); } :where(html.exton-on) .fcard__more:hover { color: var(--navy); } }
+:where(html.exton-on) .fempty { padding: 2.5em 0; }
+:where(html.exton-on) .fempty[hidden] { display: none; }
+:where(html.exton-on) .fempty__text { font-size: max(18px, var(--t-h5)); margin-bottom: 1em; }
+:where(html.exton-on) .falso { margin-top: calc(var(--gap) * 1.6); padding-top: 1.1em; border-top: 1px solid var(--swap-bg); }
+:where(html.exton-on) .falso[hidden], :where(html.exton-on) .falso__row[hidden] { display: none; }
+:where(html.exton-on) .falso__title { font-family: var(--f-serif); font-weight: 400; font-size: var(--d3); line-height: 1; letter-spacing: 0.01em; margin-bottom: 0.5em; }
+:where(html.exton-on) .falso__list { list-style: none; margin: 0; padding: 0; }
+:where(html.exton-on) .falso__row { display: flex; align-items: center; justify-content: space-between; gap: 1em; padding: 0.7em 0; border-bottom: 1px solid var(--swap-bg); }
+:where(html.exton-on) .falso__name { font-size: max(17px, var(--t-h5)); }
+
+/* the request list: a navy bar bottom left, clear of the dock on the right */
+:where(html.exton-on) .ftray { position: fixed; z-index: 95; left: calc(var(--pad) + 3 * ((100vw - 2 * var(--pad) - 11 * var(--gap)) / 12 + var(--gap))); bottom: var(--pad); display: flex; align-items: center; gap: 0.6em 1.1em; width: min(760px, calc(100vw - 2 * var(--pad) - 3 * ((100vw - 2 * var(--pad) - 11 * var(--gap)) / 12 + var(--gap)) - 300px)); padding: 0.55em 0.55em 0.55em 1.15em; background: var(--navy); color: var(--white); box-shadow: 0 12px 34px rgba(12,17,37,0.28); font-size: max(15px, var(--t-p)); }
+:where(html.exton-on) .ftray[hidden] { display: none; }
+:where(html.exton-on) .ftray__label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.6em; white-space: nowrap; overflow: hidden; }
+:where(html.exton-on) .ftray__n { display: inline-grid; place-items: center; min-width: 1.9em; height: 1.9em; padding: 0 0.3em; background: var(--white); color: var(--navy); font-weight: 500; }
+:where(html.exton-on) .ftray__names { overflow: hidden; text-overflow: ellipsis; color: rgba(255,255,255,0.76); }
+:where(html.exton-on) .ftray__clear { min-height: 44px; padding: 0 0.3em; border: 0; background: none; color: rgba(255,255,255,0.82); font: inherit; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+:where(html.exton-on) .ftray__clear:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
+:where(html.exton-on) .ftray__send { white-space: nowrap; }
+:where(html.exton-on) .ftray__send img { width: 1em; height: auto; }
+:where(html.exton-on) .has-tray .finder-body { padding-bottom: calc(var(--pad) * 1.2 + 96px); }
+
+@media (max-width: 1024px) {
+  :where(html.exton-on) .finder-body { display: block; }
+  :where(html.exton-on) .finder-open { display: inline-flex; gap: 0.6em; margin-bottom: 1em; }
+  :where(html.exton-on) .finder-open svg { width: 16px; height: 12px; }
+  :where(html.exton-on) .fsheet { position: fixed; inset: 0; z-index: 130; display: none; }
+  :where(html.exton-on) .fsheet.is-open { display: block; }
+  :where(html.exton-on) .fsheet__scrim { display: block; position: absolute; inset: 0; background: rgba(12,17,37,0.55); }
+  :where(html.exton-on) .fpanel { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; max-height: 86svh; background: var(--white); }
+  :where(html.exton-on) .fpanel__head { display: flex; align-items: center; justify-content: space-between; padding: 0.7em var(--pad) 0.7em; border-bottom: 1px solid var(--swap-bg); }
+  :where(html.exton-on) .fpanel__close { display: grid; place-items: center; width: 44px; height: 44px; margin-right: -10px; border: 0; background: none; color: var(--navy); cursor: pointer; }
+  :where(html.exton-on) .fpanel__close svg { width: 14px; height: 14px; }
+  :where(html.exton-on) .fpanel__scroll { overflow: auto; overscroll-behavior: contain; padding: 0 var(--pad) 1em; }
+  :where(html.exton-on) .fpanel__foot { display: block; padding: 0.8em var(--pad) calc(0.8em + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--swap-bg); }
+  :where(html.exton-on) .fpanel__foot .btn { width: 100%; }
+  :where(html.exton-on) .fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :where(html.exton-on) .ftray { width: auto; left: var(--pad); right: var(--pad); }
+  :where(html.exton-on.finder-tray) .dock { visibility: hidden !important; opacity: 0 !important; pointer-events: none; } /* GSAP sets the dock's alpha inline */ /* the request bar takes the bottom edge; the menu stays at the top */
+  :where(html.exton-on) .home-occ__head, :where(html.exton-on) .finder-top__body { display: block; }
+  :where(html.exton-on) .home-occ__text, :where(html.exton-on) .finder-top__lead { margin-top: 0.7em; }
+}
+@media (max-width: 650px) and (orientation: portrait) {
+  :where(html.exton-on) .home-occ__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :where(html.exton-on) .otile { min-height: 132px; padding: 0.8em; }
+  :where(html.exton-on) .occ__row { flex-wrap: nowrap; overflow-x: auto; margin-inline: calc(var(--pad) * -1); padding-inline: var(--pad); scrollbar-width: none; scroll-snap-type: x proximity; }
+  :where(html.exton-on) .occ__row::-webkit-scrollbar { display: none; }
+  :where(html.exton-on) .occ__tile { scroll-snap-align: start; }
+  :where(html.exton-on) .fgrid { grid-template-columns: minmax(0, 1fr); }
+  :where(html.exton-on) .ftray { left: 0; right: 0; bottom: 0; padding-bottom: calc(0.55em + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -6px 24px rgba(12,17,37,0.2); }
+  :where(html.exton-on) .ftray__names { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(html.exton-on) :is(.otile, .otile__img img, .occ__tile, .occ__img img, .fcard__add) { transition: none; }
+  :where(html.exton-on) :is(.otile:active, .occ__tile:active) { transform: none; }
+}
 `
 }

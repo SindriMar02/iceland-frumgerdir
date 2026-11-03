@@ -1,12 +1,13 @@
-import { COLLECTIONS, OTHER_RENTALS, MAIL, MAP_URL, PHONE, PILLARS, PRODUCTS, ROUTE_EN, ROUTE_IS, SITE_URL, T, brand, img, pick, type Collection, type Lang, } from './data'
+import { BRANDS, FT, OCCASIONS, brandOf, guestBand, COLLECTIONS, OTHER_RENTALS, MAIL, MAP_URL, PHONE, PILLARS, PRODUCTS, ROUTE_EN, ROUTE_IS, SITE_URL, T, brand, img, pick, type Collection, type Lang, } from './data'
 
 
 
-export type PageId = 'home' | 'hljod' | 'svid' | 'tjold' | 'hljodfaeri' | 'about' | 'contact' | 'requests' | '404'
-export const PAGE_IDS: PageId[] = ['home', 'hljod', 'svid', 'tjold', 'hljodfaeri', 'about', 'contact', 'requests', '404']
+export type PageId = 'home' | 'bunadur' | 'hljod' | 'svid' | 'tjold' | 'hljodfaeri' | 'about' | 'contact' | 'requests' | '404'
+export const PAGE_IDS: PageId[] = ['home', 'bunadur', 'hljod', 'svid', 'tjold', 'hljodfaeri', 'about', 'contact', 'requests', '404']
 
 const SLUG: Record<PageId, { is: string; en: string }> = {
   home: { is: '', en: '' },
+  bunadur: { is: '/bunadur', en: '/equipment' },
   hljod: { is: '/hljod', en: '/sound' },
   svid: { is: '/svid', en: '/stages' },
   tjold: { is: '/tjold', en: '/tents' },
@@ -16,7 +17,7 @@ const SLUG: Record<PageId, { is: string; en: string }> = {
   requests: { is: '/beidnir', en: '/requests' },
   '404': { is: '/404', en: '/404' },
 }
-const VIEW: Record<PageId, string> = { home: 'home', hljod: 'category', svid: 'category', tjold: 'category', hljodfaeri: 'category', about: 'about', contact: 'contact', requests: 'about', '404': '404' }
+const VIEW: Record<PageId, string> = { home: 'home', bunadur: 'finder', hljod: 'category', svid: 'category', tjold: 'category', hljodfaeri: 'category', about: 'about', contact: 'contact', requests: 'about', '404': '404' }
 
 export const basePath = (lang: Lang) => (lang === 'is' ? ROUTE_IS : ROUTE_EN)
 export const keyOf = (id: PageId, lang: Lang) => SLUG[id][lang] || '/'
@@ -213,7 +214,7 @@ const rollIcon = (kind: 'tel' | 'globe') => {
 
 const drawer = (lang: Lang, t: Record<string, string>) => {
   const other: Lang = lang === 'is' ? 'en' : 'is'
-  const label: Partial<Record<PageId, string>> = { home: t.home, about: t.about, contact: t.contact, requests: t.requests }
+  const label: Partial<Record<PageId, string>> = { home: t.home, bunadur: FT[lang].nav, about: t.about, contact: t.contact, requests: t.requests }
   const link = (id: PageId, cls = '') => `<a${cls ? ` class="${cls}"` : ''} href="${hrefOf(id, lang)}">${esc(label[id] ?? '')}</a>`
   return `<div class="drawer" aria-hidden="true">
     <div class="drawer__scrim"></div>
@@ -224,6 +225,7 @@ const drawer = (lang: Lang, t: Record<string, string>) => {
     <div class="drawer__panel" tabindex="-1" inert role="dialog" aria-modal="true" aria-label="${esc(t.nav)}">
       <nav class="drawer__links" aria-label="${esc(t.navPrimary)}">
         ${link('home')}
+        ${link('bunadur')}
         ${link('contact')}
         ${link('about')}
         ${link('requests', 'drawer__links--minor')}
@@ -294,8 +296,8 @@ function home(lang: Lang) {
   const need = (title: string, text: string, link: string) => `<li class="need__row"><div><h3 class="need__title">${esc(title)}</h3><p class="need__text">${esc(text)}</p></div>${link}</li>`
   return `<div class="page" data-view="home">
       <main class="page__main home" id="main" tabindex="-1">
-        <section class="frame home-hero" aria-labelledby="home-title">
-          ${masthead(lang, t, 'ink')}
+        <section class="frame home-hero home-hero--navy" aria-labelledby="home-title">
+          ${masthead(lang, t, 'white')}
           <div class="home-hero__body">
             <div class="home-hero__copy">
               <h1 id="home-title" class="hero__lead home-hero__lead">${esc(t.homeLead)}</h1>
@@ -318,6 +320,8 @@ function home(lang: Lang) {
             ${fact('Exton', t.factFounded)}
           </dl>
         </section>
+
+        ${occasionRow(lang)}
 
         <section class="home-sec" id="leiga" tabindex="-1" aria-labelledby="sale-title">
           <header class="home-sec__head" data-reveal>
@@ -391,6 +395,117 @@ function home(lang: Lang) {
     </div>`
 }
 
+
+/* v2 (2026-11-03): Erling's structure on our system — occasion first, filters that combine, a running request list. */
+const occCount = (lang: Lang, n: number) => `${n} ${n === 1 ? FT[lang].count1 : FT[lang].countN}`
+const occasionRow = (lang: Lang) => {
+  const f = FT[lang], to = hrefOf('bunadur', lang)
+  const tile = (o: (typeof OCCASIONS)[number]) => `<li><a class="otile" href="${to}" data-occasion="${o.key}">
+              <span class="otile__img"><img ${src(o.img, '(max-width: 650px) 46vw, 24vw', ' alt="" loading="lazy" decoding="async"')}></span>
+              <span class="otile__name">${esc(pick(o.name, lang))}</span>
+              <span class="otile__n">${occCount(lang, o.items.length)}</span>
+            </a></li>`
+  return `<section class="home-occ" aria-labelledby="occ-title">
+          <header class="home-occ__head" data-reveal>
+            <h2 class="home-occ__title" id="occ-title">${esc(f.homeTitle)}</h2>
+            <p class="home-occ__text">${esc(f.homeText)}</p>
+          </header>
+          <ul class="home-occ__grid" data-reveal>
+            ${OCCASIONS.map(tile).join('\n            ')}
+            <li><a class="otile otile--all" href="${to}" data-occasion=""><span class="otile__name">${esc(f.homeAll)}</span><span class="otile__n">${occCount(lang, PRODUCTS.length)} ${arrow(true)}</span></a></li>
+          </ul>
+        </section>`
+}
+
+function finder(lang: Lang) {
+  const t = T[lang], f = FT[lang]
+  const catName = (k: string) => pick(COLLECTIONS.find((c) => c.key === k)!.name, lang)
+  const occOf = (k: string) => OCCASIONS.filter((o) => o.items.includes(k)).map((o) => o.key).join(' ')
+  const card = (p: (typeof PRODUCTS)[number]) => {
+    const label = pick(p.label, lang)
+    return `<li class="fcard" data-key="${p.key}" data-cat="${p.cat}" data-occ="${occOf(p.key)}" data-guests="${p.cat === 'tjold' ? guestBand(p.coverage.is) : ''}" data-brand="${p.cat === 'hljod' ? brandOf(p.label.is) : ''}" style="--tile: var(--c-${TILE[p.cat]})">
+              <figure class="fcard__img"><img ${src(p.image, '(max-width: 650px) 92vw, (max-width: 1024px) 45vw, 24vw', ' alt="" loading="lazy" decoding="async"')}></figure>
+              <div class="fcard__body">
+                <p class="fcard__cat">${esc(catName(p.cat))}</p>
+                <h3 class="fcard__name">${esc(label)}</h3>
+                <p class="fcard__fit">${esc(pick(p.coverage, lang))}</p>
+                <p class="fcard__spec">${esc(pick(p.spec, lang))}</p>
+                <p class="fcard__price">${esc(f.price)}</p>
+                <div class="fcard__go">
+                  <button type="button" class="fcard__add" aria-pressed="false" data-add="${p.key}" data-name="${esc(label)}"><span class="fcard__off">${esc(f.add)}</span><span class="fcard__on">${esc(f.added)} <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5 5.5 10.5 11.5 3.5"/></svg></span></button>
+                  <a class="fcard__more" href="${p.source}" target="_blank" rel="noopener noreferrer">${esc(f.more)} <svg class="glyph" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a>
+                </div>
+              </div>
+            </li>`
+  }
+  const occTile = (key: string, name: string, image: string) => `<button type="button" class="occ__tile" data-occasion="${key}" aria-pressed="${key ? 'false' : 'true'}">
+                <span class="occ__img">${image ? `<img ${src(image, '120px', ' alt="" loading="lazy" decoding="async"')}>` : '<span class="occ__all" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'}</span>
+                <span class="occ__name">${esc(name)}</span>
+              </button>`
+  const box = (name: string, value: string, label: string) => `<label class="fopt"><input type="checkbox" name="${name}" value="${value}"><span class="fopt__box" aria-hidden="true"></span><span class="fopt__label">${esc(label)}</span><span class="fopt__n" data-n="${name}:${value}"></span></label>`
+  const group = (legend: string, inner: string) => `<fieldset class="fgroup"><legend class="fgroup__legend">${esc(legend)}</legend>${inner}</fieldset>`
+  const lines = Object.fromEntries([['', f.allLine], ...OCCASIONS.map((o) => [o.key, pick(o.line, lang)])])
+  const also = OTHER_RENTALS.map((r, i) => `<li class="falso__row" data-also="${OCCASIONS.filter((o) => o.extra.includes(i)).map((o) => o.key).join(' ')}"><span class="falso__name">${esc(pick(r.name, lang))}</span><a class="btn" href="${r.url}" target="_blank" rel="noopener noreferrer">${esc(f.more)} <svg class="glyph" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></a></li>`).join('')
+  return `<div class="page" data-view="finder" data-lines='${pf(lines)}' data-words='${pf({ one: f.count1, many: f.countN, tent: f.chipTent, sound: f.chipSound, remove: f.remove, g50: f.g50, g100: f.g100, g250: f.g250, ...Object.fromEntries(COLLECTIONS.map((c) => [c.key, pick(c.name, lang)])), ...Object.fromEntries(OCCASIONS.map((o) => ['o-' + o.key, pick(o.name, lang)])), occasion: f.occasion })}'>
+      <main class="page__main finder" id="main" tabindex="-1">
+        <section class="frame finder-top" aria-labelledby="finder-title">
+          ${masthead(lang, t, 'white')}
+          <div class="finder-top__body" data-intro-fade>
+            <h1 id="finder-title" class="finder-top__title">${esc(f.h1)}</h1>
+            <p class="finder-top__lead">${esc(f.lead)}</p>
+          </div>
+          <div class="occ" data-intro-fade>
+            <p class="occ__ask" id="occ-ask">${esc(f.ask)}</p>
+            <div class="occ__row" role="group" aria-labelledby="occ-ask">
+              ${occTile('', f.all, '')}
+              ${OCCASIONS.map((o) => occTile(o.key, pick(o.name, lang), o.img)).join('\n              ')}
+            </div>
+            <p class="occ__line" data-occ-line>${esc(f.allLine)}</p>
+          </div>
+        </section>
+
+        <section class="finder-body" aria-label="${esc(f.h1)}">
+          <button class="finder-open btn" type="button" aria-haspopup="dialog" aria-expanded="false" data-sheet-open><svg viewBox="0 0 16 12" aria-hidden="true"><path d="M0 2h16M3 6h10M6 10h4" stroke="currentColor" stroke-width="1.6"/></svg>${esc(f.open)} <span class="finder-open__n" data-filter-n></span></button>
+          <div class="fsheet" data-sheet>
+            <div class="fsheet__scrim" data-sheet-close></div>
+            <aside class="fpanel" tabindex="-1" aria-label="${esc(f.filters)}" data-panel>
+              <div class="fpanel__head"><h2 class="fpanel__title">${esc(f.filters)}</h2><button type="button" class="fpanel__close" data-sheet-close aria-label="${esc(f.close)}"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2 2 12" stroke="currentColor" stroke-width="1.6"/></svg></button></div>
+              <div class="fpanel__scroll" data-lenis-prevent>
+                ${group(f.fCat, COLLECTIONS.map((c) => box('cat', c.key, pick(c.name, lang))).join(''))}
+                ${group(f.fGuests, ['g50', 'g100', 'g250'].map((g) => box('guests', g, f[g])).join(''))}
+                ${group(f.fBrand, BRANDS.map((b) => box('brand', b, b)).join(''))}
+              </div>
+              <div class="fpanel__foot"><button type="button" class="btn btn--solid" data-sheet-done>${esc(f.show)} <span data-count>${PRODUCTS.length}</span>&nbsp;<span data-count-word>${esc(f.countN)}</span></button></div>
+            </aside>
+          </div>
+
+          <div class="fres">
+            <div class="fres__bar">
+              <p class="fres__count" aria-live="polite"><b data-count>${PRODUCTS.length}</b> <span data-count-word>${esc(f.countN)}</span></p>
+              <ul class="fchips" data-chips></ul>
+              <button type="button" class="fres__clear" data-clear hidden>${esc(f.clear)}</button>
+            </div>
+            <ul class="fgrid" data-grid>
+            ${PRODUCTS.map(card).join('\n            ')}
+            </ul>
+            <div class="fempty" data-empty hidden><p class="fempty__text">${esc(f.empty)}</p><button type="button" class="btn" data-clear>${esc(f.emptyGo)}</button></div>
+            <section class="falso" data-also-wrap hidden aria-labelledby="also-title">
+              <h2 class="falso__title" id="also-title">${esc(f.also)}</h2>
+              <ul class="falso__list">${also}</ul>
+            </section>
+          </div>
+        </section>
+
+        <div class="ftray" data-tray hidden>
+          <p class="ftray__label"><b>${esc(f.list)}</b> <span class="ftray__n" data-tray-n>0</span><span class="ftray__names" data-tray-names></span></p>
+          <button type="button" class="ftray__clear" data-tray-clear>${esc(f.empty2)}</button>
+          <a class="btn btn--solid ftray__send" href="${hrefOf('contact', lang)}" data-tray-send data-prefill='{}'>${esc(f.send)} ${arrow(true)}</a>
+        </div>
+
+        <footer class="colophon home-colophon finder-colophon"><small>${esc(t.colophon)}</small>${credit(t)}</footer>
+      </main>
+    </div>`
+}
 
 function ledger(c: Collection, lang: Lang) {
   const t = T[lang]
@@ -830,7 +945,8 @@ export function renderPage(id: PageId, lang: Lang): Rendered {
   let description = ''
   let theme = '#ffffff'
   const heroes: string[] = []
-  if (id === 'home') { pageHtml = home(lang); title = t.homeTitle; description = t.homeDesc; heroes.push(img('hero')) }
+  if (id === 'home') { pageHtml = home(lang); title = t.homeTitle; description = t.homeDesc; heroes.push(img('hero')); theme = '#0C1125' }
+  else if (id === 'bunadur') { pageHtml = finder(lang); title = FT[lang].title; description = FT[lang].desc; theme = '#0C1125' }
   else if (c) { pageHtml = collection(c, lang); title = `${pick(c.name, lang)} | Exton`; description = pick(c.description, lang); heroes.push(img(c.hero)); theme = '#000000' }
   else if (id === 'about') { pageHtml = about(lang); title = t.aboutTitle; description = t.aboutDesc; heroes.push(img('branches')) }
   else if (id === 'contact') { pageHtml = contact(lang); title = t.contactTitle; description = t.contactDesc }
