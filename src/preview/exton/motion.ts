@@ -1092,6 +1092,12 @@ export function mountExton(cfg: EngineConfig): () => void {
       const grid = $("[data-grid]", root), cards = $$(".fcard", grid), panel = $("[data-panel]", root), sheet = $("[data-sheet]", root);
       const opener = $("[data-sheet-open]", root), tray = $("[data-tray]", root), send = $("[data-tray-send]", root), chips = $("[data-chips]", root);
       const GROUPS = ["cat", "guests", "brand"], KEY = "exton-request", narrow = matchMedia("(max-width: 1024px)");
+      // .page carries will-change: transform (route transitions), which makes it the box for position: fixed.
+      // The request bar always, and the filter sheet on small screens, live in .shell beside the dock instead.
+      const shell = root.closest(".shell") || body, slot = document.createComment("fsheet");
+      sheet.before(slot); shell.appendChild(tray);
+      const place = () => { if (narrow.matches) { if (sheet.parentElement !== shell) shell.appendChild(sheet); } else if (sheet.parentElement === shell) slot.after(sheet); };
+      const both = (sel) => [...new Set([...$$(sel, root), ...$$(sel, sheet)])];
       const st = { occ: "", cat: new Set(), guests: new Set(), brand: new Set() };
       const q = new URLSearchParams(location.search);
       st.occ = Flow.occasion ?? q.get("occ") ?? ""; Flow.occasion = null;
@@ -1127,7 +1133,7 @@ export function mountExton(cfg: EngineConfig): () => void {
             if (Math.abs(dx) + Math.abs(dy) > 1) c.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.7,.2,1)" }); });
           entering.forEach((c, i) => c.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: Math.min(i, 8) * 25, easing: "ease-out", fill: "backwards" }));
         }
-        $$("[data-count]", root).forEach((e) => { e.textContent = n; }); $$("[data-count-word]", root).forEach((e) => { e.textContent = word(n); });
+        both("[data-count]").forEach((e) => { e.textContent = n; }); both("[data-count-word]").forEach((e) => { e.textContent = word(n); });
         $("[data-empty]", root).hidden = n > 0;
         $$(".occ__tile", root).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.occasion === st.occ)));
         $("[data-occ-line]", root).textContent = lines[st.occ] ?? lines[""];
@@ -1168,7 +1174,7 @@ export function mountExton(cfg: EngineConfig): () => void {
       /* the filter sheet on phones and tablets; on desktop the same panel sits in the column */
       const sheetState = { open: false, busy: false };
       const setMode = () => {
-        const small = narrow.matches;
+        const small = narrow.matches; if (!small && sheetState.open) closeSheet(false); place();
         if (small) { panel.setAttribute("role", "dialog"); panel.setAttribute("aria-modal", "true"); panel.inert = !sheetState.open; }
         else { if (sheetState.open) closeSheet(false); panel.removeAttribute("role"); panel.removeAttribute("aria-modal"); panel.inert = false; }
       };
@@ -1187,8 +1193,8 @@ export function mountExton(cfg: EngineConfig): () => void {
         $(".fsheet__scrim", sheet).animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, easing: "ease-in" }).finished.then(done).catch(done);
       };
 
-      root.addEventListener("click", (e) => {
-        const t = e.target;
+      document.addEventListener("click", (e) => {
+        const t = e.target; if (!(root.contains(t) || sheet.contains(t) || tray.contains(t))) return;
         const occ = t.closest(".occ__tile"); if (occ) { st.occ = occ.dataset.occasion; apply(true); return; }
         const add = t.closest(".fcard__add");
         if (add) { const k = add.dataset.add, i = picked.indexOf(k); if (i < 0) picked.push(k); else picked.splice(i, 1); sync(i < 0); return; }
@@ -1207,7 +1213,7 @@ export function mountExton(cfg: EngineConfig): () => void {
         else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
       }, { signal });
       narrow.addEventListener("change", setMode, { signal });
-      signal?.addEventListener("abort", () => { if (sheetState.open) Scroll.lock(false); document.documentElement.classList.remove("finder-tray"); });
+      signal?.addEventListener("abort", () => { if (sheetState.open) Scroll.lock(false); document.documentElement.classList.remove("finder-tray"); tray.remove(); if (sheet.parentElement === shell) sheet.remove(); slot.remove(); });
       setMode(); apply(false); sync(false);
     },
   };
