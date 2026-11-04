@@ -6,14 +6,30 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-11-03T14:13:11.877Z
+ * Last synced: 2026-11-04T14:31:21.511Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 3. nóvember 2026', en: 'Updated 3 November 2026' }
+export const SYNCED_AT = { is: 'Uppfært 4. nóvember 2026', en: 'Updated 4 November 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
+  {
+    "date": "04.11.2026",
+    "source": "Stjórnarráðið",
+    "topic": "samstarf",
+    "title": {
+      "is": "Samtal við tengiliði farsældar í framhaldsskólum",
+      "en": "Samtal við tengiliði farsældar í framhaldsskólum"
+    },
+    "href": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/samtal-vid-tengilidi-farsaeldar-i-framhaldsskolum",
+    "untranslated": true,
+    "summary": {
+      "is": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240;, &#237; samstarfi vi&#240; Barna- og fj&#246;lskyldustofu, st&#243;&#240; fyrir vinnudegi me&#240; tengili&#240;um fars&#230;ldar &#237; framhaldssk&#243;lum s&#237;&#240;astli&#240;inn f&#246;studag....",
+      "en": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240;, &#237; samstarfi vi&#240; Barna- og fj&#246;lskyldustofu, st&#243;&#240; fyrir vinnudegi me&#240; tengili&#240;um fars&#230;ldar &#237; framhaldssk&#243;lum s&#237;&#240;astli&#240;inn f&#246;studag...."
+    },
+    "summaryUntranslated": true
+  },
   {
     "date": "30.10.2026",
     "source": "BOFS",
