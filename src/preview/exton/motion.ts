@@ -765,9 +765,10 @@ export function mountExton(cfg: EngineConfig): () => void {
       $$(".photo-break", root).forEach((s) => drift($("img", s), s, 6, 1.1, 1));        // C8 (BYGG: travel 10 -> 6, scale 1.2 -> 1.1)
       $$(".next", root).forEach((s) => drift($(".next__drift", s), s, 4, 1.1, null));
       $$(".fact__figure, .wellness__figure", root).forEach((f) => drift($("img", f), f, 5, 1.08, null));
+      $$(".people__frame", root).forEach((f) => drift($("img", f), f, 4, 1.1, null));        // 11-04: the team photo drifts like the fact figures (10% scale covers the 4% travel)
     },
     reveals(root) { // C19
-      const main = $(".page__main", root) || root, skip = ".hero__copy, .ticker, form, button, [hidden], .sr-only, .desk__stack, .enquiry";
+      const main = $(".page__main", root) || root, skip = ".hero__copy, .ticker, form, button, [hidden], .sr-only, .desk__stack, .enquiry, .story-invite";
       $$("h1, h2, h3, h4, h5, h6, p", main).filter((e) => !e.closest(skip) && e.textContent.trim()).forEach((el) => {
         const line = el.matches(".cta__link") ? $(".cta__underline", el) : null;
         if (reduced()) { if (line) line.style.setProperty("--cta-line", 1); return; }
@@ -811,7 +812,7 @@ export function mountExton(cfg: EngineConfig): () => void {
       Category.images(root);
       const dock = $(".dock", root); if (dock) { $(".shell").appendChild(dock); Dock.use(dock); } // C24
       $$(".ticker--outro", root).forEach((t) => Ticker.start(t));
-      Scope.run(() => { this.hero(root); Category.parallax(root); Film.mount(root); Category.reveals(root); Category.cta(root); });
+      Scope.run(() => { this.hero(root); Category.parallax(root); Film.mount(root); Category.reveals(root); Category.cta(root); Home.anchors(root); }); // 11-04: the story invite links jump to chapters
       addEventListener("load", () => ScrollTrigger.refresh(), { signal: Scope.signal });
     },
   };

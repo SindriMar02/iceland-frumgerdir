@@ -2180,6 +2180,42 @@ export const PRODUCTS = [
 export const OTHER_RENTALS = [{"name": {"is": "Ljósabúnaður", "en": "Lighting"}, "url": "https://exton.is/leiga/ljosabunadur-til-leigu/"}, {"name": {"is": "Streymisbúnaður", "en": "Streaming equipment"}, "url": "https://exton.is/leiga/streymisbunadur-til-leigu/"}, {"name": {"is": "Veislubúnaður", "en": "Party furniture"}, "url": "https://exton.is/leiga/veislubunadur-til-leigu/"}, {"name": {"is": "Hoppukastalar", "en": "Inflatables"}, "url": "https://exton.is/leiga/hoppukastalar-til-leigu/"}]
 export const PILLARS: Fact[] = [{"img": "sound", "alt": {"is": "Hátalarar og sviðslýsing á mynd Exton", "en": "Speakers and stage lighting in an Exton photograph"}, "stat": [{"is": "Hljóðkerfi", "en": "Sound"}, {"is": "og þjónusta", "en": "and service"}], "desc": {"is": "Leigðu búnaðinn eða fáðu tæknimenn Exton til að setja upp, stjórna og taka niður.", "en": "Hire the equipment or have Exton technicians set up, operate and take it down."}}, {"img": "stage", "alt": {"is": "Hljómsveit á upplýstu sviði", "en": "A band on an illuminated stage"}, "stat": [{"is": "Svið", "en": "Stages"}, {"is": "og þjónusta", "en": "and service"}], "desc": {"is": "Frá litlum sviðspöllum upp í risasvið. Sviðsvagnarnir fást án búnaðar eða með hljóði og ljósum.", "en": "From small stage decks to a large stage. Stage trailers are available without equipment or with sound and lighting."}}, {"img": "party", "alt": {"is": "Svið og ljósabúnaður inni í veislutjaldi", "en": "A stage and lighting equipment inside an event tent"}, "stat": [{"is": "Veislutjöld", "en": "Tents"}, {"is": "og þjónusta", "en": "and service"}], "desc": {"is": "Tjöldin fást án þjónustu eða með flutningi, uppsetningu og niðurtekt. Veldu stærð og leigudaga í beiðninni.", "en": "Tents are available without service or with transport, set-up and removal. Choose the size and hire dates in the request."}}]
 
+/* 2026-11-04: the story page is introduced instead of arriving as a surprise */
+export const STORY: Record<Lang, { label: string; title: string; text: string; open: string; quote: string; chaptersAria: string; chapters: string[]; heroLine: string; heroLabel: string; teamAlt: string; teamCap: string; towerAlt: string; towerCap: string; hallAlt: string }> = {
+  is: {
+    label: '(Sagan)',
+    title: 'Kynntu þér Exton',
+    text: 'Stutt ferð um fyrirtækið: hljóðið, sviðin og tjöldin, starfsstöðvarnar og fólkið sem setur búnaðinn upp. Fjórir kaflar og þú ræður hraðanum.',
+    open: 'Opna söguna',
+    quote: 'Fá tilboð strax',
+    chaptersAria: 'Kaflar sögunnar',
+    chapters: ['Fyrirtækið', 'Leiga og þjónusta', 'Starfsstöðvar', 'Leigusvið'],
+    heroLabel: '(Sagan)',
+    heroLine: 'Fjórir kaflar um fyrirtækið. Skrunaðu, eða farðu beint í kafla.',
+    teamAlt: 'Starfsfólk Exton í treyjum í vöruhúsi, með flutningskassa og hillur í bakgrunni',
+    teamCap: 'Starfsfólk Exton á treyjudeginum 2026.',
+    towerAlt: 'Turninn í Kópavogi lýstur í bláum, fjólubláum og gulum litum í ljósaskiptunum',
+    towerCap: 'Turninn í Kópavogi með Vivalyte-lýsingu. Exton er umboðs- og þjónustuaðili Vivalyte á Íslandi.',
+    hallAlt: 'Stór veislusalur með setnum gestum og sviðslýsingu',
+  },
+  en: {
+    label: '(The story)',
+    title: 'Get to know Exton',
+    text: 'A short walk through the company: sound, stages and tents, the branches and the people who set the equipment up. Four chapters, at your own pace.',
+    open: 'Open the story',
+    quote: 'Get a quote now',
+    chaptersAria: 'Chapters of the story',
+    chapters: ['The company', 'Hire and service', 'Branches', 'Hire team'],
+    heroLabel: '(The story)',
+    heroLine: 'Four chapters about the company. Scroll on, or jump straight to a chapter.',
+    teamAlt: 'Exton staff in football shirts in a warehouse, with flight cases and shelving behind them',
+    teamCap: 'Exton staff on Jersey Day 2026.',
+    towerAlt: 'The Kópavogur tower lit in blue, purple and yellow at dusk',
+    towerCap: 'The Kópavogur tower with Vivalyte lighting. Exton is the Vivalyte distributor and service partner in Iceland.',
+    hallAlt: 'A large banquet hall with seated guests and stage lighting',
+  },
+}
+
 export const T: Record<Lang, Record<string, string>> = {
   "is": {
     "htmlLang": "is",

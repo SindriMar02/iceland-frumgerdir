@@ -1,4 +1,4 @@
-import { BRANDS, EXTRA_CATS, FT, OCCASIONS, SHOP, SHOP_CATS, ST, brandOf, guestBand, COLLECTIONS, OTHER_RENTALS, MAIL, MAP_URL, PHONE, PILLARS, PRODUCTS, ROUTE_EN, ROUTE_IS, SITE_URL, T, brand, img, pick, type Collection, type Lang, } from './data'
+import { BRANDS, EXTRA_CATS, STORY, FT, OCCASIONS, SHOP, SHOP_CATS, ST, brandOf, guestBand, COLLECTIONS, OTHER_RENTALS, MAIL, MAP_URL, PHONE, PILLARS, PRODUCTS, ROUTE_EN, ROUTE_IS, SITE_URL, T, brand, img, pick, type Collection, type Lang, } from './data'
 
 
 
@@ -33,14 +33,15 @@ const pf = (o: Record<string, string>) => esc(JSON.stringify(o))
 
 
 const WIDTHS: Record<string, [number, number]> = {
+  "salur": [2400, 960], "turn": [2400, 960], "starfsfolk": [2200, 960],
   "ljosabord": [694, 640], "lysing": [1024, 640], "streymi": [1000, 640],
   "hero": [
-    900,
-    450
+    2000,
+    1200
   ],
   "sound": [
-    900,
-    450
+    2000,
+    1200
   ],
   "mixer": [
     683,
@@ -75,8 +76,8 @@ const WIDTHS: Record<string, [number, number]> = {
     450
   ],
   "stage": [
-    1000,
-    500
+    2000,
+    1200
   ],
   "stage8": [
     495,
@@ -131,8 +132,8 @@ const WIDTHS: Record<string, [number, number]> = {
     350
   ],
   "branches": [
-    1000,
-    500
+    2000,
+    1200
   ],
   "furniture": [
     1000,
@@ -273,6 +274,29 @@ export function renderShell(id: PageId, lang: Lang): string {
 
 
 
+/* 2026-11-04: Sindri "an invite to the story experience, so it doesn't come as a random surprise" */
+const storyInvite = (lang: Lang) => {
+  const sty = STORY[lang]
+  return `<section class="home-story" aria-labelledby="story-title">
+          <a class="home-story__media" href="${hrefOf('about', lang)}" tabindex="-1" aria-hidden="true" data-reveal>
+            <img ${src('salur', '(max-width: 650px) 92vw, (max-width: 1024px) 90vw, 50vw', ' alt="" loading="lazy" decoding="async"')}>
+            <span class="home-story__word" aria-hidden="true">EXTON</span>
+          </a>
+          <div class="home-story__copy" data-reveal>
+            <p class="home-story__label">${esc(sty.label)}</p>
+            <h2 class="home-story__title" id="story-title">${esc(sty.title)}</h2>
+            <p class="home-story__text">${esc(sty.text)}</p>
+            <ol class="home-story__chapters" aria-label="${esc(sty.chaptersAria)}">
+              ${sty.chapters.map((c, i) => `<li><span aria-hidden="true">0${i + 1}</span>${esc(c)}</li>`).join('\n              ')}
+            </ol>
+            <p class="home-story__cta">
+              <a class="btn btn--solid" href="${hrefOf('about', lang)}">${esc(sty.open)}</a>
+              <a class="btn" href="${hrefOf('contact', lang)}">${esc(sty.quote)}</a>
+            </p>
+          </div>
+        </section>`
+}
+
 function home(lang: Lang) {
   const t = T[lang]
   const heroAlt = lang === 'is' ? 'Áhorfendur og lýst svið á tónleikum úr myndasafni Exton' : 'An audience and illuminated concert stage from Exton’s image library'
@@ -361,6 +385,8 @@ function home(lang: Lang) {
             ${step(3, t.how3, t.how3Text)}
           </ol>
         </section>
+
+        ${storyInvite(lang)}
 
         <section class="home-sec" aria-labelledby="buy-title">
           <header class="home-sec__head" data-reveal>
@@ -755,6 +781,7 @@ const nextBlock = (nx: Collection, lang: Lang) => {
 
 function about(lang: Lang) {
   const t = T[lang]
+  const sty = STORY[lang]
   const a1 = COLLECTIONS[0]
   const makers = [ ['Kópavogur', 'Vesturvör 30c, 200 Kópavogur'], ['Akureyri', 'Goðanes 4, 603 Akureyri'] ].map(([name,address]) => `<li class="chronicle__item"><span class="chronicle__year chronicle__year--word">${name}</span><h3 class="chronicle__title">${address}</h3></li>`).join('')
   const people = [ ['Erling Þorgrímsson', lang === 'is' ? 'Framkvæmdastjóri leigusviðs' : 'Head of hire'], ['Adam Smári Hermannsson', lang === 'is' ? 'Deildarstjóri á Akureyri' : 'Akureyri branch manager'], ['Þór Mitchell Jensson', lang === 'is' ? 'Yfirmaður tjaldaleigu' : 'Head of tent hire'] ].map(([name,role]) => `<li class="people__item"><b>${name}</b><span>${role}</span></li>`).join('')
@@ -768,7 +795,7 @@ function about(lang: Lang) {
             </div>`
     return `          <article class="fact${n % 2 ? ' fact--flip' : ''}">\n${n % 2 ? `${copy}\n${fig}` : `${fig}\n${copy}`}\n          </article>`
   }
-  const statement = (label: string, lead: string, rest: string, cls: string) => `<div class="statement ${cls}">
+  const statement = (label: string, lead: string, rest: string, cls: string, id = '') => `<div class="statement ${cls}"${id ? ` id="${id}" tabindex="-1"` : ''}>
             <p class="statement__label">${esc(label)}</p>
             <h2 class="statement__title"><span class="statement__lead">${esc(lead.trimEnd())}</span> ${esc(rest)}</h2>
           </div>`
@@ -776,7 +803,7 @@ function about(lang: Lang) {
       <main class="page__main" id="main" tabindex="-1">
         <div class="scene scene--about">
           <div class="backdrop" aria-hidden="true">
-            <img class="backdrop__image" ${src('branches', '100vw', ' alt="" fetchpriority="high" decoding="sync"')}>
+            <img class="backdrop__image" ${src('salur', '100vw', ' alt="" fetchpriority="high" decoding="sync"')}>
             <span class="backdrop__shade"></span>
           </div>
           <section class="frame frame--over" aria-label="${esc(t.aboutMarquee)}">
@@ -788,18 +815,26 @@ function about(lang: Lang) {
               </div>
             </div>
 
-            <footer class="colophon"><small>${esc(t.scrollHint)}</small></footer>
+            <div class="story-invite" data-intro-fade>
+              <p class="story-invite__label">${esc(sty.heroLabel)}</p>
+              <p class="story-invite__line">${esc(sty.heroLine)}</p>
+              <ol class="story-invite__chapters" aria-label="${esc(sty.chaptersAria)}">
+${sty.chapters.map((c, i) => `                <li><a href="#kafli-${i + 1}" data-scroll><span class="story-invite__n" aria-hidden="true">0${i + 1}</span>${esc(c)}</a></li>`).join('\n')}
+              </ol>
+            </div>
+
+            <footer class="colophon colophon--about"><small>${esc(t.scrollHint)}</small></footer>
           </section>
         </div>
 
         <div class="film">
-          <section class="statement statement--intro">
+          <section class="statement statement--intro" id="kafli-1" tabindex="-1">
             <p class="statement__label">${esc(t.aboutLabel)}</p>
             <h1 class="sr-only">${esc(t.aboutH1)}</h1>
             <h2 class="statement__title"><span class="statement__lead">${esc(t.aboutStatementLead.trimEnd())}</span> ${esc(t.aboutStatement)}</h2>
             <div class="film__card">
               <div class="film__frame">
-                <figure class="film__still-wrap"><img class="film__still" ${src('hero', '(max-width: 650px) 90vw, 30vw', ` alt="${esc(t.aboutFilmAlt)}" decoding="async" loading="lazy"`)}></figure>
+                <figure class="film__still-wrap"><img class="film__still" ${src('hero', '(max-width: 650px) 90vw, 36vw', ` alt="${esc(t.aboutFilmAlt)}" decoding="async" loading="lazy"`)}></figure>
               </div>
             </div>
             <p class="film__link"><a href="${SITE_URL}um-exton/" target="_blank" rel="noopener noreferrer">${esc(t.aboutFilmLink)}</a></p>
@@ -813,26 +848,31 @@ function about(lang: Lang) {
             <blockquote class="quote__body"><h2 class="quote__text">${esc(t.aboutQuote)}</h2></blockquote>
           </figure>
           ${ticker(t.aboutMarquee2, ' ticker--outro')}
-          ${statement(t.aboutLabel2, t.aboutValuesLead, t.aboutValues, 'statement--second')}
+          ${statement(t.aboutLabel2, t.aboutValuesLead, t.aboutValues, 'statement--second', 'kafli-2')}
           <div class="facts">
 ${PILLARS.map(pillar).join('\n')}
           </div>
-          ${statement(t.aboutLabel3, t.aboutHistoryLead, t.aboutHistory, 'statement--second statement--last')}
+          ${statement(t.aboutLabel3, t.aboutHistoryLead, t.aboutHistory, 'statement--second statement--last', 'kafli-3')}
           <div class="chronicle">
             <ul class="chronicle__list">
 ${makers}
             </ul>
           </div>
-          <div class="people">
+          <div class="people" id="kafli-4" tabindex="-1">
             <p class="people__label statement__label">${esc(t.aboutLabel4)}</p>
+            <figure class="people__photo">
+              <div class="people__frame"><img ${src('starfsfolk', '(max-width: 650px) 92vw, 62vw', ` alt="${esc(sty.teamAlt)}" loading="lazy" decoding="async"`)}></div>
+              <figcaption>${esc(sty.teamCap)}</figcaption>
+            </figure>
             <ul class="people__list">
 ${people}
             </ul>
           </div>
         </section>
 
-        <section class="photo-break" aria-label="${esc(t.aboutBreak)}">
-          <div class="photo-break__window"><img ${src('stage', '100vw', ` alt="${esc(lang === 'is' ? 'Lýst tónleikasvið úr myndasafni Exton' : 'An illuminated concert stage from Exton’s image library')}" loading="lazy" decoding="async"`)}></div>
+        <section class="photo-break photo-break--turn" aria-label="${esc(t.aboutBreak)}">
+          <div class="photo-break__window"><img ${src('turn', '100vw', ` alt="${esc(sty.towerAlt)}" loading="lazy" decoding="async"`)}></div>
+          <p class="photo-break__cap">${esc(sty.towerCap)}</p>
         </section>
 
         <section class="cta">

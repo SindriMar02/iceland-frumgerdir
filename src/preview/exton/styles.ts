@@ -1695,7 +1695,7 @@ html.exton-on:has(body[data-page="shop"].is-picking) { height: 100svh; overflow:
 @media (min-width: 1800px) {
   :root { --wide: 0.9; --s: calc(var(--s-base) * var(--wide) * min(1, calc(100svh / 950px))); }
   :where(html.exton-on) .shell { max-width: calc(100vw * var(--wide)); margin-inline: auto; }
-  :where(html.exton-on) :is(.home-hero--navy, .home-occ, .finder-top) { box-shadow: 0 0 0 100vmax var(--navy); clip-path: inset(0 -100vmax); }
+  :where(html.exton-on) :is(.home-hero--navy, .home-occ, .home-story, .finder-top) { box-shadow: 0 0 0 100vmax var(--navy); clip-path: inset(0 -100vmax); }
   :where(html.exton-on) .dock { right: calc((100vw - 100vw * var(--wide)) / 2 + var(--pad)); }
   :where(html.exton-on) .ftray { left: calc((100vw - 100vw * var(--wide)) / 2 + var(--pad) + 3 * ((100vw * var(--wide) - 2 * var(--pad) - 11 * var(--gap)) / 12 + var(--gap))); width: min(760px, calc(100vw * var(--wide) * 0.5)); }
 }
@@ -1704,5 +1704,79 @@ html.exton-on:has(body[data-page="shop"].is-picking) { height: 100svh; overflow:
 @media (min-width: 2800px) { :root { --wide: 0.6; } }
 @media (min-width: 3200px) { :root { --wide: 0.52; } }
 @media (min-width: 3600px) { :root { --wide: 0.46; } }
+/* ── 2026-11-04 story invitation + better images ───────────────────────────────
+   Home: a navy band that previews the story page (same hall photo, same big EXTON word) and says what it is.
+   Story page: a short line + four chapter links in the hero, a team photo above the people, the Kópavogur tower as the photo break. */
+:where(html.exton-on) .story-invite { grid-column: 4 / 11; grid-row: 3; align-self: end; justify-self: start; display: grid; gap: 0.75em; max-width: 52em; color: var(--white); text-shadow: 0 0 1.4em rgba(0, 0, 0, 0.5); }
+:where(html.exton-on) .story-invite__label { font-size: var(--t-nav); opacity: 0.8; }
+:where(html.exton-on) .story-invite__line { font-size: var(--t-h6); line-height: 1.25; max-width: 24em; }
+:where(html.exton-on) .story-invite__chapters { list-style: none; margin: 0.2em 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5em; }
+:where(html.exton-on) .story-invite__chapters a { display: inline-flex; align-items: baseline; gap: 0.65em; min-height: 44px; padding: 0.7em 1.05em; align-items: center; border: 1px solid rgba(255, 255, 255, 0.55); background: rgba(12, 17, 37, 0.38); color: var(--white); font-size: var(--t-nav); line-height: 1; text-decoration: none; text-shadow: none; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: background-color 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), color 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.2s cubic-bezier(0.2, 0.7, 0.2, 1); }
+:where(html.exton-on) .story-invite__n { font-variant-numeric: lining-nums; opacity: 0.7; font-size: 0.85em; }
+:where(html.exton-on) .story-invite__chapters a:active { transform: scale(0.97); }
+:where(html.exton-on) .story-invite__chapters a:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
+@media (hover: hover) { :where(html.exton-on) .story-invite__chapters a:hover { background: var(--white); border-color: var(--white); color: var(--navy); } }
+@media (max-width: 1024px) {
+  :where(html.exton-on) .story-invite { grid-column: 1 / 9; }
+  :where(html.exton-on) .colophon--about { display: none; }
+  :where(html.exton-on) .scene--about .backdrop__image { object-position: 52% center; }
+}
+@media (max-width: 650px) {
+  :where(html.exton-on) .story-invite { grid-column: 1 / -1; justify-self: stretch; text-align: left; margin-bottom: 22vw; }
+  :where(html.exton-on) .story-invite__line { font-size: 4.6vw; max-width: none; }
+  :where(html.exton-on) .story-invite__chapters a { font-size: 3.9vw; }
+}
+
+:where(html.exton-on) .home-story { background: var(--navy); color: var(--white); display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); column-gap: var(--gap); align-items: center; margin-top: calc(var(--pad) * 1.6); padding: calc(var(--pad) * 1.5) var(--pad); }
+:where(html.exton-on) .home-story__media { grid-column: 1 / 7; position: relative; display: block; aspect-ratio: 1.47; overflow: hidden; color: var(--white); text-decoration: none; }
+:where(html.exton-on) .home-story__media img { display: block; width: 100%; height: 100%; max-width: none; object-fit: cover; transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1); }
+:where(html.exton-on) .home-story__media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(12, 17, 37, 0.72), rgba(12, 17, 37, 0.06) 58%); pointer-events: none; }
+:where(html.exton-on) .home-story__word { position: absolute; z-index: 1; left: 0.3em; bottom: 0.02em; font-family: var(--f-serif); font-weight: 400; font-size: clamp(56px, 9.4vw, 160px); line-height: 0.92; letter-spacing: 0.01em; }
+:where(html.exton-on) .home-story__copy { grid-column: 8 / -1; display: grid; gap: 1em; align-content: center; }
+:where(html.exton-on) .home-story__label { font-size: var(--t-nav); opacity: 0.75; }
+:where(html.exton-on) .home-story__title { font-family: var(--f-serif); font-weight: 400; font-size: var(--d2); line-height: 0.95; letter-spacing: 0.01em; text-wrap: balance; }
+:where(html.exton-on) .home-story__text { max-width: 30em; color: rgba(255, 255, 255, 0.8); line-height: 1.4; }
+:where(html.exton-on) .home-story__chapters { list-style: none; margin: 0.3em 0; padding: 0; border-top: 1px solid rgba(255, 255, 255, 0.22); }
+:where(html.exton-on) .home-story__chapters li { display: flex; align-items: baseline; gap: 1.1em; padding: 0.65em 0; border-bottom: 1px solid rgba(255, 255, 255, 0.22); }
+:where(html.exton-on) .home-story__chapters li span { opacity: 0.6; font-variant-numeric: lining-nums; min-width: 1.6em; }
+:where(html.exton-on) .home-story__cta { display: flex; flex-wrap: wrap; gap: 0.7em; margin: 0.3em 0 0; }
+:where(html.exton-on) .home-story .btn { border-color: var(--white); color: var(--white); background: transparent; }
+:where(html.exton-on) .home-story .btn--solid { background: var(--white); color: var(--navy); }
+:where(html.exton-on) .home-story .btn:focus-visible { outline-color: var(--white); }
+@media (hover: hover) {
+  :where(html.exton-on) .home-story__media:hover img { transform: scale(1.035); }
+  :where(html.exton-on) .home-story .btn:hover { background: var(--white); color: var(--navy); }
+  :where(html.exton-on) .home-story .btn--solid:hover { background: transparent; color: var(--white); }
+}
+@media (max-width: 1024px) {
+  :where(html.exton-on) .home-story { grid-template-columns: minmax(0, 1fr); row-gap: calc(var(--gap) * 1.6); }
+  :where(html.exton-on) .home-story__media, :where(html.exton-on) .home-story__copy { grid-column: 1 / -1; }
+}
+@media (max-width: 650px) {
+  :where(html.exton-on) .home-story { padding-block: calc(var(--pad) * 1.2); }
+  :where(html.exton-on) .home-story__media { aspect-ratio: 1.25; }
+  :where(html.exton-on) .home-story__title { font-size: 11vw; }
+  :where(html.exton-on) .home-story__cta .btn { flex: 1 1 100%; }
+  :where(html.exton-on) .home-story__chapters li { font-size: 4.2vw; }
+}
+
+:where(html.exton-on) .people__label { grid-row: 1; }
+:where(html.exton-on) .people__photo { grid-column: 3 / -1; grid-row: 1; margin: 0 0 calc(var(--gap) * 1.2); }
+:where(html.exton-on) .people__list { grid-row: 2; }
+:where(html.exton-on) .people__frame { overflow: hidden; aspect-ratio: 16 / 10; }
+:where(html.exton-on) .people__frame img { display: block; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 50% 72%; will-change: transform; }
+:where(html.exton-on) .people__photo figcaption { margin-top: 0.7em; font-size: calc(var(--t-nav) * 0.75); line-height: 1.35; color: var(--muted); }
+@media (max-width: 1024px) {
+  :where(html.exton-on) .people__photo { grid-column: 1 / -1; grid-row: auto; }
+  :where(html.exton-on) .people__list { grid-row: auto; }
+  :where(html.exton-on) .people__label { grid-row: auto; }
+}
+:where(html.exton-on) .photo-break--turn .photo-break__window img { object-position: 40% 50%; }
+:where(html.exton-on) .photo-break--turn::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(to top, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0)); pointer-events: none; z-index: 1; }
+:where(html.exton-on) .photo-break__cap { position: absolute; z-index: 2; left: var(--pad); right: var(--pad); bottom: calc(var(--pad) * 0.7); margin: 0; max-width: 36em; color: var(--white); font-size: calc(var(--t-nav) * 0.8); line-height: 1.35; text-shadow: 0 0 1.2em rgba(0, 0, 0, 0.6); }
+@media (max-width: 650px) { :where(html.exton-on) .photo-break__cap { font-size: 3.4vw; bottom: 5vw; } }
+
+:where(html.exton-on) [id^="kafli-"]:focus { outline: none; }
+
 `
 }
