@@ -744,7 +744,6 @@ ${c.pull ? `          <figure class="pullquote">
             <blockquote><h3 class="pullquote__text"><span class="pullquote__mark">${lang === 'is' ? '„' : '“'}</span>${esc(pick(c.pull, lang))}${lang === 'is' ? '“' : '”'}</h3></blockquote>
             <figcaption class="pullquote__credit">
               <p class="quote__name">Exton</p>
-              <p class="quote__source">/ exton.is</p>
             </figcaption>
           </figure>
 ` : ''}        </section>
@@ -837,7 +836,6 @@ ${sty.chapters.map((c, i) => `                <li><a href="#hluti-${i + 1}" data
                 <figure class="film__still-wrap"><img class="film__still" ${src('hero', '(max-width: 650px) 90vw, 36vw', ` alt="${esc(t.aboutFilmAlt)}" decoding="async" loading="lazy"`)}></figure>
               </div>
             </div>
-            <p class="film__link"><a href="${SITE_URL}um-exton/" target="_blank" rel="noopener noreferrer">${esc(t.aboutFilmLink)}</a></p>
           </section>
           <section class="film__runway" aria-hidden="true"></section>
         </div>

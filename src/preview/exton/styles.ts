@@ -1787,5 +1787,20 @@ html.exton-on:has(body[data-page="shop"].is-picking) { height: 100svh; overflow:
   :where(html.exton-on) .colophon--cue { margin-bottom: 21vw; } /* the hint sat behind the dock on phones */
 }
 
+/* 2026-11-05 picker tiles: the name reads horizontally, bottom left, with its blurb under it (Sindri: "dont make this rotate this way, unreadable, make it normal and perfectly placed").
+   One size for every name (the longest, "Instruments", sets it) so the four tiles line up; the panel is a size container so the type follows the tile width. */
+@media (min-width: 651px) {
+  :where(html.exton-on) .tile__panel { container-type: inline-size; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto auto; }
+  :where(html.exton-on) .tile__name { grid-column: 1; grid-row: 3; align-self: end; justify-self: start; writing-mode: horizontal-tb; transform: none; text-align: left; white-space: nowrap; line-height: 0.95; font-size: min(var(--tile-name), calc(98cqw / 7.1)); }
+  :where(html.exton-on) .tile__blurb { grid-column: 1; grid-row: 4; max-width: none; margin-top: 0.9em; }
+}
+@media (min-width: 651px) and (max-width: 1024px) {
+  :where(html.exton-on) .tile__name { font-size: min(5.4svh, calc(98cqw / 7.1)); }
+  :where(html.exton-on) .tile__blurb { font-size: max(12px, 1.5svh); margin-top: 0.7em; }
+}
+
+/* iOS Safari: landscape and orientation changes must not inflate the type */
+html.exton-on { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
 `
 }

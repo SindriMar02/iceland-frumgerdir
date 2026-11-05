@@ -58,7 +58,7 @@ export function mountExton(cfg: EngineConfig): () => void {
       countIn: 0.6, countInEase: "power4.out", tick: 0.5, tickEase: "expo.out", countOut: 0.7, countOutEase: "power3.in",
       exitReveal: 0.4, wipe: 0.9, wipeBezier: [0.73, 0.15, 0.15, 0.99], morphDelay: 0.1, morph: 0.65, morphEase: "power2.inOut", timeoutMs: 12000 }, // M5 #1-#6 (BYGG: the reference runs 3.7 s, this 2.7 s)
     picker: { total: 1, staggerRatio: 0.14, lead: 0.05, inner: 0.035, markRatio: 0.7, textRatio: 0.75,
-      card: { yPercent: 110, opacity: 0 }, mark: { opacity: 0, y: 12 }, name: { opacity: 0, x: 20 }, blurb: { opacity: 0, y: 16 } }, // M8 #33 #34
+      card: { yPercent: 110, opacity: 0 }, mark: { opacity: 0, y: 12 }, name: { opacity: 0, y: 14 }, blurb: { opacity: 0, y: 16 } }, // M8 #33 #34
     drawer: { bezier: [0.4, 0.3, 0, 0.99], line: 0.6, panel: 0.7, scrim: 0.8, links: 0.7, linkStagger: 0.045, linkDelay: 0.2,
       closeLinks: 0.18, closeStagger: 0.025, closeRest: 0.6, closeDelay: 0.12, bar: 13, barDur: 0.5, roll: 0.5, rollStagger: 0.01 }, // M9 #39-#42
     wheel: 0.8, touch: 2.5,                                   // M1
@@ -292,7 +292,7 @@ export function mountExton(cfg: EngineConfig): () => void {
       tl.to(page, { ...this.pose(), duration: P.total }, 0);
       tl.to(tiles, { yPercent: 0, opacity: 1, duration: T.dur, stagger: T.stagger }, 0);
       tiles.forEach((t, i) => { const [m, n, b] = this.parts(t), at = i * T.stagger + P.lead;
-        tl.to(m, { opacity: 1, y: 0, duration: T.mark }, at).to(n, { opacity: 1, x: 0, duration: T.text }, at + P.inner).to(b, { opacity: 1, y: 0, duration: T.text }, at + P.inner * 2); });
+        tl.to(m, { opacity: 1, y: 0, duration: T.mark }, at).to(n, { opacity: 1, x: 0, y: 0, duration: T.text }, at + P.inner).to(b, { opacity: 1, y: 0, duration: T.text }, at + P.inner * 2); });
       if (reduced()) tl.progress(1);
     },
     closeInto(tl, tiles) { // reverse order from the end: blurb → name → mark
