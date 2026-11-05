@@ -1,4 +1,4 @@
-import { BRANDS, EXTRA_CATS, STORY, FT, OCCASIONS, SHOP, SHOP_CATS, ST, brandOf, guestBand, COLLECTIONS, OTHER_RENTALS, MAIL, MAP_URL, PHONE, PILLARS, PRODUCTS, ROUTE_EN, ROUTE_IS, SITE_URL, T, brand, img, pick, type Collection, type Lang, } from './data'
+import { BRANDS, EXTRA_CATS, STORY, FT, OCCASIONS, SHOP, SHOP_CATS, ST, brandOf, guestBand, COLLECTIONS, OTHER_RENTALS, MAIL, MAP_URL, PHONE, PILLARS, PRODUCTS, ROUTE_EN, ROUTE_IS, T, brand, img, pick, type Collection, type Lang, } from './data'
 
 
 
