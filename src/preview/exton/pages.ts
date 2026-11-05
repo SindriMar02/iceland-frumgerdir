@@ -699,7 +699,7 @@ function collection(c: Collection, lang: Lang) {
               </div>
             </div>
 
-            <footer class="colophon"><small>${esc(t.scrollHint)}</small></footer>
+            <footer class="colophon colophon--cue"><small>${esc(t.scrollHint)}</small><span class="colophon__cue" aria-hidden="true"><i></i></span></footer>
           </section>
           <div class="scene__runway" aria-hidden="true"><div class="scene__grow"></div><div class="scene__hold"></div></div>
         </div>
@@ -819,16 +819,16 @@ function about(lang: Lang) {
               <p class="story-invite__label">${esc(sty.heroLabel)}</p>
               <p class="story-invite__line">${esc(sty.heroLine)}</p>
               <ol class="story-invite__chapters" aria-label="${esc(sty.chaptersAria)}">
-${sty.chapters.map((c, i) => `                <li><a href="#kafli-${i + 1}" data-scroll><span class="story-invite__n" aria-hidden="true">0${i + 1}</span>${esc(c)}</a></li>`).join('\n')}
+${sty.chapters.map((c, i) => `                <li><a href="#hluti-${i + 1}" data-scroll><span class="story-invite__n" aria-hidden="true">0${i + 1}</span>${esc(c)}</a></li>`).join('\n')}
               </ol>
             </div>
 
-            <footer class="colophon colophon--about"><small>${esc(t.scrollHint)}</small></footer>
+            <footer class="colophon colophon--about colophon--cue"><small>${esc(t.scrollHint)}</small><span class="colophon__cue" aria-hidden="true"><i></i></span></footer>
           </section>
         </div>
 
         <div class="film">
-          <section class="statement statement--intro" id="kafli-1" tabindex="-1">
+          <section class="statement statement--intro" id="hluti-1" tabindex="-1">
             <p class="statement__label">${esc(t.aboutLabel)}</p>
             <h1 class="sr-only">${esc(t.aboutH1)}</h1>
             <h2 class="statement__title"><span class="statement__lead">${esc(t.aboutStatementLead.trimEnd())}</span> ${esc(t.aboutStatement)}</h2>
@@ -848,17 +848,17 @@ ${sty.chapters.map((c, i) => `                <li><a href="#kafli-${i + 1}" data
             <blockquote class="quote__body"><h2 class="quote__text">${esc(t.aboutQuote)}</h2></blockquote>
           </figure>
           ${ticker(t.aboutMarquee2, ' ticker--outro')}
-          ${statement(t.aboutLabel2, t.aboutValuesLead, t.aboutValues, 'statement--second', 'kafli-2')}
+          ${statement(t.aboutLabel2, t.aboutValuesLead, t.aboutValues, 'statement--second', 'hluti-2')}
           <div class="facts">
 ${PILLARS.map(pillar).join('\n')}
           </div>
-          ${statement(t.aboutLabel3, t.aboutHistoryLead, t.aboutHistory, 'statement--second statement--last', 'kafli-3')}
+          ${statement(t.aboutLabel3, t.aboutHistoryLead, t.aboutHistory, 'statement--second statement--last', 'hluti-3')}
           <div class="chronicle">
             <ul class="chronicle__list">
 ${makers}
             </ul>
           </div>
-          <div class="people" id="kafli-4" tabindex="-1">
+          <div class="people" id="hluti-4" tabindex="-1">
             <p class="people__label statement__label">${esc(t.aboutLabel4)}</p>
             <figure class="people__photo">
               <div class="people__frame"><img ${src('starfsfolk', '(max-width: 650px) 92vw, 62vw', ` alt="${esc(sty.teamAlt)}" loading="lazy" decoding="async"`)}></div>
@@ -1031,7 +1031,7 @@ function requests(lang: Lang) {
               </div>
             </div>
 
-            <footer class="colophon"><small>${esc(t.scrollHint)}</small></footer>
+            <footer class="colophon colophon--cue"><small>${esc(t.scrollHint)}</small><span class="colophon__cue" aria-hidden="true"><i></i></span></footer>
           </section>
         </div>
 

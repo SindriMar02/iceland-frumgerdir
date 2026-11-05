@@ -817,6 +817,25 @@ export function mountExton(cfg: EngineConfig): () => void {
     },
   };
 
+
+  /* ── scroll cue under "(Skrunaðu)" (2026-11-05, Sindri: "this needs to animate better") ──
+     Arrives after the hint's text has settled, idles with a light segment sliding down the hairline (compositor-only), leaves with the first scroll and returns when the page is back at the top. Reduced motion: the static hairline only. */
+  const Cue = {
+    mount(root) {
+      const cue = $(".colophon__cue", root); if (!cue || reduced()) return;
+      const seg = $("i", cue), host = cue.closest(".colophon"), stage = cue.closest(".scene") || cue.closest(".frame") || root;
+      let live = false, scrolled = false, tries = 0;
+      gsap.set(cue, { scaleY: 0, transformOrigin: "50% 0%" });
+      const loop = gsap.timeline({ paused: true, repeat: -1, repeatDelay: 0.55 }).fromTo(seg, { yPercent: -100 }, { yPercent: 190, duration: 1.25, ease: "power2.inOut" });
+      const arrive = () => gsap.to(cue, { scaleY: 1, duration: 0.9, ease: "power3.out", onComplete: () => { live = true; if (!scrolled) loop.play(); } });
+      const settled = () => { const l = $(".colophon small .line", root); return !!l && getComputedStyle(l).clipPath === "none"; };
+      const wait = () => { if (settled() || ++tries > 80) arrive(); else gsap.delayedCall(0.12, wait); };
+      wait();
+      ScrollTrigger.create({ trigger: stage, start: "top top", end: () => "+=" + Math.round(innerHeight * 0.18), scrub: 0.4, invalidateOnRefresh: true,
+        onUpdate: (st) => { scrolled = st.progress > 0.02; gsap.set(host, { opacity: 1 - st.progress, y: st.progress * 14 }); if (live) loop.paused(scrolled); } });
+    },
+  };
+
   /* ── home (BYGG): a plain scrolling page. Calm reveals, an anchor that scrolls, the dock beside the page ── */
   const Home = {
     reveals(root) {
@@ -1353,6 +1372,7 @@ export function mountExton(cfg: EngineConfig): () => void {
       else if (root.dataset.view === "finder") Finder.mount(root);
       else if (root.dataset.view === "shop") Shop.mount(root);
       else if (root.dataset.view === "contact" || root.dataset.view === "404") Contact.mount(root);
+      Scope.run(() => Cue.mount(root));
       ScrollTrigger.refresh();
     },
   };

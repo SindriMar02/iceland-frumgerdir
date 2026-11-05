@@ -1776,7 +1776,16 @@ html.exton-on:has(body[data-page="shop"].is-picking) { height: 100svh; overflow:
 :where(html.exton-on) .photo-break__cap { position: absolute; z-index: 2; left: var(--pad); right: var(--pad); bottom: calc(var(--pad) * 0.7); margin: 0; max-width: 36em; color: var(--white); font-size: calc(var(--t-nav) * 0.8); line-height: 1.35; text-shadow: 0 0 1.2em rgba(0, 0, 0, 0.6); }
 @media (max-width: 650px) { :where(html.exton-on) .photo-break__cap { font-size: 3.4vw; bottom: 5vw; } }
 
-:where(html.exton-on) [id^="kafli-"]:focus { outline: none; }
+:where(html.exton-on) [id^="hluti-"]:focus { outline: none; }
+
+/* 2026-11-05 scroll cue under "(Skrunaðu)": a hairline that draws in after the text, a light segment slides down it while the visitor has not scrolled, it fades with the first scroll */
+:where(html.exton-on) .colophon--cue { position: relative; }
+:where(html.exton-on) .colophon__cue { position: absolute; left: 0; top: calc(100% + 0.7em); width: 1px; height: 30px; overflow: hidden; background: color-mix(in srgb, currentColor 28%, transparent); pointer-events: none; }
+:where(html.exton-on) .colophon__cue i { position: absolute; left: 0; top: 0; width: 100%; height: 55%; background: currentColor; transform: translateY(-100%); }
+@media (max-width: 650px) and (orientation: portrait) {
+  :where(html.exton-on) .colophon__cue { left: calc(50% - 0.5px); top: auto; bottom: calc(100% + 0.6em); height: 24px; }
+  :where(html.exton-on) .colophon--cue { margin-bottom: 21vw; } /* the hint sat behind the dock on phones */
+}
 
 `
 }
