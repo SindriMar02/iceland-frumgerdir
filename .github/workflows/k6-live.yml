@@ -111,3 +111,6 @@ jobs:
             [ "$LIVE" = "$STAMP" ] || { echo "$h serves $LIVE, expected $STAMP"; exit 1; }
             echo "$h: $STAMP"
           done
+      - if: env.TARGET == 'live'
+        name: Every live site shows its Google reviews (fails the run, so GitHub mails Sindri, if a section goes missing)
+        run: node _tools/check-reviews.mjs
