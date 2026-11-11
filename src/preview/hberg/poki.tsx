@@ -399,6 +399,16 @@ export function Poki() {
       rawLines.filter((x) => x.slug === p.slug),
     ),
     on = useSyncExternalStore(sub, snapOpen, snapOpen);
+  // Speed (Claude 11-11): the closed window used to build ~1,300 elements at page load, half the page.
+  // Its contents mount on first open, or when the browser is idle after load so the first open stays instant.
+  const everOpened = useRef(false);
+  if (on) everOpened.current = true;
+  const [idleReady, setIdleReady] = useState(false);
+  useEffect(() => {
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+    if (w.requestIdleCallback) { const id = w.requestIdleCallback(() => setIdleReady(true), { timeout: 5000 }); return () => w.cancelIdleCallback?.(id); }
+    const t = window.setTimeout(() => setIdleReady(true), 3000); return () => window.clearTimeout(t);
+  }, []);
   const panel = useRef<HTMLDivElement | null>(null),
     helpPanel = useRef<HTMLDivElement>(null),
     helpButton = useRef<HTMLButtonElement>(null);
@@ -715,6 +725,7 @@ export function Poki() {
         (!onlyOrdered || l.some((x) => x.slug === p.slug)),
     ),
   })).filter((g) => g.items.length);
+  if (!on && !everOpened.current && !idleReady) return null;
   return (
     <>
       <div

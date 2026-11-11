@@ -137,4 +137,7 @@ export const ORDER_CSS = `
 }
 @media (max-width:380px){.hb-orderHead h2{font-size:1.45rem}.hb-orderHead>div{min-width:0;flex:1 1 0}}
 
+
+/* Speed: off-screen product rows skip layout and paint until scrolled near. */
+.hb-orderRow{content-visibility:auto;contain-intrinsic-size:auto 104px}
 `
