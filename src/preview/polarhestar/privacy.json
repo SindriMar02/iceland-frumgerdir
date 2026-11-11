@@ -1,0 +1,86 @@
+{
+  "is": {
+    "title": "Persónuvernd",
+    "description": "Hvernig Pólar Hestar fara með upplýsingar úr bókunarbeiðnum og hvaða þjónustur vefurinn notar.",
+    "home": "Forsíða",
+    "formLink": "Hvernig við förum með upplýsingarnar þínar",
+    "sections": [
+      [
+        "Bókunarbeiðnir",
+        "Fyrir stuttan reiðtúr sendir eyðublaðið valda ferð, dagsetningu, tíma ef við á, fjölda gesta og barna, reynslu hvers knapa og aldur barna. Það sendir líka nafn, síma, netfang ef þú gefur það upp, athugasemd ef þú skrifar hana og tungumál. Við notum þetta til að svara þér og skipuleggja reiðtúrinn. Grundvöllurinn er ráðstafanir að þinni beiðni áður en samningur er gerður, samkvæmt b-lið 1. mgr. 6. gr. GDPR. Beiðni um lengri ferð er tölvupóstur sem þú sendir sjálf eða sjálfur úr póstforritinu þínu til polarhestar@polarhestar.is."
+      ],
+      [
+        "Hverjir vinna upplýsingarnar",
+        "Beiðnir um stutta reiðtúra fara í SNDR Bókun sem SNDR ehf. rekur sem vinnsluaðili fyrir Pólar Hestar. Kerfið og vefurinn eru hýst hjá Cloudflare, Inc. Resend, Inc. í Bandaríkjunum sendir eigendum tölvupóst og þér kvittun ef netfang fylgir. Þessar þjónustur vinna því upplýsingarnar til að koma beiðninni til skila. Sanity geymir aðeins texta og myndir vefsins, engin gögn gesta."
+      ],
+      [
+        "Vefmælingar og vafrakökur",
+        "Vefurinn notar SNDR Pulse og getur notað Cloudflare Web Analytics þegar mælingin er virkjuð. Cloudflare mælir heimsóknir og afköst án vafrakakna eða persónusniðs. Pulse sendir heila vefslóð, þar með talda fyrirspurnarhluta og akkeri, tilvísunarsíðu og atvik þegar smellt er á síma eða netfang. Það sendir ekki innihald bókunareyðublaðsins. Pulse setur hvorki vafrakökur né gögn í vafrageymslu. Það les aðeins stillinguna sndr-pulse-ignore ef hún hefur verið sett til að sleppa mælingu. Vefurinn birtir ekki borða fyrir samþykki á vafrakökum. Mælingarnar hjálpa okkur að skilja notkun og bæta vefinn. Pulse dregur mælingar saman eftir síðu, uppruna heimsóknar, tegund tækis og landi. IP tala er notuð tímabundið til að takmarka álag en er ekki vistuð í mælitölunum."
+      ],
+      [
+        "Myndir, letur og tenglar",
+        "Vafrinn sækir efni og myndir frá Sanity. Ef myndir vantar getur hann sótt staðgengilsmyndir frá Unsplash. Letur og kort eru á vefnum sjálfum. Ekkert letur er sótt frá Google og engin innfelld kort senda gögn til kortaþjónustu. Pulse notar hýsingu Cloudflare. Virk Cloudflare mæling sækir mælikóða frá static.cloudflareinsights.com og sendir mæligögn á /cdn-cgi/rum á þessum vef eða til cloudflareinsights.com. Vefþjónustur fá tæknilegar upplýsingar, svo sem IP tölu, þegar vafrinn tengist þeim. Tenglar á Google Maps, Facebook, Instagram, Tripadvisor, SNDR Studio og Persónuvernd opna viðkomandi vefi þegar þú velur þá."
+      ],
+      [
+        "Varðveisla og réttindi",
+        "Við geymum upplýsingar meðan þeirra er þörf til að skipuleggja ferðina og vegna bókhalds. Við eyðum þeim að beiðni nema lagaskylda krefjist varðveislu. Þú getur óskað eftir aðgangi, leiðréttingu, eyðingu og flutningi gagna og andmælt vinnslu eftir því sem við á. Sendu beiðni á polarhestar@polarhestar.is. Um vinnsluna gilda lög nr. 90/2018 og GDPR. Þú getur kvartað til Persónuverndar á personuvernd.is."
+      ]
+    ]
+  },
+  "en": {
+    "title": "Privacy",
+    "description": "How Pólar Hestar handle booking request details and which services this website uses.",
+    "home": "Home",
+    "formLink": "How we handle your details",
+    "sections": [
+      [
+        "Booking requests",
+        "For a short ride, the form sends the chosen tour, date, time where applicable, total riders and children, each rider’s experience and children’s ages. It also sends your name, phone, email if provided, any note you write and language. We use these details to answer and arrange your ride. The legal basis is steps at your request before entering a contract, under GDPR Article 6(1)(b). For a long tour, you send an email from your own mail program to polarhestar@polarhestar.is."
+      ],
+      [
+        "Who processes the details",
+        "Short ride requests go to SNDR Bókun, operated by SNDR ehf. as a processor for Pólar Hestar. The system and website are hosted on Cloudflare, Inc. Resend, Inc., based in the USA, sends email to the owners and a receipt to you if you provide an email address. These services process your details to deliver the request. Sanity stores only website text and photos, no guest data."
+      ],
+      [
+        "Analytics and cookies",
+        "The website uses SNDR Pulse and may use Cloudflare Web Analytics when enabled. Cloudflare measures visits and performance without cookies or a personal profile. Pulse sends the full page URL, including query strings and fragments, the referring page, and events when you click a phone or email link. It does not send booking form contents. Pulse sets no cookies or browser storage. It only reads the sndr-pulse-ignore setting if it has been set to exclude visits. The website has no cookie consent banner. We use the measurements to understand usage and improve the website. Pulse groups measurements by page, traffic source, device type and country. The IP address is used temporarily for rate limiting but is not stored in these totals."
+      ],
+      [
+        "Photos, fonts and links",
+        "Your browser fetches content and photos from Sanity. If photos are missing, it may fetch fallback photos from Unsplash. Fonts and maps are hosted on this website. No fonts are fetched from Google, and there are no embedded maps contacting a map service. Pulse is hosted on Cloudflare. When enabled, Cloudflare analytics loads code from static.cloudflareinsights.com and sends measurements to /cdn-cgi/rum on this website or to cloudflareinsights.com. Web services receive technical details such as your IP address when your browser connects. Links to Google Maps, Facebook, Instagram, Tripadvisor, SNDR Studio and Persónuvernd open those websites when you choose them."
+      ],
+      [
+        "Retention and your rights",
+        "We keep details as long as needed to arrange the ride and for accounting, and delete them on request unless retention is legally required. You may request access, correction, deletion and portability, and object to processing where applicable. Contact polarhestar@polarhestar.is. Icelandic Act no. 90/2018 and the GDPR apply. You may complain to Persónuvernd, the Icelandic Data Protection Authority, at personuvernd.is."
+      ]
+    ]
+  },
+  "de": {
+    "title": "Datenschutz",
+    "description": "Wie Pólar Hestar Ihre Angaben aus Buchungsanfragen verarbeiten und welche Dienste diese Website nutzt.",
+    "home": "Startseite",
+    "formLink": "Wie wir mit Ihren Angaben umgehen",
+    "sections": [
+      [
+        "Buchungsanfragen",
+        "Bei einem kurzen Ausritt sendet das Formular die gewählte Tour, Datum, gegebenenfalls Uhrzeit, die Gesamtzahl der Reiter und die Zahl der Kinder sowie die Reiterfahrung jeder Person und das Alter der Kinder. Hinzu kommen Ihr Name, Ihre Telefonnummer, Ihre E-Mail-Adresse, falls angegeben, eine freiwillige Nachricht und die Sprache. Wir nutzen diese Angaben, um Ihnen zu antworten und den Ritt zu organisieren. Rechtsgrundlage sind vorvertragliche Maßnahmen auf Ihre Anfrage gemäß Art. 6 Abs. 1 Buchst. b DSGVO. Für eine Mehrtagestour senden Sie selbst eine E-Mail aus Ihrem eigenen Mailprogramm an polarhestar@polarhestar.is."
+      ],
+      [
+        "Wer die Angaben verarbeitet",
+        "Anfragen für kurze Ausritte gehen an SNDR Bókun. SNDR ehf. betreibt dieses System als Auftragsverarbeiter für Pólar Hestar. System und Website werden bei Cloudflare, Inc. gehostet. Resend, Inc. mit Sitz in den USA sendet den Eigentümern eine E-Mail und Ihnen eine Eingangsbestätigung, wenn Sie eine E-Mail-Adresse angeben. Diese Dienste verarbeiten Ihre Angaben zur Zustellung der Anfrage. Sanity speichert ausschließlich Texte und Fotos der Website, keine Gästedaten."
+      ],
+      [
+        "Nutzungsstatistik und Cookies",
+        "Die Website nutzt SNDR Pulse und kann bei entsprechender Aktivierung Cloudflare Web Analytics nutzen. Cloudflare misst Besuche und Leistung ohne Cookies oder persönliche Profile. Pulse übermittelt die vollständige Seitenadresse einschließlich Abfrageparametern und Fragmenten, die verweisende Seite sowie Ereignisse beim Anklicken einer Telefonnummer oder E-Mail-Adresse. Inhalte des Buchungsformulars werden nicht übermittelt. Pulse setzt weder Cookies noch Daten im Browserspeicher. Es liest lediglich die Einstellung sndr-pulse-ignore, sofern diese zum Ausschluss von Besuchen gesetzt wurde. Die Website zeigt kein Banner zur Cookie-Einwilligung an. Wir verwenden die Statistik, um die Nutzung zu verstehen und die Website zu verbessern. Pulse fasst die Messungen nach Seite, Zugriffsquelle, Gerätetyp und Land zusammen. Die IP-Adresse wird vorübergehend zur Begrenzung von Anfragen verwendet, aber nicht in diesen Statistiken gespeichert."
+      ],
+      [
+        "Fotos, Schriften und Links",
+        "Ihr Browser lädt Inhalte und Fotos von Sanity. Fehlen Fotos, können Ersatzbilder von Unsplash geladen werden. Schriften und Karten liegen auf dieser Website. Es werden keine Schriften von Google geladen und keine eingebetteten Karten mit Verbindung zu einem Kartendienst verwendet. Pulse wird bei Cloudflare gehostet. Bei aktivierter Cloudflare-Statistik wird Code von static.cloudflareinsights.com geladen und Messdaten werden an /cdn-cgi/rum auf dieser Website oder an cloudflareinsights.com gesendet. Webdienste erhalten bei der Verbindung technische Angaben wie Ihre IP-Adresse. Links zu Google Maps, Facebook, Instagram, Tripadvisor, SNDR Studio und Persónuvernd öffnen diese Websites, wenn Sie sie auswählen."
+      ],
+      [
+        "Speicherung und Ihre Rechte",
+        "Wir bewahren Ihre Angaben so lange auf, wie es für die Organisation des Ritts und die Buchhaltung erforderlich ist. Auf Anfrage löschen wir sie, sofern keine gesetzliche Aufbewahrungspflicht besteht. Sie können Auskunft, Berichtigung, Löschung und Datenübertragbarkeit verlangen sowie der Verarbeitung widersprechen, soweit diese Rechte anwendbar sind. Schreiben Sie an polarhestar@polarhestar.is. Es gelten das isländische Gesetz Nr. 90/2018 und die DSGVO. Sie können sich bei der isländischen Datenschutzbehörde Persónuvernd unter personuvernd.is beschweren."
+      ]
+    ]
+  }
+}

@@ -1,10 +1,10 @@
 /**
  * Server entry for the Pólar Hestar prerender.
  *
- * renderToPipeableStream, NOT renderToString: the routes are React.lazy, and
+ * Web Streams rendering, NOT renderToString: the routes are React.lazy, and
  * renderToString does not wait for a lazy import. It renders the Suspense
  * fallback, which here is null, producing exactly the empty page this whole
- * exercise exists to fix, while appearing to succeed. onAllReady waits for
+ * exercise exists to fix, while appearing to succeed. allReady waits for
  * every lazy chunk before handing back the markup, so the client's code
  * splitting survives untouched.
  *
@@ -13,8 +13,7 @@
  * mirrored by hand): the list of pages with their <head>, llms.txt, and the
  * tours that used to exist and no longer do (for the redirects).
  */
-import { Writable } from 'node:stream'
-import { renderToPipeableStream } from 'react-dom/server'
+import { renderMarkup } from './preview/polarhestar/prerenderStream.mjs'
 import { StaticRouter } from 'react-router-dom'
 import { PolarhestarApp } from './polarhestar-app'
 import { BUILD_DAY, INITIAL_CONTENT } from './preview/polarhestar/sanity'
@@ -31,6 +30,7 @@ freezeToday(BUILD_DAY)
 const content = INITIAL_CONTENT
 
 export { BUILD_DAY }
+export const CMS_PAYLOAD = { builtAt: BUILD_DAY, shortTours: content.SHORT_TOURS.map(({ id, name }) => ({ id, name })), longTours: content.LONG_TOURS.map(({ id, name }) => ({ id, name })) }
 
 export interface PageInfo {
   path: string
@@ -80,34 +80,9 @@ export const SITEMAP_BASE = abs('')
 export const HERO = { src: content.PICS.hero.src, srcSet: content.PICS.hero.srcSet }
 
 export function render(path: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let html = ''
-    const sink = new Writable({
-      write(chunk, _enc, cb) {
-        html += chunk.toString('utf8')
-        cb()
-      },
-    })
-    sink.on('finish', () => resolve(html))
-
-    const { pipe, abort } = renderToPipeableStream(
-      <StaticRouter location={path}>
-        <PolarhestarApp />
-      </StaticRouter>,
-      {
-        onAllReady() {
-          pipe(sink)
-        },
-        onError(err) {
-          reject(err)
-        },
-      },
-    )
-
-    /* A hung lazy import must fail the build, not hang it forever. */
-    setTimeout(() => {
-      abort()
-      reject(new Error(`prerender of ${path} timed out after 30s`))
-    }, 30_000).unref?.()
-  })
+  return renderMarkup(
+    <StaticRouter location={path}>
+      <PolarhestarApp />
+    </StaticRouter>,
+  )
 }

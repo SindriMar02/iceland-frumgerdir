@@ -1,0 +1,93 @@
+name: Pólar Hestar live (polarhestar.is)
+
+# Requires Pages project polarhestar, the API token secret and analytics variable.
+# Studio webhook setup is maintained in polarhestar-cms by Claude.
+on:
+  repository_dispatch:
+    types: [sanity-publish-polarhestar]
+  workflow_dispatch:
+  schedule:
+    - cron: '37 4 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: polarhestar-live
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # OFF until launch: set the repository variable POLARHESTAR_LIVE=on once the
+    # Cloudflare Pages project `polarhestar` exists (SINDRI-STEPS A5). Without
+    # this, the nightly run would try to deploy before anything is set up.
+    if: vars.POLARHESTAR_LIVE == 'on'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Anything new in the CMS or a new day?
+        id: check
+        shell: bash
+        run: |
+          set -euo pipefail
+          Q='*[!(_id in path("drafts.**")) && !(_id in path("_.**"))]|order(_updatedAt desc)[0]._updatedAt'
+          CMS=$(curl --retry 3 -fsS --get 'https://qkoya49k.api.sanity.io/v2025-08-15/data/query/production' --data-urlencode "query=$Q" | jq -er '.result | select(type == "string" and length > 0)')
+          LIVE=$(curl -fsS https://polarhestar.is/cms-stamp.txt || echo none)
+          # A date component makes the nightly run refresh elapsed departures
+          # even when nobody has published anything in Sanity.
+          STAMP="$CMS $(date -u +%F)"
+          echo "cms/date=$STAMP live=$LIVE"
+          echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" != schedule ] || [ "$STAMP" != "$LIVE" ]; then
+            echo 'go=1' >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.check.outputs.go == '1'
+        uses: actions/checkout@v4
+      - if: steps.check.outputs.go == '1'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - if: steps.check.outputs.go == '1'
+        run: npm ci
+      - if: steps.check.outputs.go == '1'
+        run: npm run build:polarhestar
+        env:
+          VITE_POLARHESTAR_CF_ANALYTICS_TOKEN: ${{ vars.POLARHESTAR_CF_ANALYTICS_TOKEN }}
+      - if: steps.check.outputs.go == '1'
+        name: Refuse noindex, missing CMS payload or NUL bytes
+        env:
+          CMS_STAMP: ${{ steps.check.outputs.stamp }}
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          const root = 'dist-polarhestar';
+          writeFileSync(`${root}/cms-stamp.txt`, process.env.CMS_STAMP + '\n');
+          function scan(dir) {
+            for (const e of readdirSync(dir, { withFileTypes: true })) {
+              const file = `${dir}/${e.name}`;
+              if (e.isDirectory()) { scan(file); continue; }
+              const bytes = readFileSync(file);
+              // NUL is corruption in text; binary fonts and images contain it legitimately.
+              if (/\.(html|xml|txt|js|css|json)$/.test(e.name) || e.name.startsWith('_')) {
+                assert(!bytes.includes(0), `${file}: NUL byte`);
+              }
+              if (e.name !== 'index.html') continue;
+              const html = bytes.toString('utf8');
+              assert(/<meta name="robots" content="index, follow/.test(html), `${file}: not indexable`);
+              assert(!/<meta[^>]+(?:noindex|nofollow)/i.test(html), `${file}: noindex/nofollow`);
+              const payload = html.match(/<script type="application\/json" id="__polarhestar_cms">([\s\S]*?)<\/script>/);
+              assert(payload, `${file}: no CMS payload`);
+              const cms = JSON.parse(payload[1]);
+              assert(cms.builtAt && cms.shortTours?.length && cms.longTours?.length, `${file}: empty CMS payload`);
+            }
+          }
+          scan(root);
+          assert(!readFileSync(`${root}/robots.txt`, 'utf8').includes('Disallow: /'), 'robots blocks indexing');
+          console.log('Release gates passed: indexable pages, populated CMS payload, no NUL bytes.');
+          JS
+      - if: steps.check.outputs.go == '1'
+        run: npx wrangler pages deploy dist-polarhestar --project-name polarhestar --branch main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 381fb216c6a65237476b5583061b3648

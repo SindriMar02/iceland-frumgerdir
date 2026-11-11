@@ -23,12 +23,13 @@ import {
 import { companyEntry } from './company'
 import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
+import privacy from './privacy.json'
 import { SiteFooter } from './SiteFooter'
 import { RideTable } from './RideTable'
 import { faqEntries } from './faq'
 import { ClientOnly, useLang } from './lang'
 import { useLiveClock } from './now'
-import { STANDALONE, asset, linkHref, ridePath, schedulePath } from './paths'
+import { STANDALONE, routePath, asset, linkHref, ridePath, schedulePath } from './paths'
 import { Img } from '../../components/Img'
 import { setThemeColor } from '../../lib/preview'
 import { COPY, FOUNDED, INSTAGRAM, TRIPADVISOR, priceOn, type GtkAudience, type Lang } from './data'
@@ -55,7 +56,15 @@ const MIST = '#EDF1F7' // glacier white — cool light ground
  * side (see `origins` in its tenant config), so this call only works from the
  * preview and from their own site, not from anywhere that copies the markup.
  */
-const BOOKING_API = 'https://sndr-platform.sindri-381.workers.dev'
+const BOOKING_API = ((import.meta.env.VITE_POLARHESTAR_API as string | undefined) || 'https://sndr-platform.sindri-381.workers.dev').replace(/\/$/, '')
+
+/* Under the request receipt. Same fact as the owners' confirmation mail
+   ("Greitt er eftir reiðtúrinn"), short rides only: this form books nothing else. */
+const RECEIPT_NO_PAY: Record<Lang, string> = {
+  is: 'Ekkert hefur verið greitt. Greitt er eftir reiðtúrinn.',
+  en: 'Nothing has been paid. You pay after the ride.',
+  de: 'Es wurde nichts bezahlt. Bezahlt wird nach dem Ritt.',
+}
 
 const PAPER = '#F7FAFC' // lighter icy card
 const INK = '#161B3C' // deep navy ink — text on light
@@ -1055,6 +1064,8 @@ function Booking({
           total: json.quote?.total ?? total,
         })
         setDone(true)
+        // SNDR Pulse conversion (the tag is only on the production build; absent elsewhere)
+        ;(window as unknown as { sndrPulse?: (name: string) => void }).sndrPulse?.('booking')
       } else {
         setStatus('error')
       }
@@ -1101,6 +1112,10 @@ function Booking({
             </h3>
             <p className="ph-up mt-2 font-hanken text-sm leading-relaxed" style={{ color: BODY, animationDelay: '100ms' }}>
               {t.confirmedBody}
+            </p>
+            {/* the receipt repeats it: the guest must leave sure that nothing was charged (scenario run 11 Nov 2026) */}
+            <p className="ph-up mt-2 font-hanken text-xs" style={{ color: SLATE, animationDelay: '120ms' }}>
+              {RECEIPT_NO_PAY[lang]}
             </p>
             <dl className="ph-up mt-5 w-full space-y-1.5 rounded-2xl p-4 font-hanken text-sm" style={{ background: MIST, color: INK, animationDelay: '140ms' }}>
               <div className="flex justify-between gap-4">
@@ -1443,6 +1458,7 @@ function Booking({
               <Check className="h-3.5 w-3.5 shrink-0" style={{ color: CLAY_TX }} aria-hidden="true" />
               {t.bookNoPay}
             </p>
+            {STANDALONE && <p className="mt-3 font-hanken text-xs" style={{ color: SLATE }}><Link to={routePath({ kind: 'privacy' }, lang)} className="underline underline-offset-4">{privacy[lang].formLink}</Link></p>}
           </form>
         )}
       </div>

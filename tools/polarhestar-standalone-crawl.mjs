@@ -125,7 +125,7 @@ for (const path of paths) {
   if (lang !== expectLang) fail(w, `html lang ${lang}, expected ${expectLang}`)
   if (/Endurhannanir|frumger/i.test(html)) fail(w, 'catalogue boilerplate in the HTML')
 
-  const kind = path.includes('/reidtur/') ? 'ride' : path.includes('/ferd/') ? 'tour' : path.includes('dagskra') ? 'schedule' : 'home'
+  const kind = path.includes('/reidtur/') ? 'ride' : path.includes('/ferd/') ? 'tour' : path.includes('dagskra') ? 'schedule' : path.includes('/personuvernd/') ? 'privacy' : 'home'
   if (kind === 'home' && !ldTypes.some((t) => /TravelAgency|LocalBusiness/.test(t))) fail(w, 'home has no business entity')
   if (kind === 'home' && ldTypes.filter((t) => t === 'FAQPage').length !== 2) fail(w, 'home should carry two FAQPage blocks (short rides, long tours)')
   if (kind === 'home' && rec.tables < 1) fail(w, 'home has no comparison <table>')
@@ -134,6 +134,8 @@ for (const path of paths) {
   if (kind === 'ride' && !ldTypes.includes('TouristTrip')) fail(w, 'ride without TouristTrip')
   if (kind === 'schedule' && !ldTypes.includes('Event')) fail(w, 'schedule without departure Events')
   if (kind !== 'home' && !ldTypes.includes('BreadcrumbList')) fail(w, 'no BreadcrumbList')
+  // the privacy page (11 Nov 2026) must name the controller and be linked from every page's footer
+  if (kind === 'privacy' && !/Pólarhestar ehf\./.test(html)) fail(w, 'privacy page does not name the controller')
   for (const o of lds.filter(Boolean)) {
     if (o['@type'] === 'BreadcrumbList') for (const it of o.itemListElement) if (!it.item.startsWith(PROD + '/')) fail(w, `breadcrumb item ${it.item} is not on ${PROD}`)
   }

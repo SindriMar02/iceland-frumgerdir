@@ -9,11 +9,12 @@
  * links (hreflang, so a crawler can walk from any page to its twin), and the
  * SNDR credit that is a launch gate on every client site.
  */
+import privacy from './privacy.json'
 import { Link } from 'react-router-dom'
 import { Facebook, Instagram, Mail, MapPin, Phone, Star } from 'lucide-react'
 import { INSTAGRAM, TRIPADVISOR, type Lang } from './data'
 import { useSiteContent } from './sanity'
-import { LANGS, asset, bookPath, homePath, schedulePath, switchLangPath } from './paths'
+import { LANGS, STANDALONE, routePath, asset, bookPath, homePath, schedulePath, switchLangPath } from './paths'
 import { useLocation } from 'react-router-dom'
 
 const NIGHT = '#111530'
@@ -71,6 +72,7 @@ export function SiteFooter({ lang }: { lang: Lang }) {
             <li><Link to={firstRide ? bookPath(firstRide, lang) : homePath(lang, '#boka')} className={LINK}>{tri(lang, 'Bóka reiðtúr', 'Book a ride', 'Ritt buchen')}</Link></li>
             <li><Link to={homePath(lang, '#gott')} className={LINK}>{tri(lang, 'Gott að vita', 'Good to know', 'Gut zu wissen')}</Link></li>
             <li><Link to={homePath(lang, '#heimsokn')} className={LINK}>{t.nav.visit}</Link></li>
+            {STANDALONE && <li><Link to={routePath({ kind: 'privacy' }, lang)} className={LINK}>{privacy[lang].title}</Link></li>}
           </ul>
         </nav>
 

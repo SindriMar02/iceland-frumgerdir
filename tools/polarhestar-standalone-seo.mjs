@@ -76,7 +76,7 @@ for (const p of PAGES) {
     p.route.kind === 'home' && HERO?.src
       ? `\n    <link rel="preload" as="image" href="${attr(HERO.src)}" imagesrcset="${attr(HERO.srcSet)}" imagesizes="100vw" fetchpriority="high" />`
       : ''
-  html = html.replace('</head>', `${p.headHtml}${hero}\n  </head>`)
+  html = html.replace('</head>', () => `${p.headHtml}${hero}\n  </head>`)
 
   const robots = NOINDEX ? /<meta name="robots" content="noindex/ : /<meta name="robots" content="index, follow/
   if (!robots.test(html)) {

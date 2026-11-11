@@ -21,6 +21,7 @@
  * Pure: no React, no DOM, no network. Dates use the build date, never the
  * clock of whoever calls it.
  */
+import privacy from './privacy.json'
 import type { GoodToKnowData, L3, Lang } from './data'
 import type { LongTourX, SiteContent, TourX } from './sanity'
 import { homeHead, rideHead, scheduleHead, tourHead } from './head'
@@ -76,6 +77,7 @@ export function allPages(c: SiteContent): Array<{ lang: Lang; route: PhRoute }> 
   const routes: PhRoute[] = [
     { kind: 'home' },
     { kind: 'schedule' },
+    { kind: 'privacy' },
     ...c.SHORT_TOURS.map((t): PhRoute => ({ kind: 'ride', id: t.id })),
     ...c.LONG_TOURS.map((t): PhRoute => ({ kind: 'tour', id: t.id })),
   ]
@@ -131,7 +133,6 @@ const homeUrl = (lang: Lang) => abs(routePath({ kind: 'home' }, lang))
 
 /** The full business entity: on the home page only; every other page points at it. */
 function business(c: SiteContent, lang: Lang): object {
-  const day = rideDay(c)
   return {
     '@context': 'https://schema.org',
     '@type': ['TravelAgency', 'SportsActivityLocation'],
@@ -161,16 +162,6 @@ function business(c: SiteContent, lang: Lang): object {
     priceRange: priceRangeIsk(c),
     currenciesAccepted: 'ISK, EUR',
     areaServed: AREA_SERVED.map((name) => ({ '@type': 'Place', name })),
-    ...(day
-      ? {
-          openingHoursSpecification: {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-            opens: day.opens,
-            closes: day.closes,
-          },
-        }
-      : {}),
     sameAs: [c.FACEBOOK, 'https://www.instagram.com/polarhestartours', 'https://www.tripadvisor.com/Attraction_Review-g189954-d1907268-Reviews-Polar_Hestar-Akureyri_Northeast_Region.html'],
   }
 }
@@ -376,6 +367,10 @@ export function buildHead(c: SiteContent, route: PhRoute, lang: Lang, today: str
       const f = faqPage(c.GTK, set, lang)
       if (f) ld.push(f)
     }
+  } else if (route.kind === 'privacy') {
+    title = `${privacy[lang].title} | Pólar Hestar`
+    description = privacy[lang].description
+    ld.push(breadcrumb(route, lang, privacy[lang].title))
   } else if (route.kind === 'schedule') {
     const h = scheduleHead(lang)
     title = h.title
@@ -493,7 +488,7 @@ export function llmsTxt(c: SiteContent, today: string): string {
 - Languages of the site: Icelandic (${homeUrl('is')}), English (${homeUrl('en')}), German (${homeUrl('de')}).
 - Licensed travel agency, Icelandic Tourist Board licence no. ${BIZ.licence}.
 - About ${c.STATS.horses} horses; Tripadvisor rating ${String(c.STATS.rating).replace(',', '.')} from ${c.STATS.reviews} reviews.
-- Short rides run all year, every day${day ? ` (departure times published from ${day.first} to ${day.last})` : ''}; each ride has its own season. The long tours run ${season} on published dates.
+- Short rides run all year, every day${day ? ` (annual departure range ${day.first} to ${day.last}; 09:00 departures only March to October)` : ''}; each ride has its own season. The long tours run ${season} on published dates.
 - Maximum rider weight 95 kg.
 - Booking: a request form on the website, by email or by phone. No payment is taken online.
 

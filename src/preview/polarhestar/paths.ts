@@ -36,6 +36,7 @@ export const DEFAULT_LANG: Lang = 'en'
 export type PhRoute =
   | { kind: 'home' }
   | { kind: 'schedule' }
+  | { kind: 'privacy' }
   | { kind: 'ride'; id: string }
   | { kind: 'tour'; id: string }
 
@@ -50,6 +51,7 @@ export function routePath(route: PhRoute, lang: Lang): string {
     switch (route.kind) {
       case 'home': return PREVIEW_HOME
       case 'schedule': return `${PREVIEW_HOME}/dagskra`
+      case 'privacy': return `${PREVIEW_HOME}/personuvernd`
       case 'ride': return `${PREVIEW_HOME}/reidtur/${route.id}`
       case 'tour': return `${PREVIEW_HOME}/ferd/${route.id}`
     }
@@ -58,6 +60,7 @@ export function routePath(route: PhRoute, lang: Lang): string {
   switch (route.kind) {
     case 'home': return `${p}/`
     case 'schedule': return `${p}/dagskra/`
+    case 'privacy': return `${p}/personuvernd/`
     case 'ride': return `${p}/reidtur/${route.id}/`
     case 'tour': return `${p}/ferd/${route.id}/`
   }
@@ -83,6 +86,7 @@ export function parsePath(pathname: string): { lang: Lang; route: PhRoute } | nu
   const lang: Lang = m ? (m[1] as Lang) : 'is'
   const rest = m ? m[2] ?? '' : clean
   if (rest === '') return { lang, route: { kind: 'home' } }
+  if (rest === '/personuvernd') return { lang, route: { kind: 'privacy' } }
   if (rest === '/dagskra') return { lang, route: { kind: 'schedule' } }
   const r = rest.match(/^\/(reidtur|ferd)\/([a-z0-9-]+)$/)
   if (r) return { lang, route: { kind: r[1] === 'reidtur' ? 'ride' : 'tour', id: r[2] } }

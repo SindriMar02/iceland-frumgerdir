@@ -25,6 +25,7 @@
  * Usage:  node tools/polarhestar-standalone-post.mjs
  *         POLARHESTAR_NOINDEX=1 node tools/polarhestar-standalone-post.mjs   (staging copy)
  */
+import { analyticsShell, firstControl } from './polarhestar-build-safety.mjs'
 import { existsSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -61,17 +62,14 @@ for (const entry of readdirSync(join(dist, 'favicons'))) {
 console.log(`polarhestar-post: pruned ${pruned} catalogue entries from public/`)
 
 /* 3 ── analytics */
-const cfToken = process.env.VITE_POLARHESTAR_CF_ANALYTICS_TOKEN
+const staging = process.env.POLARHESTAR_NOINDEX === '1'
+const cfToken = staging ? undefined : process.env.VITE_POLARHESTAR_CF_ANALYTICS_TOKEN
 {
   const shell = join(dist, 'index.html')
   let html = readFileSync(shell, 'utf8')
-  if (cfToken) {
-    html = html.replace('__CF_ANALYTICS_TOKEN__', cfToken)
-    console.log('polarhestar-post: Cloudflare Web Analytics beacon armed')
-  } else {
-    html = html.replace(/\n?\s*<!-- Cloudflare Web Analytics[\s\S]*?<\/script>\n?/, '\n')
-    console.log('polarhestar-post: no analytics token; beacon removed (set VITE_POLARHESTAR_CF_ANALYTICS_TOKEN to enable)')
-  }
+  html = analyticsShell(html, { token: cfToken, noindex: staging })
+  console.log(`polarhestar-post: Cloudflare Web Analytics ${cfToken ? 'beacon armed' : staging ? 'removed for staging' : 'removed; set VITE_POLARHESTAR_CF_ANALYTICS_TOKEN to enable'}`)
+  console.log(`polarhestar-post: SNDR Pulse ${staging ? 'removed for staging' : 'armed'}`)
   writeFileSync(shell, html)
 }
 
@@ -125,6 +123,24 @@ for (const [lang, o] of Object.entries(OLD)) {
   }
   for (const [slug, hash] of Object.entries(o.sections)) add(`${o.prefix}/${slug}`, `${o.prefix}/${hash}`)
   add(`${o.prefix}/moya/*`, `${o.prefix}/`)
+}
+// Deep practical pages absent from the old sitemap. Privacy aliases are defensive:
+// no privacy link was exposed by the old navigation/footers on 11 November.
+for (const [from, to] of [
+  ['/en/general-information/good-to-know', '/en/#gott'],
+  ['/de/informationen/gut-zu-wissen', '/de/#gott'],
+  ['/de/kontaktiere-uns', '/de/#heimsokn'],
+  ['/is/almennar-upplysingar', '/#gott'],
+  ['/is/almennar-upplysingar/gott-ad-vita', '/#gott'],
+  ['/is/personuvernd', '/personuvernd/'],
+  ['/is/almennar-upplysingar/personuvernd', '/personuvernd/'],
+  ['/en/privacy-policy', '/en/personuvernd/'],
+  ['/en/general-information/privacy-policy', '/en/personuvernd/'],
+  ['/de/datenschutz', '/de/personuvernd/'],
+  ['/de/informationen/datenschutz', '/de/personuvernd/'],
+]) {
+  add(from, to)
+  add(`${from}/`, to)
 }
 add('/en/contact-us', '/en/#heimsokn')
 add('/is', '/')
@@ -275,15 +291,32 @@ if (leaks.length) {
 }
 console.log('polarhestar-post: separation gate clean; no catalogue content in the client build')
 
+/* Fail on corrupt text, wherever it entered the pipeline. */
+const controlFailures = []
+function checkControls(dir) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const file = join(dir, entry.name)
+    if (entry.isDirectory()) checkControls(file)
+    else if (/\.(html|xml|txt|js|css)$/.test(entry.name)) {
+      const body = readFileSync(file)
+      const offset = firstControl(body)
+      if (offset !== -1) controlFailures.push(`${file}:${offset}: 0x${body[offset].toString(16).padStart(2, '0')}`)
+    }
+  }
+}
+checkControls(dist)
+if (controlFailures.length) fail(`CONTROL CHARACTER GATE FAILED:\n${controlFailures.join('\n')}`)
+console.log('polarhestar-post: control character gate clean; no NUL or forbidden C0 bytes in emitted text')
+
 /* 9 ── go-live reminders: right for a staging copy, wrong for the live domain. Warnings, not failures:
       each is a step of _docs/POLARHESTAR-GOLIVE-2026-10-15.md that belongs to the cut-over, not to the build. */
 {
   const bundle = walkJs(dist).map((f) => readFileSync(f, 'utf8')).join('\n')
   const warn = []
   if (/sindri@klubbr\.is|sindrimar02@gmail\.com/.test(bundle)) warn.push('the sandbox booking inbox (Sanity siteSettings.bookingEmail, data.ts BOOKING_EMAIL) is still in the bundle: runbook item 4, both → polarhestar@polarhestar.is')
-  if (/sndr-platform\.sindri-381\.workers\.dev/.test(bundle)) warn.push('the booking form posts to the workers.dev Worker: runbook item 5, add polarhestar.is + www to the tenant origins before launch')
+  if (/sndr-platform\.sindri-381\.workers\.dev/.test(bundle)) warn.push('the booking form posts to the workers.dev Worker: set VITE_POLARHESTAR_API when a production API hostname is ready; verify deployed tenant CORS for apex + www before launch')
   warn.push('Sanity CORS must list https://polarhestar.is and https://www.polarhestar.is, or the live CMS refresh is blocked and the page keeps the build-time content (runbook item 7)')
-  if (!cfToken) warn.push('no Cloudflare Web Analytics token (VITE_POLARHESTAR_CF_ANALYTICS_TOKEN), and no SNDR Pulse tag: add both at go-live')
+  if (!staging && !cfToken) warn.push('no Cloudflare Web Analytics token (VITE_POLARHESTAR_CF_ANALYTICS_TOKEN); SNDR Pulse is already installed')
   console.log('\npolarhestar-post: GO-LIVE REMINDERS (not build failures):')
   for (const w of warn) console.log('  - ' + w)
 }

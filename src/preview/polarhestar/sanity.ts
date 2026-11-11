@@ -199,7 +199,7 @@ export const QUERY = `{
   "sections": *[_type=="sectionsCopy"][0]{
     ..., bookingImage ${IMG_PRJ}, trustFamilyImage ${IMG_PRJ}, visitImage ${IMG_PRJ}, ctaImage ${IMG_PRJ}
   },
-  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, bookingEmail, facebook, address, mapsUrl, childDiscount, stats},
+  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, facebook, address, mapsUrl, childDiscount, stats},
   "tours": *[_type=="tour"]|order(order asc){_id, active, name, duration, minAge, minRiders, maxRiders, price, price2027, months, times, blurb, image ${IMG_PRJ}},
   "seasons": *[_type=="season"]|order(order asc){_id, key, name, kicker, line, tourLabel, glow, image ${IMG_PRJ}},
   "longTours": *[_type=="longTour"]|order(order asc){_id, active, name, blurb, priceEur, days, ridingDays, level, minAge, maxRiders, kmMin, kmMax, herdDays, beds, departures[]{start, status, note}, datesNote, itinerary[]{kind, body, places}, image ${IMG_PRJ}},
@@ -471,7 +471,7 @@ export function merge(raw: any): SiteContent {
     },
     ADDRESS: raw?.settings?.address || ADDRESS,
     EMAIL: raw?.settings?.email || EMAIL,
-    BOOKING_EMAIL: raw?.settings?.bookingEmail || BOOKING_EMAIL,
+    BOOKING_EMAIL,
     FACEBOOK: raw?.settings?.facebook || FACEBOOK,
     MAPS_HREF: raw?.settings?.mapsUrl || MAPS_HREF,
     CHILD_DISCOUNT: typeof raw?.settings?.childDiscount === 'number' ? raw.settings.childDiscount : 2000,

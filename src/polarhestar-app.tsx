@@ -24,6 +24,7 @@ import { SiteContentProvider } from './preview/polarhestar/sanity'
 import { LANGS, langPrefix, parsePath, routePath } from './preview/polarhestar/paths'
 import type { Lang } from './preview/polarhestar/data'
 
+const PrivacyPage = lazy(() => import('./preview/polarhestar/PrivacyPage'))
 const Page = lazy(() => import('./preview/polarhestar/Page'))
 const SchedulePage = lazy(() => import('./preview/polarhestar/SchedulePage'))
 const TourPage = lazy(() => import('./preview/polarhestar/LongTourPage'))
@@ -96,6 +97,7 @@ export function PolarhestarApp() {
             const p = langPrefix(lang)
             return [
               <Route key={`${lang}-home`} path={p || '/'} element={inLang(lang, <Page />)} />,
+              <Route key={`${lang}-privacy`} path={`${p}/personuvernd`} element={inLang(lang, <PrivacyPage />)} />,
               <Route key={`${lang}-schedule`} path={`${p}/dagskra`} element={inLang(lang, <SchedulePage />)} />,
               <Route key={`${lang}-ride`} path={`${p}/reidtur/:id`} element={inLang(lang, <RidePage />)} />,
               <Route key={`${lang}-tour`} path={`${p}/ferd/:id`} element={inLang(lang, <TourPage />)} />,

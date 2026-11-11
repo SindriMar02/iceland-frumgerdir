@@ -33,7 +33,7 @@ if (!existsSync(serverEntry)) {
   process.exit(1)
 }
 
-const { render, PRERENDER_ROUTES } = await import(pathToFileURL(serverEntry).href)
+const { render, PRERENDER_ROUTES, CMS_PAYLOAD } = await import(pathToFileURL(serverEntry).href)
 
 const shell = readFileSync(join(dist, 'index.html'), 'utf8')
 if (!shell.includes('<div id="root"></div>')) {
@@ -92,7 +92,8 @@ for (const route of PRERENDER_ROUTES) {
     process.exit(1)
   }
 
-  const html = shell.replace('<div id="root"></div>', `<div id="root">${body}</div>`)
+  const payload = JSON.stringify(CMS_PAYLOAD).replace(/</g, '\\u003c')
+  const html = shell.replace('<div id="root"></div>', () => `<div id="root">${body}</div><script type="application/json" id="__polarhestar_cms">${payload}</script>`)
 
   const dir = route === '/' ? dist : join(dist, route.replace(/^\/|\/$/g, ''))
   mkdirSync(dir, { recursive: true })
