@@ -1,20 +1,19 @@
+import { Shell } from './Shell'
+import { NutritionOverview } from './nutrition-ui'
+import { ROOT, PAGE, pageHref, homeAnchor } from './paths'
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react'
-import { setThemeColor } from '../../lib/preview'
 import {
-  Bendill, C, CSS, Cas, Haus, Merki, Ord, Reveal, faraA, isPhone, lenisOf, reduced, step, useMjukSkrun, useWatchdog,
+  Cas, Merki, Ord, Reveal, faraA, isPhone, lenisOf, reduced, step,
 } from './ui'
-import { Poki, POKA_CSS, SettIPoka, poki } from './poki'
-import { Hledsla, HLEDSLA_CSS } from './hledsla'
-import { VoruRegn, REGN_CSS } from './regn'
-import { Popup, POP_CSS, pop, type PopState } from './popup'
-import { SndrBadge } from '../SndrBadge'
-import { Eydublad, EYD_CSS } from './eydublad'
-import { Soluadilar, MERKI_CSS } from './merki'
+import { SettIPoka, poki } from './poki'
+import { VoruRegn } from './regn'
+import { pop, type PopState } from './popup'
+import { SndrBadge } from './SndrBadge'
+import { Eydublad } from './eydublad'
+import { Soluadilar } from './merki'
 import { SPYRJA } from './forms'
 import { AllergenSection } from './allergen-ui'
-import { ProductBrowser, ProductLines } from './product-browser'
-import { BROWSER_CSS } from './product-browser-style'
-import { EXPERIENCE_CSS } from './experience-style'
+import { ProductBrowser, ProductLines, ProductTeaser } from './product-browser'
 import { ALLERGEN_CSS } from './allergen-style'
 import { PK, PRODUCTS, productBySlug, V } from './vorur'
 import {
@@ -24,7 +23,7 @@ import {
 
 
 
-const B = import.meta.env.BASE_URL
+const B = ROOT
 const M = (slug: string) => PK(slug, 'pack', 'm')
 // 'laus:pNN' = a single loose nut or fruit (hberg/laus), everything else a pack shot.
 const Ms = (slug: string) => slug.startsWith('laus:') ? `${B}hberg/laus/${slug.slice(5)}.webp${V}`
@@ -498,7 +497,7 @@ function Hero() {
               {PRODUCTS.length} vörur undir eigin merki, pakkaðar í Hafnarfirði. Fást í Bónus, Krónunni, Hagkaup og hjá {VERSLANIR.length - 3} öðrum söluaðilum.
             </span></p>
             <div className="hb-heroCta hb-mask"><div className="hb-up" style={step(4)}>
-              <button className="hb-btn hb-casH" onClick={() => faraA('#allar-vorur')}><Cas t="Skoða vörurnar" /></button>
+              <a className="hb-btn hb-casH" href={pageHref('vorur/')}><Cas t="Skoða vörurnar" /></a>
               <button className="hb-btn sc hb-casH" onClick={(e) => poki.open(true, e)}><Cas t="Pöntun fyrir verslanir" /></button>
             </div></div>
           </div>
@@ -913,11 +912,11 @@ function Fotur() {
               <a href={`mailto:${FYRIRTAEKI.fjarofloun}`}>{FYRIRTAEKI.fjarofloun}</a>
             </div>
             <div><small>H-Berg</small>
-              <a href="#vorur" onClick={(e) => { e.preventDefault(); faraA('#vorur') }}>Vörur</a><br />
-              <a href="#linur" onClick={(e) => { e.preventDefault(); faraA('#linur') }}>Vörulínur</a><br />
-              <a href="#ofnaemi" onClick={(e) => { e.preventDefault(); faraA('#ofnaemi') }}>Ofnæmisvaldar</a><br />
-              <a href="?naering=1" onClick={(e) => { e.preventDefault(); pop.open({ k: 'naering' }) }}>Næringargildi</a><br />
-              <a href="#spurt" onClick={(e) => { e.preventDefault(); faraA('#spurt') }}>Spurt og svarað</a>
+              <a href={pageHref('vorur/')}>Vörur</a><br />
+              <a href={pageHref('vorur/')}>Allar vörulínur</a><br />
+              <a href={homeAnchor('#ofnaemi')} onClick={(e) => { e.preventDefault(); faraA('#ofnaemi') }}>Ofnæmisvaldar</a><br />
+              <a href={pageHref('naeringargildi/')}>Næringargildi</a><br />
+              <a href={homeAnchor('#spurt')} onClick={(e) => { e.preventDefault(); faraA('#spurt') }}>Spurt og svarað</a>
             </div>
             <div><small>Fyrirtæki</small>
               <a href="#poki" onClick={(e) => { e.preventDefault(); poki.open(true, e) }}>Pöntunarlisti</a><br />
@@ -931,7 +930,7 @@ function Fotur() {
           <button className="hb-fotUpp hb-casH" onClick={upp}><Cas t="Aftur upp" /> ↑</button>
         </div>
         <div className="hb-fotMerki">
-          <a href="#top" aria-label="H-Berg, forsíða"><img src={`${B}hberg/brand/logo.svg${V}`} alt="H-Berg" width={280} height={129} loading="lazy" /></a>
+          <a href={pageHref()} aria-label="H-Berg, forsíða"><img src={`${B}hberg/brand/logo.svg${V}`} alt="H-Berg" width={280} height={129} loading="lazy" /></a>
         </div>
         <p className="hb-slogan" ref={slag} aria-label={SLAGORD}>
           {[...SLAGORD].map((c, i) => <span key={i} aria-hidden="true"><span>{c === ' ' ? '\u00A0' : c}</span></span>)}
@@ -947,51 +946,22 @@ function Fotur() {
 }
 
 function HbergExperience() {
-  useWatchdog()
-  useMjukSkrun()
-  useEffect(() => {
-    const prevTitle = document.title
-    const prevLang = document.documentElement.lang
-    document.title = 'H-Berg | Hnetur og ávextir frá 2007'
-    document.documentElement.lang = 'is'
-    setThemeColor(C.pappirHreint)
-    const hash = window.location.hash
-    const t = hash.length > 1 ? window.setTimeout(() => faraA(hash), 2800) : 0
-    return () => {
-      window.clearTimeout(t)
-      poki.open(false); pop.close()
-      document.title = prevTitle; document.documentElement.lang = prevLang
-    }
-  }, [])
-
-  return (
-    <div className="hb-root">
-      <style>{CSS}{PAGE_CSS}{POKA_CSS}{HLEDSLA_CSS}{REGN_CSS}{POP_CSS}{EYD_CSS}{MERKI_CSS}{EXPERIENCE_CSS}{BROWSER_CSS}</style>
+  const title = PAGE === 'products' ? 'Vörur' : 'Næringargildi'
+  return <Shell css={PAGE_CSS} footer={<Fotur />}>
+    {PAGE === 'home' ? <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
-      <Bendill />
-      <Haus />
-      <Poki />
-      <Popup />
-      <Hledsla />
-      <main>
-        <Hero />
-        <Soluadilar />
-        <Tilvitnun />
-        <Vorur />
-        <Kostir />
-        <ProductLines />
-        <ProductBrowser />
-        <Ofnaemi />
-        <VoruRegn />
-        <Form />
-        <Um />
-        <Saga />
-        <Yfirlysing />
-        <Faq />
-        <Fotur />
-      </main>
-    </div>
-  )
+      <Hero /><Soluadilar /><Tilvitnun /><Vorur /><Kostir />
+      <ProductLines /><ProductTeaser /><Ofnaemi /><VoruRegn />
+      <Form /><Um /><Saga /><Yfirlysing /><Faq />
+    </> : <>
+      <header className="hb-pageHeader">
+        <nav aria-label="Brauðmolar"><a href={pageHref()}>H-Berg</a><span aria-hidden="true">/</span><span aria-current="page">{title}</span></nav>
+        <h1 className="hb-disp">{title}</h1>
+        <p>{PAGE === 'products' ? 'Veldu vöru til að sjá innihald, næringargildi og setja hana á pöntunarlistann.' : 'Allar vörur H-Berg, gildi í 100 g.'}</p>
+      </header>
+      {PAGE === 'products' ? <><ProductLines compact /><ProductBrowser /></> : <NutritionOverview />}
+    </>}
+  </Shell>
 }
 
 export default function HbergPage(){

@@ -1,4 +1,5 @@
-export const BASE=import.meta.env.BASE_URL
+import { ROOT } from './paths'
+export const BASE=ROOT
 // cache-buster: changes every build so replaced images show at once (Pages caches 10 min)
 declare const __HB_V__:string
 export const V=`?v=${__HB_V__}`

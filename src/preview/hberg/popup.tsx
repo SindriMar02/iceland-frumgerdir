@@ -1,7 +1,7 @@
+import { PAGE, pageHref } from './paths'
 import { Fragment, useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
-import { NutritionOverview } from './nutrition-ui'
 import { NUTRITION_CSS } from './nutrition-style'
-import { NUTRITION_COLUMNS, nutritionSort, nutritionValue, type NutritionSort } from './naering'
+import { NUTRITION_COLUMNS, nutritionValue, type NutritionSort } from './naering'
 import { ASSETS } from './assets.gen'
 import { Eydublad } from './eydublad'
 import { STAERRA } from './forms'
@@ -23,26 +23,16 @@ export type PopState =
   | null
 
 let st: PopState = null
-let nutritionVersion = 0
-let browserLineBeforeNutrition: string | null | undefined
 const subs = new Set<() => void>()
 const sub = (f: () => void) => { subs.add(f); return () => { subs.delete(f) } }
 export const pop = {
   open(p: PopState) {
     if (p?.k === 'naering') {
-      nutritionVersion += 1
-      if (new URLSearchParams(window.location.search).get('naering') !== '1') browserLineBeforeNutrition = new URLSearchParams(window.location.search).get('lina')
-    }
-    if (p?.k !== 'naering') {
-      const url = new URL(window.location.href)
-      const wasNutrition = url.searchParams.get('naering') === '1'
-      for (const key of ['naering', 'rada', 'att', 'leit']) url.searchParams.delete(key)
-      if (wasNutrition) {
-        if (browserLineBeforeNutrition) url.searchParams.set('lina', browserLineBeforeNutrition)
-        else url.searchParams.delete('lina')
-        browserLineBeforeNutrition = undefined
-      }
-      window.history.replaceState(null, '', url)
+      const q = new URLSearchParams()
+      if (p.sort) q.set('rada', p.sort === 'energyKj' ? 'orka' : p.sort)
+      if (p.line) q.set('lina', p.line)
+      window.location.assign(pageHref(`naeringargildi/${q.size ? `?${q}` : ''}`))
+      return
     }
     st = p; subs.forEach((f) => f())
   },
@@ -132,7 +122,11 @@ export function Popup() {
   useEffect(() => {
     const restore = () => {
       const query = new URLSearchParams(window.location.search)
-      if (query.get('naering') === '1') pop.open({ k: 'naering', sort: nutritionSort(query.get('rada')), line: KATALOGUR.find(g => g.s === query.get('lina'))?.s })
+      if (query.get('naering') === '1' && PAGE !== 'nutrition') {
+        const url = new URL(pageHref('naeringargildi/'), location.href)
+        for (const key of ['rada', 'att', 'lina', 'leit']) if (query.has(key)) url.searchParams.set(key, query.get(key)!)
+        location.replace(url)
+      }
       else if (st?.k === 'naering') pop.close()
     }
     restore()
@@ -295,9 +289,6 @@ export function Popup() {
   } else if (c?.k === 'staerra') {
     titill='Stærri pakkningar'
     body=<><h2 className="hb-disp">Stærri pakkningar</h2><p className="hb-brod" style={{margin:'1.5rem 0'}}>H-Berg pakkar í stærri einingar fyrir matvælafyrirtæki, matsölustaði og stóreldhús. Spurðu okkur um pakkningar og magn.</p><Eydublad cfg={STAERRA}/></>
-  } else if (c?.k === 'naering') {
-    titill = 'Næringargildi'
-    body = <NutritionOverview key={nutritionVersion} sort={c.sort} line={c.line} />
   } else if (c?.k === 'ofnaemi') {
     titill = 'Ofnæmisyfirlit'
     body = (

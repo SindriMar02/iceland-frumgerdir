@@ -1,3 +1,4 @@
+import { ROOT, PAGE, pageHref, homeAnchor } from './paths'
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 import { PokaHnappur, poki } from './poki'
 import { pop } from './popup'
@@ -26,7 +27,7 @@ const finePointer = () =>
 export const isCompact = () => typeof window !== 'undefined' && window.innerWidth <= 991
 export const isPhone = () => typeof window !== 'undefined' && window.innerWidth <= 479
 
-const D = (n: string) => `${import.meta.env.BASE_URL}hberg/fonts/${n}`
+const D = (n: string) => `${ROOT}hberg/fonts/${n}`
 
 
 const TOK: [string, string][] = [
@@ -55,10 +56,10 @@ export const CSS = `
 @font-face{font-family:'HB Instrument';src:url('${D('ys/InstrumentSans-latin.woff2')}') format('woff2');font-weight:400 700;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'HB Instrument';src:url('${D('ys/InstrumentSans-latin-ext.woff2')}') format('woff2');font-weight:400 700;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113}
 
-@font-face{font-family:'HB Bricolage';src:url('${import.meta.env.BASE_URL}hberg/fonts/bricolage-latin.woff2') format('woff2');
+@font-face{font-family:'HB Bricolage';src:url('${ROOT}hberg/fonts/bricolage-latin.woff2') format('woff2');
   font-weight:200 800;font-stretch:75% 100%;font-style:normal;font-display:swap;
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:'HB Bricolage';src:url('${import.meta.env.BASE_URL}hberg/fonts/bricolage-latinext.woff2') format('woff2');
+@font-face{font-family:'HB Bricolage';src:url('${ROOT}hberg/fonts/bricolage-latinext.woff2') format('woff2');
   font-weight:200 800;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113}
 @font-face{font-family:'HB General';src:url('${D('GeneralSans-Regular.woff2')}') format('woff2');
   font-weight:400;font-style:normal;font-display:swap}
@@ -466,10 +467,10 @@ const Ör = () => (
 type NavLina = { h: string; t: string; d?: string; poki?: boolean; fn?: () => void }
 const HOPAR: { t: string; id: string; rows: NavLina[] }[] = [
   { t: 'Vörur', id: 'vorur', rows: [
-    { h: '#linur', t: 'Allar vörulínur', d: 'Hnetur, ávextir, fræ og hnetusmjör' },
-    { h: '#allar-vorur', t: 'Hnetur og ávextir', d: 'Tegundir og innihald' },
+    { h: pageHref('vorur/'), t: 'Allar vörulínur', d: 'Hnetur, ávextir, fræ og hnetusmjör' },
+    { h: pageHref('vorur/'), t: 'Hnetur og ávextir', d: 'Tegundir og innihald' },
     { h: '#ofnaemi', t: 'Ofnæmisvaldar', d: 'Skoðaðu innihaldið' },
-    { h: '?naering=1', t: 'Næringargildi', d: 'Allar vörur í einni töflu', fn: () => pop.open({ k: 'naering' }) },
+    { h: pageHref('naeringargildi/'), t: 'Næringargildi', d: 'Allar vörur í einni töflu' },
     { h: '#hvar', t: 'Hvar fæst H-Berg', d: 'Söluaðilar H-Berg', fn: () => pop.open({ k: 'hvar' }) },
   ] },
   { t: 'H-Berg', id: 'hberg', rows: [
@@ -483,10 +484,12 @@ const HOPAR: { t: string; id: string; rows: NavLina[] }[] = [
 const SAMBAND: NavLina = { h: '#erindi', t: 'Hafa samband' }
 
 export function faraA(href: string) {
+  if (!href.startsWith('#')) { location.assign(href); return }
+  if (PAGE !== 'home' && !document.querySelector(href)) { location.assign(homeAnchor(href)); return }
   const mark = document.querySelector(href)
   if (!mark) return
   const haus = document.querySelector('.hb-haus')
-  const offset = isCompact() ? -((haus?.getBoundingClientRect().height ?? 60) + 12) : -24
+  const offset = -((haus?.getBoundingClientRect().height ?? 80) + 16)
   const l = lenisOf()
   if (l) l.scrollTo(mark, { offset })
   else window.scrollTo({ top: mark.getBoundingClientRect().top + window.scrollY + offset, behavior: reduced() ? 'auto' : 'smooth' })
@@ -527,6 +530,7 @@ export function Haus() {
   }, [])
 
   const fara = (e: MouseEvent<HTMLElement>, l: NavLina) => {
+    if (!l.poki && !l.fn && (!l.h.startsWith('#') || PAGE !== 'home')) { setOpid(null); return }
     e.preventDefault()
     const compact = isCompact()
     setOpid(null)
@@ -540,9 +544,9 @@ export function Haus() {
 
   return (
     <header ref={haus} className={`hb-haus${valmynd ? ' opin' : ''}`}>
-      <a className="hb-merkid" href="#top" aria-label="H-Berg, á forsíðu"
-        onClick={(e) => { e.preventDefault(); setOpid(null); const l = lenisOf(); if (l) l.scrollTo(0); else window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) }}>
-        <img src={`${import.meta.env.BASE_URL}hberg/brand/logo.svg${V}`} alt="H-Berg" width={460} height={212} decoding="async" />
+      <a className="hb-merkid" href={pageHref()} aria-label="H-Berg, á forsíðu"
+        onClick={(e) => { if (PAGE !== 'home') return; e.preventDefault(); setOpid(null); const l = lenisOf(); if (l) l.scrollTo(0); else window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) }}>
+        <img src={`${ROOT}hberg/brand/logo.svg${V}`} alt="H-Berg" width={460} height={212} decoding="async" />
       </a>
       <div className="hb-hausH">
         <nav className="hb-nav" aria-label="Aðalvalmynd">
@@ -554,14 +558,14 @@ export function Haus() {
               </button>
               <div id={`hb-fell-${g.id}`} tabIndex={-1} className={`hb-fell${opid === g.id ? ' opid' : ''}`}><div className="hb-fellInner">
                 {g.rows.map((r) => (
-                  <a key={r.h} href={r.h} tabIndex={opid === g.id ? 0 : -1} onClick={(e) => fara(e, r)}>
+                  <a key={r.t} href={r.h.startsWith('#') ? homeAnchor(r.h) : r.h} tabIndex={opid === g.id ? 0 : -1} onClick={(e) => fara(e, r)}>
                     {r.t}{r.d ? <small>{r.d}</small> : null}
                   </a>
                 ))}
               </div></div>
             </div>
           ))}
-          <a className="hb-navL hb-casH" href={SAMBAND.h} onClick={(e) => fara(e, SAMBAND)}><Cas t={SAMBAND.t} /></a>
+          <a className="hb-navL hb-casH" href={homeAnchor(SAMBAND.h)} onClick={(e) => fara(e, SAMBAND)}><Cas t={SAMBAND.t} /></a>
         </nav>
         <PokaHnappur />
         <button className="hb-braud" aria-expanded={valmynd} aria-controls="hb-valPan"
@@ -571,10 +575,10 @@ export function Haus() {
         <div className="hb-panK">
           <div id="hb-valPan" tabIndex={-1} className={`hb-pan hb-valPan${valmynd ? ' opid' : ''}`}>
             <div className="hb-valKort">
-              <a href="#vorur" onClick={(e) => fara(e, { h: '#vorur', t: '' })}>
+              <a href={pageHref('vorur/')}>
                 <img src={`${BASE}hberg/laus/p00.webp${V}`} alt="" width={128} height={128} style={{ height: 64, width: 'auto' }} />Hnetur
               </a>
-              <a href="#vorur" onClick={(e) => fara(e, { h: '#vorur', t: '' })}>
+              <a href={pageHref('vorur/')}>
                 <img src={`${BASE}hberg/laus/p06.webp${V}`} alt="" width={128} height={128} style={{ height: 64, width: 'auto' }} />Ávextir
               </a>
             </div>
@@ -583,13 +587,13 @@ export function Haus() {
                 <p className="hb-valHop">{g.t}</p>
                 <div className="hb-valRod">
                   {g.rows.map((r, i) => (
-                    <a key={r.h} href={r.h} tabIndex={valmynd ? 0 : -1} style={{ ['--i' as string]: gi * 4 + i }} onClick={(e) => fara(e, r)}><span>{r.t}</span></a>
+                    <a key={r.t} href={r.h.startsWith('#') ? homeAnchor(r.h) : r.h} tabIndex={valmynd ? 0 : -1} style={{ ['--i' as string]: gi * 4 + i }} onClick={(e) => fara(e, r)}><span>{r.t}</span></a>
                   ))}
                 </div>
               </div>
             ))}
             <div className="hb-valRod" style={{ marginTop: '.9rem' }}>
-              <a href={SAMBAND.h} tabIndex={valmynd ? 0 : -1} style={{ ['--i' as string]: 11 }} onClick={(e) => fara(e, SAMBAND)}><span>{SAMBAND.t}</span></a>
+              <a href={homeAnchor(SAMBAND.h)} tabIndex={valmynd ? 0 : -1} style={{ ['--i' as string]: 11 }} onClick={(e) => fara(e, SAMBAND)}><span>{SAMBAND.t}</span></a>
             </div>
             <button className="hb-btn stor" tabIndex={valmynd ? 0 : -1} onClick={() => { setOpid(null); window.setTimeout(() => poki.open(true), 400) }}>Opna pöntunarlistann</button>
           </div>

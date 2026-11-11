@@ -9,5 +9,5 @@ export default defineConfig({
   define: { __HB_V__: JSON.stringify(Date.now().toString(36)) },
   base: './',
   server: { host: '0.0.0.0', port: 5299, strictPort: true },
-  build: { outDir: '../dist-hberg', emptyOutDir: true },
+  build: { outDir: '../dist-hberg', emptyOutDir: true, rollupOptions: { input: { home: fileURLToPath(new URL('./hberg/index.html', import.meta.url)), products: fileURLToPath(new URL('./hberg/vorur/index.html', import.meta.url)), nutrition: fileURLToPath(new URL('./hberg/naeringargildi/index.html', import.meta.url)) } } },
 })

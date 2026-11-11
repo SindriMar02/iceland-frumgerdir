@@ -1,3 +1,4 @@
+import { ROOT } from './paths'
 import { MOTION } from './experience-style'
 import { V } from './vorur'
 import { useEffect, useState } from 'react'
@@ -116,7 +117,7 @@ export function Hledsla() {
   return (
     <div className={`hb-plota${inn ? ' inn' : ''}`} aria-hidden="true">
       <div className="hb-plotaM">
-        <img src={`${import.meta.env.BASE_URL}hberg/brand/logo.svg${V}`} alt="" width={820} height={378} />
+        <img src={`${ROOT}hberg/brand/logo.svg${V}`} alt="" width={820} height={378} />
       </div>
     </div>
   )

@@ -9,7 +9,7 @@ import { MOTION } from './experience-style'
 
 export function writeNutritionUrl(sort: NutritionSort, desc: boolean, line: string, search: string) {
   const url = new URL(window.location.href)
-  url.searchParams.set('naering', '1')
+  url.searchParams.delete('naering')
   url.searchParams.set('rada', sort === 'energyKj' ? 'orka' : sort)
   for (const [key, value] of [['att', desc ? 'nidur' : ''], ['lina', line], ['leit', search]]) {
     if (value) url.searchParams.set(key, value)
@@ -21,14 +21,15 @@ const fold = (s: string) => s.toLocaleLowerCase('is').normalize('NFD').replace(/
 
 export function NutritionOverview({ sort: initialSort = 'energyKj', line: initialLine = '' }: { sort?: NutritionSort; line?: string }) {
   const id = useId()
-  const [sort, setSort] = useState(initialSort)
+  const [sort, setSort] = useState(() => nutritionSort(new URLSearchParams(location.search).get('rada') ?? initialSort))
   const [desc, setDesc] = useState(() => new URLSearchParams(window.location.search).get('att') === 'nidur')
-  const [line, setLine] = useState(initialLine)
+  const [line, setLine] = useState(() => KATALOGUR.find(g => g.s === new URLSearchParams(location.search).get('lina'))?.s ?? initialLine)
   const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('leit') ?? '')
   const root = useRef<HTMLDivElement>(null)
   const before = useRef(new Map<string, number>())
   const animations = useRef<Animation[]>([])
   const capture = () => {
+    touched.current = true
     animations.current.forEach(a => a.cancel())
     animations.current = []
     before.current.clear()
@@ -43,7 +44,19 @@ export function NutritionOverview({ sort: initialSort = 'energyKj', line: initia
       if (x === null || y === null) return x === y ? a.v.name.is.localeCompare(b.v.name.is, 'is') : x === null ? 1 : -1
       return (x - y) * (desc ? -1 : 1) || a.v.name.is.localeCompare(b.v.name.is, 'is')
     })
-  useEffect(() => { writeNutritionUrl(sort, desc, line, search) }, [sort, desc, line, search])
+  const touched = useRef(false)
+  const ready = useRef(false)
+  useEffect(() => { if (ready.current && touched.current) writeNutritionUrl(sort, desc, line, search); ready.current = true }, [sort, desc, line, search])
+  useEffect(() => {
+    const restore = () => {
+      const q = new URLSearchParams(location.search)
+      touched.current = false
+      setSort(nutritionSort(q.get('rada'))); setDesc(q.get('att') === 'nidur')
+      setLine(KATALOGUR.find(g => g.s === q.get('lina'))?.s ?? ''); setSearch(q.get('leit') ?? '')
+    }
+    addEventListener('popstate', restore)
+    return () => removeEventListener('popstate', restore)
+  }, [])
   useEffect(() => () => animations.current.forEach(a => a.cancel()), [])
   useLayoutEffect(() => {
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -62,8 +75,6 @@ export function NutritionOverview({ sort: initialSort = 'energyKj', line: initia
   </button>
   const add = (slug: string) => <span className="hb-nutAdd"><SettIPoka slug={slug} /></span>
   return <div className="hb-nutrition" ref={root}>
-    <h2 className="hb-disp">Næringargildi</h2>
-    <p>Allar vörur H-Berg, gildi í 100 g.</p>
     <p className="hb-allergenDisclaimer">Lestu alltaf á umbúðirnar. Hringdu í 565 6500 ef þú ert í vafa.</p>
     <div className="hb-nutTools"><label htmlFor={`${id}-search`}>Leita að vöru<input id={`${id}-search`} type="search" value={search} onChange={e => { capture(); setSearch(e.target.value) }} placeholder="Nafn vöru" /></label>
       <label className="hb-nutSort" htmlFor={`${id}-sort`}>Raða eftir<select id={`${id}-sort`} value={`${sort}:${desc ? 'desc' : 'asc'}`} onChange={e => { capture(); const [key, direction] = e.target.value.split(':'); setSort(nutritionSort(key)); setDesc(direction === 'desc') }}>

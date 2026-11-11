@@ -1,3 +1,4 @@
+import { pageHref } from './paths'
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { LINUR } from './data'
 import { KATALOGUR } from './katalogur'
@@ -29,19 +30,21 @@ const descriptions: Record<string, string> = {
   annad: 'Fleira úr úrvalinu okkar, meðal annars fuglafóður.',
 }
 
-export function ProductLines() {
-  return <section className="hb-lines" id="linur" aria-labelledby="hb-lines-title">
+export function ProductLines({ compact = false }: { compact?: boolean }) {
+  return <section className={`hb-lines${compact ? " hb-linesCompact" : ""}`} id="linur" aria-labelledby="hb-lines-title">
     <h2 id="hb-lines-title" className="hb-disp">Vörulínur</h2>
     <p>Veldu vörulínu og skoðaðu allar vörurnar í henni.</p>
     <div className="hb-linesGrid">{LINUR.map(l => {
       const count = KATALOGUR.find(g => g.s === l.s)!.items.length
-      return <button className="hb-lineTile" key={l.s} style={{ background: productBySlug(l.img)?.tint ?? l.g }} onClick={() => {
+      return <a href={pageHref(`vorur/?lina=${l.s}`)} className="hb-lineTile" key={l.s} style={{ background: productBySlug(l.img)?.tint ?? l.g }} onClick={e => {
+        if (!compact) return
+        e.preventDefault()
         window.dispatchEvent(new CustomEvent('hb-browser-line', { detail: l.s }))
         faraA('#allar-vorur')
       }}>
         <span className="hb-lineArt"><img src={PK(l.img, 'pack', 'm')} alt="" width="400" height="450" loading="lazy" decoding="async" /></span>
         <span className="hb-lineText"><span className="hb-lineCount">{productCount(count)}</span><span className="hb-lineName">{l.t}</span><span className="hb-lineDesc">{descriptions[l.s]}</span><span className="hb-linePill">Skoða {productCount(count)} <span aria-hidden="true">↗</span></span></span>
-      </button>
+      </a>
     })}</div>
   </section>
 }
@@ -88,9 +91,13 @@ export function ProductBrowser() {
   const [search, setSearch] = useState('')
   const [excluded, setExcluded] = useState<string[]>([])
   const [compact, setCompact] = useState(() => window.matchMedia('(max-width:991px)').matches)
+  useEffect(() => {
+    const slug = new URLSearchParams(location.search).get('vara')
+    if (window.matchMedia('(max-width:991px)').matches && slug && productBySlug(slug)) pop.open({ k: 'vara', slug })
+  }, [])
   const grid = useRef<HTMLDivElement>(null)
-  // URL only changes after a visitor acts here (or when the page was opened from a shared link), never on load.
-  const touched = useRef(typeof window !== 'undefined' && /[?&](vara|lina)=/.test(window.location.search))
+  // Restore shared links without rewriting them; only interaction writes URL state.
+  const touched = useRef(false)
   const before = useRef(new Map<string, Snapshot>())
   const animations = useRef<Animation[]>([])
   const ghosts = useRef<HTMLElement[]>([])
@@ -149,7 +156,7 @@ export function ProductBrowser() {
     const media = window.matchMedia('(max-width:991px)')
     const resize = () => { window.clearTimeout(hover.current); setCompact(media.matches) }
     const choose = (e: Event) => { touched.current = true; capture(); setLine(validLine((e as CustomEvent<string>).detail)); setSearch(''); setExcluded([]); setSelected('') }
-    const restore = () => { if (new URLSearchParams(location.search).get('naering') === '1') return; capture(); const q = readUrl(); setLine(q.line); setSelected(q.slug); setSearch(''); setExcluded([]) }
+    const restore = () => { if (new URLSearchParams(location.search).get('naering') === '1') return; touched.current = false; capture(); const q = readUrl(); setLine(q.line); setSelected(q.slug); setSearch(''); setExcluded([]) }
     media.addEventListener('change', resize); window.addEventListener('hb-browser-line', choose); window.addEventListener('popstate', restore)
     return () => { media.removeEventListener('change', resize); window.removeEventListener('hb-browser-line', choose); window.removeEventListener('popstate', restore); window.clearTimeout(hover.current); cancelMotion() }
   }, [])
@@ -171,7 +178,7 @@ export function ProductBrowser() {
     grid.current?.querySelectorAll<HTMLButtonElement>('[data-browser-product]')[next]?.scrollIntoView({ block: 'nearest', behavior: 'instant' })
   }
   return <section className="hb-browser" id="allar-vorur" aria-labelledby={`${id}-title`} onPointerDown={() => { touched.current = true }} onKeyDown={() => { touched.current = true }}>
-    <div className="hb-browserHeading"><span className="hb-browserEyebrow">Allar vörur</span><h2 id={`${id}-title`} className="hb-disp">Allt H-Berg í einni hillu</h2><p>Veldu vöru til að sjá innihald, næringargildi og setja hana á pöntunarlistann.</p></div>
+    <h2 id={`${id}-title`} className="hb-orderSr">Allar vörur</h2>
     <div className="hb-browserTools"><div className="hb-browserChips" role="group" aria-label="Vörulínur">{[{ s: '', t: 'Allar', items: PRODUCTS }, ...KATALOGUR].map(g => <button key={g.s} aria-pressed={line === g.s} onClick={() => { capture(); setLine(g.s); setSelected('') }}>{g.t} <span>{g.items.length}</span></button>)}</div>
       <label className="hb-browserSearch" htmlFor={`${id}-search`}>Leita að vöru<input id={`${id}-search`} type="search" value={search} placeholder="Nafn eða vörulína" onChange={e => { capture(); setSearch(e.target.value); setSelected('') }} /></label>
       <div className="hb-browserAvoid" role="group" aria-label="Fela vörur með ofnæmisvöldum"><span>Án:</span>{quick.map(a => <button key={a} aria-pressed={excluded.includes(a)} onClick={() => { capture(); setExcluded(old => old.includes(a) ? old.filter(x => x !== a) : [...old, a]); setSelected('') }}>{excluded.includes(a) && <span aria-hidden="true">✓ </span>}{langt(a).toLocaleLowerCase('is')}</button>)}</div>
@@ -187,5 +194,17 @@ export function ProductBrowser() {
         <span className="hb-browserArt" style={{ background: v.tint }}><img src={PK(v.slug, 'pack', 's')} alt="" width="240" height="270" loading="lazy" decoding="async" /><span className="hb-browserCheck" aria-hidden="true">✓</span></span><span className="hb-browserName">{clean(v.name.is)}</span><AllergenBadges p={v} />
       </button>)}
     </div>{active && !compact && <Detail v={active} />}</div>
+  </section>
+}
+
+export function ProductTeaser() {
+  return <section className="hb-teaser" id="allar-vorur" aria-labelledby="hb-teaser-title">
+    <h2 className="hb-disp" id="hb-teaser-title">Allt H-Berg í einni hillu</h2>
+    <p>57 vörur í sjö vörulínum, með innihaldi, ofnæmisvöldum og næringargildi.</p>
+    <div className="hb-featured">{['mondlur', 'aprikosur-2', 'chia-frae-2', 'hnetusmjor', 'orkustykki', 'kasjusmjor-2'].map(slug => {
+      const v = productBySlug(slug)!
+      return <a key={slug} href={pageHref(`vorur/?vara=${slug}`)}><span style={{ background: v.tint }}><img src={PK(slug, 'pack', 's')} alt="" width="240" height="270" loading="lazy" /></span><b>{clean(v.name.is)}</b></a>
+    })}</div>
+    <div className="hb-teaserActions"><a className="hb-btn" href={pageHref('vorur/')}>Skoða allar vörur <span aria-hidden="true">↗</span></a><a className="hb-browserSecondary" href={pageHref('naeringargildi/')}>Næringargildi <span aria-hidden="true">↗</span></a></div>
   </section>
 }

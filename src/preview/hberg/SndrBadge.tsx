@@ -1,0 +1,58 @@
+/**
+ * SNDR Studio credit mark, shown on EVERY preview prototype's footer
+ * (see PreviewFooter). Reuses the real Projekt Blackbird wordmark font
+ * from the live SNDR Studio site so it reads as the same signature
+ * everywhere, not a generic text credit. The link goes to sndrstudio.is:
+ * the old pages.dev host now serves a "we have moved" notice.
+ */
+import { ROOT } from './paths'
+import { STUDIO_URL } from '../../lib/studio-contact'
+
+const B = ROOT
+
+const CSS = `
+@font-face {
+  font-family: 'ProjektBlackbirdIS';
+  src: url('${B}fonts/blackbird/ProjektBlackbirdIS.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+`
+
+export function SndrBadge({ dark = false, className = '', english = false }: { dark?: boolean; className?: string; english?: boolean }) {
+  const ink = dark ? 'rgba(255,255,255,0.72)' : 'rgba(23,23,23,0.72)'
+  const ember = dark ? '#FF8A3D' : '#C4531B'
+  return (
+    <>
+      <style>{CSS}</style>
+      <a
+        href={STUDIO_URL}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={english ? 'Designed by SNDR Studio' : 'Hannað af SNDR Studio'}
+        /* a logotype, so the mobile minimum type size does not apply to the
+           10.5px "STUDIO" lockup — see scripts/mobile-audit.mjs */
+        data-logotype
+        className={`inline-flex min-h-11 items-center gap-2 ${className}`}
+      >
+        <span
+        style={{ fontFamily: "'ProjektBlackbirdIS', sans-serif", color: ink, fontSize: '15px', letterSpacing: '0.02em' }}
+      >
+          SN<span style={{ color: ember }}>✦</span>DR
+        </span>
+        <span
+          style={{
+            fontFamily: "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace",
+            color: ink,
+            fontSize: '10.5px',
+            letterSpacing: '0.1em',
+            opacity: 0.85,
+          }}
+        >
+          STUDIO
+        </span>
+      </a>
+    </>
+  )
+}
