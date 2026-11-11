@@ -393,6 +393,12 @@ const orderText = (
     note,
   );
 
+// Icelandic dates without relying on the browser's locale data (some browsers fall back to English).
+const IS_DAYS = ["sun.", "mán.", "þri.", "mið.", "fim.", "fös.", "lau."];
+const IS_MONTHS = ["jan.", "feb.", "mar.", "apr.", "maí", "jún.", "júl.", "ágú.", "sep.", "okt.", "nóv.", "des."];
+const isDate = (d: Date, weekday: boolean) =>
+  `${weekday ? IS_DAYS[d.getDay()] + " " : ""}${d.getDate()}. ${IS_MONTHS[d.getMonth()]}`;
+
 export function Poki() {
   const rawLines = usePoki(),
     l = KATALOGUR.flatMap((g) => g.items).flatMap((p) =>
@@ -899,10 +905,7 @@ export function Poki() {
                       {saved.orders.map((o, i) => (
                         <li key={`${o.date}-${i}`}>
                           <span>
-                            {new Intl.DateTimeFormat("is-IS", {
-                              day: "numeric",
-                              month: "short",
-                            }).format(new Date(o.date))}{" "}
+                            {isDate(new Date(o.date), false)}{" "}
                             · {o.lines.length}{" "}
                             {countWord(o.lines.length, "vara", "vörur")}
                           </span>
@@ -1115,11 +1118,7 @@ export function Poki() {
                                 });
                               }}
                             >
-                              {new Intl.DateTimeFormat("is-IS", {
-                                weekday: "short",
-                                day: "numeric",
-                                month: "short",
-                              }).format(new Date(`${date}T12:00:00`))}
+                              {isDate(new Date(`${date}T12:00:00`), true)}
                             </button>
                           ))}
                         </span>

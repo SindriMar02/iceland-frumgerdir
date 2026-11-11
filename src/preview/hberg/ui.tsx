@@ -110,11 +110,11 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
 :where(.hb-root) button{font:inherit;color:inherit}
 
 
-.hb-disp{font-family:var(--f-disp);font-weight:800;overflow-wrap:anywhere;letter-spacing:-.01em;line-height:1.04;
+.hb-disp{font-family:var(--f-disp);font-weight:800;overflow-wrap:break-word;hyphens:manual;letter-spacing:-.01em;line-height:1.04;
   font-size:clamp(1.5rem,4.17vw,5.25rem);margin:0;text-wrap:balance}
 @media (max-width:991px){.hb-disp{font-size:clamp(1.5rem,6.25vw,5.25rem);line-height:1.04}}
-@media (max-width:479px){.hb-disp{font-size:clamp(2.25rem,min(12vw,3.2rem),6rem);line-height:1.06}}
-.hb-sub{font-family:var(--f-disp);font-weight:700;overflow-wrap:anywhere;letter-spacing:-.01em;line-height:1.05;
+@media (max-width:479px){.hb-disp{font-size:clamp(2rem,10vw,3rem);line-height:1.06}}
+.hb-sub{font-family:var(--f-disp);font-weight:700;overflow-wrap:break-word;letter-spacing:-.01em;line-height:1.05;
   font-size:clamp(1.1rem,2.08vw,2.5rem);margin:0}
 @media (max-width:991px){.hb-sub{font-size:clamp(1.1rem,3.255vw,2.5rem)}}
 @media (max-width:479px){.hb-sub{font-size:clamp(1.5rem,max(1.35rem,6.4vw),5.25rem)}}

@@ -223,7 +223,7 @@ const PAGE_CSS = `
 .hb-kort:nth-child(2){background:var(--c-el3)}
 .hb-kort > div{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(0.5rem,1.25vw,2.5rem)}
 .hb-kort small{font-size:.8rem;color:var(--c-ink-med)}
-.hb-kort h3{margin:0;font-weight:700;overflow-wrap:anywhere;text-align:center;font-family:var(--f-disp);font-size:clamp(1.1rem,2.08vw,2.5rem);line-height:1.05;letter-spacing:-.01em;padding:0 8%}
+.hb-kort h3{margin:0;font-weight:700;overflow-wrap:break-word;text-align:center;font-family:var(--f-disp);font-size:clamp(1.1rem,2.08vw,2.5rem);line-height:1.05;letter-spacing:-.01em;padding:0 8%}
 .hb-kort i{font-style:normal;font-size:.8rem;font-variant-numeric:tabular-nums}
 @media (max-width:991px){
   .hb-kostir{row-gap:clamp(0.5rem,2.273vh,2.5rem)}
