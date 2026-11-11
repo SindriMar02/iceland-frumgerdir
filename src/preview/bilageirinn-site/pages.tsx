@@ -3,7 +3,7 @@
    fact-checked, polished content.mjs (every string traces to a FACTS id in _docs/bilageirinn-2026-11-11/research). */
 import type { ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Phone, Send } from 'lucide-react'
+import { HelpCircle, Phone, Send } from 'lucide-react'
 import { copy, rental, services, steps } from './content.mjs'
 import { IMG } from './data'
 import EnquiryForm from './EnquiryForm'
@@ -50,7 +50,9 @@ export function PageHero({ kicker, title, lead, img, children }: { kicker: strin
   const reduced = useReducedMotion()
   return (
     <section id="efst" className="relative flex min-h-[78svh] items-end overflow-hidden md:min-h-[86vh]">
-      <ParallaxImage src={img} alt="" className="absolute inset-0" />
+      <motion.div className="absolute inset-0" initial={reduced ? false : { scale: 1.1, opacity: 0.4 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1.8, ease: EASE }}>
+        <ParallaxImage src={img} alt="" className="absolute inset-0" />
+      </motion.div>
       <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(15,13,11,0.55) 0%, rgba(15,13,11,0.45) 40%, rgba(15,13,11,0.92) 100%)' }} />
       <div className="relative mx-auto w-full max-w-[1320px] px-5 pb-16 pt-32 md:px-8 md:pb-24">
         <motion.p className={kickerCls} style={{ fontFamily: MONO, color: AMBER }} initial={reduced ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: EASE, delay: 0.1 }}>{kick(kicker)}</motion.p>
@@ -94,7 +96,7 @@ function QA({ items }: { items: [string, string][] }) {
       {items.map(([q, a]) => (
         <Rise key={q}>
           <div className="grid gap-2 border-b py-6 md:grid-cols-[0.9fr_1.1fr] md:gap-10" style={{ borderColor: HAIR }}>
-            <h3 className="text-[19px] font-semibold leading-snug" style={{ fontFamily: BODY, color: INK }}>{q}</h3>
+            <h3 className="flex gap-3 text-[19px] font-semibold leading-snug" style={{ fontFamily: BODY, color: INK }}><HelpCircle size={20} strokeWidth={1.8} aria-hidden className="mt-0.5 shrink-0" style={{ color: AMBER }} />{q}</h3>
             <p className="text-[16.5px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>{a}</p>
           </div>
         </Rise>

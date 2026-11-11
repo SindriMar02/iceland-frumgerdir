@@ -12,9 +12,10 @@ import {
   useTransform,
 } from 'framer-motion'
 import type { MotionValue } from 'framer-motion'
-import { MapPin, MessageCircle, Phone } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, BadgeCheck, Building2, CalendarDays, FileCheck2, ShieldAlert, ShieldCheck, Check, ChevronLeft, ChevronRight, Clock, Copy, Droplet, Mail, MapPin, Menu, MessageCircle, Navigation, Phone, Quote, Star, ThumbsUp, Users, Warehouse, Wrench } from 'lucide-react'
 import BilageirinnLoading from './Loading'
 import EnquiryForm from './EnquiryForm'
+import { services as SERVICE_ROUTES } from './content.mjs'
 import { AboutPage, ClaimsPage, ContactPage, NotFoundPage, OverviewPage, PrivacyPage, ServicePage } from './pages'
 import { STRINGS, type Lang, type Review, type Strings } from './translations'
 import { setThemeColor } from '../../lib/preview'
@@ -96,6 +97,26 @@ export const NAV_PAGES = (lang: Lang) => [
 const EASE = [0.23, 1, 0.32, 1] as const
 
 const CSS = `
+.bg-scroll-cue { animation: bg-cue 1.8s cubic-bezier(0.65,0,0.35,1) infinite; }
+@keyframes bg-cue { 0% { transform: translateY(-100%); } 100% { transform: translateY(260%); } }
+.bg-hero-claim { transition: background-color .3s, border-color .3s; }
+@media (hover:hover) and (pointer:fine) { .bg-hero-claim:hover { background: rgba(232,162,61,0.12); border-color: ${AMBER} !important; } .bg-pick:hover { border-color: rgba(232,162,61,0.6) !important; } }
+.bg-pick { transition: border-color .25s, background-color .25s, transform .35s cubic-bezier(0.23,1,0.32,1); }
+.bg-pick:active { transform: scale(0.985); }
+.bg-pick-arrow { opacity: .35; transition: opacity .25s, transform .35s cubic-bezier(0.23,1,0.32,1); }
+.bg-pick:hover .bg-pick-arrow { opacity: 1; transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) { .bg-scroll-cue { animation: none; } }
+
+.bg-logo { transition: transform .45s cubic-bezier(0.23,1,0.32,1); transform-origin: left center; }
+@media (hover:hover) and (pointer:fine) { .bg-logo:hover { transform: scale(1.06); } }
+.bg-open-pulse { animation: bg-pulse 2.2s cubic-bezier(0.4,0,0.6,1) infinite; }
+@keyframes bg-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(124,203,124,0.55); } 60% { box-shadow: 0 0 0 7px rgba(124,203,124,0); } }
+.bg-tile { transition: transform .45s cubic-bezier(0.23,1,0.32,1), border-color .3s; }
+@media (hover:hover) and (pointer:fine) { .bg-tile:hover { transform: translateY(-4px); border-color: rgba(232,162,61,0.5) !important; } .bg-foot-link:hover { transform: translateX(4px); } }
+.bg-foot-link { transition: transform .35s cubic-bezier(0.23,1,0.32,1), color .2s; }
+.bg-review-pick:hover span { color: ${INK} !important; }
+@media (prefers-reduced-motion: reduce) { .bg-logo, .bg-tile, .bg-foot-link { transition: none; } .bg-open-pulse { animation: none; } }
+
 @font-face { font-family: 'Inter Logo'; src: url('${B}fonts/inter/Inter-logo.woff2') format('woff2'); font-weight: 400 900; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Archia'; src: url('${B}fonts/archia/Archia-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('${B}fonts/geist-mono/GeistMono-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
@@ -476,9 +497,45 @@ const useT = () => useContext(LangCtx)
 
 /* ─────────────────────────────── sections ─────────────────────────────── */
 
+function LangSwitch() {
+  const { lang, setLang } = useT()
+  const reduced = useReducedMotion()
+  /* one control, two states: a hairline track, the amber thumb slides under the active language */
+  return (
+    <div role="group" aria-label={lang === 'is' ? 'Tungumál' : 'Language'} className="bg-lang relative inline-flex h-9 shrink-0 items-center rounded-full border p-[3px]" style={{ borderColor: 'rgba(243,240,234,0.22)', fontFamily: MONO }}>
+      <motion.span
+        aria-hidden
+        className="absolute top-[3px] bottom-[3px] left-[3px] w-[38px] rounded-full"
+        style={{ background: AMBER }}
+        initial={false}
+        animate={{ x: lang === 'is' ? 0 : 38 }}
+        transition={reduced ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 }}
+      />
+      {(['is', 'en'] as const).map(l => (
+        <button
+          key={l}
+          type="button"
+          onClick={() => setLang(l)}
+          aria-pressed={lang === l}
+          aria-label={l === 'is' ? 'Íslenska' : 'English'}
+          className="relative z-[1] inline-flex h-full w-[38px] items-center justify-center text-[11.5px] font-semibold uppercase tracking-[0.12em] transition-colors duration-300"
+          style={{ color: lang === l ? DARKINK : MUT }}
+        >
+          {l}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function Nav({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: boolean }) {
-  const { lang, setLang, t } = useT()
+  const { lang, t } = useT()
+  const reduced = useReducedMotion()
   const [solid, setSolid] = useState(false)
+  const [open, setOpen] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const viaKey = useRef(false)
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 40)
     onScroll()
@@ -492,277 +549,164 @@ function Nav({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: bo
     if (lenisRef.current) lenisRef.current.scrollTo(el as HTMLElement, { offset: -72 })
     else el.scrollIntoView({ behavior: 'smooth' })
   }
-  /* nav (incl. the phone CTA) renders fully visible from first paint —
-     a worried customer must never wait on an entrance animation to find
-     the number. Only the scroll-solid background transitions. */
-  const link = 'bg-navlink hidden items-center min-h-11 px-3 text-[13px] tracking-[0.14em] uppercase md:inline-flex'
-  const [open, setOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
-  const viaKey = useRef(false)
-  useEffect(() => {
-    if (!open) return
-    const main = document.querySelector('main')
-    if (main) main.inert = true
-    const frame = requestAnimationFrame(() => {
-      const first = menuRef.current?.querySelector<HTMLElement>('a')
-      ;(viaKey.current ? first : menuRef.current)?.focus({ preventScroll: true })
-    })
-    const trap = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return
-      const controls = [triggerRef.current, ...Array.from(menuRef.current?.querySelectorAll<HTMLElement>('a,button') ?? [])].filter(Boolean) as HTMLElement[]
-      const i = controls.indexOf(document.activeElement as HTMLElement)
-      if (e.shiftKey && i <= 0) { e.preventDefault(); controls[controls.length - 1]?.focus() }
-      else if (!e.shiftKey && (i === controls.length - 1 || i === -1)) { e.preventDefault(); controls[0]?.focus() }
-    }
-    document.addEventListener('keydown', trap)
-    return () => {
-      cancelAnimationFrame(frame)
-      if (main) main.inert = false
-      document.removeEventListener('keydown', trap)
-      triggerRef.current?.focus({ preventScroll: true })
-    }
-  }, [open])
-  const reduced = useReducedMotion()
-  /* Phones: the bar is constant ink from first paint and never changes
-     state — a header that never moves can never detach, split or arrive
-     over content. Desktop keeps the transparent-over-hero opening. */
-  const narrow = useNarrow()
-  /* menu open: freeze the page behind it. overflow:hidden alone does not
-     lock iOS Safari — fix the body at its current offset and restore the
-     exact position on close. */
+
+  /* open: lock the page (iOS needs the fixed-body trick), focus the panel on a pointer open and the first
+     link on a keyboard open (no boxed first item on a tap), trap Tab, Escape closes and returns focus. */
   useEffect(() => {
     if (!open) return
     const lenis = lenisRef.current
     lenis?.stop()
+    const main = document.querySelector('main')
+    if (main) main.inert = true
     const y = window.scrollY
     const b = document.body.style
     const prev = { position: b.position, top: b.top, left: b.left, right: b.right, width: b.width, overflow: b.overflow }
-    b.position = 'fixed'
-    b.top = `-${y}px`
-    b.left = '0'
-    b.right = '0'
-    b.width = '100%'
-    b.overflow = 'hidden'
+    Object.assign(b, { position: 'fixed', top: `-${y}px`, left: '0', right: '0', width: '100%', overflow: 'hidden' })
+    const frame = requestAnimationFrame(() => {
+      const first = panelRef.current?.querySelector<HTMLElement>('a')
+      ;(viaKey.current ? first : panelRef.current)?.focus({ preventScroll: true })
+    })
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') { setOpen(false); return }
+      if (e.key !== 'Tab') return
+      const controls = [triggerRef.current, ...Array.from(panelRef.current?.querySelectorAll<HTMLElement>('a,button') ?? [])].filter(Boolean) as HTMLElement[]
+      const i = controls.indexOf(document.activeElement as HTMLElement)
+      if (e.shiftKey && i <= 0) { e.preventDefault(); controls[controls.length - 1]?.focus() }
+      else if (!e.shiftKey && (i === controls.length - 1 || i === -1)) { e.preventDefault(); controls[0]?.focus() }
     }
-    window.addEventListener('keydown', onKey)
-    /* rotating past the breakpoint hides the burger — never strand the panel open */
-    const mq = window.matchMedia('(min-width: 768px)')
-    const onWide = (e: MediaQueryListEvent) => {
-      if (e.matches) setOpen(false)
-    }
-    mq.addEventListener('change', onWide)
+    document.addEventListener('keydown', onKey)
     return () => {
-      b.position = prev.position
-      b.top = prev.top
-      b.left = prev.left
-      b.right = prev.right
-      b.width = prev.width
-      b.overflow = prev.overflow
+      cancelAnimationFrame(frame)
+      document.removeEventListener('keydown', onKey)
+      if (main) main.inert = false
+      Object.assign(b, prev)
       window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior })
       lenis?.start()
-      window.removeEventListener('keydown', onKey)
-      mq.removeEventListener('change', onWide)
+      triggerRef.current?.focus({ preventScroll: true })
     }
   }, [open, lenisRef])
-  const menuItems = NAV_PAGES(lang).map(p => ({ hash: p.path, label: p.label }))
-  const langToggle = (large: boolean) => (
-    <div
-      className={`flex shrink-0 items-center ${large ? 'gap-1 text-[15px]' : 'gap-0.5 text-[12px] md:ml-1'} tracking-[0.1em]`}
-      style={{ fontFamily: MONO }}
-    >
-      {(['is', 'en'] as const).map((l, i) => (
-        <span key={l} className="flex items-center">
-          {i > 0 && <span aria-hidden style={{ color: MUT, opacity: 0.5 }}>/</span>}
-          <button
-            type="button"
-            onClick={() => setLang(l)}
-            aria-pressed={lang === l}
-            aria-label={l === 'is' ? 'Íslenska' : 'English'}
-            className={`bg-navlink inline-flex min-h-11 items-center uppercase ${large ? 'px-2' : 'px-1 md:px-1.5'}`}
-            style={{ color: lang === l ? AMBER : MUT, fontWeight: lang === l ? 600 : 400 }}
-          >
-            {l}
-          </button>
-        </span>
-      ))}
-    </div>
-  )
+
+  const pages = NAV_PAGES(lang).filter(p => p.path !== '/personuvernd/')
+  const serviceLinks = SERVICE_ROUTES.map(([name, slug]) => ({ name, path: `/thjonusta/${slug}/` }))
+  const ease = EASE as unknown as [number, number, number, number]
+  const item = (i: number) => ({
+    initial: reduced ? { opacity: 1 } : { opacity: 0, y: 18 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease, delay: reduced ? 0 : 0.12 + i * 0.045 } },
+    exit: { opacity: 0, y: reduced ? 0 : -8, transition: { duration: 0.18, ease: 'easeIn' as const } },
+  })
+  const headBg = open || solid ? 'rgba(15,13,11,0.94)' : 'transparent'
   return (
     <>
     <header
-      className={`bg-chrome fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${start ? 'bg-arrived' : ''}`}
-      style={
-        narrow
-          ? /* constant, opaque, no per-frame blur tax on a phone */
-            { background: BG, borderBottom: `1px solid ${HAIR}` }
-          : {
-              background: solid || open ? 'rgba(15,13,11,0.86)' : 'transparent',
-              backdropFilter: solid || open ? 'blur(14px)' : 'none',
-              WebkitBackdropFilter: solid || open ? 'blur(14px)' : 'none',
-              borderBottom: solid || open ? `1px solid ${HAIR}` : '1px solid transparent',
-            }
-      }
+      className={`bg-chrome fixed inset-x-0 top-0 z-50 ${start ? 'bg-arrived' : ''}`}
+      style={{
+        background: headBg,
+        backdropFilter: open || solid ? 'blur(14px)' : 'none',
+        WebkitBackdropFilter: open || solid ? 'blur(14px)' : 'none',
+        borderBottom: `1px solid ${open || solid ? HAIR : 'transparent'}`,
+        transition: 'background-color .35s cubic-bezier(0.23,1,0.32,1), border-color .35s',
+      }}
     >
       <div className="mx-auto flex h-[68px] max-w-[1320px] items-center justify-between gap-3 px-4 md:px-8">
-        <a href={pageHref('/')} onClick={ROUTE === '/' ? go('#efst') : undefined} className="inline-flex min-h-11 shrink-0 items-center gap-2 md:gap-2.5" aria-label={t.ui.navTopAria}>
-          {/* REBRAND CONCEPT PREVIEW, not the real mark — icon closely matches
-              the real logo's own swoosh+headlight shape, previewed here only
-              to pitch before touching the real logo.png used everywhere else
-              on the site. Wordmark is real type, not baked into the image —
-              the generated art's own text had a broken þ. */}
+        <a href={pageHref('/')} onClick={ROUTE === '/' ? go('#efst') : undefined} className="bg-logo inline-flex min-h-11 shrink-0 items-center gap-2 md:gap-2.5" aria-label={t.ui.navTopAria}>
           <img src={ICON_CONCEPT} alt="" className="h-7 w-auto md:h-8" style={{ filter: 'brightness(0) invert(0.96)' }} />
-          {/* wordmark lockup matching the real logo: heavy mixed-case Inter
-              (neo-grotesque) with BÍLAÞJÓNUSTA right-aligned beneath, as on
-              logo.png. clamp keeps it from colliding with the toggle at 390px */}
           <span className="flex flex-col leading-[0.9]">
-            <span style={{ fontFamily: LOGO, fontWeight: 900, fontSize: 'clamp(16px, 4.4vw, 20px)', color: INK, letterSpacing: '-0.015em' }}>
-              Bílageirinn
-            </span>
-            <span style={{ fontFamily: LOGO, fontWeight: 600, fontSize: 'clamp(6.5px, 1.7vw, 8px)', color: MUT, letterSpacing: '0.2em', alignSelf: 'flex-end', marginTop: '2px' }}>
-              BÍLAÞJÓNUSTA
-            </span>
+            <span style={{ fontFamily: LOGO, fontWeight: 900, fontSize: 'clamp(16px, 4.4vw, 20px)', color: INK, letterSpacing: '-0.015em' }}>Bílageirinn</span>
+            <span style={{ fontFamily: LOGO, fontWeight: 600, fontSize: 'clamp(6.5px, 1.7vw, 8px)', color: MUT, letterSpacing: '0.2em', alignSelf: 'flex-end', marginTop: '2px' }}>BÍLAÞJÓNUSTA</span>
           </span>
         </a>
-        <nav className="flex items-center gap-1 md:gap-2" style={{ fontFamily: MONO, color: MUT }}>
-          {NAV_PAGES(lang).filter(p => ['/thjonusta/', '/tjon-og-tryggingar/', '/um-okkur/', '/hafa-samband/'].includes(p.path)).map(p => (
-            <a key={p.path} href={pageHref(p.path)} aria-current={ROUTE === p.path ? 'page' : undefined} className={link} style={ROUTE === p.path ? { color: INK } : undefined}>{p.label}</a>
-          ))}
-          {/* language toggle lives in the header on desktop; on mobile it
-              moves inside the menu so the row stays three items */}
-          <div className="hidden md:block">{langToggle(false)}</div>
-          <a
-            href={PHONE_HREF}
-            className="bg-btn bg-btn-solid ml-2 hidden min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[14px] font-semibold md:inline-flex"
-            style={{ backgroundColor: AMBER, color: DARKINK, fontFamily: BODY }}
-          >
-            <Phone size={15} strokeWidth={2.2} aria-hidden />
-            {PHONE_DISPLAY}
-          </a>
-          {/* phones: a crash customer must reach the number without opening
-              anything — compact pill in the bar, number hidden below 360px */}
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="hidden sm:block"><LangSwitch /></div>
           <a
             href={PHONE_HREF}
             aria-label={`${t.ui.orCall} ${PHONE_DISPLAY}`}
-            className="bg-btn bg-btn-solid inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-[13px] font-semibold md:hidden"
+            className="bg-btn bg-btn-solid inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-[13px] font-semibold md:min-h-11 md:gap-2 md:px-5 md:text-[14px]"
             style={{ backgroundColor: AMBER, color: DARKINK, fontFamily: BODY }}
           >
-            <Phone size={14} strokeWidth={2.2} aria-hidden />
+            <Phone size={15} strokeWidth={2.2} aria-hidden />
             <span className="bg-navphone-num">{PHONE_DISPLAY}</span>
           </a>
-          {/* hamburger: two lines that align into an X — the true-line
-              vocabulary applied to the one mechanical control on the page */}
           <button
             type="button"
             ref={triggerRef}
-            aria-controls="bg-mobile-menu"
-            onClick={e => { viaKey.current = e.detail === 0; setOpen(o => !o) }}
+            aria-controls="bg-menu"
             aria-expanded={open}
             aria-label={open ? t.ui.menuClose : t.ui.menuOpen}
-            className="relative ml-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center md:hidden"
+            onClick={e => { viaKey.current = e.detail === 0; setOpen(o => !o) }}
+            className="bg-burger relative inline-flex h-11 shrink-0 items-center gap-3 rounded-full border pl-4 pr-3 md:pl-5"
+            style={{ borderColor: open ? AMBER : 'rgba(243,240,234,0.22)', color: INK, fontFamily: MONO, transition: 'border-color .3s' }}
           >
-            <span
-              aria-hidden
-              className="absolute h-[2px] w-[22px] transition-transform duration-300"
-              style={{
-                background: AMBER,
-                transform: open ? 'rotate(45deg)' : 'translateY(-4px)',
-                transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)',
-              }}
-            />
-            <span
-              aria-hidden
-              className="absolute h-[2px] w-[22px] transition-transform duration-300"
-              style={{
-                background: INK,
-                transform: open ? 'rotate(-45deg)' : 'translateY(4px)',
-                transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)',
-              }}
-            />
+            <span className="hidden text-[12px] uppercase tracking-[0.18em] md:inline">{open ? (lang === 'is' ? 'Loka' : 'Close') : (lang === 'is' ? 'Valmynd' : 'Menu')}</span>
+            <span aria-hidden className="relative inline-flex h-4 w-[22px] items-center justify-center">
+              <span className="absolute h-[2px] w-[22px] transition-transform duration-500" style={{ background: AMBER, transform: open ? 'rotate(45deg)' : 'translateY(-4px)', transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }} />
+              <span className="absolute h-[2px] transition-all duration-500" style={{ background: INK, width: open ? 22 : 14, right: open ? 0 : 0, transform: open ? 'rotate(-45deg)' : 'translateY(4px)', transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }} />
+            </span>
           </button>
-        </nav>
+        </div>
       </div>
-    </header>
 
-    {/* mobile menu: full-screen coal overlay, links rise out of masks the
-        same way the hero headline does, one true line drawn beneath.
-        Rendered as a SIBLING of the header, never inside it: the header's
-        backdrop-filter makes it the containing block for fixed
-        descendants, which squeezed an in-header overlay to zero height. */}
-    <AnimatePresence>
+      {/* the menu unfolds from under the bar (height 0 → content, then the rows rise in) and folds back the same way */}
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
             key="menu"
-            id="bg-mobile-menu"
-            ref={menuRef}
+            id="bg-menu"
+            ref={panelRef}
             tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-label={t.ui.menuOpen}
-            initial={reduced ? { opacity: 1 } : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.25, ease: 'easeOut' } }}
-            transition={{ duration: 0.3, ease: EASE }}
-            className="fixed inset-0 z-40 flex flex-col overflow-y-auto pt-[68px] md:hidden"
-            style={{ background: BG, overscrollBehavior: 'contain' }}
-            data-lenis-prevent
+            initial={reduced ? { opacity: 0 } : { height: 0 }}
+            animate={reduced ? { opacity: 1 } : { height: 'auto', transition: { duration: 0.6, ease } }}
+            exit={reduced ? { opacity: 0 } : { height: 0, transition: { duration: 0.45, ease, delay: 0.08 } }}
+            className="overflow-hidden outline-none"
+            style={{ borderTop: `1px solid ${HAIR}` }}
           >
-            <nav className="flex flex-1 flex-col justify-center gap-1 px-6 py-10">
-              {menuItems.map((item, i) => (
-                <div key={item.hash} className="overflow-hidden py-1">
-                  <motion.a
-                    href={pageHref(item.hash)}
-                    aria-current={ROUTE === item.hash ? 'page' : undefined}
-                    onClick={() => setOpen(false)}
-                    className="block"
-                    initial={reduced ? undefined : { y: '110%' }}
-                    animate={{ y: '0%' }}
-                    exit={{ y: '110%', transition: { duration: 0.2, ease: 'easeIn', delay: (menuItems.length - 1 - i) * 0.03 } }}
-                    transition={{ duration: 0.5, ease: EASE, delay: 0.08 + i * 0.06 }}
-                    style={{
-                      fontFamily: EBOLD, textTransform: 'uppercase',
-                      fontSize: 'clamp(2rem, 9vw, 2.8rem)',
-                      letterSpacing: '-0.02em',
-                      color: INK,
-                      lineHeight: 1.15,
-                    }}
-                  >
-                    {item.label}
-                  </motion.a>
-                </div>
-              ))}
-              <motion.div
-                aria-hidden
-                className="mt-6 h-[3px] w-24 origin-left"
-                style={{ background: AMBER }}
-                initial={reduced ? undefined : { scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.6, ease: EASE, delay: 0.32 }}
-              />
-            </nav>
-            <motion.div
-              className="flex items-center justify-between gap-4 border-t px-6 py-5"
-              style={{ borderColor: HAIR, paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
-              initial={reduced ? undefined : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: EASE, delay: 0.3 }}
-            >
-              {langToggle(true)}
-              <a
-                href={PHONE_HREF}
-                className="bg-btn bg-btn-solid inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[14px] font-semibold"
-                style={{ backgroundColor: AMBER, color: DARKINK, fontFamily: BODY }}
-              >
-                <Phone size={15} strokeWidth={2.2} aria-hidden />
-                {PHONE_DISPLAY}
-              </a>
-            </motion.div>
+            <div className="mx-auto max-h-[calc(100svh-69px)] max-w-[1320px] overflow-y-auto px-5 pb-8 pt-7 md:px-8 md:pb-12 md:pt-10" style={{ overscrollBehavior: 'contain' }} data-lenis-prevent>
+              <div className="grid gap-9 md:grid-cols-[1.25fr_1fr_0.8fr] md:gap-12">
+                <nav aria-label={lang === 'is' ? 'Síður' : 'Pages'}>
+                  <ul>
+                    {pages.map((p, i) => (
+                      <motion.li key={p.path} {...item(i)} className="border-b" style={{ borderColor: HAIR }}>
+                        <a href={pageHref(p.path)} aria-current={ROUTE === p.path ? 'page' : undefined} onClick={() => setOpen(false)} className="bg-menu-link group flex min-h-[56px] items-center justify-between gap-4 py-2">
+                          <span style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(1.6rem, 3.4vw, 2.5rem)', lineHeight: 1.05, color: ROUTE === p.path ? AMBER : INK }}>{p.label}</span>
+                          <span aria-hidden className="text-[12px] tracking-[0.2em]" style={{ fontFamily: MONO, color: MUT }}>{String(i + 1).padStart(2, '0')}</span>
+                        </a>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </nav>
+                <motion.div {...item(pages.length)}>
+                  <p className="text-[12px] uppercase tracking-[0.2em]" style={{ fontFamily: MONO, color: AMBER }}>{lang === 'is' ? 'Þjónusta' : 'Services'}</p>
+                  <ul className="mt-3 border-t" style={{ borderColor: HAIR }}>
+                    {serviceLinks.map(s => (
+                      <li key={s.path} className="border-b" style={{ borderColor: HAIR }}>
+                        <a href={pageHref(s.path)} aria-current={ROUTE === s.path ? 'page' : undefined} onClick={() => setOpen(false)} className="bg-link-hover flex min-h-11 items-center text-[16px]" style={{ fontFamily: BODY, color: ROUTE === s.path ? AMBER : INK }}>{s.name}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+                <motion.div {...item(pages.length + 1)} className="flex flex-col gap-5">
+                  <div>
+                    <p className="text-[12px] uppercase tracking-[0.2em]" style={{ fontFamily: MONO, color: AMBER }}>{t.ui.footerContact}</p>
+                    <a href={PHONE_HREF} className="bg-link-hover mt-3 block text-[28px] leading-none tabular-nums" style={{ fontFamily: DISPLAY, color: INK }}>{PHONE_DISPLAY}</a>
+                    <a href={LUBE_PHONE_HREF} className="bg-link-hover mt-3 inline-flex min-h-11 items-center text-[15px]" style={{ fontFamily: BODY, color: INK }}>{t.ui.footerLube} {LUBE_PHONE_DISPLAY}</a>
+                    <p className="text-[14px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>{ADDRESS.street}, {ADDRESS.town}<br />{t.ui.hoursStrip}</p>
+                  </div>
+                  <div className="sm:hidden"><LangSwitch /></div>
+                  <a href={pageHref('/personuvernd/')} onClick={() => setOpen(false)} className="bg-link-hover inline-flex min-h-11 items-center text-[13px] underline underline-offset-4" style={{ fontFamily: MONO, color: MUT }}>{lang === 'is' ? 'Persónuvernd' : 'Privacy'}</a>
+                </motion.div>
+              </div>
+            </div>
           </motion.div>
         )}
+      </AnimatePresence>
+    </header>
+    {/* dim the page under the open menu; a tap outside closes it */}
+    <AnimatePresence>
+      {open && (
+        <motion.div key="scrim" aria-hidden className="fixed inset-0 z-40" style={{ background: 'rgba(8,7,6,0.55)' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.3 } }} transition={{ duration: 0.4 }} onClick={() => setOpen(false)} />
+      )}
     </AnimatePresence>
     </>
   )
@@ -974,28 +918,67 @@ function Hero({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: b
             {t.hero.ctaSecondary}
           </a>
         </div>
-        {/* proof row: the three verified differentiators readable before
-            the first scroll — text only, amber line-segment bullets, no
-            icons, so the hero stays spare */}
+        {/* proof row: the verified differentiators, each with its own mark */}
         <motion.ul
-          className="mt-8 flex flex-col flex-wrap gap-x-7 gap-y-2 sm:flex-row sm:items-center"
-          initial={reduced ? false : { opacity: 0 }}
-          animate={on ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+          className="mt-9 flex flex-col flex-wrap gap-x-3 gap-y-2 sm:flex-row sm:items-center"
+          initial={reduced ? false : { opacity: 0, y: 10 }}
+          animate={on ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+          transition={{ duration: 0.6, ease: EASE, delay: 0.55 }}
         >
-          {t.ui.proofRow.map(item => (
-            <li
-              key={item}
-              className="inline-flex items-center gap-2.5 text-[13px] tracking-[0.08em]"
-              style={{ fontFamily: MONO, color: MUT, textShadow: '0 2px 8px rgba(0,0,0,0.7)' }}
-            >
-              <span aria-hidden className="inline-block h-px w-4 shrink-0" style={{ background: AMBER }} />
-              {item}
-            </li>
-          ))}
+          {t.ui.proofRow.map((item, n) => {
+            const Icon = n === 0 ? BadgeCheck : FileCheck2
+            return (
+              <li key={item} className="inline-flex items-center gap-2.5 rounded-full border px-3.5 py-2 text-[13px]"
+                style={{ fontFamily: BODY, color: INK, borderColor: 'rgba(243,240,234,0.18)', background: 'rgba(15,13,11,0.45)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+                <Icon size={15} strokeWidth={2} aria-hidden style={{ color: AMBER }} />
+                {item}
+              </li>
+            )
+          })}
         </motion.ul>
       </div>
+      <HeroStatus on={on} />
+      {!reduced && (
+        <motion.div aria-hidden className="pointer-events-none absolute bottom-4 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 xl:flex"
+          initial={{ opacity: 0 }} animate={on ? { opacity: 1 } : { opacity: 0 }} transition={{ delay: 1.2, duration: 0.6 }}>
+          <span className="relative block h-10 w-px overflow-hidden" style={{ background: 'rgba(243,240,234,0.18)' }}>
+            <span className="bg-scroll-cue absolute inset-x-0 top-0 block h-4" style={{ background: AMBER }} />
+          </span>
+        </motion.div>
+      )}
     </section>
+  )
+}
+
+/** Desktop hero card: the live open/closed state from the published hours, the number, and the claim route. */
+function HeroStatus({ on }: { on: boolean }) {
+  const { lang } = useT()
+  const reduced = useReducedMotion()
+  const [status, setStatus] = useState(() => shopStatus(new Date(), lang))
+  useEffect(() => {
+    setStatus(shopStatus(new Date(), lang))
+    const id = window.setInterval(() => setStatus(shopStatus(new Date(), lang)), 60_000)
+    return () => window.clearInterval(id)
+  }, [lang])
+  return (
+    <motion.aside
+      className="absolute bottom-10 right-8 z-[2] hidden w-[300px] rounded-[22px] border p-5 lg:block"
+      style={{ borderColor: 'rgba(243,240,234,0.16)', background: 'rgba(15,13,11,0.62)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
+      initial={reduced ? false : { opacity: 0, y: 24 }}
+      animate={on ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+      transition={{ duration: 0.8, ease: EASE, delay: 0.75 }}
+    >
+      <p className="inline-flex items-center gap-2 text-[13px]" style={{ fontFamily: BODY, color: INK }}>
+        <span aria-hidden className={`inline-block h-2 w-2 rounded-full ${status.open && !reduced ? 'bg-open-pulse' : ''}`} style={{ background: status.open ? '#7CCB7C' : MUT }} />
+        {status.text}
+      </p>
+      <a href={PHONE_HREF} className="bg-link-hover mt-3 block leading-none tabular-nums" style={{ fontFamily: DISPLAY, color: INK, fontSize: '2rem' }}>{PHONE_DISPLAY}</a>
+      <p className="mt-1 text-[12.5px]" style={{ fontFamily: MONO, color: MUT }}>{lang === 'is' ? 'Smurstöð' : 'Lube bay'} {LUBE_PHONE_DISPLAY}</p>
+      <a href={pageHref('/tjon-og-tryggingar/')} className="bg-hero-claim group mt-4 flex items-center justify-between gap-3 rounded-[14px] border px-4 py-3" style={{ borderColor: 'rgba(232,162,61,0.45)' }}>
+        <span className="flex items-center gap-2.5 text-[14.5px] font-semibold" style={{ fontFamily: BODY, color: INK }}><ShieldAlert size={16} aria-hidden style={{ color: AMBER }} />{lang === 'is' ? 'Lentir þú í tjóni?' : 'Had a crash?'}</span>
+        <ArrowRight size={16} aria-hidden className="transition-transform duration-300 group-hover:translate-x-1" style={{ color: AMBER }} />
+      </a>
+    </motion.aside>
   )
 }
 
@@ -1153,63 +1136,41 @@ function Story() {
     the secondary figures stack as number/label rows instead of squeezing
     three columns of Icelandic labels across 390px. */
 function Facts() {
-  const { t } = useT()
+  const { t, lang } = useT()
   const lead = t.facts[1] /* 810 m² is verified; photo is illustrative, not Grófin. */
   const rest = [t.facts[0], t.facts[2], t.facts[3]]
+  const icons = [CalendarDays, BadgeCheck, ShieldCheck]
+  const val = (f: typeof lead) => (f.num !== null ? <FactValue to={f.num} pad={f.pad} suffix={f.suffix} /> : f.text)
   return (
     <section className="border-y" style={{ borderColor: HAIR, background: SURFACE }}>
-      <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-8 md:py-20">
-        <Rise>
-          <div
-            className="flex flex-col gap-8 border-b pb-10 md:flex-row md:items-center md:justify-between md:gap-14 md:pb-12"
-            style={{ borderColor: HAIR }}
-          >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:gap-6">
-              <p
-                className="shrink-0 tabular-nums"
-                style={{ fontFamily: MONO, color: INK, fontSize: 'clamp(3.2rem, 8vw, 5.2rem)', lineHeight: 0.95 }}
-              >
-                {lead.num !== null ? <FactValue to={lead.num} pad={lead.pad} suffix={lead.suffix} /> : lead.text}
-              </p>
-              <p className="max-w-[26ch] text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
-                {lead.label}
-              </p>
-            </div>
-            <ClipImage
-              src={IMG.garage}
-              alt={t.ui.garageAlt}
-              className="h-44 w-full shrink-0 rounded-[26px] md:h-52 md:w-[380px]"
-            />
-          </div>
-        </Rise>
-        <div className="mt-2 md:mt-12 md:grid md:grid-cols-3 md:gap-10">
-          {rest.map((f, i) => (
-            <Rise key={f.label} delay={i * 0.08}>
-              <div
-                className="flex items-baseline justify-between gap-5 border-b py-4 md:block md:border-0 md:py-0"
-                style={{ borderColor: HAIR }}
-              >
-                <p
-                  className="shrink-0 whitespace-nowrap tabular-nums"
-                  style={{
-                    fontFamily: MONO,
-                    color: INK,
-                    /* word values (Toyota · Kia) sit a step below the numerals so they hold one line in a third of the row */
-                    fontSize: f.num === null && (f.text ?? '').length > 4 ? 'clamp(1.35rem, 2.4vw, 1.9rem)' : 'clamp(1.75rem, 4vw, 2.8rem)',
-                    lineHeight: 1,
-                  }}
-                >
-                  {f.num !== null ? <FactValue to={f.num} pad={f.pad} suffix={f.suffix} /> : f.text}
-                </p>
-                <p
-                  className="text-right text-[11.5px] tracking-[0.12em] uppercase md:mt-3 md:text-left"
-                  style={{ fontFamily: MONO, color: MUT }}
-                >
-                  {f.label}
-                </p>
-              </div>
+      <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-8 md:py-24">
+        <div className="relative overflow-hidden rounded-[26px]">
+          <ParallaxImage src={IMG.garage} alt={t.ui.garageAlt} className="h-[340px] w-full md:h-[440px]" />
+          <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(15,13,11,0.92) 0%, rgba(15,13,11,0.55) 55%, rgba(15,13,11,0.15) 100%)' }} />
+          <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-12">
+            <Rise>
+              <p className="flex items-center gap-2 text-[12px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: AMBER }}><Building2 size={15} aria-hidden />{lang === 'is' ? 'Verkstæðið' : 'The workshop'}</p>
+              <p className="mt-3 tabular-nums" style={{ fontFamily: EBOLD, color: INK, fontSize: 'clamp(4rem, 11vw, 8.5rem)', lineHeight: 0.9 }}>{val(lead)}</p>
+              <TrueLine className="mt-4 w-[min(420px,70%)]" delay={0.25} />
+              <p className="mt-4 max-w-[34ch] text-[16.5px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>{lead.label}</p>
             </Rise>
-          ))}
+          </div>
+          <span className="absolute right-4 top-4 rounded-full px-3 py-1 text-[10.5px] uppercase tracking-[0.16em]" style={{ fontFamily: MONO, color: MUT, background: 'rgba(15,13,11,0.6)' }}>{lang === 'is' ? 'Mynd til hliðsjónar' : 'Illustrative photo'}</span>
+        </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          {rest.map((f, i) => {
+            const Icon = icons[i]
+            return (
+              <Rise key={f.label} delay={i * 0.08}>
+                <div className="bg-tile h-full rounded-[22px] border p-6 md:p-7" style={{ borderColor: HAIR, background: BG }}>
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-full" style={{ background: 'rgba(232,162,61,0.12)', color: AMBER }}><Icon size={19} strokeWidth={1.9} aria-hidden /></span>
+                  <p className="mt-6 whitespace-nowrap tabular-nums" style={{ fontFamily: EBOLD, textTransform: 'uppercase', color: INK, fontSize: f.num === null && (f.text ?? '').length > 4 ? 'clamp(1.6rem, 2.6vw, 2.2rem)' : 'clamp(2.2rem, 4vw, 3rem)', lineHeight: 1 }}>{val(f)}</p>
+                  <TrueLine className="mt-4 w-16" delay={0.2 + i * 0.1} />
+                  <p className="mt-4 text-[12px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>{f.label}</p>
+                </div>
+              </Rise>
+            )
+          })}
         </div>
       </div>
     </section>
@@ -1738,69 +1699,121 @@ function Brands() {
     set large; the short ones read as a hairline list beside it. The rating
     line cites platform and count, and links to the listing. Nothing here
     is padded or split; seven reviews, seven entries. */
-function Reviews() {
-  const { t } = useT()
-  const all = t.ui.reviews as Review[]
-  const feature = all.reduce((a, b) => (b.quote.length > a.quote.length ? b : a), all[0])
-  const rest = all.filter(r => r !== feature)
-  const byline = (r: Review) => `${r.name} · ${r.source}${r.translated ? ` · ${t.ui.reviewsTranslatedNote}` : ''}`
+function Stars({ value = 5, size = 16 }: { value?: number; size?: number }) {
+  /* filled to the exact rating (4,0 → four full stars, one hairline); amber on the warm ground */
   return (
-    <section className="border-t py-24 md:py-36" style={{ borderColor: HAIR, background: BG }}>
-      <div className="mx-auto max-w-[1320px] px-5 md:px-8">
-        <Rise>
-          <h2
-            className="text-balance"
-            style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
-          >
-            {t.ui.reviewsTitle}
-          </h2>
-          <p className="mt-5 flex flex-wrap items-baseline gap-x-6 gap-y-1 text-[15px]" style={{ fontFamily: BODY, color: INK }}>
-            <span className="tabular-nums">{t.ui.reviewsGoogle}</span>
-            <a
-              href="https://www.google.com/maps/search/B%C3%ADlageirinn+ehf+Gr%C3%B3fin+14a+Reykjanesb%C3%A6"
-              target="_blank"
-              rel="noreferrer"
-              className="bg-link-hover inline-flex min-h-11 items-center underline decoration-1 underline-offset-4"
-              style={{ color: INK }}
-            >
-              {t.ui.reviewsOpenGoogle}
-            </a>
-          </p>
-        </Rise>
+    <span className="inline-flex items-center gap-[3px]" role="img" aria-label={`${String(value).replace('.', ',')} / 5`}>
+      {[0, 1, 2, 3, 4].map(i => {
+        const fill = Math.max(0, Math.min(1, value - i))
+        return (
+          <span key={i} className="relative inline-block" style={{ width: size, height: size }}>
+            <Star size={size} strokeWidth={1.6} style={{ color: 'rgba(232,162,61,0.45)', position: 'absolute', inset: 0 }} aria-hidden />
+            <span className="absolute inset-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
+              <Star size={size} strokeWidth={1.6} fill={AMBER} style={{ color: AMBER }} aria-hidden />
+            </span>
+          </span>
+        )
+      })}
+    </span>
+  )
+}
 
-        <div className="mt-12 grid gap-12 md:mt-16 md:grid-cols-[1.15fr_1fr] md:gap-20">
+const REVIEW_MS = 7000
+function Reviews() {
+  const { t, lang } = useT()
+  const reduced = useReducedMotion()
+  const all = t.ui.reviews as Review[]
+  const [i, setI] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const ref = useRef<HTMLElement>(null)
+  const inView = useInView(ref, { margin: '-20% 0px' })
+  /* the featured review changes by itself while the section is on screen; hover, focus or a hidden tab pause it */
+  useEffect(() => {
+    if (reduced || paused || !inView) return
+    const id = window.setTimeout(() => setI(n => (n + 1) % all.length), REVIEW_MS)
+    return () => window.clearTimeout(id)
+  }, [i, paused, inView, reduced, all.length])
+  useEffect(() => {
+    const vis = () => setPaused(document.hidden)
+    document.addEventListener('visibilitychange', vis)
+    return () => document.removeEventListener('visibilitychange', vis)
+  }, [])
+  const r = all[i]
+  const byline = (x: Review) => `${x.name} · ${x.source}${x.translated ? ` · ${t.ui.reviewsTranslatedNote}` : ''}`
+  const rating = (x: Review) => x.source === 'Google'
+    ? <Stars value={5} size={15} />
+    : <span className="inline-flex items-center gap-1.5 text-[12px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: AMBER }}><ThumbsUp size={14} strokeWidth={2} aria-hidden />{lang === 'is' ? 'Mælir með' : 'Recommends'}</span>
+  return (
+    <section ref={ref} className="border-t py-24 md:py-36" style={{ borderColor: HAIR, background: BG }}>
+      <div className="mx-auto max-w-[1320px] px-5 md:px-8">
+        <div className="flex flex-wrap items-end justify-between gap-8">
           <Rise>
-            <figure>
-              <blockquote
-                className="text-balance"
-                style={{ fontFamily: BODY, color: INK, fontSize: 'clamp(1.45rem, 2.45vw, 2.2rem)', lineHeight: 1.4 }}
-              >
-                &ldquo;{feature.quote}&rdquo;
-              </blockquote>
-              <figcaption className="mt-6 flex items-center gap-3 text-[12px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                <span aria-hidden className="inline-block h-px w-5 shrink-0" style={{ background: AMBER }} />
-                {byline(feature)}
-              </figcaption>
-            </figure>
+            <h2 className="text-balance" style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}>
+              {t.ui.reviewsTitle}
+            </h2>
           </Rise>
-          <ul className="border-t" style={{ borderColor: HAIR }}>
-            {rest.map((r, i) => (
-              <li key={r.name} className="border-b py-5" style={{ borderColor: HAIR }}>
-                <Rise delay={0.05 + i * 0.05}>
-                  <p className="text-[16px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
-                    &ldquo;{r.quote}&rdquo;
-                  </p>
-                  <p className="mt-2 text-[11px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                    {byline(r)}
-                  </p>
-                </Rise>
-              </li>
-            ))}
-          </ul>
+          <Rise>
+            <a href="https://www.google.com/maps/search/B%C3%ADlageirinn+ehf+Gr%C3%B3fin+14a+Reykjanesb%C3%A6" target="_blank" rel="noreferrer"
+              className="bg-rating group flex items-center gap-4 rounded-[20px] border px-5 py-4" style={{ borderColor: HAIR, background: SURFACE }}>
+              <span style={{ fontFamily: DISPLAY, fontSize: '2.6rem', lineHeight: 1, color: INK }}>4,0</span>
+              <span className="flex flex-col gap-1.5">
+                <Stars value={4} size={18} />
+                <span className="text-[13px]" style={{ fontFamily: BODY, color: INK }}>{t.ui.reviewsGoogle.replace(/^4[,.]0 (af|of) 5 · /, '')}</span>
+              </span>
+              <ArrowUpRight size={18} aria-hidden className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" style={{ color: AMBER }} />
+            </a>
+          </Rise>
         </div>
-        <p className="mt-8 text-[13px]" style={{ fontFamily: MONO, color: MUT }}>
-          {t.ui.reviewsSource}
-        </p>
+
+        <div className="mt-12 grid gap-12 md:mt-16 md:grid-cols-[1.25fr_0.75fr] md:gap-20"
+          onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
+          <figure className="relative min-h-[300px] md:min-h-[340px]" aria-live="polite">
+            <Quote size={40} strokeWidth={1.4} aria-hidden style={{ color: AMBER }} />
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div key={r.name + lang}
+                initial={reduced ? { opacity: 0 } : { opacity: 0, y: 18, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.6, ease: EASE } }}
+                exit={reduced ? { opacity: 0 } : { opacity: 0, y: -12, filter: 'blur(4px)', transition: { duration: 0.35, ease: 'easeIn' } }}>
+                <div className="mt-5">{rating(r)}</div>
+                <blockquote className="mt-5 text-balance" style={{ fontFamily: BODY, color: INK, fontSize: 'clamp(1.35rem, 2.3vw, 2rem)', lineHeight: 1.42 }}>
+                  &ldquo;{r.quote}&rdquo;
+                </blockquote>
+                <figcaption className="mt-6 text-[12px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: MUT }}>{byline(r)}</figcaption>
+              </motion.div>
+            </AnimatePresence>
+          </figure>
+
+          <div>
+            {/* the amber line fills while a review is on show: the True Line as a timer */}
+            <div className="h-[3px] w-full overflow-hidden rounded-full" style={{ background: HAIR }}>
+              {!reduced && <motion.div key={`${i}-${paused}-${inView}`} className="h-full origin-left" style={{ background: AMBER }}
+                initial={{ scaleX: 0 }} animate={{ scaleX: paused || !inView ? 0 : 1 }} transition={{ duration: paused || !inView ? 0.2 : REVIEW_MS / 1000, ease: 'linear' }} />}
+            </div>
+            <ul className="mt-2">
+              {all.map((x, n) => (
+                <li key={x.name} className="border-b" style={{ borderColor: HAIR }}>
+                  <button type="button" onClick={() => setI(n)} aria-pressed={n === i}
+                    className="bg-review-pick flex min-h-[52px] w-full items-center justify-between gap-4 py-2 text-left">
+                    <span className="flex items-center gap-3">
+                      <span aria-hidden className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold transition-colors duration-300"
+                        style={{ background: n === i ? AMBER : SURFACE, color: n === i ? DARKINK : INK, fontFamily: BODY }}>{x.name.trim().charAt(0)}</span>
+                      <span className="text-[15.5px] transition-colors" style={{ fontFamily: BODY, color: n === i ? INK : MUT }}>{x.name}</span>
+                    </span>
+                    <span className="text-[11px] tracking-[0.16em] uppercase" style={{ fontFamily: MONO, color: n === i ? AMBER : MUT }}>{x.source}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-5 flex items-center gap-2">
+              <button type="button" aria-label={lang === 'is' ? 'Fyrri umsögn' : 'Previous review'} onClick={() => setI(n => (n - 1 + all.length) % all.length)}
+                className="bg-btn inline-flex h-11 w-11 items-center justify-center rounded-full border" style={{ borderColor: HAIR, color: INK }}><ChevronLeft size={18} aria-hidden /></button>
+              <button type="button" aria-label={lang === 'is' ? 'Næsta umsögn' : 'Next review'} onClick={() => setI(n => (n + 1) % all.length)}
+                className="bg-btn inline-flex h-11 w-11 items-center justify-center rounded-full border" style={{ borderColor: HAIR, color: INK }}><ChevronRight size={18} aria-hidden /></button>
+              <span className="ml-2 text-[12px] tabular-nums tracking-[0.14em]" style={{ fontFamily: MONO, color: MUT }}>{String(i + 1).padStart(2, '0')} / {String(all.length).padStart(2, '0')}</span>
+            </div>
+          </div>
+        </div>
+        <p className="mt-10 text-[13px]" style={{ fontFamily: MONO, color: MUT }}>{t.ui.reviewsSource}</p>
       </div>
     </section>
   )
@@ -1808,69 +1821,76 @@ function Reviews() {
 
 function Workshop() {
   const { t, lang } = useT()
+  const facts = [
+    { Icon: Building2, k: lang === 'is' ? 'Húsnæði' : 'Building', v: '810 m²', s: lang === 'is' ? 'Grófin 14a, frá 2007' : 'Grófin 14a, since 2007' },
+    { Icon: MapPin, k: t.ui.locationLabel, v: ADDRESS.street, s: ADDRESS.town, href: MAPS },
+    { Icon: Phone, k: lang === 'is' ? 'Verkstæði' : 'Workshop', v: PHONE_DISPLAY, s: `${t.ui.footerLube} ${LUBE_PHONE_DISPLAY}`, href: PHONE_HREF },
+  ]
   return (
     <section id="verkstaedid" className="scroll-mt-20 border-t" style={{ borderColor: HAIR }}>
       <div className="mx-auto max-w-[1320px] px-5 py-24 md:px-8 md:py-36">
-        <div className="grid gap-12 md:grid-cols-2 md:gap-16">
-          <figure>
+        <div className="grid gap-12 md:grid-cols-[0.95fr_1.05fr] md:gap-16">
+          <figure className="md:sticky md:top-28 md:self-start">
             <ClipImage src={IMG.garage} alt={t.ui.garageAlt} className="aspect-[4/3] rounded-[26px] md:aspect-[4/5]" />
             <figcaption className="bg-workshop-caption"><span>Grófin 14a · Reykjanesbær</span><span>{lang === 'is' ? 'Mynd til hliðsjónar' : 'Illustrative photograph'}</span></figcaption>
           </figure>
-          <div className="flex flex-col justify-center">
+          <div>
             <Rise>
-              <h2
-                className="text-balance"
-                style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}
-              >
-                {t.facility.title}
-              </h2>
-              <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
-                {t.facility.body}
-              </p>
+              <p className="flex items-center gap-2 text-[12.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: AMBER }}><Warehouse size={15} aria-hidden />{lang === 'is' ? 'Verkstæðið' : 'The workshop'}</p>
+              <h2 className="mt-4 text-balance" style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(2rem, 4.4vw, 3.4rem)', letterSpacing: '0.005em', lineHeight: 1.06 }}>{t.facility.title}</h2>
+              <p className="mt-6 max-w-[58ch] text-[17px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>{t.facility.body}</p>
             </Rise>
 
-            <div className="mt-10 border-t" style={{ borderColor: HAIR }}>
-              {t.team.map((p, i) => (
-                <Rise key={p.name} delay={i * 0.07}>
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b py-4" style={{ borderColor: HAIR }}>
-                    <p className="text-[16.5px] font-bold" style={{ fontFamily: BODY, color: INK }}>
-                      {p.name}
-                    </p>
-                    <p className="text-[13px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>
-                      {p.role}
-                      {p.detail ? ` · ${p.detail}` : ''}
-                    </p>
-                  </div>
-                </Rise>
-              ))}
+            <div className="mt-10 grid gap-3 sm:grid-cols-3">
+              {facts.map(({ Icon, k, v, s, href }, n) => {
+                const inner = (
+                  <>
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full" style={{ background: 'rgba(232,162,61,0.12)', color: AMBER }}><Icon size={18} strokeWidth={1.9} aria-hidden /></span>
+                    <span className="mt-4 block text-[11.5px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: MUT }}>{k}</span>
+                    <span className="mt-1 block text-[19px] font-semibold tabular-nums" style={{ fontFamily: BODY, color: INK }}>{v}</span>
+                    <span className="mt-1 block text-[13.5px]" style={{ fontFamily: BODY, color: MUT }}>{s}</span>
+                  </>
+                )
+                return (
+                  <Rise key={k} delay={n * 0.06}>
+                    {href
+                      ? <a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noreferrer" className="bg-tile block h-full rounded-[20px] border p-5" style={{ borderColor: HAIR, background: SURFACE }}>{inner}</a>
+                      : <div className="bg-tile h-full rounded-[20px] border p-5" style={{ borderColor: HAIR, background: SURFACE }}>{inner}</div>}
+                  </Rise>
+                )
+              })}
             </div>
 
-            <Rise delay={0.2}>
-              <div className="mt-9 grid gap-8 sm:grid-cols-2">
-                <div>
-                  <p className="text-[12.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
-                    {t.ui.hoursLabel}
-                  </p>
-                  <ul className="mt-3 space-y-1.5 text-[15px]" style={{ fontFamily: BODY, color: MUT }}>
-                    {t.hours.map(h => (
-                      <li key={h.days}>
-                        <span style={{ color: INK }}>{h.days}</span>
-                        {'  '}
-                        {h.close ? `${h.open}${lang === 'is' ? ' til ' : ' to '}${h.close}` : h.open}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <p className="text-[12.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: AMBER }}>
-                    {t.ui.locationLabel}
-                  </p>
-                  <p className="mt-3 text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>
-                    <span style={{ color: INK }}>{ADDRESS.street}</span>
-                    <br />
-                    {ADDRESS.town}
-                  </p>
-                </div>
+            <Rise>
+              <p className="mt-12 flex items-center gap-2 text-[12.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: AMBER }}><Users size={15} aria-hidden />{lang === 'is' ? 'Fólkið' : 'The people'}</p>
+            </Rise>
+            <ul className="mt-4 border-t" style={{ borderColor: HAIR }}>
+              {t.team.map((p, n) => (
+                <Rise key={p.name} delay={n * 0.07}>
+                  <li className="flex items-center gap-4 border-b py-4" style={{ borderColor: HAIR }}>
+                    <span aria-hidden className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-[14px] font-semibold" style={{ borderColor: 'rgba(232,162,61,0.5)', color: AMBER, fontFamily: BODY }}>
+                      {p.name.split(' ').map(w => w[0]).slice(0, 2).join('')}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[16.5px] font-semibold" style={{ fontFamily: BODY, color: INK }}>{p.name}</span>
+                      <span className="block text-[12px] tracking-[0.1em] uppercase" style={{ fontFamily: MONO, color: MUT }}>{p.role}{p.detail ? ` · ${p.detail}` : ''}</span>
+                    </span>
+                  </li>
+                </Rise>
+              ))}
+            </ul>
+
+            <Rise>
+              <div className="mt-10 rounded-[20px] border p-5 md:p-6" style={{ borderColor: HAIR }}>
+                <p className="flex items-center gap-2 text-[12.5px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: AMBER }}><Clock size={15} aria-hidden />{t.ui.hoursLabel}</p>
+                <ul className="mt-3">
+                  {t.hours.map(h => (
+                    <li key={h.days} className="flex items-baseline justify-between gap-4 border-b py-2.5 text-[15.5px] last:border-b-0" style={{ borderColor: HAIR, fontFamily: BODY }}>
+                      <span style={{ color: INK }}>{h.days}</span>
+                      <span className="shrink-0 tabular-nums" style={{ color: h.close ? INK : MUT }}>{h.close ? `${h.open}${lang === 'is' ? ' til ' : ' to '}${h.close}` : h.open}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </Rise>
           </div>
@@ -1880,79 +1900,80 @@ function Workshop() {
   )
 }
 
-/** Large embedded map, dark-mode styled via a CSS filter (no maps API key
-    needed for a static prototype — a well-established zero-setup trick:
-    invert the light tile colours so it reads as dark instead of a bright
-    rectangle punched into an otherwise dark page). Real interactivity
-    (pan/zoom/directions) still lives one tap away via the real Google
-    Maps link underneath. */
+/* Open-now from the published hours (Iceland keeps UTC all year, so UTC clock = shop clock). */
+function shopStatus(now: Date, lang: Lang) {
+  const day = now.getUTCDay(), min = now.getUTCHours() * 60 + now.getUTCMinutes()
+  const close = day >= 1 && day <= 4 ? 17 * 60 : day === 5 ? 15 * 60 : 0
+  const open = 8 * 60
+  const is = lang === 'is'
+  if (close && min >= open && min < close) return { open: true, text: is ? `Opið núna · lokar kl. ${close / 60}:00` : `Open now · closes ${close / 60}:00` }
+  if (close && min < open) return { open: false, text: is ? 'Lokað · opnar kl. 08:00 í dag' : 'Closed · opens 08:00 today' }
+  const next = day === 5 || day === 6 || day === 0 ? (is ? 'á mánudag' : 'Monday') : (is ? 'á morgun' : 'tomorrow')
+  return { open: false, text: is ? `Lokað · opnar kl. 08:00 ${next}` : `Closed · opens 08:00 ${next}` }
+}
+
 function MapSection() {
-  const { t } = useT()
-  const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(`${ADDRESS.street}, ${ADDRESS.town}`)}&z=16&output=embed`
+  const { t, lang } = useT()
+  const reduced = useReducedMotion()
+  const q = encodeURIComponent(`${ADDRESS.street}, ${ADDRESS.town}`)
+  const mapSrc = `https://www.google.com/maps?q=${q}&z=16&output=embed`
+  const [status, setStatus] = useState(() => shopStatus(new Date(), lang))
+  useEffect(() => {
+    setStatus(shopStatus(new Date(), lang))
+    const id = window.setInterval(() => setStatus(shopStatus(new Date(), lang)), 60_000)
+    return () => window.clearInterval(id)
+  }, [lang])
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(`${ADDRESS.street}, ${ADDRESS.town}`); setCopied(true); window.setTimeout(() => setCopied(false), 1800) } catch { /* clipboard blocked: the address is visible anyway */ }
+  }
+  const routes = [
+    { label: 'Google Maps', href: `https://www.google.com/maps/dir/?api=1&destination=${q}` },
+    { label: 'Apple Maps', href: `https://maps.apple.com/?daddr=${q}` },
+    { label: 'Waze', href: `https://waze.com/ul?q=${q}&navigate=yes` },
+  ]
   return (
-    <section className="border-t" style={{ borderColor: HAIR }}>
-      <div className="mx-auto max-w-[1320px] px-5 py-16 md:px-8 md:py-20">
-        <Rise>
-          <h2
-            className="text-balance"
-            style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(1.8rem, 3.6vw, 2.6rem)', letterSpacing: '0.005em', lineHeight: 1.08 }}
+    <section className="relative border-t" style={{ borderColor: HAIR }} aria-labelledby="bg-map-title">
+      <div className="bg-map-dark relative h-[58svh] min-h-[380px] w-full md:h-[86vh] md:min-h-[560px]">
+        <iframe title={t.ui.mapTitle} src={mapSrc} className="absolute inset-0 h-full w-full" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+      </div>
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-28" style={{ background: `linear-gradient(${BG}, rgba(15,13,11,0))` }} />
+      <div className="pointer-events-none relative -mt-16 flex items-end md:absolute md:inset-0 md:mt-0">
+        <div className="mx-auto w-full max-w-[1320px] px-4 pb-5 md:px-8 md:pb-10">
+          <motion.div
+            className="pointer-events-auto w-full max-w-[440px] rounded-[26px] border p-6 md:p-7"
+            style={{ borderColor: HAIR, background: 'rgba(15,13,11,0.9)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }}
+            initial={reduced ? false : { opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-15% 0px' }} transition={{ duration: 0.8, ease: EASE }}
           >
-            {t.ui.mapTitle}
-          </h2>
-        </Rise>
-        <Rise delay={0.1}>
-          <div
-            className="relative mt-8 overflow-hidden rounded-[26px] border"
-            style={{ borderColor: HAIR, height: 'clamp(320px, 44vw, 480px)' }}
-          >
-            {/* the dark-mode filter lives on this wrapper, not on the iframe
-                itself — a defensive habit for cross-origin iframes/video
-                (see the mix-blend-mode note elsewhere in this file), kept
-                even though it wasn't the actual bug here. */}
-            <div className="bg-map-dark absolute inset-0 h-full w-full">
-              {/* NOT loading="lazy": this section sits deep in the scroll,
-                  so the browser's native lazy-load scheduler defers the
-                  fetch until it decides the main thread has room — on this
-                  page that decision got starved by Lenis's continuous rAF
-                  loop and the other scroll-driven animations, so the map
-                  didn't even start loading until 6-10s after it entered
-                  view (measured: page.frames() stayed empty that whole
-                  time). A visitor never waits that long and just sees a
-                  blank box. Eager here trades a few KB of upfront request
-                  for the map actually being there when scrolled to. */}
-              <iframe
-                title={t.ui.mapIframeTitle}
-                src={mapSrc}
-                className="h-full w-full"
-                style={{ border: 0 }}
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+            <p className="flex items-center gap-2 text-[12px] tracking-[0.2em] uppercase" style={{ fontFamily: MONO, color: AMBER }}><Navigation size={14} aria-hidden />{lang === 'is' ? 'Staðsetning' : 'Location'}</p>
+            <h2 id="bg-map-title" className="mt-3" style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', lineHeight: 1.05, color: INK }}>{t.ui.mapTitle}</h2>
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <p className="text-[16px]" style={{ fontFamily: BODY, color: INK }}>{ADDRESS.street}, {ADDRESS.town}</p>
+              <button type="button" onClick={copy} className="bg-btn inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-[12.5px]" style={{ borderColor: HAIR, color: copied ? AMBER : MUT, fontFamily: BODY }}>
+                {copied ? <Check size={13} aria-hidden /> : <Copy size={13} aria-hidden />}{copied ? (lang === 'is' ? 'Afritað' : 'Copied') : (lang === 'is' ? 'Afrita' : 'Copy')}
+              </button>
             </div>
-            <div aria-hidden className="pointer-events-none absolute inset-0" style={{ boxShadow: `inset 0 0 0 1px ${HAIR}` }} />
-          </div>
-        </Rise>
-        <Rise delay={0.18}>
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-            <p className="text-[15px]" style={{ fontFamily: BODY, color: INK }}>
-              {ADDRESS.street}, {ADDRESS.town}
+            <p className="mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px]" aria-live="polite" style={{ fontFamily: BODY, background: status.open ? 'rgba(120,190,120,0.14)' : 'rgba(243,240,234,0.07)', color: INK }}>
+              <span aria-hidden className={`inline-block h-2 w-2 rounded-full ${status.open && !reduced ? 'bg-open-pulse' : ''}`} style={{ background: status.open ? '#7CCB7C' : MUT }} />
+              {status.text}
             </p>
-            <a
-              href={MAPS}
-              target="_blank"
-              rel="noreferrer"
-              className="bg-link-hover inline-flex min-h-11 items-center gap-2 text-[14.5px] font-semibold underline decoration-1 underline-offset-4"
-              style={{ fontFamily: BODY, color: INK }}
-            >
-              <MapPin size={15} strokeWidth={2.2} aria-hidden />
-              {t.ui.openMaps}
+            <p className="mt-5 text-[11.5px] tracking-[0.18em] uppercase" style={{ fontFamily: MONO, color: MUT }}>{lang === 'is' ? 'Leiðarlýsing' : 'Directions'}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {routes.map(r => (
+                <a key={r.label} href={r.href} target="_blank" rel="noreferrer" className="bg-btn inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-[14px]" style={{ borderColor: HAIR, color: INK, fontFamily: BODY }}>
+                  {r.label}<ArrowUpRight size={14} aria-hidden style={{ color: AMBER }} />
+                </a>
+              ))}
+            </div>
+            <a href={PHONE_HREF} className="bg-btn bg-btn-solid mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full text-[14.5px] font-semibold" style={{ background: AMBER, color: DARKINK, fontFamily: BODY }}>
+              <Phone size={15} aria-hidden />{lang === 'is' ? 'Hringja á undan' : 'Call ahead'} · {PHONE_DISPLAY}
             </a>
-          </div>
-        </Rise>
+          </motion.div>
+        </div>
       </div>
     </section>
   )
 }
-
 
 function Contact() {
   const { t } = useT()
@@ -2022,90 +2043,89 @@ function Contact() {
     columns. */
 function SiteFooter() {
   const { t, lang } = useT()
-  const links = NAV_PAGES(lang).map(p => ({ hash: pageHref(p.path), label: p.label }))
-  const head = 'text-[11.5px] tracking-[0.18em] uppercase'
+  const reduced = useReducedMotion()
+  const wordRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: wordRef, offset: ['start end', 'end end'] })
+  const wordY = useTransform(scrollYProgress, [0, 1], ['38%', '0%'])
+  const links = NAV_PAGES(lang).map(p => ({ href: pageHref(p.path), label: p.label }))
+  const head = 'flex items-center gap-2 text-[11.5px] tracking-[0.18em] uppercase'
   const row = 'bg-link-hover inline-flex min-h-11 items-center text-[15px]'
+  const [status, setStatus] = useState(() => shopStatus(new Date(), lang))
+  useEffect(() => { setStatus(shopStatus(new Date(), lang)) }, [lang])
   return (
-    <footer className="border-t" style={{ borderColor: HAIR, background: SURFACE }}>
-      <div className="mx-auto max-w-[1320px] px-5 pb-10 pt-14 md:px-8 md:pt-20">
-        <div className="grid gap-10 md:grid-cols-[1.2fr_1fr_0.7fr_1.1fr] md:gap-12">
-          <div>
-            <p style={{ fontFamily: LOGO, fontWeight: 900, fontSize: 'clamp(1.6rem, 6vw, 2.2rem)', color: INK, letterSpacing: '-0.015em', lineHeight: 1 }}>
-              Bílageirinn
+    <footer className="relative overflow-hidden border-t" style={{ borderColor: HAIR, background: SURFACE }}>
+      {/* the closing call: the slogan, the number, the line drawn under it */}
+      <div className="mx-auto max-w-[1320px] px-5 pt-16 md:px-8 md:pt-24">
+        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <Rise>
+            <a href={pageHref('/')} className="bg-logo inline-flex items-center gap-3" aria-label="Bílageirinn">
+              <img src={ICON_CONCEPT} alt="" className="h-10 w-auto md:h-12" style={{ filter: 'brightness(0) invert(0.96)' }} />
+              <span className="flex flex-col leading-[0.9]">
+                <span style={{ fontFamily: LOGO, fontWeight: 900, fontSize: 'clamp(26px, 4vw, 34px)', color: INK, letterSpacing: '-0.015em' }}>Bílageirinn</span>
+                <span style={{ fontFamily: LOGO, fontWeight: 600, fontSize: 'clamp(9px, 1.2vw, 11px)', color: MUT, letterSpacing: '0.2em', alignSelf: 'flex-end', marginTop: '3px' }}>BÍLAÞJÓNUSTA</span>
+              </span>
+            </a>
+            <p className="mt-6 max-w-[22ch] text-balance" style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(1.7rem, 3.4vw, 2.6rem)', lineHeight: 1.05, color: INK }}>
+              {lang === 'is' ? 'Eins og ekkert hefði í skorist.' : 'As if it never happened.'}
             </p>
-            <p className="mt-3 text-[15px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>
-              {ADDRESS.street}, {ADDRESS.town}
+          </Rise>
+          <Rise>
+            <a href={PHONE_HREF} className="bg-cta-display block leading-none tabular-nums" style={{ fontFamily: DISPLAY, color: AMBER, fontSize: 'clamp(2.6rem, 6.4vw, 4.6rem)' }}>{PHONE_DISPLAY}</a>
+            <TrueLine className="mt-3 w-full" delay={0.2} />
+            <p className="mt-3 inline-flex items-center gap-2 text-[13px]" style={{ fontFamily: BODY, color: INK }}>
+              <span aria-hidden className={`inline-block h-2 w-2 rounded-full ${status.open && !reduced ? 'bg-open-pulse' : ''}`} style={{ background: status.open ? '#7CCB7C' : MUT }} />
+              {status.text}
             </p>
-            <p className="mt-1 text-[13px]" style={{ fontFamily: MONO, color: MUT }}>
-              {t.ui.footerCompany}
-            </p>
-          </div>
+          </Rise>
+        </div>
 
+        <div className="mt-16 grid gap-10 border-t pt-12 md:mt-20 md:grid-cols-[1fr_1fr_0.8fr_1.1fr] md:gap-12" style={{ borderColor: HAIR }}>
           <div>
-            <p className={head} style={{ fontFamily: MONO, color: AMBER }}>
-              {t.ui.hoursLabel}
-            </p>
+            <p className={head} style={{ fontFamily: MONO, color: AMBER }}><MapPin size={14} aria-hidden />{t.ui.locationLabel}</p>
+            <p className="mt-3 text-[15.5px] leading-relaxed" style={{ fontFamily: BODY, color: INK }}>{ADDRESS.street}<br />{ADDRESS.town}</p>
+            <a href={MAPS} target="_blank" rel="noreferrer" className={`${row} gap-1.5 underline underline-offset-4`} style={{ color: INK, fontFamily: BODY }}>{lang === 'is' ? 'Leiðarlýsing' : 'Directions'}<ArrowUpRight size={14} aria-hidden style={{ color: AMBER }} /></a>
+          </div>
+          <div>
+            <p className={head} style={{ fontFamily: MONO, color: AMBER }}><Clock size={14} aria-hidden />{t.ui.hoursLabel}</p>
             <ul className="mt-3 border-t" style={{ borderColor: HAIR }}>
               {t.hours.map((h, i) => (
                 <li key={h.days} className="flex items-baseline justify-between gap-4 border-b py-2.5 text-[15px]" style={{ borderColor: HAIR, fontFamily: BODY }}>
                   <span style={{ color: INK }}>{t.ui.hoursShort[i] ?? h.days}</span>
-                  <span className="shrink-0 tabular-nums" style={{ color: h.close ? INK : MUT }}>
-                    {h.close ? `${h.open}${lang === 'is' ? ' til ' : ' to '}${h.close}` : h.open}
-                  </span>
+                  <span className="shrink-0 tabular-nums" style={{ color: h.close ? INK : MUT }}>{h.close ? `${h.open}${lang === 'is' ? ' til ' : ' to '}${h.close}` : h.open}</span>
                 </li>
               ))}
             </ul>
           </div>
-
-          <div className="grid grid-cols-2 gap-8 md:contents">
-            <div>
-              <p className={head} style={{ fontFamily: MONO, color: AMBER }}>
-                {t.ui.footerOnPage}
-              </p>
-              <ul className="mt-2 flex flex-col" style={{ fontFamily: BODY }}>
-                {links.map(l => (
-                  <li key={l.hash}>
-                    <a href={l.hash} className={row} style={{ color: INK }}>
-                      {l.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="min-w-0">
-              <p className={head} style={{ fontFamily: MONO, color: AMBER }}>
-                {t.ui.footerContact}
-              </p>
-              <ul className="mt-2 flex flex-col" style={{ fontFamily: BODY }}>
-                <li>
-                  <a href={PHONE_HREF} className={`${row} tabular-nums`} style={{ color: INK }}>
-                    {PHONE_DISPLAY}
-                  </a>
-                </li>
-                <li>
-                  <a href={LUBE_PHONE_HREF} className={`${row} tabular-nums`} style={{ color: INK }}>
-                    {t.ui.footerLube} {LUBE_PHONE_DISPLAY}
-                  </a>
-                </li>
-                <li>
-                  <a href={`mailto:${EMAIL}`} className={`${row} [overflow-wrap:anywhere]`} style={{ color: INK }}>
-                    {EMAIL}
-                  </a>
-                </li>
-                <li>
-                  <a href={FACEBOOK} target="_blank" rel="noreferrer" className={row} style={{ color: INK }}>
-                    Facebook
-                  </a>
-                </li>
-              </ul>
-            </div>
+          <div>
+            <p className={head} style={{ fontFamily: MONO, color: AMBER }}><Menu size={14} aria-hidden />{t.ui.footerOnPage}</p>
+            <ul className="mt-2 flex flex-col" style={{ fontFamily: BODY }}>
+              {links.map(l => <li key={l.href}><a href={l.href} className={`${row} bg-foot-link`} style={{ color: INK }}>{l.label}</a></li>)}
+            </ul>
+          </div>
+          <div className="min-w-0">
+            <p className={head} style={{ fontFamily: MONO, color: AMBER }}><Phone size={14} aria-hidden />{t.ui.footerContact}</p>
+            <ul className="mt-2 flex flex-col" style={{ fontFamily: BODY }}>
+              <li><a href={PHONE_HREF} className={`${row} gap-2 tabular-nums`} style={{ color: INK }}><Wrench size={14} aria-hidden style={{ color: MUT }} />{lang === 'is' ? 'Verkstæði' : 'Workshop'} {PHONE_DISPLAY}</a></li>
+              <li><a href={LUBE_PHONE_HREF} className={`${row} gap-2 tabular-nums`} style={{ color: INK }}><Droplet size={14} aria-hidden style={{ color: MUT }} />{t.ui.footerLube} {LUBE_PHONE_DISPLAY}</a></li>
+              <li><a href={`mailto:${EMAIL}`} className={`${row} gap-2 [overflow-wrap:anywhere]`} style={{ color: INK }}><Mail size={14} aria-hidden style={{ color: MUT }} />{EMAIL}</a></li>
+              <li><a href={FACEBOOK} target="_blank" rel="noreferrer" className={`${row} gap-2`} style={{ color: INK }}><ArrowUpRight size={14} aria-hidden style={{ color: MUT }} />Facebook</a></li>
+            </ul>
           </div>
         </div>
+      </div>
 
-        <p className="mt-12 border-t pt-5 text-[12.5px] tracking-[0.06em]" style={{ borderColor: HAIR, fontFamily: MONO, color: MUT }}>
-          © {new Date().getFullYear()} Bílageirinn ehf · {ADDRESS.street}, {ADDRESS.town} · {KT}
-        </p>
-        <p className="mt-3 text-[12px] tracking-[0.06em]" style={{ fontFamily: MONO, color: MUT }}>
+      {/* signature: the name set edge to edge, rising into place as the page ends, the amber line beneath it */}
+      <div ref={wordRef} aria-hidden className="mt-14 overflow-hidden md:mt-20">
+        <motion.p className="select-none whitespace-nowrap text-center leading-[0.8]" style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: '15.6vw', letterSpacing: '-0.01em', color: 'transparent', WebkitTextStroke: '1px rgba(243,240,234,0.28)', y: reduced ? 0 : wordY }}>
+          Bílageirinn
+        </motion.p>
+      </div>
+      <div className="mx-auto max-w-[1320px] px-5 md:px-8"><TrueLine className="w-full" delay={0.1} /></div>
+
+      <div className="mx-auto flex max-w-[1320px] flex-col gap-2 px-5 py-6 text-[12.5px] tracking-[0.06em] md:flex-row md:items-center md:justify-between md:px-8" style={{ fontFamily: MONO, color: MUT }}>
+        <p>© {new Date().getFullYear()} Bílageirinn ehf · Kt. {KT}</p>
+        <p className="flex items-center gap-5">
+          <a href={pageHref('/personuvernd/')} className="bg-link-hover inline-flex min-h-11 items-center">{lang === 'is' ? 'Persónuvernd' : 'Privacy'}</a>
           <a href="https://sndrstudio.is/" title="SNDR Studio" className="bg-link-hover inline-flex min-h-11 items-center">Vefur: SNDR Studio</a>
         </p>
       </div>
@@ -2322,4 +2342,4 @@ function InnerRoute() {
   return <NotFoundPage />
 }
 
-export { ClipImage, ParallaxImage, Rise, TrueLine, useT }
+export { ClipImage, ParallaxImage, Rise, TrueLine, shopStatus, useT }
