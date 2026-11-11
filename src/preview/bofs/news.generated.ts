@@ -6,12 +6,12 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-11-10T14:52:57.253Z
+ * Last synced: 2026-11-11T14:22:05.136Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 10. nóvember 2026', en: 'Updated 10 November 2026' }
+export const SYNCED_AT = { is: 'Uppfært 11. nóvember 2026', en: 'Updated 11 November 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
   {
@@ -22,7 +22,7 @@ export const SYNCED_NEWS: NewsItem[] = [
       "is": "Samtal við tengiliði farsældar í framhaldsskólum",
       "en": "Samtal við tengiliði farsældar í framhaldsskólum"
     },
-    "href": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/samtal-vid-tengilidi-farsaeldar-i-framhaldsskolum",
+    "href": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-11-04-samtal-vid-tengilidi-farsaeldar-i-framhaldsskolum",
     "untranslated": true,
     "summary": {
       "is": "Mennta- og barnam&#225;lar&#225;&#240;uneyti&#240;, &#237; samstarfi vi&#240; Barna- og fj&#246;lskyldustofu, st&#243;&#240; fyrir vinnudegi me&#240; tengili&#240;um fars&#230;ldar &#237; framhaldssk&#243;lum s&#237;&#240;astli&#240;inn f&#246;studag....",
@@ -54,7 +54,7 @@ export const SYNCED_NEWS: NewsItem[] = [
       "is": "Framtíðarsýn um samhæfða stafræna innviði í þágu farsældar barna",
       "en": "Framtíðarsýn um samhæfða stafræna innviði í þágu farsældar barna"
     },
-    "href": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/framtidarsyn-um-samhaefda-stafraena-innvidi-i-thagu-farsaeldar-barna",
+    "href": "https://www.stjornarradid.is/efst-a-baugi/frettir/stok-frett/2026-10-20-framtidarsyn-um-samhaefda-stafraena-innvidi-i-thagu-farsaeldar-barna",
     "untranslated": true,
     "summary": {
       "is": "St&#253;rih&#243;pur mennta- og barnam&#225;lar&#225;&#240;uneytisins og Sambands &#237;slenskra sveitarf&#233;laga um samh&#230;f&#240;a stafr&#230;na innvi&#240;i &#237; &#254;&#225;gu fars&#230;ldar barna hefur loki&#240; st&#246;rfum. H&#243;purinn...",
