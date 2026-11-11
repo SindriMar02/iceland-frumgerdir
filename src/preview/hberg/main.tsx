@@ -8,7 +8,7 @@ class Boundary extends React.Component<{ children: React.ReactNode }, { failed: 
   static getDerivedStateFromError() { return { failed: true } }
   render() {
     return this.state.failed
-      ? <main style={{ padding: '15vh 6vw', fontFamily: 'system-ui', color: '#1C130D' }}><h1>Ekki tókst að opna síðuna.</h1><p>Reyndu aftur eða hafðu samband við H-Berg í síma 565 6500.</p><button onClick={() => location.reload()}>Reyna aftur</button></main>
+      ? <main style={{ padding: '15vh 6vw', fontFamily: 'system-ui', color: '#1C130D' }}><h1>Ekki tókst að opna síðuna.</h1><p>Reyndu aftur eða hafðu samband við H-Berg í síma 565 6500.</p><button onClick={() => location.reload()}>Reyna aftur</button></main>
       : this.props.children
   }
 }

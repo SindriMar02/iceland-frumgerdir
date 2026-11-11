@@ -142,7 +142,7 @@ export function PokaHnappur() {
     </button>
   );
 }
-export function SettIPoka({ slug }: { slug: string }) {
+export function SettIPoka({ slug, label = "Á listann" }: { slug: string; label?: string }) {
   const [added, setAdded] = useState(false);
   useEffect(() => {
     if (!added) return;
@@ -160,7 +160,7 @@ export function SettIPoka({ slug }: { slug: string }) {
       aria-label={`Setja ${productBySlug(slug)?.name.is} á pöntunarlistann`}
     >
       <span aria-hidden="true">{added ? "✓" : "+"}</span>{" "}
-      {added ? "Komið á listann" : "Á listann"}
+      {added ? "Komið á listann" : label}
     </button>
   );
 }

@@ -467,8 +467,9 @@ type NavLina = { h: string; t: string; d?: string; poki?: boolean; fn?: () => vo
 const HOPAR: { t: string; id: string; rows: NavLina[] }[] = [
   { t: 'Vörur', id: 'vorur', rows: [
     { h: '#linur', t: 'Allar vörulínur', d: 'Hnetur, ávextir, fræ og hnetusmjör' },
-    { h: '#vorur', t: 'Hnetur og ávextir', d: 'Tegundir og innihald' },
+    { h: '#allar-vorur', t: 'Hnetur og ávextir', d: 'Tegundir og innihald' },
     { h: '#ofnaemi', t: 'Ofnæmisvaldar', d: 'Skoðaðu innihaldið' },
+    { h: '?naering=1', t: 'Næringargildi', d: 'Allar vörur í einni töflu', fn: () => pop.open({ k: 'naering' }) },
     { h: '#hvar', t: 'Hvar fæst H-Berg', d: 'Söluaðilar H-Berg', fn: () => pop.open({ k: 'hvar' }) },
   ] },
   { t: 'H-Berg', id: 'hberg', rows: [
@@ -489,7 +490,9 @@ export function faraA(href: string) {
   const l = lenisOf()
   if (l) l.scrollTo(mark, { offset })
   else window.scrollTo({ top: mark.getBoundingClientRect().top + window.scrollY + offset, behavior: reduced() ? 'auto' : 'smooth' })
-  history.replaceState(null, '', href)
+  const url = new URL(window.location.href)
+  url.hash = href
+  history.replaceState(null, '', url)
 }
 
 

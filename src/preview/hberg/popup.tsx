@@ -1,4 +1,7 @@
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
+import { Fragment, useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
+import { NutritionOverview } from './nutrition-ui'
+import { NUTRITION_CSS } from './nutrition-style'
+import { NUTRITION_COLUMNS, nutritionSort, nutritionValue, type NutritionSort } from './naering'
 import { ASSETS } from './assets.gen'
 import { Eydublad } from './eydublad'
 import { STAERRA } from './forms'
@@ -16,19 +19,39 @@ export type PopState =
   | { k: 'hvar' }
   | { k: 'staerra' }
   | { k: 'ofnaemi' }
+  | { k: 'naering'; sort?: NutritionSort; line?: string }
   | null
 
 let st: PopState = null
+let nutritionVersion = 0
+let browserLineBeforeNutrition: string | null | undefined
 const subs = new Set<() => void>()
 const sub = (f: () => void) => { subs.add(f); return () => { subs.delete(f) } }
 export const pop = {
-  open(p: PopState) { st = p; subs.forEach((f) => f()) },
-  close() { st = null; subs.forEach((f) => f()) },
+  open(p: PopState) {
+    if (p?.k === 'naering') {
+      nutritionVersion += 1
+      if (new URLSearchParams(window.location.search).get('naering') !== '1') browserLineBeforeNutrition = new URLSearchParams(window.location.search).get('lina')
+    }
+    if (p?.k !== 'naering') {
+      const url = new URL(window.location.href)
+      const wasNutrition = url.searchParams.get('naering') === '1'
+      for (const key of ['naering', 'rada', 'att', 'leit']) url.searchParams.delete(key)
+      if (wasNutrition) {
+        if (browserLineBeforeNutrition) url.searchParams.set('lina', browserLineBeforeNutrition)
+        else url.searchParams.delete('lina')
+        browserLineBeforeNutrition = undefined
+      }
+      window.history.replaceState(null, '', url)
+    }
+    st = p; subs.forEach((f) => f())
+  },
+  close() { pop.open(null) },
 }
 const snap = () => st
 const usePop = () => useSyncExternalStore(sub, snap, snap)
 
-export const POP_CSS = `
+export const POP_CSS = NUTRITION_CSS + `
 .hb-popB{position:fixed;inset:0;z-index:84;background:rgba(16,32,56,.35);opacity:0;pointer-events:none;
   transition:opacity var(--motion-panel) var(--motion-emphasis)}
 .hb-popB{visibility:hidden}
@@ -106,6 +129,16 @@ const FLOKKUR_INN:Record<string,string>={}
 
 export function Popup() {
   const p = usePop()
+  useEffect(() => {
+    const restore = () => {
+      const query = new URLSearchParams(window.location.search)
+      if (query.get('naering') === '1') pop.open({ k: 'naering', sort: nutritionSort(query.get('rada')), line: KATALOGUR.find(g => g.s === query.get('lina'))?.s })
+      else if (st?.k === 'naering') pop.close()
+    }
+    restore()
+    window.addEventListener('popstate', restore)
+    return () => window.removeEventListener('popstate', restore)
+  }, [])
   const id = useId()
   const panel = useRef<HTMLDivElement | null>(null)
   const aftur = useRef<HTMLElement | null>(null)
@@ -135,7 +168,7 @@ export function Popup() {
     const b = document.body.style
     const prev = { position: b.position, top: b.top, width: b.width }
     b.position = 'fixed'; b.top = `-${y}px`; b.width = '100%'
-    const t = window.setTimeout(() => (document.documentElement.dataset.input==='pointer'?el:el.querySelector<HTMLElement>('.hb-popX'))?.focus({preventScroll:true}), 60)
+    const t = window.setTimeout(() => (document.documentElement.dataset.input!=='key'?el:el.querySelector<HTMLElement>('.hb-popX'))?.focus({preventScroll:true}), 60)
     el.querySelector('.hb-popS')?.scrollTo(0, 0)
     const key = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { pop.close(); return }
@@ -154,8 +187,8 @@ export function Popup() {
       window.scrollTo(0, y)
       lenis?.scrollTo(y, { immediate: true })
       lenis?.start()
-      if (aftur.current?.isConnected) aftur.current.focus({preventScroll:true})
-      else document.querySelector<HTMLElement>('#ofnaemi button')?.focus({preventScroll:true})
+      if (aftur.current?.isConnected && aftur.current !== document.body && aftur.current.getClientRects().length && getComputedStyle(aftur.current).visibility !== 'hidden') aftur.current.focus({preventScroll:true})
+      else [...document.querySelectorAll<HTMLElement>('.hb-navL[aria-controls="hb-fell-vorur"],.hb-braud,#ofnaemi button')].find(x => x.getClientRects().length && getComputedStyle(x).visibility !== 'hidden')?.focus({preventScroll:true})
     }
   }, [on])
   useEffect(() => { if (efni) { panel.current?.querySelector('.hb-popS')?.scrollTo(0, 0); panel.current?.focus({preventScroll:true}) } }, [efni])
@@ -190,8 +223,8 @@ export function Popup() {
           )}
           {v.weight ? <dl className="hb-vDl"><dt>Þyngd</dt><dd>{v.weight}</dd></dl> : null}
           <div className="hb-allergenBlock"><strong>{ofnaemisLina(v)}</strong><h3>Innihald</h3><p><Ingredients text={v.ingredients || 'Innihaldslýsingu vantar. Lestu á umbúðirnar.'} /></p><p className="hb-allergenDisclaimer">{skilmali}</p></div>
-          <h3>Næringargildi í 100 g</h3>{!v.nutritionRows.length && <p>Ekki birt á vefnum.</p>}<table className="hb-vTafla"><tbody>{v.nutritionRows.map((r,i)=><tr key={i}><th scope="row">{r[0]}</th><td>{r[1]}</td></tr>)}</tbody></table>
-          <a href={v.source} target="_blank" rel="noopener noreferrer">Heimild á hberg.is ↗</a>
+          <h3>Næringargildi í 100 g</h3><table className="hb-vTafla"><tbody>{NUTRITION_COLUMNS.map(col => <Fragment key={col.key}><tr className={col.key === 'saturated' || col.key === 'sugars' ? 'sub' : ''}><th scope="row">{col.key === 'saturated' ? 'þar af mettuð' : col.key === 'sugars' ? 'þar af sykurtegundir' : col.title}</th><td>{nutritionValue(v.slug, col.key)}</td></tr>{col.key === 'sugars' && v.nutritionRows.filter(r => /Erýtr[ií]tól/i.test(r[0])).map(r => <tr className="sub" key={r[0]}><th scope="row">þar af erýtritól</th><td>{r[1]}</td></tr>)}</Fragment>)}</tbody></table>
+          <button type="button" className="hb-nutCompare" onClick={() => pop.open({ k: 'naering', sort: 'protein', line: KATALOGUR.find(g => g.items.some(p => p.slug === v.slug))?.s })}>Bera saman við aðrar vörur</button>
           {merkimyndir.length > 0 && (
             <div className="hb-vMerkingar" role="group" aria-label="Merkingar á umbúðum">
               {merkimyndir.map((m) => (
@@ -202,7 +235,6 @@ export function Popup() {
           {merki && dim(merki) ? (
             <div className="hb-vMid"><img src={img(v.slug, `${merki}.webp`)} width={dim(merki)![0]} height={dim(merki)![1]} alt={`${merkNafn[merki]}, ${v.name.is}. Mynd af miða á umbúðum.`} /></div>
           ) : null}
-          <p className="hb-smatt" style={{ marginBottom: '1.4rem' }}>{skilmali}</p>
           <div className="hb-vAct">
             {v.madeToOrder
               ? <button type="button" className="hb-btn hb-casH" onClick={() => pop.open({ k: 'staerra' })}>Panta fyrir félag</button>
@@ -263,6 +295,9 @@ export function Popup() {
   } else if (c?.k === 'staerra') {
     titill='Stærri pakkningar'
     body=<><h2 className="hb-disp">Stærri pakkningar</h2><p className="hb-brod" style={{margin:'1.5rem 0'}}>H-Berg pakkar í stærri einingar fyrir matvælafyrirtæki, matsölustaði og stóreldhús. Spurðu okkur um pakkningar og magn.</p><Eydublad cfg={STAERRA}/></>
+  } else if (c?.k === 'naering') {
+    titill = 'Næringargildi'
+    body = <NutritionOverview key={nutritionVersion} sort={c.sort} line={c.line} />
   } else if (c?.k === 'ofnaemi') {
     titill = 'Ofnæmisyfirlit'
     body = (
@@ -276,8 +311,8 @@ export function Popup() {
 
   return (
     <>
-      <div className={`hb-popB${on ? ' opid' : ''}`} onClick={() => pop.close()} data-bendill="Loka" aria-hidden="true" />
-      <div ref={panel} tabIndex={-1} className={`hb-pop${on ? ' opid' : ''}`} role="dialog" aria-modal="true" aria-labelledby={`${id}-t`}
+      <div className={`hb-popB${c?.k === 'vara' ? ' productSheet' : ''}${on ? ' opid' : ''}`} onClick={() => pop.close()} data-bendill="Loka" aria-hidden="true" />
+      <div ref={panel} tabIndex={-1} className={`hb-pop${c?.k === 'vara' ? ' hb-productSheet' : ''}${on ? ' opid' : ''}`} role="dialog" aria-modal="true" aria-labelledby={`${id}-t`}
         data-lenis-prevent="">
         <div className="hb-popT">
           <span id={`${id}-t`} className="hb-merki" style={{ margin: 0 }}>{titill}</span>

@@ -11,6 +11,7 @@ import {
   skilmali,
   stutt,
 } from "./ofnaemi";
+import { ScrollArrows } from "./scroll-arrows";
 import { pop } from "./popup";
 
 const paths: Record<string, string> = {
@@ -67,7 +68,7 @@ export function AllergenBadges({
           </span>
         ))
       ) : (
-        <span>Enginn nefndur í innihaldi</span>
+        null
       )}
     </span>
   );
@@ -221,6 +222,7 @@ export function AllergenSection() {
             >
               Sjá allt ofnæmisyfirlitið →
             </button>
+            <button className="hb-allergenClear" onClick={() => pop.open({ k: "naering" })}>Sjá næringargildi allra vara</button>
           </div>
           <div className="hb-allergenAnswer">
             {avoid.length ? (
@@ -295,6 +297,7 @@ export function AllergenOverview() {
       <p>
         ● Inniheldur samkvæmt innihaldslýsingu. ○ Ekki nefnt í innihaldslýsingu.
       </p>
+      <ScrollArrows target=".hb-allergenMatrix" />
       <div
         className="hb-allergenMatrix"
         role="region"

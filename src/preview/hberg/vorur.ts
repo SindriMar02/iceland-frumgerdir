@@ -87,11 +87,11 @@ export const PRODUCTS:Product[]=[
       "en": "Súkkulaði og snakk"
     },
     "ingredients": "Innihald: Kókosflögur, kókospálmasykur, sjávarsalt",
-    "nutrition": "Næringargildi í 100 g: Orka 2705/652 kkal Fita 50 g -Þar af mettuð 47 g Kolvetni 42 g -Þar af sykurtegundir 32 g Trefjar 7,0 g Prótein 5,0 g Salt 0,63 g",
+    "nutrition": "Næringargildi í 100 g: Orka 2705 kJ/652 kkal Fita 50 g -Þar af mettuð 47 g Kolvetni 42 g -Þar af sykurtegundir 32 g Trefjar 7,0 g Prótein 5,0 g Salt 0,63 g",
     "nutritionRows": [
       [
         "Orka",
-        "2705/652 kkal"
+        "2705 kJ/652 kkal"
       ],
       [
         "Fita",
@@ -179,11 +179,11 @@ export const PRODUCTS:Product[]=[
       "en": "Bökunarvörur"
     },
     "ingredients": "Innihald: Rauðar linsubaunir",
-    "nutrition": "Næringargildi í 100 g: Orka 573/136 kkal Fita 0,4 g -Þar af mettuð 0,1 g Kolvetni 20 g -Þar af sykurtegundir 1,8 g Trefjar 7,9 g Prótein 9,0 g Salt 0 g",
+    "nutrition": "Næringargildi í 100 g: Orka 573 kJ/136 kkal Fita 0,4 g -Þar af mettuð 0,1 g Kolvetni 20 g -Þar af sykurtegundir 1,8 g Trefjar 7,9 g Prótein 9,0 g Salt 0 g",
     "nutritionRows": [
       [
         "Orka",
-        "573/136 kkal"
+        "573 kJ/136 kkal"
       ],
       [
         "Fita",
@@ -3625,7 +3625,7 @@ export const PRODUCTS:Product[]=[
   }
 ]
 export const ALLERGENS=[{"id": "nuts", "is": "Hnetur", "en": "Hnetur"}, {"id": "peanut", "is": "Jarðhnetur", "en": "Jarðhnetur"}, {"id": "milk", "is": "Mjólk", "en": "Mjólk"}, {"id": "gluten", "is": "Glúten", "en": "Glúten"}, {"id": "soy", "is": "Soja", "en": "Soja"}, {"id": "sesame", "is": "Sesam", "en": "Sesam"}, {"id": "sulphites", "is": "Súlfít", "en": "Súlfít"}, {"id": "mustard", "is": "Sinnep", "en": "Sinnep"}]
-export const CONTACT={"name": "H-Berg ehf.", "email": "hberg@hberg.is", "emailOrders": "pantanir@hberg.is", "emailFundraise": "pantanir@hberg.is", "phone": "565 6500", "phoneHref": "tel:+3545656500", "address": "Grandatröð 12", "postcode": "220 Hafnarfjörður", "kt": "", "mapHref": "https://www.google.com/maps/search/?api=1&query=Grandatröð+12+Hafnarfjörður"}
+export const CONTACT={"name": "H-Berg ehf.", "email": "hberg@hberg.is", "emailOrders": "pantanir@hberg.is", "emailFundraise": "pantanir@hberg.is", "phone": "565 6500", "phoneHref": "tel:+3545656500", "address": "Grandatröð 12", "postcode": "220 Hafnarfjörður", "kt": "", "mapHref": "https://www.google.com/maps/search/?api=1&query=Grandatröð+12+Hafnarfjörður"}
 export const SHOPS=[{"name": "10-11", "href": "https://www.10-11.is", "note": {"is": "", "en": ""}}, {"name": "Albína", "href": "https://hberg.is/soluadilar/", "note": {"is": "Aðalstræti 91, 450 Patreksfjörður", "en": "Aðalstræti 91, 450 Patreksfjörður"}}, {"name": "Bónus", "href": "https://www.bonus.is", "note": {"is": "", "en": ""}}, {"name": "Fjarðarkaup", "href": "https://www.fjardarkaup.is", "note": {"is": "Hólshraun 1, 220 Hafnarfjörður", "en": "Hólshraun 1, 220 Hafnarfjörður"}}, {"name": "Fjölval", "href": "https://hberg.is/soluadilar/", "note": {"is": "Þórsgata 10, 450 Patreksfjörður", "en": "Þórsgata 10, 450 Patreksfjörður"}}, {"name": "Hagkaup", "href": "https://www.hagkaup.is", "note": {"is": "", "en": ""}}, {"name": "Hlíðarkaup", "href": "https://hberg.is/soluadilar/", "note": {"is": "Akurhlíð 1, 550 Sauðárkróki", "en": "Akurhlíð 1, 550 Sauðárkróki"}}, {"name": "Iceland", "href": "https://www.iceland.is", "note": {"is": "", "en": ""}}, {"name": "Kaupfélag Skagfirðinga", "href": "https://www.ks.is", "note": {"is": "Ártorgi 1, 550 Sauðárkrókur", "en": "Ártorgi 1, 550 Sauðárkrókur"}}, {"name": "Kaupfélag Steingrímsfjarðar", "href": "https://www.ksholm.is", "note": {"is": "Höfðatúni 4, 510 Hólmavík", "en": "Höfðatúni 4, 510 Hólmavík"}}, {"name": "Kaupfélag Vestur Húnvetninga", "href": "https://www.kvh.is", "note": {"is": "Strandgötu 1, 530 Hvammstanga", "en": "Strandgötu 1, 530 Hvammstanga"}}, {"name": "Krónan", "href": "https://www.kronan.is", "note": {"is": "", "en": ""}}, {"name": "Melabúðin", "href": "https://hberg.is/soluadilar/", "note": {"is": "Hagamel 39, 107 Reykjavík", "en": "Hagamel 39, 107 Reykjavík"}}, {"name": "N1", "href": "https://www.n1.is", "note": {"is": "", "en": ""}}, {"name": "Nettó", "href": "https://www.netto.is", "note": {"is": "", "en": ""}}, {"name": "Olís", "href": "https://www.olis.is", "note": {"is": "", "en": ""}}, {"name": "Samkaup", "href": "https://www.samkaup.is", "note": {"is": "", "en": ""}}, {"name": "Skeljungur", "href": "https://www.skeljungur.is", "note": {"is": "", "en": ""}}, {"name": "Vöruval Vestmannaeyjum", "href": "https://hberg.is/soluadilar/", "note": {"is": "Vesturvegur 8, 902 Vestmannaeyjar", "en": "Vesturvegur 8, 902 Vestmannaeyjar"}}]
 export const productBySlug=(s:string)=>PRODUCTS.find(p=>p.slug===s)
 export const PK=(slug:string,_kind:'pack'|'open'='pack',size:'s'|'m'|'b'='m')=>`${BASE}hberg/p/${slug}/${size==='s'?400:size==='m'?800:1200}.webp${V}`

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react'
 import { setThemeColor } from '../../lib/preview'
 import {
-  Bendill, C, CSS, Cas, Haus, Merki, Ord, Reveal, faraA, isCompact, isPhone, lenisOf, reduced, step, useMjukSkrun, useWatchdog,
+  Bendill, C, CSS, Cas, Haus, Merki, Ord, Reveal, faraA, isPhone, lenisOf, reduced, step, useMjukSkrun, useWatchdog,
 } from './ui'
 import { Poki, POKA_CSS, SettIPoka, poki } from './poki'
 import { Hledsla, HLEDSLA_CSS } from './hledsla'
@@ -11,13 +11,14 @@ import { SndrBadge } from '../SndrBadge'
 import { Eydublad, EYD_CSS } from './eydublad'
 import { Soluadilar, MERKI_CSS } from './merki'
 import { SPYRJA } from './forms'
-import { KATALOGUR } from './katalogur'
 import { AllergenSection } from './allergen-ui'
+import { ProductBrowser, ProductLines } from './product-browser'
+import { BROWSER_CSS } from './product-browser-style'
 import { EXPERIENCE_CSS } from './experience-style'
 import { ALLERGEN_CSS } from './allergen-style'
 import { PK, PRODUCTS, productBySlug, V } from './vorur'
 import {
-  ERINDI, FYRIRTAEKI, GALLERI, HERO_REITIR, JSON_LD, LINUR, SETNING, SETNING_HRINGUR, SOGUHOPAR, SPJOLD, SPURT, TEXTI,
+  ERINDI, FYRIRTAEKI, HERO_REITIR, JSON_LD, SETNING, SETNING_HRINGUR, SOGUHOPAR, SPJOLD, SPURT, TEXTI,
   TEYMI, TILVITNUN, type Leid,
 } from './data'
 
@@ -66,8 +67,6 @@ function useFramvinda(fn: (el: HTMLElement) => void, deps: unknown[] = []) {
 
 const PAGE_CSS = `
 @media(prefers-reduced-motion:reduce){
-.hb-linur{height:auto!important}.hb-linurP{position:relative!important;height:auto!important;overflow:visible!important}
-.hb-linurL{overflow-x:auto;transform:none!important}.hb-lina2{transform:none!important}
 .hb-bendill{display:none!important}.hb-up,.hb-lina{transform:none!important}
 }
 
@@ -241,54 +240,6 @@ const PAGE_CSS = `
 }
 
 
-.hb-gal{display:flex;flex-direction:column;row-gap:clamp(1rem,9.2593vh,6rem)}
-.hb-galT{width:62vw}
-.hb-galK{overflow:hidden;padding:clamp(1rem,4.5vh,6rem) 0 0}
-.hb-galL{display:flex;gap:clamp(0.5rem,.7vw,2.5rem);padding:0 var(--gut);list-style:none;margin:0;width:max-content}
-.hb-galW{position:relative}
-.hb-galNav{display:none}
-.hb-galL li{width:21.1111vh;flex:none;display:flex;flex-direction:column;gap:.75rem}
-.hb-galI{display:block;width:100%;height:25.9259vh;flex:none;border:0;padding:0;cursor:pointer;background:var(--g);position:relative;
-  transform-origin:50% 100%;transition:transform var(--motion-reveal) var(--motion-out);overflow:hidden}
-.hb-galI img{position:absolute;inset:10%;width:80%;height:80%;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(28,18,12,.3));
-  transform:translateY(130%);transition:transform var(--dur,var(--motion-reveal)) var(--motion-out);transition-delay:var(--d,0s)}
-.on .hb-galI img{transform:none}
-@media (hover:hover) and (pointer:fine) and (min-width:992px){
-  .hb-galL li{overflow:visible}
-.hb-galK{padding-top:clamp(1rem,9vh,6rem);margin-top:clamp(-6rem,-4.5vh,-1rem)}
-  .hb-galL li:hover .hb-galI{transform:scale(1.3)}
-  .hb-galL li:hover ~ li .hb-galI{transform:translateX(15%)}
-  .hb-galL li:has(~ li:hover) .hb-galI{transform:translateX(-15%)}
-}
-/* caption under the tile: a sibling of the zooming button, so it never scales; fades in on hover */
-.hb-galL li{position:relative}
-/* caption is always visible under the tile (no hover discovery); the tile keeps its own height so nothing clips */
-.hb-galInfo{position:relative;display:grid;gap:.2rem;text-align:left;color:var(--c-ink);font-size:clamp(.8rem,.85vw,.95rem);line-height:1.3;pointer-events:none}
-.hb-galInfo b{font-weight:500;overflow-wrap:anywhere;hyphens:auto;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.hb-galInfo small{color:var(--c-ink-med);font-size:.85em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-@media (hover:hover) and (pointer:fine){
-  /* the strip scrolls like a normal row: trackpad swipe, drag, or the arrows */
-  .hb-galK{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding-bottom:3.4rem;cursor:grab;user-select:none;-webkit-user-select:none}
-  .hb-galK::-webkit-scrollbar{display:none}
-  .hb-galK.drag{cursor:grabbing}
-  .hb-galK.drag .hb-galI{pointer-events:none}
-  .hb-galNav{display:flex;gap:.5rem;position:absolute;right:var(--gut);bottom:calc(100% + .25rem);z-index:4}
-  .hb-galNav button{width:2.75rem;height:2.75rem;border-radius:50%;border:1px solid var(--c-lina);background:transparent;color:var(--c-ink);
-    display:grid;place-items:center;cursor:pointer;transition:opacity var(--motion-ui) var(--motion-out)}
-  .hb-galNav button:hover:not(:disabled){background:var(--c-ink);color:var(--c-bg)}
-  .hb-galNav button:disabled{opacity:.3;cursor:default}
-}
-@media (hover:hover) and (pointer:fine) and (max-width:991px){.hb-galK{padding-top:2rem;margin-top:-1rem}.hb-galL li{overflow:visible}}
-@media (max-width:991px){
-  .hb-gal{row-gap:clamp(0.5rem,3.788vh,2.5rem)}
-  .hb-galT{width:auto;padding:0 var(--gut)}
-  .hb-galK{overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;padding-top:0}
-  .hb-galK::-webkit-scrollbar{display:none}
-  .hb-galL li{width:14.714vw;scroll-snap-align:start}.hb-galI{height:19.01vw}
-}
-@media (max-width:479px){.hb-gal{row-gap:clamp(0.5rem,3.75vh,2.5rem)}.hb-galL li{width:34.167vw}.hb-galI{height:44.444vw}}
-
-
 .hb-form{padding:0 var(--gut)}
 .hb-flipar{display:flex;gap:clamp(0.5rem,2.5vw,2.5rem);align-items:baseline;margin-bottom:1.4rem;flex-wrap:wrap}
 .hb-flipar button{border:0;background:none;padding:0;cursor:pointer;color:var(--c-ink-max);transition:none}
@@ -388,31 +339,6 @@ const PAGE_CSS = `
 @media (hover:hover) and (pointer:fine){.hb-sagaR:hover span{background:var(--c-form);color:#172D4D;transform:translateX(.8333vw)}}
 @media (max-width:991px){.hb-sagaR b{font-size:clamp(1.1rem,3.255vw,2.5rem)}}
 @media (max-width:479px){.hb-sagaH{grid-template-columns:1fr}.hb-sagaR b{font-size:clamp(1.5rem,6.4vw,5.25rem)}}
-
-
-.hb-linur{position:relative}
-.hb-linurP{position:sticky;top:0;height:100svh;display:flex;flex-direction:column;justify-content:center;gap:clamp(1rem,6.2963vh,6rem);overflow:hidden}
-.hb-linurL{display:flex;gap:var(--col);padding:0 var(--gut);will-change:transform}
-.hb-lina2{flex:none;width:44.1667vw;height:24.7396vw;display:grid;grid-template-columns:1fr 1fr;border:0;padding:0;cursor:pointer;
-  text-align:left;background:var(--c-el3);color:var(--c-ink);will-change:transform;position:relative}
-.hb-lina2:nth-child(3n+2){background:var(--c-el2)}.hb-lina2:nth-child(3n+3){background:var(--c-el)}
-.hb-lina2 figure{margin:0;background:var(--g);position:relative;overflow:hidden}
-.hb-lina2 figure img{position:absolute;inset:12%;width:76%;height:76%;object-fit:contain;filter:drop-shadow(0 12px 16px rgba(28,18,12,.28));
-  transition:transform var(--motion-reveal) var(--motion-out)}
-
-.hb-lina2 > div{display:flex;flex-direction:column;padding:clamp(0.5rem,1.25vw,2.5rem);gap:.6rem}
-.hb-lina2 h3{margin:0;font-family:var(--f-disp);font-weight:600;font-size:clamp(1.1rem,2.08vw,2.5rem);line-height:1.05;letter-spacing:-.01em}
-.hb-lina2 p{margin:0;font-size:.86rem;color:var(--c-ink-med)}
-.hb-lina2 .hb-lf{margin-top:auto;display:flex;justify-content:space-between;font-size:.8rem}
-@media (max-width:991px){
-  .hb-linur{height:auto !important}
-  .hb-linurP{position:relative;height:auto;overflow:visible}
-  .hb-linurL{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;transform:none !important}
-  .hb-linurL::-webkit-scrollbar{display:none}
-  .hb-lina2{width:39.063vw;height:52.083vw;grid-template-columns:1fr;grid-template-rows:1.1fr 1fr;scroll-snap-align:start;transform:none !important}
-  .hb-lina2 h3{font-size:clamp(1.1rem,3.255vw,2.5rem)}
-}
-@media (max-width:479px){.hb-lina2{width:83.333vw;height:111.111vw}.hb-lina2 h3{font-size:clamp(1.5rem,7vw,5.25rem)}.hb-lina2 > div{padding:clamp(1rem,4vw,6rem)}}
 
 
 .hb-yfirl{display:flex;flex-direction:column;align-items:center;row-gap:clamp(1rem,4.4444vh,6rem);padding:0 var(--gut)}
@@ -572,7 +498,7 @@ function Hero() {
               {PRODUCTS.length} vörur undir eigin merki, pakkaðar í Hafnarfirði. Fást í Bónus, Krónunni, Hagkaup og hjá {VERSLANIR.length - 3} öðrum söluaðilum.
             </span></p>
             <div className="hb-heroCta hb-mask"><div className="hb-up" style={step(4)}>
-              <button className="hb-btn hb-casH" onClick={() => faraA('#vorur')}><Cas t="Skoða vörurnar" /></button>
+              <button className="hb-btn hb-casH" onClick={() => faraA('#allar-vorur')}><Cas t="Skoða vörurnar" /></button>
               <button className="hb-btn sc hb-casH" onClick={(e) => poki.open(true, e)}><Cas t="Pöntun fyrir verslanir" /></button>
             </div></div>
           </div>
@@ -719,104 +645,6 @@ function Kostir() {
   )
 }
 
-function Galleri() {
-  return (
-    <section className="hb-gal" aria-labelledby="hb-gal-t">
-      <Reveal className="hb-galT hb-midja" margin="0px 0px -40% 0px">
-        <Ord id="hb-gal-t" className="hb-disp" text={"Allt H-Berg | í einni | hillu"} />
-      </Reveal>
-      <div className="hb-galW">
-      <GalleriOrvar />
-      <div className="hb-galK">
-        <Reveal as="ul" className="hb-galL" margin="0px 0px -40% 0px">
-          {GALLERI.map((g, i) => (
-            <li key={g.img}>
-              <button className="hb-galI" style={{ ['--g' as string]: g.g, ['--d' as string]: `${(Math.min(i, 10) * 0.06).toFixed(2)}s` }}
-                data-bendill="Skoða" aria-label={`${g.n}, nánar`}
-                onClick={() => pop.open({ k: 'vara', slug: g.img })}>
-                <img src={Ms(g.img)} alt="" width={300} height={340} loading="lazy" decoding="async" />
-              </button>
-              <span className="hb-galInfo" aria-hidden="true">
-                <b>{g.n}</b>
-                <small>{g.a.length > 0 ? `${g.d} · Inniheldur ${g.a.join(', ').toLowerCase()}` : g.d}</small>
-              </span>
-            </li>
-          ))}
-        </Reveal>
-      </div>
-      </div>
-    </section>
-  )
-}
-
-
-const Or = ({ d }: { d: string }) => (
-  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d={d} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-)
-function GalleriOrvar() {
-  const [endar, setEndar] = useState<[boolean, boolean]>([true, false])
-  useEffect(() => {
-    const k = document.querySelector<HTMLElement>('.hb-galK')
-    if (!k) return
-    const upd = () => setEndar([k.scrollLeft < 4, k.scrollLeft > k.scrollWidth - k.clientWidth - 4])
-    upd()
-    k.addEventListener('scroll', upd, { passive: true })
-    window.addEventListener('resize', upd)
-    return () => { k.removeEventListener('scroll', upd); window.removeEventListener('resize', upd) }
-  }, [])
-  const fara = (d: number) => {
-    const k = document.querySelector<HTMLElement>('.hb-galK')
-    if (k) k.scrollBy({ left: d * k.clientWidth * 0.8, behavior: reduced() ? 'auto' : 'smooth' })
-  }
-  return (
-    <div className="hb-galNav">
-      <button type="button" aria-label="Fyrri vörur" disabled={endar[0]} onClick={() => fara(-1)}><Or d="M10 3 5 8l5 5" /></button>
-      <button type="button" aria-label="Næstu vörur" disabled={endar[1]} onClick={() => fara(1)}><Or d="M6 3l5 5-5 5" /></button>
-    </div>
-  )
-}
-
-function GalleriDrift() {
-  useEffect(() => {
-    const k = document.querySelector<HTMLElement>('.hb-galK')
-    const l = document.querySelector<HTMLElement>('.hb-galL')
-    if (!k || !l) return
-    // far tiles scroll in faster than lazy loading fetches them; start them all once the strip is near
-    const pre = new IntersectionObserver(([e]) => { if (e.isIntersecting) { l.querySelectorAll('img').forEach((i) => { i.loading = 'eager' }); pre.disconnect() } }, { rootMargin: '100% 0px' })
-    pre.observe(k)
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return () => pre.disconnect()
-    // drag to scroll; no pointer capture (it kills the tile clicks), and a drag swallows the click it ends on
-    let x0 = 0, s0 = 0, nidri = false, dregid = false
-    const nidur = (e: MouseEvent) => { if (e.button !== 0) return; nidri = true; dregid = false; x0 = e.clientX; s0 = k.scrollLeft }
-    const hreyfa = (e: MouseEvent) => {
-      if (!nidri) return
-      const dx = e.clientX - x0
-      if (!dregid && Math.abs(dx) > 6) { dregid = true; k.classList.add('drag') }
-      if (dregid) { e.preventDefault(); k.scrollLeft = s0 - dx }
-    }
-    const gleypa = (e: Event) => { e.preventDefault(); e.stopPropagation() }
-    const upp = () => {
-      if (!nidri) return
-      nidri = false
-      if (!dregid) return
-      k.classList.remove('drag')
-      k.addEventListener('click', gleypa, { capture: true })
-      window.setTimeout(() => k.removeEventListener('click', gleypa, { capture: true }), 0)
-    }
-    const ekkiDraga = (e: DragEvent) => e.preventDefault()
-    k.addEventListener('mousedown', nidur)
-    k.addEventListener('dragstart', ekkiDraga)
-    window.addEventListener('mousemove', hreyfa)
-    window.addEventListener('mouseup', upp)
-    return () => {
-      pre.disconnect(); k.removeEventListener('mousedown', nidur); k.removeEventListener('dragstart', ekkiDraga)
-      window.removeEventListener('mousemove', hreyfa); window.removeEventListener('mouseup', upp)
-    }
-  }, [])
-  return null
-}
-
-
 function Ofnaemi() { return <AllergenSection /> }
 
 function Form() {
@@ -929,55 +757,6 @@ function Saga() {
   )
 }
 
-
-function Linur() {
-  const PIN = 4
-  const ref = useFramvinda((el) => {
-    const l = el.querySelector<HTMLElement>('.hb-linurL')
-    if (!l) return
-    const cards = [...l.children] as HTMLElement[]
-    if (isCompact() || reduced()) { cards.forEach((c) => { c.style.transform = '' }); return }
-    const r = el.getBoundingClientRect()
-    const total = r.height - window.innerHeight
-    const p = Math.min(1, Math.max(0, -r.top / Math.max(1, total)))
-    const n = cards.length
-    const T = p * (n - 1)
-    const w = cards[0]?.offsetWidth ?? 0
-    const last = cards[n - 1]
-    const room = l.clientWidth - (last ? last.offsetLeft + w : 0)
-    cards.forEach((c, t) => {
-      if (t === 0) { c.style.transform = ''; return }
-      const k = Math.min(1, Math.max(0, T - (t - 1)))
-      let x = -w * 0.8 * t * k
-      
-      if (t === n - 1) x = Math.max(x, room * k - w * 0.2 * k)
-      c.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`
-    })
-  })
-  return (
-    <section className="hb-linur" id="linur" ref={ref} style={{ height: `calc(100svh + ${PIN * 100}svh)` }}>
-      <div className="hb-linurP">
-        <Reveal className="hb-wrap"><Ord className="hb-disp" text="Vörulínur" /></Reveal>
-        <div className="hb-linurL">
-          {LINUR.map((l) => {
-            const f = KATALOGUR.find((x) => x.s === l.s)
-            return (
-              <button className="hb-lina2" key={l.s} data-bendill="Opna" style={{ ['--g' as string]: productBySlug(l.img)?.tint ?? l.g }}
-                onClick={() => pop.open({ k: 'flokkur', s: l.s })}>
-                <figure><img src={M(l.img)} alt="" width={400} height={450} loading="lazy" /></figure>
-                <div>
-                  <h3>{l.t}</h3>
-                  <p>{l.d}</p>
-                  <span className="hb-lf"><span>{f?.items.length ?? 0} vörur</span><span>Skoða ↗</span></span>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    </section>
-  )
-}
 
 function Yfirlysing() {
   const mynd = useRef<HTMLImageElement | null>(null)
@@ -1137,6 +916,7 @@ function Fotur() {
               <a href="#vorur" onClick={(e) => { e.preventDefault(); faraA('#vorur') }}>Vörur</a><br />
               <a href="#linur" onClick={(e) => { e.preventDefault(); faraA('#linur') }}>Vörulínur</a><br />
               <a href="#ofnaemi" onClick={(e) => { e.preventDefault(); faraA('#ofnaemi') }}>Ofnæmisvaldar</a><br />
+              <a href="?naering=1" onClick={(e) => { e.preventDefault(); pop.open({ k: 'naering' }) }}>Næringargildi</a><br />
               <a href="#spurt" onClick={(e) => { e.preventDefault(); faraA('#spurt') }}>Spurt og svarað</a>
             </div>
             <div><small>Fyrirtæki</small>
@@ -1186,27 +966,26 @@ function HbergExperience() {
 
   return (
     <div className="hb-root">
-      <style>{CSS}{PAGE_CSS}{POKA_CSS}{HLEDSLA_CSS}{REGN_CSS}{POP_CSS}{EYD_CSS}{MERKI_CSS}{EXPERIENCE_CSS}</style>
+      <style>{CSS}{PAGE_CSS}{POKA_CSS}{HLEDSLA_CSS}{REGN_CSS}{POP_CSS}{EYD_CSS}{MERKI_CSS}{EXPERIENCE_CSS}{BROWSER_CSS}</style>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <Bendill />
       <Haus />
       <Poki />
       <Popup />
       <Hledsla />
-      <GalleriDrift />
       <main>
         <Hero />
         <Soluadilar />
         <Tilvitnun />
         <Vorur />
         <Kostir />
-        <Galleri />
+        <ProductLines />
+        <ProductBrowser />
         <Ofnaemi />
         <VoruRegn />
         <Form />
         <Um />
         <Saga />
-        <Linur />
         <Yfirlysing />
         <Faq />
         <Fotur />
