@@ -1,0 +1,51 @@
+@import "../../index.css";
+@source "./";
+@source "../PreviewChrome.tsx";
+@source "../PreviewFooter.tsx";
+
+/* T1: retain True Line geometry; the index and repair chapter gain clearer rhythm. */
+:where(button,input,select,textarea){appearance:none}
+[hidden]{display:none!important}
+.bg-chrome{--iy:-26px}
+@media(min-width:768px){
+  .bg-chrome{translate:0 var(--iy);opacity:0;transition:translate .9s cubic-bezier(.23,1,.32,1),opacity .9s ease,background-color .3s}
+  .bg-chrome.bg-arrived{--iy:0px;opacity:1}
+}
+.bg-page #thjonusta{padding-top:clamp(80px,8vw,116px);padding-bottom:clamp(80px,8vw,116px)}
+.bg-service-strip{display:flex;gap:8px;margin-top:24px}
+.bg-service-strip button{position:relative;flex:1;min-width:0;height:74px;border-radius:8px;overflow:hidden;background:#1A1613;opacity:.55;transition:opacity .25s,transform .25s;cursor:pointer}
+.bg-service-strip button[aria-pressed=true]{opacity:1;transform:translateY(-4px)}
+.bg-service-strip img{width:100%;height:100%;object-fit:cover}
+.bg-service-strip span{position:absolute;bottom:0;left:0;padding:3px 5px;background:#0F0D0B;color:#F3F0EA;font:10px 'Geist Mono',monospace}
+.bg-service-thumb{display:none}
+.bg-service-row{transition:background-color .3s}
+.bg-service-row[aria-pressed=true]{background:rgba(243,240,234,.025)}
+.bg-claim-chapter{margin-top:32px;padding-top:24px;border-top:1px solid rgba(243,240,234,.14);display:grid;grid-template-columns:120px 1fr;gap:20px;align-items:center}
+.bg-chapter-current{display:flex;align-items:baseline;gap:8px;overflow:hidden;font-family:'Projekt Blackbird',sans-serif;color:#E8A23D;line-height:1}
+.bg-chapter-current>span{display:block;font-size:84px}
+.bg-chapter-current small{font:12px 'Geist Mono',monospace;color:#A9A399;white-space:nowrap}
+.bg-chapter-arrive{animation:bg-chapter-arrive .7s cubic-bezier(.23,1,.32,1) both}
+@keyframes bg-chapter-arrive{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.bg-claim-chapter nav{display:flex;flex-direction:column}
+.bg-claim-chapter a{display:flex;align-items:center;gap:12px;min-height:44px;font:13px 'Archia',sans-serif;color:#F3F0EA;text-decoration:none}
+.bg-claim-chapter a>span{font:11px 'Geist Mono',monospace;color:#A9A399}
+.bg-claim-chapter a[aria-current=step]>span{color:#E8A23D}
+.bg-claim-chapter a[aria-current=step]{text-decoration:underline;text-underline-offset:5px;text-decoration-color:#E8A23D}
+.bg-workshop-caption{display:flex;justify-content:space-between;gap:16px;margin-top:16px;color:#A9A399;font:10px/1.6 'Geist Mono',monospace;text-transform:uppercase;letter-spacing:.06em}
+.bg-page #verkstaedid p,.bg-page #verkstaedid ul{color:#F3F0EA!important}
+@media(hover:hover) and (pointer:fine){
+  .bg-service-strip button:hover{opacity:1;transform:translateY(-4px)}
+  .bg-claim-chapter a:hover{color:#E8A23D}
+}
+@media(max-width:767px){
+  .bg-service-strip{display:none}
+  .bg-service-thumb{display:block;width:58px;height:76px;object-fit:cover;border-radius:8px;align-self:center;flex-shrink:0}
+  .bg-claim-chapter{grid-template-columns:100px 1fr;gap:18px}
+  .bg-chapter-current>span{font-size:64px}
+  .bg-claim-chapter a{font-size:12px}
+  .bg-workshop-caption{flex-direction:column;gap:3px}
+}
+@media(prefers-reduced-motion:reduce){
+  .bg-chrome{--iy:0px;opacity:1;transition:none}
+  .bg-page *, .bg-page *::before,.bg-page *::after{animation-duration:0s!important;transition-duration:0s!important}
+}
