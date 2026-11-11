@@ -36,7 +36,25 @@ const TOK: [string, string][] = [
   ['--c-form', '#FFFDF8'], ['--c-rautt', '#204A8E'], ['--c-lina', 'rgba(23,45,77,.14)'],
 ]
 
+const oldFonts = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('letur') === 'gamalt'
+// The entry HTML is shared and read only for this pass. Add font preloads at module load.
+if (typeof document !== 'undefined' && !oldFonts) {
+  for (const weight of ['YoungSerif-latin', 'InstrumentSans-latin']) {
+    const href = D(`ys/${weight}.woff2`)
+    if (!document.head.querySelector(`link[data-hb-font="${weight}"]`)) {
+      const link = document.createElement('link')
+      link.rel = 'preload'; link.as = 'font'; link.type = 'font/woff2'; link.crossOrigin = 'anonymous'; link.href = href; link.dataset.hbFont = weight
+      document.head.appendChild(link)
+    }
+  }
+}
 export const CSS = `
+/* Young Serif has one weight: the 100 to 900 range stops faux bold on 600 to 800 headings. */
+@font-face{font-family:'HB Young';src:url('${D('ys/YoungSerif-latin.woff2')}') format('woff2');font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'HB Young';src:url('${D('ys/YoungSerif-latin-ext.woff2')}') format('woff2');font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113}
+@font-face{font-family:'HB Instrument';src:url('${D('ys/InstrumentSans-latin.woff2')}') format('woff2');font-weight:400 700;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'HB Instrument';src:url('${D('ys/InstrumentSans-latin-ext.woff2')}') format('woff2');font-weight:400 700;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113}
+
 @font-face{font-family:'HB Bricolage';src:url('${import.meta.env.BASE_URL}hberg/fonts/bricolage-latin.woff2') format('woff2');
   font-weight:200 800;font-stretch:75% 100%;font-style:normal;font-display:swap;
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
@@ -59,22 +77,22 @@ ${TOK.map(([k, v]) => `@property ${k}{syntax:'<color>';inherits:true;initial-val
   --ease:cubic-bezier(.17,.17,0,1);
   --ease-popup:cubic-bezier(.6,0,0,1);
   --ease-cas:cubic-bezier(.2,0,.1,1);
-  --f-disp:'HB Bricolage',system-ui,sans-serif;
+  --f-disp:${oldFonts ? "'HB Bricolage',system-ui,sans-serif" : "'HB Young',Georgia,serif"};
   
-  --gut:2.0833vw;
-  --gap:22.2222vh;
+  --gut:clamp(0.5rem,2.0833vw,2.5rem);
+  --gap:clamp(3rem,22.2222vh,9rem);
   --band:var(--gap);
-  --col:1.0417vw;
+  --col:clamp(0.5rem,1.0417vw,2.5rem);
   background:var(--c-bg); color:var(--c-ink);
-  font-family:'HB General',system-ui,sans-serif;
+  font-family:${oldFonts ? "'HB General'" : "'HB Instrument'"},system-ui,sans-serif;font-synthesis:none;
   font-size:clamp(16px,1.0417vw,19px); line-height:1.5;
   -webkit-font-smoothing:antialiased;
-  transition:${TOK.map(([k]) => `${k} .6s var(--ease)`).join(',')};
+  transition:none;
   display:flex;flex-direction:column;row-gap:var(--gap);
   overflow-x:clip;
 }
-@media (max-width:991px){.hb-root{--gut:2.604vw;--gap:12.121vh;--col:1.302vw}}
-@media (max-width:479px){.hb-root{--gut:max(2.778vw,12px);--gap:12.5vh;--col:2.778vw}}
+@media (max-width:991px){.hb-root{--gut:clamp(0.5rem,2.604vw,2.5rem);--gap:clamp(2.5rem,12.121vh,6rem);--col:clamp(0.5rem,1.302vw,2.5rem)}}
+@media (max-width:479px){.hb-root{--gut:max(clamp(0.5rem,2.778vw,2.5rem),12px);--gap:clamp(2.5rem,12.5vh,5rem);--col:clamp(0.5rem,2.778vw,2.5rem)}}
 .hb-root > main{display:contents}
 .hb-root[data-theme="dark"]{--c-bg:#102038;--c-el:#213855;--c-el2:#2E4663;--c-el3:#3D5671;--c-ink:#FAF5EA;--c-ink-med:rgba(250,245,234,.7);--c-ink-max:rgba(250,245,234,.5);--c-btn:#FAF5EA;--c-btn-t:#172D4D;--c-lina:rgba(250,245,234,.2)}
 
@@ -92,14 +110,14 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
 :where(.hb-root) button{font:inherit;color:inherit}
 
 
-.hb-disp{font-family:var(--f-disp);font-weight:600;letter-spacing:-.03em;line-height:1;
-  font-size:4.17vw;margin:0;text-wrap:balance}
-@media (max-width:991px){.hb-disp{font-size:6.25vw;line-height:.95}}
-@media (max-width:479px){.hb-disp{font-size:min(13.333vw,3.4rem);line-height:.95}}
-.hb-sub{font-family:var(--f-disp);font-weight:600;letter-spacing:-.02em;line-height:1.05;
-  font-size:2.08vw;margin:0}
-@media (max-width:991px){.hb-sub{font-size:3.255vw}}
-@media (max-width:479px){.hb-sub{font-size:max(1.35rem,6.4vw)}}
+.hb-disp{font-family:var(--f-disp);font-weight:800;overflow-wrap:anywhere;letter-spacing:-.01em;line-height:1.04;
+  font-size:clamp(1.5rem,4.17vw,5.25rem);margin:0;text-wrap:balance}
+@media (max-width:991px){.hb-disp{font-size:clamp(1.5rem,6.25vw,5.25rem);line-height:1.04}}
+@media (max-width:479px){.hb-disp{font-size:clamp(2.25rem,min(12vw,3.2rem),6rem);line-height:1.06}}
+.hb-sub{font-family:var(--f-disp);font-weight:700;overflow-wrap:anywhere;letter-spacing:-.01em;line-height:1.05;
+  font-size:clamp(1.1rem,2.08vw,2.5rem);margin:0}
+@media (max-width:991px){.hb-sub{font-size:clamp(1.1rem,3.255vw,2.5rem)}}
+@media (max-width:479px){.hb-sub{font-size:clamp(1.5rem,max(1.35rem,6.4vw),5.25rem)}}
 .hb-merki{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;
   color:var(--c-ink-med);margin:0 0 1em}
 .hb-brod{max-width:52ch;margin:0;color:var(--c-ink)}
@@ -123,7 +141,7 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
 .on .hb-disp .hb-lina,.hb-disp.on .hb-lina,.hb-disp .hb-lina.on,
 .on .hb-sub .hb-lina,.hb-sub .hb-lina.on{transform:translateY(0)}
 .hb-root.hb-allt .hb-disp .hb-lina,.hb-root.hb-allt .hb-sub .hb-lina{transform:translateY(0)}
-.hb-up{transform:translateY(100%);transition:transform var(--dur,1s) var(--ease);transition-delay:var(--d,0s);will-change:transform}
+.hb-up{transform:translateY(100%);transition:transform var(--dur,var(--motion-reveal)) var(--motion-out);transition-delay:var(--d,0s);will-change:transform}
 .hb-lina{transform:translateY(108%)}
 .on .hb-up,.hb-up.on{transform:translateY(0)}
 
@@ -131,13 +149,13 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
 
 
 .hb-btn{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border:0;cursor:pointer;
-  padding:1.042vw 2.865vw;min-height:44px;font-size:.92rem;font-weight:500;
-  background:var(--c-btn);color:var(--c-btn-t);transition:transform .15s ease-out}
+  padding:clamp(0.5rem,1.042vw,2.5rem) clamp(0.5rem,2.865vw,2.5rem);min-height:44px;font-size:.92rem;font-weight:500;
+  background:var(--c-btn);color:var(--c-btn-t);transition:transform var(--motion-fast) var(--motion-out)}
 .hb-btn.sc{background:var(--c-btn2);color:var(--c-btn2-t)}
-.hb-btn.stor{width:100%;padding:1.615vw 2.865vw}
+.hb-btn.stor{width:100%;padding:clamp(0.5rem,1.615vw,2.5rem) clamp(0.5rem,2.865vw,2.5rem)}
 .hb-btn:active{transform:scale(.97)}
-@media (max-width:991px){.hb-btn{padding:1.628vw 7.161vw}.hb-btn.stor{padding:2.279vw 7.161vw}}
-@media (max-width:479px){.hb-btn{padding:3.472vw 9vw}.hb-btn.stor{padding:4.861vw 9vw}}
+@media (max-width:991px){.hb-btn{padding:clamp(0.5rem,1.628vw,2.5rem) clamp(1rem,7.161vw,6rem)}.hb-btn.stor{padding:clamp(0.5rem,2.279vw,2.5rem) clamp(1rem,7.161vw,6rem)}}
+@media (max-width:479px){.hb-btn{padding:clamp(0.5rem,3.472vw,2.5rem) clamp(1rem,9vw,6rem)}.hb-btn.stor{padding:clamp(1rem,4.861vw,6rem) clamp(1rem,9vw,6rem)}}
 .hb-btn[disabled]{opacity:.45;cursor:not-allowed}
 
 .hb-hnappur{display:inline-flex;align-items:center;justify-content:center;border:0;cursor:pointer;min-height:48px;padding:0 1.5rem;
@@ -147,7 +165,7 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
 
 .hb-cas{display:inline-block;height:1.25em;line-height:1.25em;overflow:hidden;vertical-align:top}
 .hb-casL{display:block;white-space:pre;height:1.25em}
-.hb-casL > span{display:inline-block;transition:transform var(--cd,.5s) var(--ease-cas);
+.hb-casL > span{display:inline-block;transition:transform var(--cd,var(--motion-reveal)) var(--motion-out);
   transition-delay:calc(var(--i,0) * var(--cs,.02s))}
 @media (hover:hover) and (pointer:fine){
   .hb-casH:hover .hb-casL > span,.hb-casH:focus-visible .hb-casL > span{transform:translateY(-100%)}
@@ -155,8 +173,8 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
 
 
 .hb-nobg{display:inline-flex;align-items:center;gap:.45em;min-height:44px;font-weight:500;cursor:pointer;
-  background:none;border:0;padding:0;color:var(--c-ink);transition:color .2s ease-out}
-.hb-nobg i{font-style:normal;display:inline-block;transition:transform .2s ease-out}
+  background:none;border:0;padding:0;color:var(--c-ink);transition:none}
+.hb-nobg i{font-style:normal;display:inline-block;transition:transform var(--motion-ui) var(--motion-out)}
 @media (hover:hover) and (pointer:fine){.hb-nobg:hover{color:var(--c-ink-med)}.hb-nobg:hover i{transform:translateX(.417vw)}}
 
 
@@ -171,15 +189,15 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
   min-height:max(2.5vw,44px);padding:0 .35rem;box-shadow:0 1px 0 rgba(23,45,77,.06)}
 .hb-navL{display:inline-flex;align-items:center;gap:.4rem;padding:0 1rem;font-size:.9rem;font-weight:500;white-space:nowrap;
   border:0;background:none;cursor:pointer;color:inherit;min-height:max(2.5vw,44px)}
-.hb-navL svg{transition:transform .2s cubic-bezier(.23,1,.32,1)}
+.hb-navL svg{transition:transform var(--motion-ui) var(--motion-out)}
 .hb-navL[aria-expanded="true"] svg{transform:rotate(180deg)}
 .hb-navH{position:relative;display:flex}
 
 .hb-fell{position:absolute;top:calc(100% + .5rem);left:0;min-width:15.5rem;background:var(--c-hdr);color:var(--c-hdr-t);
   border-radius:var(--r,14px);padding:.45rem;box-shadow:0 18px 40px -12px rgba(23,45,77,.28),0 0 0 1px rgba(23,45,77,.06);
   opacity:0;transform:translateY(-6px);transform-origin:top left;visibility:hidden;
-  transition:opacity .18s ease-out,transform .2s cubic-bezier(.23,1,.32,1),visibility 0s .2s}
-.hb-fell.opid{opacity:1;transform:none;visibility:visible;transition:opacity .18s ease-out,transform .2s cubic-bezier(.23,1,.32,1),visibility 0s}
+  transition:opacity var(--motion-ui) var(--motion-out),transform var(--motion-ui) var(--motion-out),visibility 0s var(--motion-ui)}
+.hb-fell.opid{opacity:1;transform:none;visibility:visible;transition:opacity var(--motion-ui) var(--motion-out),transform var(--motion-ui) var(--motion-out),visibility 0s}
 .hb-fell a,.hb-fell button{display:flex;flex-direction:column;align-items:flex-start;width:100%;padding:.6rem .75rem;
   border:0;background:none;cursor:pointer;color:inherit;text-align:left;border-radius:calc(var(--r,14px) - 4px);font-size:.92rem}
 .hb-fell small{font-size:.78rem;color:color-mix(in srgb,var(--c-hdr-t) 58%,transparent)}
@@ -189,9 +207,9 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
   place-items:center;padding:0;flex:none;color:var(--c-hdr-t)}
 .hb-braud span{position:relative;width:18px;height:10px;display:block}
 .hb-braud i{position:absolute;left:0;right:0;height:1.5px;background:currentColor;display:block;
-  transition:translate .2s var(--ease) .2s,rotate .2s var(--ease) 0s,opacity .1s linear .2s}
+  transition:translate var(--motion-ui) var(--motion-out) var(--motion-ui),rotate var(--motion-ui) var(--motion-out) 0s,opacity var(--motion-fast) linear var(--motion-ui)}
 .hb-braud i:nth-child(1){top:0}.hb-braud i:nth-child(2){top:4.25px}.hb-braud i:nth-child(3){top:8.5px}
-.hb-haus.opin .hb-braud i{transition:translate .2s var(--ease) 0s,rotate .2s var(--ease) .2s,opacity .1s linear 0s}
+.hb-haus.opin .hb-braud i{transition:translate var(--motion-ui) var(--motion-out) 0s,rotate var(--motion-ui) var(--motion-out) var(--motion-ui),opacity var(--motion-fast) linear 0s}
 .hb-haus.opin .hb-braud i:nth-child(1){translate:0 4.25px;rotate:-45deg}
 .hb-haus.opin .hb-braud i:nth-child(2){opacity:0}
 .hb-haus.opin .hb-braud i:nth-child(3){translate:0 -4.25px;rotate:-135deg}
@@ -199,8 +217,8 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
 
 .hb-panK{position:absolute;top:100%;right:0;overflow:hidden;pointer-events:none;display:none}
 .hb-pan{pointer-events:auto;background:var(--c-hdr);color:var(--c-hdr-t);transform:translateY(-101%);
-  visibility:hidden;transition:transform .4s var(--ease),visibility 0s .4s}
-.hb-pan.opid{transform:none;visibility:visible;transition:transform .4s var(--ease),visibility 0s}
+  visibility:hidden;transition:transform var(--motion-panel) var(--motion-out),visibility 0s var(--motion-panel)}
+.hb-pan.opid{transform:none;visibility:visible;transition:transform var(--motion-panel) var(--motion-out),visibility 0s}
 
 @media (max-width:991px){
   .hb-haus{top:0;left:0;right:0;align-items:center;padding:calc(.5rem + env(safe-area-inset-top)) var(--gut) .5rem;
@@ -223,27 +241,27 @@ html:has(.hb-root),body:has(.hb-root){background-color:#FAF5EA}
   color:color-mix(in srgb,var(--c-hdr-t) 55%,transparent)}
 .hb-valRod{display:grid;gap:2px}
 .hb-valRod a{display:flex;align-items:center;min-height:52px;padding:0 .9rem;background:var(--c-el);overflow:hidden;border-radius:10px}
-.hb-valRod a span{display:block;transform:translateY(105%);transition:transform .2s cubic-bezier(.4,0,1,1)}
-.hb-pan.opid .hb-valRod a span{transform:none;transition:transform .55s var(--ease);transition-delay:calc(.08s + var(--i,0) * .04s)}
+.hb-valRod a span{display:block;transform:translateY(105%);transition:transform var(--motion-ui) var(--motion-out)}
+.hb-pan.opid .hb-valRod a span{transform:none;transition:transform var(--motion-reveal) var(--motion-out);transition-delay:calc(.08s + var(--i,0) * .04s)}
 .hb-valPan .hb-btn{margin-top:.9rem}
 
 
 .hb-bendill{position:fixed;top:0;left:0;z-index:90;pointer-events:none;border-radius:999px;
-  display:grid;place-items:center;color:var(--c-btn-t);width:8.854vw;height:8.854vw;margin:-4.427vw 0 0 -4.427vw;
+  display:grid;place-items:center;color:var(--c-btn-t);width:8.854vw;height:8.854vw;margin:clamp(-6rem,-4.427vw,-1rem) 0 0 clamp(-6rem,-4.427vw,-1rem);
   font-size:.92rem;font-weight:500;will-change:transform}
 .hb-bendill i{display:block;position:absolute;inset:0;border-radius:inherit;background:var(--c-btn);
-  transform:scale(.1177);transition:transform .4s var(--ease),background .4s var(--ease)}
+  transform:scale(.1177);transition:transform var(--motion-panel) var(--motion-out)}
 .hb-bendill.stor i{transform:scale(1)}
 .hb-bendill.yta i{transform:scale(.106)}
 .hb-bendill.stor.yta i{transform:scale(.9)}
-.hb-bendill b{position:relative;font-weight:500;opacity:0;transition:opacity .25s var(--ease)}
+.hb-bendill b{position:relative;font-weight:500;opacity:0;transition:opacity var(--motion-ui) var(--motion-out)}
 .hb-bendill.stor b{opacity:1}
-.hb-bendill{opacity:0;transition:opacity .3s var(--ease)}.hb-bendill.syn{opacity:1}
+.hb-bendill{opacity:0;transition:opacity var(--motion-panel) var(--motion-out)}.hb-bendill.syn{opacity:1}
 .hb-root.hb-laest .hb-bendill{opacity:0!important}
 @media (hover:none),(pointer:coarse){.hb-bendill{display:none}}
 
 @media (prefers-reduced-motion:reduce){
-  .hb-root *{transition-duration:.15s !important;animation-duration:.15s !important}
+  .hb-root *{transition:none !important;animation:none !important}
   .hb-up{transform:none !important}
 }
 .hb-root.hb-allt .hb-up{transform:translateY(0)}
@@ -373,7 +391,7 @@ export function Cas({ t }: { t: string }) {
   const st = (0.15 * k) / n
   const line = ch.map((c, i) => <span key={i} style={{ ['--i' as string]: i }}>{c === ' ' ? ' ' : c}</span>)
   return (
-    <span className="hb-cas" style={{ ['--cd' as string]: `${(0.5 * k).toFixed(3)}s`, ['--cs' as string]: `${st.toFixed(4)}s` }}>
+    <span className="hb-cas" style={{ ['--cd' as string]: 'var(--motion-reveal)', ['--cs' as string]: `${st.toFixed(4)}s` }}>
       <span className="hb-casL">{line}</span>
       <span className="hb-casL" aria-hidden="true">{line}</span>
     </span>
@@ -509,7 +527,7 @@ export function Haus() {
     e.preventDefault()
     const compact = isCompact()
     setOpid(null)
-    if (l.poki) { window.setTimeout(() => poki.open(true), compact ? 400 : 0); return }
+    if (l.poki) { const opening = { detail: e.detail, currentTarget: e.currentTarget }; window.setTimeout(() => poki.open(true, opening), compact ? 400 : 0); return }
     if (l.fn) { window.setTimeout(l.fn, compact ? 400 : 0); return }
     window.setTimeout(() => faraA(l.h), compact ? 400 : 0)
   }
@@ -531,13 +549,13 @@ export function Haus() {
                 onClick={(e) => {setOpid(opid === g.id ? null : g.id); const key=e.detail===0; window.setTimeout(()=>{ const p=document.getElementById(`hb-fell-${g.id}`); (key?p?.querySelector<HTMLElement>('a'):p)?.focus({preventScroll:true})},30)}}>
                 {g.t}<Ör />
               </button>
-              <div id={`hb-fell-${g.id}`} tabIndex={-1} className={`hb-fell${opid === g.id ? ' opid' : ''}`}>
+              <div id={`hb-fell-${g.id}`} tabIndex={-1} className={`hb-fell${opid === g.id ? ' opid' : ''}`}><div className="hb-fellInner">
                 {g.rows.map((r) => (
                   <a key={r.h} href={r.h} tabIndex={opid === g.id ? 0 : -1} onClick={(e) => fara(e, r)}>
                     {r.t}{r.d ? <small>{r.d}</small> : null}
                   </a>
                 ))}
-              </div>
+              </div></div>
             </div>
           ))}
           <a className="hb-navL hb-casH" href={SAMBAND.h} onClick={(e) => fara(e, SAMBAND)}><Cas t={SAMBAND.t} /></a>

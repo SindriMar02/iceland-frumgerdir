@@ -120,7 +120,7 @@ export const MERKI_CSS = `
 .hb-soluS ul{display:flex;width:max-content;align-items:center;margin:0;padding:0;list-style:none}
 .hb-soluS li{flex:none;display:flex;align-items:center}
 .hb-soluS img{display:block;height:calc(clamp(30px,2.6vw,44px) * var(--h,1));width:auto;max-width:9.5rem;object-fit:contain;
-  transition:transform .35s var(--ease)}
+  transition:transform var(--motion-panel) var(--motion-out)}
 @media (hover:hover) and (pointer:fine){.hb-soluS li:hover img{transform:scale(1.06)}}
 .hb-soluS li.flis{background:#172D4D;border-radius:12px;padding:.45rem .9rem}
 .hb-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}

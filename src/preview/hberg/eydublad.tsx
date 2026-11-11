@@ -19,20 +19,20 @@ const netfangGott = (v: string) => /^\S+@\S+\.\S+$/.test(v.trim())
 
 export const EYD_CSS = `
 .hb-eyd{display:grid;gap:1rem;min-width:0}
-.hb-eydT{margin:0;font-family:var(--f-disp);font-weight:600;font-size:clamp(1.5rem,2.08vw,2.4rem);line-height:1.05;letter-spacing:-.02em}
+.hb-eydT{margin:0;font-family:var(--f-disp);font-weight:600;font-size:clamp(1.5rem,2.08vw,2.4rem);line-height:1.05;letter-spacing:-.01em}
 .hb-eydL{margin:0;max-width:44ch}
 .hb-eyd .hb-reitir{grid-template-columns:1fr 1fr}
 .hb-reitir select{width:100%;border:0;background:var(--c-form);color:#172D4D;font:inherit;font-size:16px;appearance:none;-webkit-appearance:none;
-  padding:1.7rem 2.6rem .55rem 1.04vw;min-height:4.063vw;border-radius:var(--r,0);
+  padding:1.7rem 2.6rem .55rem clamp(0.5rem,1.04vw,2.5rem);min-height:4.063vw;border-radius:var(--r,0);
   background-image:linear-gradient(45deg,transparent 50%,#172D4D 50%),linear-gradient(135deg,#172D4D 50%,transparent 50%);
   background-position:calc(100% - 1.3rem) 55%,calc(100% - .95rem) 55%;background-size:.4rem .4rem;background-repeat:no-repeat}
 @media (max-width:991px){.hb-reitir select{min-height:6.51vw;padding-left:var(--gut)}}
-@media (max-width:479px){.hb-reitir select{min-height:13.889vw;padding-left:4vw}.hb-eyd .hb-reitir{grid-template-columns:1fr}}
+@media (max-width:479px){.hb-reitir select{min-height:13.889vw;padding-left:clamp(1rem,4vw,6rem)}.hb-eyd .hb-reitir{grid-template-columns:1fr}}
 .hb-eyd .hb-reitir label.valid select:not(:focus-visible),.hb-eyd .hb-reitir label.gott select:not(:focus-visible){outline:0}
 
-.hb-reitir input,.hb-reitir textarea{padding-left:1.04vw}
-@media (max-width:991px){.hb-reitir input,.hb-reitir textarea{padding-left:1.6vw}}
-@media (max-width:479px){.hb-reitir input,.hb-reitir textarea{padding-left:4vw}}
+.hb-reitir input,.hb-reitir textarea{padding-left:clamp(0.5rem,1.04vw,2.5rem)}
+@media (max-width:991px){.hb-reitir input,.hb-reitir textarea{padding-left:clamp(0.5rem,1.6vw,2.5rem)}}
+@media (max-width:479px){.hb-reitir input,.hb-reitir textarea{padding-left:clamp(1rem,4vw,6rem)}}
 .hb-root a.hb-btn{color:var(--c-btn-t)}
 .hb-root a.hb-btn.sc{color:var(--c-btn2-t)}
 .hb-skra{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 1.4rem;cursor:pointer;position:relative;

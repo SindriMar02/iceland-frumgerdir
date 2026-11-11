@@ -3,9 +3,10 @@ import { ASSETS } from './assets.gen'
 import { Eydublad } from './eydublad'
 import { STAERRA } from './forms'
 import { KATALOGUR } from './katalogur'
-import { langt, ofnaemisLina, skilmali, stutt } from './ofnaemi'
+import { ofnaemisLina, skilmali } from './ofnaemi'
+import { AllergenOverview, Ingredients } from './allergen-ui'
 import { SettIPoka } from './poki'
-import { ALLERGENS, PK, PRODUCTS, SHOPS, img, productBySlug } from './vorur'
+import { PK, SHOPS, img, productBySlug } from './vorur'
 
 
 
@@ -29,14 +30,14 @@ const usePop = () => useSyncExternalStore(sub, snap, snap)
 
 export const POP_CSS = `
 .hb-popB{position:fixed;inset:0;z-index:84;background:rgba(16,32,56,.35);opacity:0;pointer-events:none;
-  transition:opacity .45s var(--ease-popup)}
+  transition:opacity var(--motion-panel) var(--motion-emphasis)}
 .hb-popB{visibility:hidden}
 .hb-popB.opid{opacity:1;pointer-events:auto;visibility:visible}
-.hb-popB:not(.opid){transition:opacity .45s var(--ease-popup),visibility 0s .45s}
+.hb-popB:not(.opid){transition:opacity var(--motion-panel) var(--motion-emphasis),visibility 0s var(--motion-panel)}
 .hb-pop{position:fixed;top:0;right:0;bottom:0;z-index:85;width:50vw;background:var(--c-bg);color:var(--c-ink);
   transform:translateX(100%);visibility:hidden;display:flex;flex-direction:column;
-  transition:transform .6s var(--ease-popup),visibility 0s .6s}
-.hb-pop.opid{transform:none;visibility:visible;transition:transform .6s var(--ease-popup),visibility 0s}
+  transition:transform var(--motion-reveal) var(--motion-emphasis),visibility 0s var(--motion-reveal)}
+.hb-pop.opid{transform:none;visibility:visible;transition:transform var(--motion-reveal) var(--motion-emphasis),visibility 0s}
 
 @media (max-width:991px){.hb-pop{width:100vw}.hb-popB{display:none}}
 .hb-popT{display:flex;justify-content:space-between;align-items:center;gap:1rem;
@@ -45,7 +46,7 @@ export const POP_CSS = `
   display:grid;place-items:center;flex:none;border-radius:999px}
 .hb-popS{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:0 var(--gut) calc(var(--gut) * 2 + env(safe-area-inset-bottom));
   -webkit-overflow-scrolling:touch}
-.hb-popS .hb-mask > *{transform:translateY(105%);transition:transform .9s var(--ease);transition-delay:calc(.25s + var(--i,0) * .06s)}
+.hb-popS .hb-mask > *{transform:translateY(105%);transition:transform var(--motion-reveal) var(--motion-out);transition-delay:calc(.25s + var(--i,0) * .06s)}
 .hb-pop.opid .hb-popS .hb-mask > *{transform:none}
 .hb-vMynd{background:var(--grunnur,var(--c-el));aspect-ratio:4/3;position:relative;margin-bottom:1.6rem;display:flex;align-items:center;justify-content:center;gap:4%;padding:7% 6%}
 .hb-vMynd img{height:100%;width:auto;max-width:48%;object-fit:contain;border-radius:12px}
@@ -82,8 +83,8 @@ export const POP_CSS = `
 @media (max-width:479px){.hb-fLisi li{grid-template-columns:3rem minmax(0,1fr)}.hb-fLisi li > :last-child{grid-column:2}
   .hb-fLisi .hb-fM{width:3rem;height:3.4rem}}
 .hb-verslun{list-style:none;margin:1.6rem 0 2rem;padding:0;display:grid;gap:.35rem}
-.hb-verslun a{display:grid;gap:.15rem;padding:1rem 1.1rem;background:var(--c-el);border-radius:var(--r,0);min-height:44px;transition:background .25s var(--ease)}
-.hb-verslun b{font-family:var(--f-disp);font-weight:600;font-size:1.5rem;line-height:1.1;letter-spacing:-.02em}
+.hb-verslun a{display:grid;gap:.15rem;padding:1rem 1.1rem;background:var(--c-el);border-radius:var(--r,0);min-height:44px;transition:none}
+.hb-verslun b{font-family:var(--f-disp);font-weight:600;font-size:1.5rem;line-height:1.1;letter-spacing:-.01em}
 .hb-verslun span{font-size:.88rem;color:var(--c-ink-med)}
 @media (hover:hover) and (pointer:fine){.hb-verslun a:hover{background:var(--c-el2)}}
 .hb-pEgg{list-style:none;margin:1.4rem 0 2rem;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}
@@ -119,13 +120,14 @@ export function Popup() {
 
   
   const efni = p ? JSON.stringify(p) : ''
-  useEffect(() => { if (efni) panel.current?.querySelector('.hb-popS')?.scrollTo(0, 0) }, [efni])
 
   useEffect(() => {
     const el = panel.current
     if (!el) return
     if (!on) return
-    aftur.current = document.activeElement as HTMLElement | null
+    if (document.activeElement !== el) aftur.current = document.activeElement as HTMLElement | null
+    const siblings = [...el.parentElement!.children].filter(x=>x!==el&&!x.classList.contains('hb-popB')&&!x.hasAttribute('inert'))
+    siblings.forEach(x=>x.setAttribute('inert',''))
     const lenis = (window as unknown as { __hbLenis?: { stop: () => void; start: () => void; scrollTo: (y: number, o?: object) => void } }).__hbLenis
     lenis?.stop()
     
@@ -138,22 +140,25 @@ export function Popup() {
     const key = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { pop.close(); return }
       if (e.key !== 'Tab') return
-      const f = [...el.querySelectorAll<HTMLElement>('button,a[href],input,textarea,select')].filter((x) => !x.hasAttribute('disabled'))
+      const f = [...el.querySelectorAll<HTMLElement>('button,a[href],input,textarea,select,summary,[tabindex="0"]')].filter((x) => !x.hasAttribute('disabled') && x.tabIndex >= 0 && x.getClientRects().length && getComputedStyle(x).visibility !== 'hidden')
       if (!f.length) return
       if (e.shiftKey && (document.activeElement === f[0] || document.activeElement === el)) { e.preventDefault(); f[f.length - 1].focus() }
       else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus() }
     }
     window.addEventListener('keydown', key)
     return () => {
+      siblings.forEach(x=>x.removeAttribute('inert'))
       window.clearTimeout(t)
       window.removeEventListener('keydown', key)
       b.position = prev.position; b.top = prev.top; b.width = prev.width
       window.scrollTo(0, y)
       lenis?.scrollTo(y, { immediate: true })
       lenis?.start()
-      aftur.current?.focus?.()
+      if (aftur.current?.isConnected) aftur.current.focus({preventScroll:true})
+      else document.querySelector<HTMLElement>('#ofnaemi button')?.focus({preventScroll:true})
     }
   }, [on])
+  useEffect(() => { if (efni) { panel.current?.querySelector('.hb-popS')?.scrollTo(0, 0); panel.current?.focus({preventScroll:true}) } }, [efni])
 
   let titill = ''
   let body = null
@@ -184,28 +189,9 @@ export function Popup() {
             </ul>
           )}
           {v.weight ? <dl className="hb-vDl"><dt>Þyngd</dt><dd>{v.weight}</dd></dl> : null}
-          <h3>Innihald</h3><p className="hb-brod">{v.ingredients || 'Ekki birt á vefnum. Staðfest á umbúðum.'}</p>
+          <div className="hb-allergenBlock"><strong>{ofnaemisLina(v)}</strong><h3>Innihald</h3><p><Ingredients text={v.ingredients || 'Innihaldslýsingu vantar. Lestu á umbúðirnar.'} /></p><p className="hb-allergenDisclaimer">{skilmali}</p></div>
           <h3>Næringargildi í 100 g</h3>{!v.nutritionRows.length && <p>Ekki birt á vefnum.</p>}<table className="hb-vTafla"><tbody>{v.nutritionRows.map((r,i)=><tr key={i}><th scope="row">{r[0]}</th><td>{r[1]}</td></tr>)}</tbody></table>
           <a href={v.source} target="_blank" rel="noopener noreferrer">Heimild á hberg.is ↗</a>
-          <h3 style={{ margin: '1.6rem 0 .6rem', fontWeight: 500 }}>Ofnæmisvaldar</h3>
-          {v.allergens === null ? (
-            <p className="hb-brod">Ofnæmisgögn eru óstaðfest. Staðfest á umbúðum.</p>
-          ) : (
-            <table className="hb-vTafla">
-              <caption className="hb-sr" style={{ position: 'absolute', left: -9999 }}>Ofnæmisvaldar</caption>
-              <tbody>
-                {ALLERGENS.map((x) => {
-                  const hef = v.allergens!.includes(x.id)
-                  return (
-                    <tr key={x.id} className={hef ? 'hef' : ''}>
-                      <th scope="row">{langt(x.id)}</th>
-                      <td><i aria-hidden="true">{hef ? '●' : '?'}</i> {hef ? 'Nefnt í innihaldi' : 'Óstaðfest, sjá umbúðir'}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
           {merkimyndir.length > 0 && (
             <div className="hb-vMerkingar" role="group" aria-label="Merkingar á umbúðum">
               {merkimyndir.map((m) => (
@@ -283,32 +269,7 @@ export function Popup() {
       <>
         <div className="hb-mask"><p className="hb-merki" style={{ margin: 0 }}>Allt á einum stað</p></div>
         <div className="hb-mask"><h2 className="hb-disp" style={{ ['--i' as string]: 1 }}>Ofnæmisyfirlit</h2></div>
-        <p className="hb-brod" style={{ marginTop: '1rem' }}>● nefnt í innihaldi, ? óstaðfest. Staðfest á umbúðum.</p>
-        <div className="hb-matrix" role="region" aria-label="Ofnæmisyfirlit, fletta til hliðar" tabIndex={0}>
-          <table>
-            <caption className="hb-sr" style={{ position: 'absolute', left: -9999 }}>Ofnæmisvaldar eftir vörum</caption>
-            <thead>
-              <tr><th scope="col" style={{ textAlign: 'left' }}>Vara</th>{ALLERGENS.map((x) => <th key={x.id} scope="col">{stutt(x.id)}</th>)}</tr>
-            </thead>
-            <tbody>
-              {PRODUCTS.map((v) => (
-                <tr key={v.slug}>
-                  <th scope="row"><button type="button" className="hb-nobg" style={{ minHeight: 44 }} onClick={() => pop.open({ k: 'vara', slug: v.slug })}>{v.name.is}</button></th>
-                  {ALLERGENS.map((x) => {
-                    const hef = v.allergens?.includes(x.id)
-                    return (
-                      <td key={x.id} className={v.allergens === null ? 'oljost' : hef ? 'hef' : ''}>
-                        <span aria-hidden="true">{v.allergens === null ? '?' : hef ? '●' : '?'}</span>
-                        <span className="hb-sr" style={{ position: 'absolute', left: -9999 }}>{v.allergens === null ? 'ekki vitað' : hef ? 'inniheldur' : 'óstaðfest, staðfest á umbúðum'}</span>
-                      </td>
-                    )
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="hb-smatt">{skilmali}</p>
+        <AllergenOverview />
       </>
     )
   }

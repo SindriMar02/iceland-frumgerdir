@@ -33,30 +33,6 @@ const person: Reitur[] = [
 ]
 
 
-export const PONTUN: Eydublad = {
-  key: 'pontun',
-  to: CONTACT.emailOrders,
-  ref: 'HB',
-  title: 'Hver pantar?',
-  subject: 'Pöntun',
-  subjectField: 'company',
-  brief: 'Pöntun til H-Berg',
-  submit: 'Skoða pöntunina',
-  contactEither: true,
-  fields: [
-    { id: 'company', kind: 'text', label: 'Verslun eða fyrirtæki', required: true, auto: 'organization' },
-    { id: 'kt', kind: 'text', label: 'Kennitala' },
-    { id: 'type', kind: 'select', label: 'Tegund rekstrar', options: [
-      o('Verslun', 'Verslun'), o('Söluturn eða bensínstöð', 'Söluturn eða bensínstöð'), o('Veitingastaður eða kaffihús', 'Veitingastaður eða kaffihús'),
-      o('Hótel eða gistiheimili', 'Hótel eða gistiheimili'), o('Heildsali eða dreifingaraðili', 'Heildsali eða dreifingaraðili'), o('Annað', 'Annað'),
-    ], heild: true },
-    { id: 'town', kind: 'text', label: 'Staður eða afhendingarheimilisfang', heild: true },
-    { id: 'when', kind: 'text', label: 'Hvenær þarf að afhenda', heild: true, placeholder: 'Til dæmis fyrir lok mánaðarins…' },
-    ...person,
-    { id: 'message', kind: 'textarea', label: 'Annað', rows: 3 },
-  ],
-}
-
 export const SPYRJA: Eydublad = {
   key: 'spyrja',
   to: CONTACT.email,

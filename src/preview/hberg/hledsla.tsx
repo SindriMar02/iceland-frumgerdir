@@ -1,3 +1,4 @@
+import { MOTION } from './experience-style'
 import { V } from './vorur'
 import { useEffect, useState } from 'react'
 import { isCompact, lenisOf } from './ui'
@@ -5,13 +6,7 @@ import { isCompact, lenisOf } from './ui'
 
 
 
-const HERO = 1900
-
-const E = {
-  preloader: 'cubic-bezier(.5,0,0,1)',
-  hero1: 'cubic-bezier(.64,0,.47,.57)',
-  hero2: 'cubic-bezier(.16,.56,.44,1)',
-}
+const HERO = MOTION.reveal
 
 export const HLEDSLA_CSS = `
 html:has(.hb-root.hb-laest){overflow:hidden}
@@ -23,7 +18,7 @@ html:has(.hb-root.hb-laest){overflow:hidden}
 .hb-plota{position:fixed;inset:0;z-index:95;background:#204A8E;transform:translateY(100%);
   display:grid;place-items:center;pointer-events:none}
 .hb-plotaM{overflow:hidden;width:min(58vw,19rem)}
-.hb-plotaM img{width:100%;height:auto;display:block;transform:translateY(105%);transition:transform 1s cubic-bezier(.17,.17,0,1) .2s}
+.hb-plotaM img{width:100%;height:auto;display:block;transform:translateY(105%);transition:transform var(--motion-reveal) var(--motion-out) var(--motion-fast)}
 .hb-plota.inn .hb-plotaM img{transform:none}
 `
 
@@ -64,28 +59,28 @@ export function Hledsla() {
       const ride = !isCompact()
       
       anims.push(plota.animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
-        { duration: 1500, easing: E.preloader, fill: 'forwards' }))
+        { duration: MOTION.reveal, easing: MOTION.emphasis, fill: 'forwards' }))
       setInn(true)
       
       timers.push(window.setTimeout(() => {
         root.classList.remove('hb-hledB0'); root.classList.add('hb-hledU')
         const k: Keyframe[] = [
-          { transform: 'translateY(100vh)', easing: E.hero1 },
-          { transform: 'translateY(31.9vh)', offset: 1 / 3, easing: E.hero2 },
+          { transform: 'translateY(100vh)', easing: MOTION.emphasis },
+          { transform: 'translateY(31.9vh)', offset: 1 / 3, easing: MOTION.out },
           { transform: 'translateY(0)' },
         ]
-        anims.push(heroP.animate(k, { duration: 1500, fill: 'forwards' }))
-        if (ride && haus) anims.push(haus.animate(k, { duration: 1500, fill: 'forwards' }))
+        anims.push(heroP.animate(k, { duration: MOTION.reveal, fill: 'forwards' }))
+        if (ride && haus) anims.push(haus.animate(k, { duration: MOTION.reveal, fill: 'forwards' }))
       }, HERO))
       
       timers.push(window.setTimeout(() => {
         root.classList.remove('hb-hled')
         root.querySelectorAll('.hb-hero .hb-heroT, .hb-hero .hb-rist').forEach((n) => n.classList.add('on'))
-      }, HERO + 500))
+      }, HERO + MOTION.fast))
       
-      timers.push(window.setTimeout(() => { root.classList.remove('hb-laest'); lenisOf()?.start() }, HERO + 1860))
+      timers.push(window.setTimeout(() => { root.classList.remove('hb-laest'); lenisOf()?.start() }, HERO + MOTION.reveal))
       
-      timers.push(window.setTimeout(klara, HERO + 2100))
+      timers.push(window.setTimeout(klara, HERO + MOTION.reveal + MOTION.fast))
     }
 
     lenisOf()?.stop()
