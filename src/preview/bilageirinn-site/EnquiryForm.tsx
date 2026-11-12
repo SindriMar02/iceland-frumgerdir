@@ -27,10 +27,10 @@ const REPLY = F.reply.options as string[]
 const EMAIL_REPLY = REPLY[1]
 const OTHER_INSURER = copy.formRuntime_state_003
 const META: Record<string, { Icon: typeof Car; hint: string }> = {
-  [TJON]: { Icon: ShieldAlert, hint: 'Árekstur, beygla eða lakkskemmd' },
-  [VIDGERD]: { Icon: Wrench, hint: 'Bilun, skoðun, ljós eða bremsur' },
+  [TJON]: { Icon: ShieldAlert, hint: 'Árekstur, beygla, lakkskemmd' },
+  [VIDGERD]: { Icon: Wrench, hint: 'Bilun, skoðun, ljós, bremsur' },
   [SMURNING]: { Icon: Droplet, hint: 'Mobil smurstöðin' },
-  [HJOL]: { Icon: CircleDot, hint: 'Bíllinn leitar til hliðar eða dekk slitna' },
+  [HJOL]: { Icon: CircleDot, hint: 'Bíllinn leitar til hliðar' },
   [ANNAD]: { Icon: MessageSquare, hint: 'Spurning eða annað erindi' },
 }
 
@@ -174,14 +174,14 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
   }
 
   return (
-    <form onSubmit={submit} noValidate action={RELAY} method="post" className="bg-enquiry rounded-[26px] border p-6 md:p-9" style={{ borderColor: HAIR, background: 'rgba(26,22,19,0.94)', fontFamily: BODY }}>
+    <form onSubmit={submit} noValidate action={RELAY} method="post" className="bg-enquiry @container rounded-[26px] border p-5 sm:p-7 md:p-9" style={{ borderColor: HAIR, background: 'rgba(26,22,19,0.94)', fontFamily: BODY }}>
       <input type="hidden" name="site" value="bilageirinn" />
       {/* progress: one amber segment per step, the current one filling */}
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-[12px] uppercase tracking-[0.2em]" style={{ fontFamily: MONO, color: AMBER }}>Skref {si + 1} af {steps.length} · {labels[step]}</p>
-        <p className="inline-flex items-center gap-2 text-[12.5px]" style={{ color: MUT }}>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <p className="whitespace-nowrap text-[12px] uppercase tracking-[0.2em]" style={{ fontFamily: MONO, color: AMBER }}>Skref {si + 1} af {steps.length} · {labels[step]}</p>
+        <p className="inline-flex items-center gap-2 whitespace-nowrap text-[12.5px]" style={{ color: MUT }}>
           <span aria-hidden className={`inline-block h-2 w-2 rounded-full ${status.open && !reduced ? 'bg-open-pulse' : ''}`} style={{ background: status.open ? '#7CCB7C' : MUT }} />
-          <span className="hidden sm:inline">{status.text}</span>
+          <span>{status.text}</span>
         </p>
       </div>
       <div className="mt-3 flex gap-1.5" aria-hidden>
@@ -198,24 +198,24 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
         </p>
       )}
 
-      <div ref={boxRef} className="relative mt-7 min-h-[300px]">
+      <div ref={boxRef} className="relative mt-7">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div key={step} {...anim}>
             {step === 'erindi' && (
               <fieldset>
-                <legend className="mb-4" style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', color: INK }}>Hvað getum við gert?</legend>
-                <div className="grid gap-2 sm:grid-cols-2" role="radiogroup">
+                <legend className="mb-4 [text-wrap:balance]" style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', color: INK }}>Hvað getum við gert?</legend>
+                <div className="grid gap-2 @xl:grid-cols-2" role="radiogroup">
                   {ERINDI.map((o, n) => {
                     const on = v.erindi === o
                     const { Icon, hint } = META[o]
                     return (
-                      <label key={o} className={`bg-pick relative flex min-h-[64px] cursor-pointer items-center gap-4 rounded-[18px] border px-4 py-3 ${o === ANNAD ? 'sm:col-span-2' : ''}`}
+                      <label key={o} className={`bg-pick relative flex min-h-[64px] cursor-pointer items-center gap-4 rounded-[18px] border px-4 py-3 ${o === ANNAD ? '@xl:col-span-2' : ''}`}
                         style={{ borderColor: on ? AMBER : HAIR, background: on ? 'rgba(232,162,61,0.1)' : 'transparent' }}>
                         <input type="radio" name="erindi" value={o} checked={on} data-first={n === 0 ? '' : undefined} onChange={() => pick(o)} className="absolute inset-0 cursor-pointer opacity-0" />
                         <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ background: on ? AMBER : SURF, color: on ? DARKINK : AMBER }}><Icon size={18} strokeWidth={1.9} aria-hidden /></span>
-                        <span className="min-w-0">
+                        <span className="min-w-0 flex-1">
                           <span className="block text-[16.5px] font-semibold" style={{ color: INK }}>{o}</span>
-                          <span className="block text-[13.5px]" style={{ color: MUT }}>{hint}</span>
+                          <span className="block text-[13.5px] leading-snug [text-wrap:pretty]" style={{ color: MUT }}>{hint}</span>
                         </span>
                         <ArrowRight size={16} aria-hidden className="bg-pick-arrow ml-auto shrink-0" style={{ color: AMBER }} />
                       </label>
@@ -243,7 +243,7 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
                     <ErrorLine id="plate-error" text={errors.plate} />
                   </div>
                 ) : (
-                  <div className="grid gap-x-8 md:grid-cols-2">
+                  <div className="grid gap-x-8 @lg:grid-cols-2">
                     <Field k="make" v={v} set={set} err={errors.make} required first />
                     <Field k="model" v={v} set={set} err={errors.model} required />
                   </div>
@@ -252,7 +252,7 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
                   <Check k="foreign_plate" v={v} set={set} />
                   <Check k="no_plate" v={v} set={set} />
                 </div>
-                <div className="grid gap-x-8 md:grid-cols-2">
+                <div className="grid gap-x-8 @lg:grid-cols-2">
                   <Field k="year" v={v} set={set} err={errors.year} inputMode="numeric" />
                   <Field k="mileage" v={v} set={set} err={errors.mileage} inputMode="numeric" />
                 </div>
@@ -266,7 +266,7 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
                 {g.oil && <Tip>Smurstöðin svarar líka beint í síma <a className="underline underline-offset-4" href="tel:+3544366901">436 6901</a>.</Tip>}
                 {g.claim && (
                   <>
-                    <div className="grid gap-x-8 md:grid-cols-2">
+                    <div className="grid gap-x-8 @lg:grid-cols-2">
                       <Field k="damage_date" v={v} set={set} type="date" first />
                       <Select k="insurer" v={v} set={set} />
                       {v.insurer === OTHER_INSURER && <Field k="other_insurer" v={v} set={set} />}
@@ -277,7 +277,7 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
                     <Field k="rental" v={v} set={set} area help={copy.form_enquiryForm_002} />
                   </>
                 )}
-                {g.repair && (<><div className="grid gap-x-8 md:grid-cols-2"><Select k="subtopic" v={v} set={set} first /><Field k="warning" v={v} set={set} /></div><Field k="inspection" v={v} set={set} area /></>)}
+                {g.repair && (<><div className="grid gap-x-8 @lg:grid-cols-2"><Select k="subtopic" v={v} set={set} first /><Field k="warning" v={v} set={set} /></div><Field k="inspection" v={v} set={set} area /></>)}
                 {g.oil && <Field k="last_oil" v={v} set={set} first />}
                 {g.wheel && (<><Field k="alignment_reason" v={v} set={set} area first /><Field k="wheel_changes" v={v} set={set} area /><Field k="inspection" v={v} set={set} area /></>)}
                 {g.date && <Field k="preferred_date" v={v} set={set} type="date" help={copy.form_help_002} />}
@@ -289,7 +289,7 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
             {step === 'thu' && (
               <div>
                 <StepTitle>Hvernig náum við í þig?</StepTitle>
-                <div className="grid gap-x-8 md:grid-cols-2">
+                <div className="grid gap-x-8 @lg:grid-cols-2">
                   <Field k="name" v={v} set={set} err={errors.name} autoComplete="name" first required />
                   <Field k="phone" v={v} set={set} err={errors.phone} type="tel" autoComplete="tel" inputMode="tel" required />
                 </div>
@@ -319,15 +319,21 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
                       ['Erindi', v.erindi, 0],
                       ...(g.vehicle ? [['Bíll', v.no_plate ? [v.make, v.model].filter(Boolean).join(' ') : v.plate, 1] as [string, string, number]] : []),
                       ['Lýsing', v.message ? (v.message.length > 90 ? v.message.slice(0, 90) + '…' : v.message) : '–', steps.indexOf('nanar')],
-                    ].map(([k, val, to]) => (
-                      <div key={k as string} className="flex items-baseline justify-between gap-4 border-b py-2 last:border-b-0" style={{ borderColor: HAIR }}>
-                        <dt style={{ color: MUT }}>{k}</dt>
-                        <dd className="flex min-w-0 items-baseline gap-3 text-right" style={{ color: INK }}>
-                          <span className="min-w-0 [overflow-wrap:anywhere]">{val || '–'}</span>
-                          <button type="button" onClick={() => goTo(to as number)} aria-label={`Breyta: ${k}`} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full" style={{ color: AMBER }}><Pencil size={14} aria-hidden /></button>
-                        </dd>
-                      </div>
-                    ))}
+                    ].map(([k, val, to]) => {
+                      const long = k === 'Lýsing'
+                      return (
+                        <div key={k as string} className="border-b py-2 last:border-b-0" style={{ borderColor: HAIR }}>
+                          <div className="flex items-center justify-between gap-4">
+                            <dt className="shrink-0" style={{ color: MUT }}>{k}</dt>
+                            <span className="flex min-w-0 items-center gap-2">
+                              {!long && <dd className="min-w-0 text-right [overflow-wrap:anywhere]" style={{ color: INK }}>{val || '–'}</dd>}
+                              <button type="button" onClick={() => goTo(to as number)} aria-label={`Breyta: ${k}`} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ color: AMBER }}><Pencil size={14} aria-hidden /></button>
+                            </span>
+                          </div>
+                          {long && <dd className="pb-1 text-[14.5px] leading-relaxed [overflow-wrap:anywhere]" style={{ color: INK }}>{val || '–'}</dd>}
+                        </div>
+                      )
+                    })}
                   </dl>
                 </div>
                 <p className="mt-4 text-[14px] leading-relaxed" style={{ color: MUT }}>{copy.form_enquiryForm_019}</p>
@@ -347,18 +353,20 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
         </div>
       )}
 
-      <div className="mt-7 flex flex-wrap items-center gap-3">
+      <div className="mt-7 flex flex-wrap items-center gap-2 @sm:gap-3">
+        <div className="flex basis-full gap-2 @sm:basis-auto @sm:gap-3">
         {si > 0 && (
-          <button type="button" onClick={() => goTo(si - 1)} className="bg-btn inline-flex min-h-12 items-center gap-2 rounded-full border px-5 text-[15px]" style={{ borderColor: HAIR, color: INK }}>
-            <ArrowLeft size={16} aria-hidden />Til baka
+          <button type="button" onClick={() => goTo(si - 1)} aria-label="Til baka" className="bg-btn inline-flex min-h-12 items-center gap-2 rounded-full border px-4 text-[15px] @sm:px-5" style={{ borderColor: HAIR, color: INK }}>
+            <ArrowLeft size={16} aria-hidden /><span className="hidden whitespace-nowrap @sm:inline">Til baka</span>
           </button>
         )}
         {step !== 'erindi' && (
-          <button type="submit" disabled={state === 'sending'} className="bg-btn bg-btn-solid inline-flex min-h-12 items-center gap-2 rounded-full px-7 text-[15px] font-semibold disabled:opacity-60" style={{ background: AMBER, color: DARKINK }}>
+          <button type="submit" disabled={state === 'sending'} className="bg-btn bg-btn-solid inline-flex min-h-12 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[15px] font-semibold disabled:opacity-60 flex-1 justify-center @sm:flex-none @sm:px-7" style={{ background: AMBER, color: DARKINK }}>
             {step === 'thu' ? <><Send size={16} strokeWidth={2.2} aria-hidden />{state === 'sending' ? copy.sendingEnquiry : copy.sendEnquiry}</> : <>Áfram<ArrowRight size={16} aria-hidden /></>}
           </button>
         )}
-        <a href={`tel:${phoneFor[1]}`} className="bg-btn ml-auto inline-flex min-h-12 items-center gap-2 rounded-full px-3 text-[14.5px]" style={{ color: INK }}>
+        </div>
+        <a href={`tel:${phoneFor[1]}`} className="bg-btn ml-auto inline-flex min-h-12 items-center gap-2 whitespace-nowrap rounded-full px-3 text-[14.5px]" style={{ color: INK }}>
           <Phone size={15} strokeWidth={2.2} aria-hidden />{phoneFor[0]}
         </a>
       </div>
@@ -368,7 +376,7 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
 }
 
 function StepTitle({ children }: { children: ReactNode }) {
-  return <p className="mb-2" style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', color: INK }}>{children}</p>
+  return <p className="mb-2 [text-wrap:balance]" style={{ fontFamily: EBOLD, textTransform: 'uppercase', fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', color: INK }}>{children}</p>
 }
 function Tip({ children }: { children: ReactNode }) {
   return <p className="mt-3 border-l-2 pl-4 text-[15px] leading-relaxed" style={{ borderColor: AMBER, color: INK }}>{children}</p>
@@ -377,7 +385,7 @@ function ErrorLine({ id, text }: { id: string; text?: string }) {
   return <p id={id} role={text ? 'alert' : undefined} className="mt-2 text-[14px]" style={{ color: ERR, fontFamily: BODY }}>{text || ''}</p>
 }
 
-const labelCls = 'block text-[12px] uppercase tracking-[0.18em]'
+const labelCls = 'block text-[12px] uppercase leading-relaxed tracking-[0.16em] [text-wrap:balance]'
 const inputCls = 'mt-2 block w-full border-0 border-b bg-transparent px-0 py-2.5 text-[17px] outline-none transition-colors focus:border-[#E8A23D]'
 
 function Field({ k, v, set, err, area, type = 'text', help, required, first, counter, ...rest }: {
@@ -409,7 +417,7 @@ function Select({ k, v, set, first }: { k: string; v: Vals; set: (k: string, val
     <div className="pt-5">
       <label htmlFor={`bg-${k}`} className={labelCls} style={{ fontFamily: MONO, color: MUT }}>{f.label}</label>
       <select id={`bg-${k}`} name={k} data-first={first ? '' : undefined} value={v[k] || ''} onChange={e => set(k, e.target.value)} className={`${inputCls} appearance-none`} style={{ borderColor: 'rgba(243,240,234,0.28)', color: INK, fontFamily: BODY, colorScheme: 'dark' }}>
-        {(f.options || []).map(o => <option key={o} value={o} style={{ background: SURF }}>{o || copy.selectPurpose || 'Veldu'}</option>)}
+        {(f.options || []).map(o => <option key={o} value={o} style={{ background: SURF }}>{o || 'Veldu'}</option>)}
       </select>
     </div>
   )
