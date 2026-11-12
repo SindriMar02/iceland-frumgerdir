@@ -1719,14 +1719,43 @@ function Stars({ value = 5, size = 16 }: { value?: number; size?: number }) {
 }
 
 const REVIEW_MS = 7000
+const LIVE_REVIEWS = 'https://sndr-reviews.sindri-381.workers.dev/?site=bilageirinn'
+interface LiveReview { name: string; profile: string | null; stars: number; original: string; originalLang: string | null; english: string | null; uri: string | null }
+interface Live { rating: number | null; count: number | null; mapsUri: string | null; reviews: LiveReview[] }
+type Shown = Review & { stars?: number; profile?: string | null }
+/** Fresh from Google when the section comes near (never stored anywhere); the saved reviews stay as the fallback. */
+function useLiveReviews(near: boolean) {
+  const [live, setLive] = useState<Live | null>(null)
+  useEffect(() => {
+    if (!near || live) return
+    const ctl = new AbortController()
+    fetch(LIVE_REVIEWS, { signal: ctl.signal }).then(r => r.json()).then(d => { if (d?.ok && typeof d.rating === 'number') setLive(d) }).catch(() => { /* saved reviews stay */ })
+    return () => ctl.abort()
+  }, [near, live])
+  return live
+}
 function Reviews() {
   const { t, lang } = useT()
   const reduced = useReducedMotion()
-  const all = t.ui.reviews as Review[]
+  const saved = t.ui.reviews as Review[]
   const [i, setI] = useState(0)
   const [paused, setPaused] = useState(false)
   const ref = useRef<HTMLElement>(null)
   const inView = useInView(ref, { margin: '-20% 0px' })
+  const near = useInView(ref, { margin: '900px 0px', once: true })
+  const live = useLiveReviews(near)
+  const all: Shown[] = useMemo(() => {
+    if (!live) return saved
+    const fresh: Shown[] = live.reviews.map(x => {
+      const useEnglish = lang === 'en' && x.originalLang !== 'en' && !!x.english
+      return { name: x.name, source: 'Google', quote: useEnglish ? x.english! : x.original, translated: useEnglish, stars: x.stars, profile: x.profile }
+    })
+    const seen = new Set(fresh.map(x => x.name.trim().toLowerCase()))
+    return [...fresh, ...saved.filter(x => !seen.has(x.name.trim().toLowerCase()))]
+  }, [live, saved, lang])
+  const ratingValue = live?.rating ?? 4
+  const ratingText = ratingValue.toFixed(1).replace('.', lang === 'is' ? ',' : '.')
+  const countText = live?.count != null ? (lang === 'is' ? `${live.count} umsagnir á Google` : `${live.count} reviews on Google`) : t.ui.reviewsGoogle.replace(/^4[,.]0 (af|of) 5 · /, '')
   /* the featured review changes by itself while the section is on screen; hover, focus or a hidden tab pause it */
   useEffect(() => {
     if (reduced || paused || !inView) return
@@ -1738,10 +1767,10 @@ function Reviews() {
     document.addEventListener('visibilitychange', vis)
     return () => document.removeEventListener('visibilitychange', vis)
   }, [])
-  const r = all[i]
-  const byline = (x: Review) => `${x.name} · ${x.source}${x.translated ? ` · ${t.ui.reviewsTranslatedNote}` : ''}`
-  const rating = (x: Review) => x.source === 'Google'
-    ? <Stars value={5} size={15} />
+  const r = all[i % all.length]
+  const byline = (x: Shown) => `${x.name} · ${x.source}${x.translated ? ` · ${t.ui.reviewsTranslatedNote}` : ''}`
+  const rating = (x: Shown) => x.source === 'Google'
+    ? <Stars value={x.stars ?? 5} size={15} />
     : <span className="inline-flex items-center gap-1.5 text-[12px] tracking-[0.14em] uppercase" style={{ fontFamily: MONO, color: AMBER }}><ThumbsUp size={14} strokeWidth={2} aria-hidden />{lang === 'is' ? 'Mælir með' : 'Recommends'}</span>
   return (
     <section ref={ref} className="border-t py-24 md:py-36" style={{ borderColor: HAIR, background: BG }}>
@@ -1753,12 +1782,12 @@ function Reviews() {
             </h2>
           </Rise>
           <Rise>
-            <a href="https://www.google.com/maps/search/B%C3%ADlageirinn+ehf+Gr%C3%B3fin+14a+Reykjanesb%C3%A6" target="_blank" rel="noreferrer"
+            <a href={live?.mapsUri ?? 'https://www.google.com/maps/search/B%C3%ADlageirinn+ehf+Gr%C3%B3fin+14a+Reykjanesb%C3%A6'} target="_blank" rel="noreferrer"
               className="bg-rating group flex items-center gap-4 rounded-[20px] border px-5 py-4" style={{ borderColor: HAIR, background: SURFACE }}>
-              <span style={{ fontFamily: DISPLAY, fontSize: '2.6rem', lineHeight: 1, color: INK }}>4,0</span>
+              <span className="tabular-nums" style={{ fontFamily: DISPLAY, fontSize: '2.6rem', lineHeight: 1, color: INK }}>{ratingText}</span>
               <span className="flex flex-col gap-1.5">
-                <Stars value={4} size={18} />
-                <span className="text-[13px]" style={{ fontFamily: BODY, color: INK }}>{t.ui.reviewsGoogle.replace(/^4[,.]0 (af|of) 5 · /, '')}</span>
+                <Stars value={ratingValue} size={18} />
+                <span className="text-[13px]" style={{ fontFamily: BODY, color: INK }}>{countText}</span>
               </span>
               <ArrowUpRight size={18} aria-hidden className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" style={{ color: AMBER }} />
             </a>
@@ -1792,12 +1821,12 @@ function Reviews() {
             <ul className="mt-2">
               {all.map((x, n) => (
                 <li key={x.name} className="border-b" style={{ borderColor: HAIR }}>
-                  <button type="button" onClick={() => setI(n)} aria-pressed={n === i}
+                  <button type="button" onClick={() => setI(n)} aria-pressed={n === i % all.length}
                     className="bg-review-pick flex min-h-[52px] w-full items-center justify-between gap-4 py-2 text-left">
                     <span className="flex items-center gap-3">
                       <span aria-hidden className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold transition-colors duration-300"
                         style={{ background: n === i ? AMBER : SURFACE, color: n === i ? DARKINK : INK, fontFamily: BODY }}>{x.name.trim().charAt(0)}</span>
-                      <span className="text-[15.5px] transition-colors" style={{ fontFamily: BODY, color: n === i ? INK : MUT }}>{x.name}</span>
+                      <span className="text-[15.5px] transition-colors" style={{ fontFamily: BODY, color: n === i % all.length ? INK : MUT }}>{x.name}</span>
                     </span>
                     <span className="text-[11px] tracking-[0.16em] uppercase" style={{ fontFamily: MONO, color: n === i ? AMBER : MUT }}>{x.source}</span>
                   </button>
@@ -1809,11 +1838,13 @@ function Reviews() {
                 className="bg-btn inline-flex h-11 w-11 items-center justify-center rounded-full border" style={{ borderColor: HAIR, color: INK }}><ChevronLeft size={18} aria-hidden /></button>
               <button type="button" aria-label={lang === 'is' ? 'Næsta umsögn' : 'Next review'} onClick={() => setI(n => (n + 1) % all.length)}
                 className="bg-btn inline-flex h-11 w-11 items-center justify-center rounded-full border" style={{ borderColor: HAIR, color: INK }}><ChevronRight size={18} aria-hidden /></button>
-              <span className="ml-2 text-[12px] tabular-nums tracking-[0.14em]" style={{ fontFamily: MONO, color: MUT }}>{String(i + 1).padStart(2, '0')} / {String(all.length).padStart(2, '0')}</span>
+              <span className="ml-2 text-[12px] tabular-nums tracking-[0.14em]" style={{ fontFamily: MONO, color: MUT }}>{String((i % all.length) + 1).padStart(2, '0')} / {String(all.length).padStart(2, '0')}</span>
             </div>
           </div>
         </div>
-        <p className="mt-10 text-[13px]" style={{ fontFamily: MONO, color: MUT }}>{t.ui.reviewsSource}</p>
+        <p className="mt-10 text-[13px]" style={{ fontFamily: MONO, color: MUT }}>
+          {t.ui.reviewsSource}{live ? (lang === 'is' ? ' Einkunn og nýjustu umsagnir sóttar beint frá ' : ' Rating and latest reviews straight from ') : ''}{live && <span translate="no">Google Maps</span>}{live ? '.' : ''}
+        </p>
       </div>
     </section>
   )
