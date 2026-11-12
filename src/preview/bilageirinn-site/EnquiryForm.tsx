@@ -232,7 +232,7 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
                 {!v.no_plate ? (
                   <div className="pt-2">
                     <label htmlFor="bg-plate" className={labelCls} style={{ fontFamily: MONO, color: MUT }}>{F.plate.label} *</label>
-                    <div className="mt-2 inline-flex items-stretch overflow-hidden rounded-[10px] border-2" style={{ borderColor: errors.plate ? ERR : INK, background: '#F3F0EA' }}>
+                    <div className="bg-plate mt-2 inline-flex items-stretch overflow-hidden rounded-[10px] border-2" style={{ borderColor: errors.plate ? ERR : INK, background: '#F3F0EA' }}>
                       <span aria-hidden className="flex w-8 items-end justify-center pb-1 text-[10px] font-bold" style={{ background: '#1D4FA0', color: '#F3F0EA', fontFamily: BODY }}>IS</span>
                       <input id="bg-plate" name="plate" data-first value={v.plate || ''} maxLength={F.plate.max} autoCapitalize="characters" autoComplete="off" spellCheck={false}
                         onChange={e => set('plate', v.foreign_plate ? e.target.value.toLocaleUpperCase('is') : formatPlate(e.target.value))}
