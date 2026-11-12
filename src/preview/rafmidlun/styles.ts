@@ -104,7 +104,13 @@ html:has(.rm), body:has(.rm){background-color:${C.board}}
 .rm-photo{margin:0}
 .rm-photo__frame{position:relative;aspect-ratio:2/1;overflow:hidden;background:var(--tint);box-shadow:0 0 0 1px var(--line);border-radius:2px}
 .rm-photo__frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--pos,50% 50%)}
-.rm-photo__cap{color:var(--ink-60);text-transform:none;margin-top:.9em}
+.rm-hero__photo{position:relative;flex:1;min-height:max(18em,40svh);border-top:2px solid var(--blue);overflow:hidden;background:var(--tint)}
+.rm-hero__photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 72%;animation:rm-hero-photo 1.4s cubic-bezier(.16,.8,.24,1) both}
+@keyframes rm-hero-photo{from{transform:scale(1.07);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.rm-hero__photo img{animation:none}}
+.rm-scard__media .rm-tile--photo{background:var(--tint)}
+.rm-scard__media .rm-tile--photo img{display:block;object-position:var(--pos,50% 50%);transition:transform .7s cubic-bezier(.16,.8,.24,1)}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){.rm-scard:hover .rm-tile--photo img{transform:scale(1.04)}}
 .rm-photo--page{padding-bottom:3.5em}
 .rm-about__photo{margin-bottom:4.5em}
 @media (max-width:767px){.rm-photo__frame{aspect-ratio:3/2}.rm-photo__frame img{object-position:50% 50%}.rm-photo--page{padding-bottom:2.5em}.rm-about__photo{margin-bottom:3em}}

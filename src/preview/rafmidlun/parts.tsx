@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { LineSvg } from './Art'
 import type { CSSProperties } from 'react'
-import { PARTNERS, STAGES, telHref, type Person, type Service, type Shot } from './data'
+import { CARD_PHOTO, PARTNERS, STAGES, telHref, type Person, type Service, type Shot } from './data'
 import { Arrow, to } from './ui'
 
 /* Pieces shared by the home page and the inner pages. */
@@ -13,7 +13,7 @@ export function Photo({ p, eager = false }: { p: Shot; eager?: boolean }) {
     <figure className="rm-photo" data-grid-reveal>
       <div className="rm-photo__frame" data-grid-item style={{ '--pos': p.pos } as CSSProperties}>
         <picture>
-          <source media="(max-width: 767px)" type="image/webp" srcSet={p.narrow.set} sizes="100vw" width={p.narrow.w} height={p.narrow.h} />
+          {p.narrow && <source media="(max-width: 767px)" type="image/webp" srcSet={p.narrow.set} sizes="100vw" width={p.narrow.w} height={p.narrow.h} />}
           <img
             src={p.wide.src} srcSet={p.wide.set} sizes="(min-width: 1500px) 1400px, 94vw"
             alt={p.alt} width={p.wide.w} height={p.wide.h}
@@ -21,7 +21,6 @@ export function Photo({ p, eager = false }: { p: Shot; eager?: boolean }) {
           />
         </picture>
       </div>
-      <figcaption className="mono rm-photo__cap">{p.credit}</figcaption>
     </figure>
   )
 }
@@ -32,10 +31,15 @@ export const StationArt = ({ stage, label }: { stage: number; label?: string }) 
 )
 
 export function ServiceCard({ s }: { s: Service }) {
+  const ph = CARD_PHOTO[s.slug]
   return (
     <article className="rm-scard" data-svc={s.slug}>
       <Link className="rm-scard__media" to={to(`/thjonusta/${s.slug}`)} tabIndex={-1} aria-hidden="true">
-        <StationArt stage={s.art} />
+        {ph ? (
+          <figure className="rm-tile rm-tile--photo" style={{ '--pos': ph.pos } as CSSProperties}>
+            <img src={ph.wide.src} srcSet={ph.wide.set} sizes="(min-width: 768px) 46vw, 92vw" alt="" width={ph.wide.w} height={ph.wide.h} loading="lazy" decoding="async" />
+          </figure>
+        ) : <StationArt stage={s.art} />}
       </Link>
       <div className="rm-scard__body">
         <p className="mono rm-scard__n">{STAGES[s.art].n} {STAGES[s.art].name}</p>

@@ -22,27 +22,34 @@ const brand = (key: string, alt: string, w: number, h: number, ext = 'webp'): Im
 
 export const LOGO = brand('rmlogo', 'Rafmiðlun', 287, 70, 'png')
 
-/** The two photographs on their front page (header slides, there since the 3 Nov 2026 update).
-    Wide = the full frame, narrow = a 3:2 crop for phones cut from the same original, so neither is ever scaled up
-    past its source. Originals and crop offsets: _docs/rafmidlun-2026-10-23/photos/SOURCES.txt */
-export interface Shot { alt: string; credit: string; pos: string; wide: { src: string; set: string; w: number; h: number }; narrow: { set: string; w: number; h: number } }
+/** Their own photographs, all served from rafmidlun.is/images/ (the two header slides of the 3 Nov 2026 front page
+    plus the slides and content photos of the earlier site, still on their server). Wide = the full frame, narrow = a
+    3:2 crop for phones cut from the same original. Sources and crop offsets: _docs/rafmidlun-2026-10-23/photos/SOURCES.txt */
+export interface Shot { alt: string; pos: string; wide: { src: string; set: string; w: number; h: number }; narrow?: { set: string; w: number; h: number } }
 const photo = (f: string) => `${BASE}rafmidlun/photos/${f}.webp`
 const widths = (key: string, ws: number[]) => ws.map((w) => `${photo(`${key}-${w}`)} ${w}w`).join(', ')
-export const PHOTOS: Record<'virkjun' | 'skapur', Shot> = {
-  virkjun: {
-    alt: 'Gufa stígur upp frá jarðvarmavirkjun í hrauni.',
-    credit: 'Mynd: forsíða rafmidlun.is',
-    pos: '50% 70%',
-    wide: { src: photo('virkjun-1280'), set: widths('virkjun', [960, 1280, 1600]), w: 1600, h: 841 },
-    narrow: { set: widths('virkjun-m', [640, 960, 1261]), w: 1261, h: 841 },
-  },
-  skapur: {
-    alt: 'Kopartengingar boltaðar við skinnur í rafmagnsskáp.',
-    credit: 'Mynd: forsíða rafmidlun.is',
-    pos: '50% 50%',
-    wide: { src: photo('skapur-1280'), set: widths('skapur', [960, 1280, 1920]), w: 1920, h: 855 },
-    narrow: { set: widths('skapur-m', [640, 960, 1282]), w: 1282, h: 855 },
-  },
+const slide = (key: string, alt: string, pos: string, top = 1920, h = 855): Shot => ({
+  alt, pos,
+  wide: { src: photo(`${key}-1280`), set: widths(key, [960, 1280, top]), w: top, h },
+  narrow: { set: widths(`${key}-m`, [640, 960, top === 1600 ? 1261 : 1282]), w: top === 1600 ? 1261 : 1282, h },
+})
+export const PHOTOS = {
+  virkjun: slide('virkjun', 'Gufa stígur upp frá jarðvarmavirkjun í hrauni.', '50% 72%', 1600, 841),
+  skapur: slide('skapur', 'Kopartengingar boltaðar við skinnur í rafmagnsskáp.', '50% 50%'),
+  tafla: slide('tafla', 'Aðaltafla með aflrofum og einlínumynd á hurðunum.', '50% 50%'),
+  alver: slide('alver', 'Álver við fjörð, séð úr lofti.', '58% 60%'),
+  tengingar: slide('tengingar', 'Rafvirki tengir víra í töflu.', '72% 50%'),
+  rafvirki: { alt: 'Rafvirki með hjálm og öryggisgleraugu við vinnu.', pos: '30% 12%', wide: { src: photo('rafvirki-1056'), set: widths('rafvirki', [640, 1056]), w: 1056, h: 855 } },
+  kaplar: { alt: 'Strengir tengdir upp í rafmagnsskáp frá kapalstiga.', pos: '50% 50%', wide: { src: photo('kaplar-876'), set: widths('kaplar', [640, 876]), w: 876, h: 587 } },
+} satisfies Record<string, Shot>
+
+/** the photograph on each field's card on the home page */
+export const CARD_PHOTO: Record<string, Shot> = {
+  nylagnir: PHOTOS.kaplar, vidhald: PHOTOS.rafvirki, skapasmidi: PHOTOS.tafla, storidja: PHOTOS.alver, storeldhus: PHOTOS.tengingar,
+}
+/** the photograph that opens each field's own page (none of kitchen equipment exists on their site) */
+export const PAGE_PHOTO: Record<string, Shot | undefined> = {
+  nylagnir: PHOTOS.tengingar, vidhald: PHOTOS.skapur, skapasmidi: PHOTOS.tafla, storidja: PHOTOS.alver,
 }
 
 /** the five logos on their front page, in their order */

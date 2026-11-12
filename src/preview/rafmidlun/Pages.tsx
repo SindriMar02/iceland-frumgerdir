@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
-import { BADGES, CONTACT, EQUAL_PAY, GRUNDARTANGI, PHOTOS, PLACES, SERVICES, STAFF, WORK_ORDER_READY, serviceBySlug, staffCount, type Branch } from './data'
+import { BADGES, CONTACT, EQUAL_PAY, GRUNDARTANGI, PAGE_PHOTO, PLACES, SERVICES, STAFF, WORK_ORDER_READY, serviceBySlug, staffCount, type Branch } from './data'
 import { LABEL, RequestForm } from './Form'
 import { setupMotion } from './motion'
 import { Partners, PersonCard, Photo, ReadyList, StationArt } from './parts'
@@ -55,6 +55,7 @@ export function Service() {
   const idx = SERVICES.indexOf(s)
   const next = SERVICES[(idx + 1) % SERVICES.length]
   const kitchen = s.branch === 'eldhus'
+  const shot = PAGE_PHOTO[s.slug]
   const people = s.slug === 'storidja' ? GRUNDARTANGI : s.slug === 'storeldhus' ? STAFF.find((g) => g.id === 'eldhus')?.people ?? [] : []
   return (
     <div ref={root}>
@@ -71,8 +72,8 @@ export function Service() {
         </div>
       </PageHead>
 
-      {s.slug === 'skapasmidi' && (
-        <div className="rm-wrap rm-photo--page"><Photo p={PHOTOS.skapur} eager /></div>
+      {shot && (
+        <div className="rm-wrap rm-photo--page"><Photo p={shot} eager /></div>
       )}
 
       <section className="rm-field" aria-label={s.name}>

@@ -61,6 +61,10 @@ const EXEMPT = [
   /\/research-assets\//,
   /\/_?tools\//,
   /\/fonttest\//,
+  // public/hberg-pub is the public folder of the H-Berg site, which deploys on its own under /hberg-frumgerd/.
+  // Vite also copies it into this site's dist, where its 404.html (absolute /hberg-frumgerd/ hrefs, correct there)
+  // failed this guard and blocked every deploy from 11 Nov 2026. Nothing links to that copy; its own deploy checks it.
+  /\/hberg-pub\//,
 ];
 
 // Nearest ancestor that looks like a project root, so we can resolve an absolute

@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { BoardArt, CubeDrop, LineSvg } from './Art'
+import { CubeDrop, LineSvg } from './Art'
 import { ABOUT, AIM, BADGES, CONTACT, INTRO, LEAD, PHOTOS, SERVICES, SERVICE_WORDS, STAGES, TAGLINE, WHOLE, WORK_ORDER_READY, staffCount } from './data'
-import { cubeDrop, initStack, lineField, setupMotion, wireField } from './motion'
+import { cubeDrop, initStack, lineField, setupMotion } from './motion'
 import { Partners, Photo, ReadyList, ServiceCard } from './parts'
 import { Arrow, Btn, Oval, to, useMedia, useReducedMotion } from './ui'
 
@@ -13,11 +13,7 @@ import { Arrow, Btn, Oval, to, useMedia, useReducedMotion } from './ui'
    their navy. */
 
 export function Hero() {
-  const canvas = useRef<HTMLCanvasElement>(null)
-  const rm = useReducedMotion()
-  /* the conductors keep moving beside the headline, so they have their own stop control (WCAG 2.2.2) */
-  const [paused, setPaused] = useState(false)
-  useEffect(() => (canvas.current ? wireField(canvas.current, rm || paused) : undefined), [rm, paused])
+  const p = PHOTOS.virkjun
   return (
     <section className="rm-hero" aria-labelledby="rm-h1">
       <div className="rm-wrap rm-hero__in">
@@ -28,19 +24,14 @@ export function Hero() {
           <Btn tone="blue" to={to('/verkbeidni')}>Senda verkbeiðni</Btn>
           <Btn tone="white" href={CONTACT.phoneHref}>Sími {CONTACT.phone}</Btn>
         </div>
-        <figure className="rm-hero__board">
-          <BoardArt label="Teikning af lokaðri rafmagnstöflu á sökkli, með merkimiða á hurðinni og strengi upp úr toppnum" />
-        </figure>
       </div>
-      <div className="rm-hero__field">
-        <canvas ref={canvas} className="rm-hero__canvas" aria-hidden="true" />
+      {/* the photograph on their own front page, edge to edge under the headline */}
+      <div className="rm-hero__photo">
+        <picture>
+          {p.narrow && <source media="(max-width: 767px)" type="image/webp" srcSet={p.narrow.set} sizes="100vw" />}
+          <img src={p.wide.src} srcSet={p.wide.set} sizes="100vw" alt={p.alt} width={p.wide.w} height={p.wide.h} decoding="async" />
+        </picture>
       </div>
-      {!rm && (
-        <button type="button" className="rm-hero__pause" aria-pressed={paused} onClick={() => setPaused((v) => !v)}>
-          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">{paused ? <path d="M4 2.5v11l9-5.5z" fill="currentColor" /> : <path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor" />}</svg>
-          <span className="rm-sr">{paused ? 'Setja hreyfingu af stað' : 'Stöðva hreyfingu'}</span>
-        </button>
-      )}
     </section>
   )
 }
@@ -210,7 +201,7 @@ function WorkOrder() {
 function About() {
   return (
     <section className="rm-about" aria-labelledby="um-h">
-      <div className="rm-wrap rm-about__photo"><Photo p={PHOTOS.virkjun} /></div>
+      <div className="rm-wrap rm-about__photo"><Photo p={PHOTOS.skapur} /></div>
       <div className="rm-wrap rm-about__grid">
         <div className="rm-about__copy">
           <h2 id="um-h" className="rm-h2" data-lines>Um fyrirtækið</h2>
