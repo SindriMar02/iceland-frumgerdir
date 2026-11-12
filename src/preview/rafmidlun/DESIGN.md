@@ -38,3 +38,9 @@ with exactly the fields their page asks for, routed to the inbox their own pages
 
 **Declared deviations from the engine:** no enquiry list (they sell work, not a catalogue); logo PNG in the bar (as sent);
 menu and drawer focus the panel on a pointer open (focus-guard rule); conductor field instead of flutes; no Lenis.
+
+**Photographs (added 2026-11-12):** on 3 Nov 2026 their front page gained two header photographs. Both are now in the
+build as `Photo` plates (2:1, 3:2 on phones, 2px corners, 1px ring, credit line "Mynd: forsíða rafmidlun.is"): the
+geothermal plant opens "Um fyrirtækið" on the home page, the busbar connections open the Skápasmíði page. The plate
+keeps its shape before the file arrives, phones get a 3:2 crop cut from the original, and no file is scaled past its
+source (1600 and 1920 px wide). Everything else stays drawn until they send photographs of their own work.

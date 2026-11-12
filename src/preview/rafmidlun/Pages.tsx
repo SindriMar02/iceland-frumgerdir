@@ -1,9 +1,9 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
-import { BADGES, CONTACT, EQUAL_PAY, GRUNDARTANGI, PLACES, SERVICES, STAFF, WORK_ORDER_READY, serviceBySlug, staffCount, type Branch } from './data'
+import { BADGES, CONTACT, EQUAL_PAY, GRUNDARTANGI, PHOTOS, PLACES, SERVICES, STAFF, WORK_ORDER_READY, serviceBySlug, staffCount, type Branch } from './data'
 import { LABEL, RequestForm } from './Form'
 import { setupMotion } from './motion'
-import { Partners, PersonCard, ReadyList, StationArt } from './parts'
+import { Partners, PersonCard, Photo, ReadyList, StationArt } from './parts'
 import { Arrow, Btn, to, useReducedMotion } from './ui'
 
 /* The inner pages: one field of work, the staff list, the request, contact, the equal pay policy. */
@@ -70,6 +70,10 @@ export function Service() {
           <Btn tone="white" href={kitchen ? CONTACT.kitchenHref : CONTACT.phoneHref}>Sími {kitchen ? CONTACT.kitchenPhone : CONTACT.phone}</Btn>
         </div>
       </PageHead>
+
+      {s.slug === 'skapasmidi' && (
+        <div className="rm-wrap rm-photo--page"><Photo p={PHOTOS.skapur} eager /></div>
+      )}
 
       <section className="rm-field" aria-label={s.name}>
         <div className="rm-wrap rm-field__grid">

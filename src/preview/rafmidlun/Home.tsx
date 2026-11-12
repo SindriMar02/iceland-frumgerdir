@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BoardArt, CubeDrop, LineSvg } from './Art'
-import { ABOUT, AIM, BADGES, CONTACT, INTRO, LEAD, SERVICES, SERVICE_WORDS, STAGES, TAGLINE, WHOLE, WORK_ORDER_READY, staffCount } from './data'
+import { ABOUT, AIM, BADGES, CONTACT, INTRO, LEAD, PHOTOS, SERVICES, SERVICE_WORDS, STAGES, TAGLINE, WHOLE, WORK_ORDER_READY, staffCount } from './data'
 import { cubeDrop, initStack, lineField, setupMotion, wireField } from './motion'
-import { Partners, ReadyList, ServiceCard } from './parts'
+import { Partners, Photo, ReadyList, ServiceCard } from './parts'
 import { Arrow, Btn, Oval, to, useMedia, useReducedMotion } from './ui'
 
 /* The home page. The engine's section order, re-aimed at an electrical contractor: hero on the
@@ -210,6 +210,7 @@ function WorkOrder() {
 function About() {
   return (
     <section className="rm-about" aria-labelledby="um-h">
+      <div className="rm-wrap rm-about__photo"><Photo p={PHOTOS.virkjun} /></div>
       <div className="rm-wrap rm-about__grid">
         <div className="rm-about__copy">
           <h2 id="um-h" className="rm-h2" data-lines>Um fyrirtækið</h2>

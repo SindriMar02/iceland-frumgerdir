@@ -100,6 +100,14 @@ html:has(.rm), body:has(.rm){background-color:${C.board}}
 .rm-h3{font-family:'RmSans',sans-serif;font-weight:700;font-size:1.5em;line-height:1.12;letter-spacing:-.02em}
 .rm-head__sub{text-wrap:pretty;margin-top:1.4em;font-size:var(--t-p);line-height:1.45;color:var(--ink-60);max-width:36em}
 .rm-source{color:var(--ink-60);text-transform:none;margin-top:1.6em}
+/* their own photographs: a plate that holds its shape, the file cropped inside it */
+.rm-photo{margin:0}
+.rm-photo__frame{position:relative;aspect-ratio:2/1;overflow:hidden;background:var(--tint);box-shadow:0 0 0 1px var(--line);border-radius:2px}
+.rm-photo__frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--pos,50% 50%)}
+.rm-photo__cap{color:var(--ink-60);text-transform:none;margin-top:.9em}
+.rm-photo--page{padding-bottom:3.5em}
+.rm-about__photo{margin-bottom:4.5em}
+@media (max-width:767px){.rm-photo__frame{aspect-ratio:3/2}.rm-photo__frame img{object-position:50% 50%}.rm-photo--page{padding-bottom:2.5em}.rm-about__photo{margin-bottom:3em}}
 
 /* ── banner, floating bar, menu ──────────────────────────────── */
 .rm-top{position:fixed;top:0;left:0;right:0;z-index:40;padding-top:env(safe-area-inset-top);pointer-events:none}

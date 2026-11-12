@@ -1,9 +1,30 @@
 import { Link } from 'react-router-dom'
 import { LineSvg } from './Art'
-import { PARTNERS, STAGES, telHref, type Person, type Service } from './data'
+import type { CSSProperties } from 'react'
+import { PARTNERS, STAGES, telHref, type Person, type Service, type Shot } from './data'
 import { Arrow, to } from './ui'
 
 /* Pieces shared by the home page and the inner pages. */
+
+/** One of their own photographs in a plate. The plate holds the shape (2:1, 3:2 on phones), so nothing moves when
+    the file arrives; phones get their own crop of the original instead of a stretched wide one. */
+export function Photo({ p, eager = false }: { p: Shot; eager?: boolean }) {
+  return (
+    <figure className="rm-photo" data-grid-reveal>
+      <div className="rm-photo__frame" data-grid-item style={{ '--pos': p.pos } as CSSProperties}>
+        <picture>
+          <source media="(max-width: 767px)" type="image/webp" srcSet={p.narrow.set} sizes="100vw" width={p.narrow.w} height={p.narrow.h} />
+          <img
+            src={p.wide.src} srcSet={p.wide.set} sizes="(min-width: 1500px) 1400px, 94vw"
+            alt={p.alt} width={p.wide.w} height={p.wide.h}
+            loading={eager ? 'eager' : 'lazy'} decoding="async"
+          />
+        </picture>
+      </div>
+      <figcaption className="mono rm-photo__cap">{p.credit}</figcaption>
+    </figure>
+  )
+}
 
 /** the drawing of one station, standing in where no honest photo exists */
 export const StationArt = ({ stage, label }: { stage: number; label?: string }) => (

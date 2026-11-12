@@ -22,6 +22,29 @@ const brand = (key: string, alt: string, w: number, h: number, ext = 'webp'): Im
 
 export const LOGO = brand('rmlogo', 'Rafmiðlun', 287, 70, 'png')
 
+/** The two photographs on their front page (header slides, there since the 3 Nov 2026 update).
+    Wide = the full frame, narrow = a 3:2 crop for phones cut from the same original, so neither is ever scaled up
+    past its source. Originals and crop offsets: _docs/rafmidlun-2026-10-23/photos/SOURCES.txt */
+export interface Shot { alt: string; credit: string; pos: string; wide: { src: string; set: string; w: number; h: number }; narrow: { set: string; w: number; h: number } }
+const photo = (f: string) => `${BASE}rafmidlun/photos/${f}.webp`
+const widths = (key: string, ws: number[]) => ws.map((w) => `${photo(`${key}-${w}`)} ${w}w`).join(', ')
+export const PHOTOS: Record<'virkjun' | 'skapur', Shot> = {
+  virkjun: {
+    alt: 'Gufa stígur upp frá jarðvarmavirkjun í hrauni.',
+    credit: 'Mynd: forsíða rafmidlun.is',
+    pos: '50% 70%',
+    wide: { src: photo('virkjun-1280'), set: widths('virkjun', [960, 1280, 1600]), w: 1600, h: 841 },
+    narrow: { set: widths('virkjun-m', [640, 960, 1261]), w: 1261, h: 841 },
+  },
+  skapur: {
+    alt: 'Kopartengingar boltaðar við skinnur í rafmagnsskáp.',
+    credit: 'Mynd: forsíða rafmidlun.is',
+    pos: '50% 50%',
+    wide: { src: photo('skapur-1280'), set: widths('skapur', [960, 1280, 1920]), w: 1920, h: 855 },
+    narrow: { set: widths('skapur-m', [640, 960, 1282]), w: 1282, h: 855 },
+  },
+}
+
 /** the five logos on their front page, in their order */
 export const PARTNERS: Img[] = [
   brand('elsteel', 'Elsteel', 300, 251),
