@@ -200,6 +200,27 @@ export const JOB = {
 }
 
 /* ── equal pay policy, verbatim ─────────────────────────────────── */
+/** their Gæðastefna page, added to rafmidlun.is on 3 Nov 2026, word for word (read 2026-11-12) */
+export const QUALITY = {
+  title: 'Gæðastefna',
+  paras: [
+    'Tilgangur gæðastefnu er að setja fram áherslur Rafmiðlunar í gæðamálum.',
+    'Rafmiðlun vill vera leiðandi rafverktaki með áreiðanlega, örugga og faglega þjónustu sem uppfyllir þarfir og væntingar viðskiptavina sinna.',
+  ],
+  lead: 'Rafmiðlun hefur byggt upp fyrirtæki þar sem gæðastjórnun er hluti af öllum ferlum félagsins og skuldbindur sig til að:',
+  items: [
+    'Viðhalda og bæta gæðastjórnunarkerfið í samræmi við kröfur ISO 9001:2015.',
+    'Tryggja öryggi, fagmennsku og nákvæmni í öllum framkvæmdum og afhendingu verka.',
+    'Hlusta á viðskiptavini og bregðast hratt við athugasemdum til að auka ánægju þeirra.',
+    'Stuðla að stöðugum umbótum, fræðslu og þátttöku starfsfólks í gæðamálum.',
+    'Fylgja lögum, reglum og öðrum kröfum sem gilda um starfsemi félagsins.',
+  ],
+  close: [
+    'Gæðastefnan er endurskoðuð reglulega til að tryggja að hún endurspegli stefnu fyrirtækisins, markmið og þarfir viðskiptavina.',
+    'Gæðastefna hefur verið samþykkt af stjórn.',
+  ],
+}
+
 export const EQUAL_PAY = {
   title: 'Jafnlaunastefna Rafmiðlunar',
   paras: [

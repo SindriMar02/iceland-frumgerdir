@@ -18,8 +18,8 @@ export function Hero() {
     <section className="rm-hero" aria-labelledby="rm-h1">
       <div className="rm-wrap rm-hero__in">
         <p className="mono rm-hero__eyebrow">Rafverktaki og innflytjandi · Frá 1996</p>
-        <h1 id="rm-h1" className="rm-hero__title">{TAGLINE}</h1>
-        <p className="rm-hero__sub">{LEAD}</p>
+        <h1 id="rm-h1" className="rm-hero__title" data-lines>{TAGLINE}</h1>
+        <p className="rm-hero__sub" data-lines>{LEAD}</p>
         <div className="rm-doors">
           <Btn tone="blue" to={to('/verkbeidni')}>Senda verkbeiðni</Btn>
           <Btn tone="white" href={CONTACT.phoneHref}>Sími {CONTACT.phone}</Btn>

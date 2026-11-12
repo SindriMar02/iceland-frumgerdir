@@ -519,6 +519,7 @@ export default function App() {
             <Route path="/preview/rafmidlun/verkbeidni" element={<RafmidlunPage view="verkbeidni" />} />
             <Route path="/preview/rafmidlun/hafa-samband" element={<RafmidlunPage view="hafa-samband" />} />
             <Route path="/preview/rafmidlun/jafnlaunastefna" element={<RafmidlunPage view="jafnlaunastefna" />} />
+            <Route path="/preview/rafmidlun/gaedastefna" element={<RafmidlunPage view="gaedastefna" />} />
             <Route path="/preview/sambo" element={<SamboPage />} />
             <Route path="/preview/treborg" element={<TreborgPage />} />
             <Route path="/preview/treborg/verk/:slug" element={<TreborgProject />} />

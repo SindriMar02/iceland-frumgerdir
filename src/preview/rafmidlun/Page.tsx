@@ -3,11 +3,11 @@ import { PreviewChrome } from '../PreviewChrome'
 import { PreviewFooter } from '../PreviewFooter'
 import { CONTACT, LEAD, companyEntry as company, serviceBySlug } from './data'
 import { HomeBody } from './Home'
-import { HafaSamband, Jafnlaunastefna, Service, Starfsfolk, Verkbeidni } from './Pages'
+import { Gaedastefna, HafaSamband, Jafnlaunastefna, Service, Starfsfolk, Verkbeidni } from './Pages'
 import { CSS } from './styles'
 import { Frame, useDoc } from './ui'
 
-export type RafmidlunView = 'home' | 'service' | 'starfsfolk' | 'verkbeidni' | 'hafa-samband' | 'jafnlaunastefna'
+export type RafmidlunView = 'home' | 'service' | 'starfsfolk' | 'verkbeidni' | 'hafa-samband' | 'jafnlaunastefna' | 'gaedastefna'
 
 const JSON_LD = {
   '@context': 'https://schema.org',
@@ -37,6 +37,7 @@ function Doc({ view }: { view: RafmidlunView }) {
       ? ['Starfsumsókn | Rafmiðlun', 'Rafvirkjar og nemar sækja um hjá Rafmiðlun: nafn, netfang, kennitala og staða.']
       : ['Verkbeiðni | Rafmiðlun', 'Verkbeiðni, viðgerð á stóreldhústæki, nýtt verk eða útboð, eða starfsumsókn. Beiðnin fer á rétt netfang.'],
     'hafa-samband': ['Hafa samband | Rafmiðlun', 'Skrifstofa að Ögurhvarfi 8 í Kópavogi, þjónusta að Flugumýri 32 í Mosfellsbæ. Sími 540 3500, stóreldhústæki 540 3509.'],
+    gaedastefna: ['Gæðastefna | Rafmiðlun', 'Gæðastefna Rafmiðlunar: áreiðanleg, örugg og fagleg þjónusta, og gæðastjórnunarkerfi í samræmi við kröfur ISO 9001:2015.'],
     jafnlaunastefna: ['Jafnlaunastefna | Rafmiðlun', 'Jafnlaunastefna Rafmiðlunar: jöfn laun fyrir sömu eða jafnverðmæt störf, vottað jafnlaunakerfi samkvæmt ÍST 85.'],
   }
   useDoc(t[view][0], t[view][1])
@@ -60,6 +61,7 @@ export default function RafmidlunPage({ view = 'home' }: { view?: RafmidlunView 
         {view === 'verkbeidni' && <Verkbeidni />}
         {view === 'hafa-samband' && <HafaSamband />}
         {view === 'jafnlaunastefna' && <Jafnlaunastefna />}
+        {view === 'gaedastefna' && <Gaedastefna />}
       </Frame>
       <PreviewFooter company={company} verifiedContent />
     </div>

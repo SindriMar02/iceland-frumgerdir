@@ -198,7 +198,8 @@ export function Header() {
         </button>
       </nav>
 
-      <div className="rm-menu" id="rm-menu" ref={menuRef} tabIndex={-1} hidden={!menu} role="dialog" aria-modal="true" aria-label="Valmynd">
+      {/* stays mounted so it can unfold and fold; closed it is inert and invisible to every reader */}
+      <div className="rm-menu" id="rm-menu" ref={menuRef} tabIndex={-1} data-open={menu ? '' : undefined} aria-hidden={!menu} {...(menu ? {} : ({ inert: '' } as Record<string, string>))} role="dialog" aria-modal="true" aria-label="Valmynd">
         <div className="rm-menu__in">
           <button type="button" className="rm-menu__close" onClick={() => { setMenu(false); burgerRef.current?.focus() }}>Loka</button>
           <ul className="rm-menu__list">
@@ -246,6 +247,7 @@ export function Footer() {
             <ul>
               <li><Link to={R('/starfsfolk')}>Starfsfólk</Link></li>
               <li><Link to={R('/jafnlaunastefna')}>Jafnlaunastefna</Link></li>
+              <li><Link to={R('/gaedastefna')}>Gæðastefna</Link></li>
               <li><Link to={`${R('/verkbeidni')}?leid=umsokn`}>Starfsumsókn</Link></li>
               <li><Link to={R('/hafa-samband')}>Hafa samband</Link></li>
             </ul>

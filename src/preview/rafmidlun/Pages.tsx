@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
-import { BADGES, CONTACT, EQUAL_PAY, GRUNDARTANGI, PAGE_PHOTO, PLACES, SERVICES, STAFF, WORK_ORDER_READY, serviceBySlug, staffCount, type Branch } from './data'
+import { BADGES, CONTACT, EQUAL_PAY, GRUNDARTANGI, PAGE_PHOTO, PHOTOS, PLACES, QUALITY, SERVICES, STAFF, WORK_ORDER_READY, serviceBySlug, staffCount, type Branch } from './data'
 import { LABEL, RequestForm } from './Form'
 import { setupMotion } from './motion'
 import { Partners, PersonCard, Photo, ReadyList, StationArt } from './parts'
@@ -234,6 +234,31 @@ export function HafaSamband() {
               <p className="rm-places__job">Fyrirtæki og kennitala, verkstaður, tengiliður og lýsing.</p>
               <Btn tone="blue" to={to('/verkbeidni')} arrow>Senda verkbeiðni</Btn>
             </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+/* ── /gaedastefna ─────────────────────────────────────────────────── */
+
+export function Gaedastefna() {
+  const root = useMotionRoot()
+  return (
+    <div ref={root}>
+      <PageHead
+        title={QUALITY.title}
+        crumbs={[{ to: to(''), label: 'Forsíða' }, { label: 'Gæðastefna' }]}
+      />
+      <div className="rm-wrap rm-photo--page"><Photo p={PHOTOS.tafla} eager /></div>
+      <section className="rm-policy">
+        <div className="rm-wrap rm-policy__grid">
+          <div className="rm-policy__copy">
+            {QUALITY.paras.map((p, i) => <p key={i}>{p}</p>)}
+            <p><strong>{QUALITY.lead}</strong></p>
+            <ul>{QUALITY.items.map((it) => <li key={it}>{it}</li>)}</ul>
+            {QUALITY.close.map((p, i) => <p key={i}>{p}</p>)}
           </div>
         </div>
       </section>
