@@ -43,6 +43,14 @@ export const PHOTOS = {
   kaplar: { alt: 'Strengir tengdir upp í rafmagnsskáp frá kapalstiga.', pos: '50% 50%', wide: { src: photo('kaplar-876'), set: widths('kaplar', [640, 876]), w: 876, h: 587 } },
 } satisfies Record<string, Shot>
 
+/** The hero film: the front-page photograph set in motion (Higgsfield MiniMax H3 from their own photograph, only the
+    steam and the clouds move), cut to a 6.5 s seamless loop. Wide = full frame 1920 px, narrow = the 3:2 phone crop. */
+export const HERO_FILM = { wide: `${BASE}rafmidlun/film/virkjun-1920.mp4`, narrow: `${BASE}rafmidlun/film/virkjun-m-1080.mp4` }
+
+/** Their logo redrawn as a vector for large sizes: oval, ring and conductors measured from rmlogo.png, wordmark in
+    Arial Bold (the face in their PNG). Tool: _docs/rafmidlun-2026-10-23/tools/logo_svg.py */
+export const LOGO_VECTOR = brand('logo', 'Rafmiðlun', 3444, 840, 'svg')
+
 /** the photograph on each field's card on the home page */
 export const CARD_PHOTO: Record<string, Shot> = {
   nylagnir: PHOTOS.kaplar, vidhald: PHOTOS.rafvirki, skapasmidi: PHOTOS.tafla, storidja: PHOTOS.alver, storeldhus: PHOTOS.tengingar,
@@ -326,7 +334,7 @@ export const companyEntry: PreviewCompany = {
   status: 'Concept ready',
   thumb: `${BASE}rafmidlun/brand/thumb.webp`,
   ownPhotography: false,
-  photoCredit: 'Engar ljósmyndir: teikningarnar eru unnar fyrir frumgerðina. Merki Rafmiðlunar, merki birgja og vottunarmerki eru af rafmidlun.is.',
+  photoCredit: 'Ljósmyndir, merki Rafmiðlunar, merki birgja og vottunarmerki eru af rafmidlun.is. Hreyfimyndin efst á forsíðunni er unnin úr forsíðumynd Rafmiðlunar og teikningarnar eru unnar fyrir frumgerðina.',
   audit: {
     strengths: [
       'Eitt stærsta rafverktakafyrirtæki landsins, stofnað 1996, Framúrskarandi fyrirtæki í 10 ár (2015 til 2025)',

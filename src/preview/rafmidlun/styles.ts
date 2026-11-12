@@ -106,6 +106,12 @@ html:has(.rm), body:has(.rm){background-color:${C.board}}
 .rm-photo__frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--pos,50% 50%)}
 .rm-hero__photo{position:relative;flex:1;min-height:max(18em,40svh);border-top:2px solid var(--blue);overflow:hidden;background:var(--tint)}
 .rm-hero__photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 72%;animation:rm-hero-photo 1.4s cubic-bezier(.16,.8,.24,1) both}
+.rm-hero__film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 72%;opacity:0;transition:opacity .9s ease;pointer-events:none}
+.rm-hero__film.is-on{opacity:1}
+/* the floor under the page: the page above is opaque and slides off it at the very end */
+.rm-over{position:relative;z-index:1;background:var(--board)}
+.rm-under{position:sticky;bottom:0;z-index:0;height:min(64svh,34em);display:grid;place-items:center;padding:0 var(--gut);background:#fff}
+.rm-under img{width:min(100%,46em);height:auto}
 @keyframes rm-hero-photo{from{transform:scale(1.07);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.rm-hero__photo img{animation:none}}
 .rm-scard__media .rm-tile--photo{background:var(--tint)}
@@ -252,8 +258,8 @@ html:has(.rm), body:has(.rm){background-color:${C.board}}
 .rm-cabinets__sub{font-size:var(--t-p);line-height:1.45;color:var(--ink-60);max-width:28em}
 .rm-cabinets__art{width:100%;max-width:22em;justify-self:center}
 .rm-partners{display:grid;grid-template-columns:repeat(5,1fr);gap:.6em;width:100%;max-width:34em;margin:.6em 0}
-.rm-partners li{display:grid;place-items:center;min-width:0;aspect-ratio:3/2;padding:.5em;background:#fff;border-radius:2px;box-shadow:0 0 0 1px var(--line)}
-.rm-partners img{width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply}
+.rm-partners li{position:relative;min-width:0;min-height:0;aspect-ratio:3/2;overflow:hidden;background:#fff;border-radius:2px;box-shadow:0 0 0 1px var(--line)}
+.rm-partners img{position:absolute;inset:.5em;width:calc(100% - 1em);height:calc(100% - 1em);object-fit:contain;mix-blend-mode:multiply}
 
 /* ── the work order (home and every field page) ───────────────── */
 .rm-order{padding:8em 0 6em;background:var(--tint)}
@@ -550,7 +556,10 @@ html:has(.rm), body:has(.rm){background-color:${C.board}}
   .rm-h2{font-size:2em}
   .rm-services,.rm-cabinets,.rm-order,.rm-about{padding-block:5em}
   .rm-scards>div,.rm-scards>div:nth-child(4),.rm-scards>div:nth-child(5){grid-column:1/-1}
-  .rm-partners{grid-template-columns:repeat(3,1fr)}
+  .rm-partners{grid-template-columns:repeat(6,1fr)}
+  .rm-partners li{grid-column:span 2}
+  .rm-partners li:nth-child(4){grid-column:2/span 2}
+  .rm-partners li:nth-child(5){grid-column:4/span 2}
   .rm-stack__track{--unit:56svh}
   .rm-stack__stage{padding-bottom:1.2em}
   .rm-form{padding:1.4em}

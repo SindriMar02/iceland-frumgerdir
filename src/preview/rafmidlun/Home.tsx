@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CubeDrop, LineSvg } from './Art'
-import { ABOUT, AIM, BADGES, CONTACT, INTRO, LEAD, PHOTOS, SERVICES, SERVICE_WORDS, STAGES, TAGLINE, WHOLE, WORK_ORDER_READY, staffCount } from './data'
+import { ABOUT, AIM, BADGES, CONTACT, HERO_FILM, INTRO, LEAD, PHOTOS, SERVICES, SERVICE_WORDS, STAGES, TAGLINE, WHOLE, WORK_ORDER_READY, staffCount } from './data'
 import { cubeDrop, initStack, lineField, setupMotion } from './motion'
 import { Partners, Photo, ReadyList, ServiceCard } from './parts'
 import { Arrow, Btn, Oval, to, useMedia, useReducedMotion } from './ui'
@@ -14,6 +14,23 @@ import { Arrow, Btn, Oval, to, useMedia, useReducedMotion } from './ui'
 
 export function Hero() {
   const p = PHOTOS.virkjun
+  const rm = useReducedMotion()
+  const film = useRef<HTMLVideoElement>(null)
+  const [src, setSrc] = useState<string | null>(null)
+  const [paused, setPaused] = useState(false)
+  /* the film is chosen after the first paint: the photograph is what loads first, and what stays under reduced
+     motion, on a data-saving connection, or if the film cannot play */
+  useEffect(() => {
+    const saving = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData
+    if (rm || saving) { setSrc(null); return }
+    setSrc(window.matchMedia('(max-width: 767px)').matches ? HERO_FILM.narrow : HERO_FILM.wide)
+  }, [rm])
+  useEffect(() => {
+    const v = film.current
+    if (!v) return
+    if (paused) v.pause()
+    else v.play().catch(() => undefined)
+  }, [paused, src])
   return (
     <section className="rm-hero" aria-labelledby="rm-h1">
       <div className="rm-wrap rm-hero__in">
@@ -31,7 +48,21 @@ export function Hero() {
           {p.narrow && <source media="(max-width: 767px)" type="image/webp" srcSet={p.narrow.set} sizes="100vw" />}
           <img src={p.wide.src} srcSet={p.wide.set} sizes="100vw" alt={p.alt} width={p.wide.w} height={p.wide.h} decoding="async" />
         </picture>
+        {src && (
+          <video
+            ref={film} className="rm-hero__film" src={src} muted loop playsInline autoPlay preload="auto"
+            aria-hidden="true" tabIndex={-1} disablePictureInPicture
+            onPlaying={(e) => e.currentTarget.classList.add('is-on')}
+          />
+        )}
       </div>
+      {/* the steam keeps moving, so it has its own stop control (WCAG 2.2.2) */}
+      {src && (
+        <button type="button" className="rm-hero__pause" aria-pressed={paused} onClick={() => setPaused((v) => !v)}>
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">{paused ? <path d="M4 2.5v11l9-5.5z" fill="currentColor" /> : <path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor" />}</svg>
+          <span className="rm-sr">{paused ? 'Setja hreyfingu af stað' : 'Stöðva hreyfingu'}</span>
+        </button>
+      )}
     </section>
   )
 }

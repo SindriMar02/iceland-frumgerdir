@@ -5,7 +5,7 @@ import { CONTACT, LEAD, companyEntry as company, serviceBySlug } from './data'
 import { HomeBody } from './Home'
 import { Gaedastefna, HafaSamband, Jafnlaunastefna, Service, Starfsfolk, Verkbeidni } from './Pages'
 import { CSS } from './styles'
-import { Frame, useDoc } from './ui'
+import { Frame, Under, useDoc } from './ui'
 
 export type RafmidlunView = 'home' | 'service' | 'starfsfolk' | 'verkbeidni' | 'hafa-samband' | 'jafnlaunastefna' | 'gaedastefna'
 
@@ -54,6 +54,8 @@ export default function RafmidlunPage({ view = 'home' }: { view?: RafmidlunView 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <Doc view={view} />
       <PreviewChrome company={company} />
+      {/* everything rides over the white floor that holds the logo (Under), which shows once the footer has passed */}
+      <div className="rm-over">
       <Frame>
         {view === 'home' && <HomeBody />}
         {view === 'service' && <Service />}
@@ -64,6 +66,8 @@ export default function RafmidlunPage({ view = 'home' }: { view?: RafmidlunView 
         {view === 'gaedastefna' && <Gaedastefna />}
       </Frame>
       <PreviewFooter company={company} verifiedContent />
+      </div>
+      <Under />
     </div>
   )
 }

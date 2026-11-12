@@ -58,3 +58,18 @@ engine's line reveal (M1). Photo plates use the grid reveal (M2). Card photos sc
 
 **Gæðastefna (2026-11-12):** their site gained this page on 3 Nov 2026 (ISO 9001:2015). It is in the build word for
 word at `/gaedastefna`, linked from the footer. Every other text on their five pages is unchanged since the 23 Oct capture.
+
+**Hero film, partners, floor (2026-11-12, Sindri):**
+- "make a higgsfield short video with this, super realistic and a loop": the hero photograph set in motion with
+  Higgsfield MiniMax H3 (16 credits, 2656x1408, 8 s; camera locked, only steam and clouds move). Its last frame did not
+  match its first (SSIM .958), so the loop is cut in ffmpeg: the first 1.5 s crossfaded over the last 1.5 s, 6.5 s,
+  seam at the level of a normal frame step. `public/rafmidlun/film/virkjun-1920.mp4` (0.9 MB) and `-m-1080.mp4`
+  (3:2 phone crop, 0.3 MB). The photograph loads first and stays under reduced motion, Save-Data, or if the film
+  cannot play; the film fades in over it when it is playing. Pause button bottom right (WCAG 2.2.2).
+- "make these symmetrical": partner tiles are one fixed 3:2 box each (the Pogliano file is 600x297, the rest 300x251,
+  which made its tile shorter); on phones three and two, the two centred.
+- "remove the logo and have it under this footer peeking through": no logo chip in the footer. `Under` is a white
+  floor (sticky, bottom 0, behind `.rm-over`) with the logo as a vector (`brand/logo.svg`: geometry measured from
+  rmlogo.png, wordmark Arial Bold, the face in their PNG); the page slides off it at the very end.
+- The small print now says the photographs are from rafmidlun.is and the film is made from their front-page photograph.
+

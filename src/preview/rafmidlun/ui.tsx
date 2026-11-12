@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { setThemeColor } from '../../lib/preview'
-import { CONTACT, LOGO, ROUTE, SERVICES } from './data'
+import { CONTACT, LOGO, LOGO_VECTOR, ROUTE, SERVICES } from './data'
 import { reducedMotion } from './motion'
 
 export const B = import.meta.env.BASE_URL
@@ -225,6 +225,13 @@ export function Header() {
   )
 }
 
+/** The last thing on the page: a white floor that stays put while the footer slides off it, their logo on it. */
+export const Under = () => (
+  <div className="rm-under" aria-hidden="true">
+    <img src={LOGO_VECTOR.src} alt="" width={LOGO_VECTOR.w} height={LOGO_VECTOR.h} loading="lazy" decoding="async" />
+  </div>
+)
+
 /* ── footer ───────────────────────────────────────────────────────── */
 
 export function Footer() {
@@ -232,7 +239,6 @@ export function Footer() {
     <footer className="rm-foot">
       <div className="rm-wrap rm-foot__grid">
         <div className="rm-foot__brand">
-          <span className="rm-foot__chip"><Logo /></span>
           <dl className="rm-foot__hours">
             {CONTACT.hours.map((h) => <div key={h.d}><dt>{h.d}</dt><dd>{h.t}</dd></div>)}
           </dl>
