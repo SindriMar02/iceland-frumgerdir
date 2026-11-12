@@ -138,6 +138,8 @@ html, body { background-color: ${BG}; }
 .bg-page [tabindex="-1"]:focus, .bg-page [tabindex="-1"]:focus-visible { outline: none; }
 .bg-page :is(input, textarea, select):focus-visible { outline: none; }
 .bg-plate:focus-within { box-shadow: 0 0 0 3px rgba(232,162,61,0.6); }
+.bg-enquiry :is(input, textarea, select):not([type=radio]):not([type=checkbox]):focus { border-color: ${AMBER} !important; box-shadow: 0 1px 0 ${AMBER}; }
+.bg-plate input:focus { box-shadow: none; }
 .bg-field:focus-visible { border-radius: 0; outline-offset: 0; }
 
 /* THE AWNING (phones only). position:sticky lives in the scrolling layer,
