@@ -594,16 +594,19 @@ function Nav({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: bo
     animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease, delay: reduced ? 0 : 0.12 + i * 0.045 } },
     exit: { opacity: 0, y: reduced ? 0 : -8, transition: { duration: 0.18, ease: 'easeIn' as const } },
   })
-  const headBg = open || solid ? 'rgba(15,13,11,0.94)' : 'transparent'
+  /* phones: a constant opaque bar from first paint (iOS tints the status bar from it; no blur tax). Desktop keeps the clear-over-hero opening. */
+  const narrow = useNarrow()
+  const lit = narrow || open || solid
+  const headBg = narrow ? BG : lit ? 'rgba(15,13,11,0.94)' : 'transparent'
   return (
     <>
     <header
       className={`bg-chrome fixed inset-x-0 top-0 z-50 ${start ? 'bg-arrived' : ''}`}
       style={{
         background: headBg,
-        backdropFilter: open || solid ? 'blur(14px)' : 'none',
-        WebkitBackdropFilter: open || solid ? 'blur(14px)' : 'none',
-        borderBottom: `1px solid ${open || solid ? HAIR : 'transparent'}`,
+        backdropFilter: lit && !narrow ? 'blur(14px)' : 'none',
+        WebkitBackdropFilter: lit && !narrow ? 'blur(14px)' : 'none',
+        borderBottom: `1px solid ${lit ? HAIR : 'transparent'}`,
         transition: 'background-color .35s cubic-bezier(0.23,1,0.32,1), border-color .35s',
       }}
     >
@@ -689,7 +692,7 @@ function Nav({ lenisRef, start }: { lenisRef: RefObject<Lenis | null>; start: bo
                 <motion.div {...item(pages.length + 1)} className="flex flex-col gap-5">
                   <div>
                     <p className="text-[12px] uppercase tracking-[0.2em]" style={{ fontFamily: MONO, color: AMBER }}>{t.ui.footerContact}</p>
-                    <a href={PHONE_HREF} className="bg-link-hover mt-3 block text-[28px] leading-none tabular-nums" style={{ fontFamily: DISPLAY, color: INK }}>{PHONE_DISPLAY}</a>
+                    <a href={PHONE_HREF} className="bg-link-hover mt-1 flex min-h-12 items-center text-[28px] leading-none tabular-nums" style={{ fontFamily: DISPLAY, color: INK }}>{PHONE_DISPLAY}</a>
                     <a href={LUBE_PHONE_HREF} className="bg-link-hover mt-3 inline-flex min-h-11 items-center text-[15px]" style={{ fontFamily: BODY, color: INK }}>{t.ui.footerLube} {LUBE_PHONE_DISPLAY}</a>
                     <p className="text-[14px] leading-relaxed" style={{ fontFamily: BODY, color: MUT }}>{ADDRESS.street}, {ADDRESS.town}<br />{t.ui.hoursStrip}</p>
                   </div>
@@ -2089,7 +2092,7 @@ function SiteFooter() {
       <div className="mx-auto max-w-[1320px] px-5 pt-16 md:px-8 md:pt-24">
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
           <Rise>
-            <a href={pageHref('/')} className="bg-logo inline-flex items-center gap-3" aria-label="Bílageirinn">
+            <a href={pageHref('/')} className="bg-logo inline-flex min-h-12 items-center gap-3" aria-label="Bílageirinn">
               <img src={ICON_CONCEPT} alt="" className="h-10 w-auto md:h-12" style={{ filter: 'brightness(0) invert(0.96)' }} />
               <span className="flex flex-col leading-[0.9]">
                 <span style={{ fontFamily: LOGO, fontWeight: 900, fontSize: 'clamp(26px, 4vw, 34px)', color: INK, letterSpacing: '-0.015em' }}>Bílageirinn</span>
@@ -2101,7 +2104,7 @@ function SiteFooter() {
             </p>
           </Rise>
           <Rise>
-            <a href={PHONE_HREF} className="bg-cta-display block leading-none tabular-nums" style={{ fontFamily: DISPLAY, color: AMBER, fontSize: 'clamp(2.6rem, 6.4vw, 4.6rem)' }}>{PHONE_DISPLAY}</a>
+            <a href={PHONE_HREF} className="bg-cta-display flex min-h-12 items-center leading-none tabular-nums" style={{ fontFamily: DISPLAY, color: AMBER, fontSize: 'clamp(2.6rem, 6.4vw, 4.6rem)' }}>{PHONE_DISPLAY}</a>
             <TrueLine className="mt-3 w-full" delay={0.2} />
             <p className="mt-3 inline-flex items-center gap-2 text-[13px]" style={{ fontFamily: BODY, color: INK }}>
               <span aria-hidden className={`inline-block h-2 w-2 rounded-full ${status.open && !reduced ? 'bg-open-pulse' : ''}`} style={{ background: status.open ? '#7CCB7C' : MUT }} />

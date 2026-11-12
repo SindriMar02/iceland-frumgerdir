@@ -237,9 +237,9 @@ export default function EnquiryForm({ preset = '', service = '' }: { preset?: st
                       <input id="bg-plate" name="plate" data-first value={v.plate || ''} maxLength={F.plate.max} autoCapitalize="characters" autoComplete="off" spellCheck={false}
                         onChange={e => set('plate', v.foreign_plate ? e.target.value.toLocaleUpperCase('is') : formatPlate(e.target.value))}
                         aria-invalid={errors.plate ? true : undefined} aria-describedby="plate-help plate-error"
-                        className="w-[11ch] bg-transparent px-3 py-2 text-[28px] font-bold uppercase tracking-[0.08em] outline-none" style={{ color: '#131313', fontFamily: BODY }} placeholder="AB 123" />
+                        className="bg-transparent px-3 py-1.5 font-bold uppercase tracking-[0.08em] outline-none" style={{ color: '#131313', fontFamily: BODY, fontSize: 26, lineHeight: 1.2, width: '8.5ch', boxSizing: 'content-box' }} placeholder="AB 123" />
                     </div>
-                    <p id="plate-help" className="mt-2 text-[13.5px]" style={{ color: MUT }}>{copy.form_help_001}</p>
+                    <p id="plate-help" className="mt-2 text-[13.5px] leading-snug [text-wrap:pretty]" style={{ color: MUT }}>{copy.form_help_001}</p>
                     <ErrorLine id="plate-error" text={errors.plate} />
                   </div>
                 ) : (
@@ -405,7 +405,7 @@ function Field({ k, v, set, err, area, type = 'text', help, required, first, cou
       <label htmlFor={`bg-${k}`} className={labelCls} style={{ fontFamily: MONO, color: MUT }}>{f.label}{req ? ' *' : ''}</label>
       {area ? <textarea {...common} rows={3} onChange={e => set(k, e.target.value)} /> : <input {...common} {...rest} type={type} onChange={e => set(k, e.target.value)} />}
       {counter && len > f.max * 0.7 && <p className="mt-1 text-right text-[12px] tabular-nums" style={{ color: len >= f.max ? ERR : MUT, fontFamily: MONO }}>{len} / {f.max}</p>}
-      {help && <p id={`${k}-help`} className="mt-2 text-[13.5px] leading-snug" style={{ color: MUT }}>{help}</p>}
+      {help && <p id={`${k}-help`} className="mt-2 text-[13.5px] leading-snug [text-wrap:pretty]" style={{ color: MUT }}>{help}</p>}
       {err && <ErrorLine id={`${k}-error`} text={err} />}
     </div>
   )
