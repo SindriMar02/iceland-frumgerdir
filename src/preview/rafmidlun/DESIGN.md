@@ -39,8 +39,22 @@ with exactly the fields their page asks for, routed to the inbox their own pages
 **Declared deviations from the engine:** no enquiry list (they sell work, not a catalogue); logo PNG in the bar (as sent);
 menu and drawer focus the panel on a pointer open (focus-guard rule); conductor field instead of flutes; no Lenis.
 
-**Photographs (added 2026-11-12):** on 3 Nov 2026 their front page gained two header photographs. Both are now in the
-build as `Photo` plates (2:1, 3:2 on phones, 2px corners, 1px ring, credit line "Mynd: forsíða rafmidlun.is"): the
-geothermal plant opens "Um fyrirtækið" on the home page, the busbar connections open the Skápasmíði page. The plate
-keeps its shape before the file arrives, phones get a 3:2 crop cut from the original, and no file is scaled past its
-source (1600 and 1920 px wide). Everything else stays drawn until they send photographs of their own work.
+**Photographs (2026-11-12, Sindri: "super pictureless", "find some pictures"):** eight of their own photographs, all
+still served from rafmidlun.is/images/ (two header slides of the 3 Nov 2026 front page, the slides and content photos
+of the earlier site). Sources and crops: `_docs/rafmidlun-2026-10-23/photos/SOURCES.txt`. No credit line under them.
+- Hero: the geothermal plant, edge to edge under the headline (replaces the conductor canvas and the drawn board;
+  the conductors stay in the divider and the closing block). Loads with a 1.4 s scale and fade, none under reduced motion.
+- Field cards: cables (Nýlagnir), electrician (Viðhald), main switchboard (Skápasmíði), smelter from the air
+  (Stóriðja), hands wiring a board (Stóreldhústæki: no photograph of kitchen equipment exists on their site).
+- Field pages and Gæðastefna: one `Photo` plate under the page head (2:1, 3:2 phone crop, 2px corners, 1px ring).
+  The Stóreldhústæki page keeps the drawing only.
+- "Um fyrirtækið" opens with the busbar connections.
+- No file is scaled past its source on a 1x screen; on 2x laptops the 1600 and 1920 px sources are stretched 1.4 to 1.7x.
+  Ask for originals.
+
+**Motion added 2026-11-12:** the phone menu stays mounted and unfolds from under the bar (clip-path, .62 s), rows
+follow 55 ms apart, and it folds back in .42 s; closed it is `inert` and hidden. The hero headline and lead use the
+engine's line reveal (M1). Photo plates use the grid reveal (M2). Card photos scale 1.04 on hover.
+
+**Gæðastefna (2026-11-12):** their site gained this page on 3 Nov 2026 (ISO 9001:2015). It is in the build word for
+word at `/gaedastefna`, linked from the footer. Every other text on their five pages is unchanged since the 23 Oct capture.
