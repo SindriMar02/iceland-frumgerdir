@@ -124,6 +124,61 @@ export const MENU_ART: Record<'lengjur' | 'bordid' | 'braud' | 'kaka', MenuArt> 
   },
 }
 
+/** Smaller copies of the frames that load with the first screen, offered
+ *  through srcset. Added 2026-11-13: a phone was downloading the 1004px bun
+ *  for a 255px slot and 1200 to 1400px menu frames for a 372px column, and
+ *  Lighthouse's slow-4G model charges all of it against the first paint.
+ *
+ *  Keyed by the file's own src, so a photograph the owner has replaced in the
+ *  CMS (a Sanity URL) finds nothing here and goes out exactly as before.
+ *
+ *  The `sizes` are honest up to 980px, where the page is one column, so a
+ *  phone takes the smallest file that still covers its slot in device pixels
+ *  (an iPhone at 3x still takes the larger ones). Above 980px they name the
+ *  original's own width on purpose: desktop always gets the original file, so
+ *  nothing there is resampled differently from before. Files are written by
+ *  tools/lcp-image-variants.sh.
+ *
+ *  THE HERO SET IS REPEATED in the <link rel="preload"> in
+ *  tools/reynir-seo.mjs. The two must stay identical, or the browser preloads
+ *  one file and paints another: that is how a 173 kB preload of the old bun
+ *  sat on the home page from September to November without ever being shown. */
+export type ImgSet = { srcSet: string; sizes: string }
+const R = `${import.meta.env.BASE_URL}reynir/`
+export const IMG_SETS: Record<string, ImgSet> = {
+  [FEATURE_IMG]: {
+    srcSet: `${R}pistasiusnudur-v2-480.webp 480w, ${R}pistasiusnudur-v2-640.webp 640w, ${FEATURE_IMG} 1004w`,
+    /* .rb-cover-art is min(62vw,300px) up to 980px */
+    sizes: '(max-width:483px) 62vw, (max-width:980px) 300px, 1004px',
+  },
+  [MENU_ART.lengjur.src]: {
+    srcSet: `${R}menu/lengjur-700.webp 700w, ${R}menu/lengjur-1100.webp 1100w, ${MENU_ART.lengjur.src} 1400w`,
+    /* one column inside a section padded at least 20px a side */
+    sizes: '(max-width:980px) calc(100vw - 40px), 1400px',
+  },
+  [MENU_ART.bordid.src]: {
+    srcSet: `${R}menu/bordid-700.webp 700w, ${MENU_ART.bordid.src} 1200w`,
+    sizes: '(max-width:980px) calc(100vw - 40px), 1200px',
+  },
+}
+
+/** The story's opening plate on a portrait phone. The plate is full-bleed and
+ *  object-fit: cover, so a phone shows only the middle of the 2000px frame.
+ *  These two files are that middle (1256 of 2000px wide, full height), at the
+ *  original scale and at 80% of it: the same pixels, without the sides the
+ *  screen never reaches. Not a softer picture, a narrower file.
+ *
+ *  The media query is what makes that safe. The plate is 72vh tall (380 to
+ *  760px), so on a viewport no wider than 2:3 it is never wider than 0.93 of
+ *  its height, and the crop is 0.94. Past that the browser uses the full frame
+ *  as before. `sizes` is the crop's rendered width: plate height x 0.94. */
+export const STORY_OPEN_TALL = {
+  for: STORY_ART.open.src,
+  media: '(max-width:600px) and (max-aspect-ratio:2/3)',
+  srcSet: `${R}gallery/gal-11-tall-1004.webp 1004w, ${R}gallery/gal-11-tall.webp 1256w`,
+  sizes: 'clamp(358px, 67.8vh, 715px)',
+}
+
 export const LINKS = {
   order: 'https://www.aha.is/veitingar/reynir-bakari',
   /** Their Wolt storefront. The slug really is "reynir-bakarari" — Wolt's own

@@ -26,7 +26,7 @@ import { setThemeColor } from '../../lib/preview'
 import { SndrCredit } from './SndrCredit'
 import { PipedTitle } from './PipedTitle'
 import { useIsomorphicLayoutEffect } from './ssr'
-import { type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, type CakeArt, LOGO } from './data'
+import { type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, type CakeArt, LOGO, IMG_SETS, STORY_OPEN_TALL } from './data'
 import { ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY, LETTERPRESS } from './tokens'
 import OrderTeaser from './OrderTeaser'
 import { useLang } from './useLang'
@@ -890,6 +890,9 @@ function MenuArtFrame({ art, lang, fill, style }: { art: MenuArt; lang: Lang; fi
     <figure className="rb-menu-art" style={{ margin: 0, display: 'flex', flexDirection: 'column', height: fill ? '100%' : undefined, ...style }}>
       <div style={{ overflow: 'hidden', borderRadius: 3, flex: fill ? '1 1 auto' : undefined, aspectRatio: fill ? undefined : `${art.w} / ${art.h}` }}>
         <img
+          /* smaller copies for a phone's column; nothing for a CMS photo */
+          sizes={IMG_SETS[art.src]?.sizes}
+          srcSet={IMG_SETS[art.src]?.srcSet}
           src={art.src}
           alt={art.cap[lang]}
           loading="lazy"
@@ -1648,6 +1651,10 @@ function ReynirPageInner() {
           <div className="rb-cover-art rb-enter-3" ref={coverRef}>
             <img
               className="rb-hero-spin"
+              /* sizes and srcSet before src, so the browser never starts on
+                 the full file first. Same set as the preload in the head. */
+              sizes={IMG_SETS[FEATURE_IMG]?.sizes}
+              srcSet={IMG_SETS[FEATURE_IMG]?.srcSet}
               src={FEATURE_IMG}
               alt={images.hero?.caption[lang] ?? (lang === 'en' ? 'A Reynir pistachio snúður, glazed and topped with pistachios' : 'Pistasíusnúður frá Reyni, gljáður og toppaður með pistasíum')}
               width={1004}
@@ -1842,17 +1849,25 @@ function ReynirPageInner() {
             resolves to INK_DEEP at the bottom edge so the photograph hands
             off to the section below it instead of butting against it. */}
         <div className="rb-story-open" style={{ position: 'relative', height: 'clamp(380px,72vh,760px)', overflow: 'hidden' }}>
-          <img
-            src={STORY_ART.open.src}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-            width={STORY_ART.open.w}
-            height={STORY_ART.open.h}
-            className="rb-story-img"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: STORY_ART.open.pos }}
-          />
+          {/* <picture> only to hand a portrait phone the middle of the frame
+              (see STORY_OPEN_TALL): the <img> and its box are unchanged, and a
+              photo replaced in the CMS gets no <source> at all. */}
+          <picture>
+            {STORY_ART.open.src === STORY_OPEN_TALL.for && (
+              <source media={STORY_OPEN_TALL.media} srcSet={STORY_OPEN_TALL.srcSet} sizes={STORY_OPEN_TALL.sizes} />
+            )}
+            <img
+              src={STORY_ART.open.src}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              width={STORY_ART.open.w}
+              height={STORY_ART.open.h}
+              className="rb-story-img"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: STORY_ART.open.pos }}
+            />
+          </picture>
           <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(0deg, ${INK_DEEP} 0%, rgba(11,10,9,.78) 22%, rgba(92,28,31,.28) 62%, rgba(11,10,9,.45) 100%)` }} />
           <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 'clamp(28px,5vw,72px)' }}>
             <div style={{ maxWidth: 1180, margin: '0 auto' }}>

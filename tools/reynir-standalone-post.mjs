@@ -160,3 +160,27 @@ if (leaks.length) {
   process.exit(1)
 }
 console.log('reynir-post: separation gate clean — no catalogue content in the client build')
+
+/* Hero preload gate (2026-11-14). The <link rel="preload"> in the head and the hero <img> must name the same
+   files, or the browser downloads one image at top priority and paints another: that is how a 173 kB preload of
+   the old bun sat on the home page from September to November without ever being shown. Checked on every
+   prerendered page that carries the hero preload (IS and EN home). */
+{
+  const pages = ['index.html', 'en/index.html'].map((f) => join(dist, f)).filter(existsSync)
+  const bad = []
+  for (const p of pages) {
+    const html = readFileSync(p, 'utf8')
+    const link = html.match(/<link[^>]*rel="preload"[^>]*as="image"[^>]*>/)
+    if (!link) continue
+    const attr = (tag, name) => (tag.match(new RegExp(`\\b${name}="([^"]*)"`, 'i')) || [])[1]?.replace(/&amp;/g, '&')
+    const img = html.match(/<img[^>]*class="rb-hero-spin"[^>]*>/)
+    if (!img) { bad.push(`${p}: hero preload present but no .rb-hero-spin <img>`); continue }
+    const pre = { href: attr(link[0], 'href'), set: attr(link[0], 'imagesrcset'), sizes: attr(link[0], 'imagesizes') }
+    const hero = { src: attr(img[0], 'src'), set: attr(img[0], 'srcset'), sizes: attr(img[0], 'sizes') }
+    if (pre.href !== hero.src) bad.push(`${p}: preload href ${pre.href} ≠ hero src ${hero.src}`)
+    if ((pre.set || '') !== (hero.set || '')) bad.push(`${p}: preload imagesrcset ≠ hero srcset\n    ${pre.set}\n    ${hero.set}`)
+    if ((pre.sizes || '') !== (hero.sizes || '')) bad.push(`${p}: preload imagesizes ${pre.sizes} ≠ hero sizes ${hero.sizes}`)
+  }
+  if (bad.length) { console.error('reynir-post: HERO PRELOAD DOES NOT MATCH THE HERO IMAGE:'); for (const b of bad) console.error('  ' + b); process.exit(1) }
+  console.log(`reynir-post: hero preload matches the hero image on ${pages.length} page(s)`)
+}

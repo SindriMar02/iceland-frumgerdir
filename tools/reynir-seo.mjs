@@ -598,8 +598,14 @@ ${
          know the property and would render it with a console warning; as a
          preload it is plain HTML that starts the fetch before any script
          runs. Both home pages only — on /panta and /personuvernd this image
-         never appears, and preloading it there would be 172 KB of waste. -->
-    <link rel="preload" as="image" href="${prefix}/reynir/pistasiusnudur.webp" type="image/webp" fetchpriority="high" />\n`
+         never appears, and preloading it there would be waste.
+         IT MUST NAME THE SAME FILES AS THE HERO <img>: imagesrcset and
+         imagesizes here are IMG_SETS[FEATURE_IMG] in src/preview/reynir/data.ts,
+         character for character. Until 2026-11-13 this line still named
+         pistasiusnudur.webp after the hero had moved to -v2, so every first
+         visit downloaded 173 kB at top priority that was never shown.
+         reynir-standalone-post.mjs now fails the build if the two differ. -->
+    <link rel="preload" as="image" href="${prefix}/reynir/pistasiusnudur-v2.webp" imagesrcset="${prefix}/reynir/pistasiusnudur-v2-480.webp 480w, ${prefix}/reynir/pistasiusnudur-v2-640.webp 640w, ${prefix}/reynir/pistasiusnudur-v2.webp 1004w" imagesizes="(max-width:483px) 62vw, (max-width:980px) 300px, 1004px" type="image/webp" fetchpriority="high" />\n`
         : ''
     }    <meta name="geo.region" content="IS" />
     <meta name="geo.placename" content="${esc(B.city)}" />
