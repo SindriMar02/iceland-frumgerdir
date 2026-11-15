@@ -53,7 +53,8 @@
     <!-- The hero photograph is the largest contentful paint on every visit;
          asking for it before the bundle has parsed shaves the whole script
          round-trip off it. Same file the page picks at desktop widths. -->
-    <link rel="preload" as="image" href="/nypugardar/photos/125645004-2000.jpg" imagesrcset="/nypugardar/photos/125645004-640.jpg 640w, /nypugardar/photos/125645004-1280.jpg 1280w, /nypugardar/photos/125645004-2000.jpg 2000w, /nypugardar/photos/125645004-2600.jpg 2600w" imagesizes="100vw" fetchpriority="high" />
+    <link rel="preload" as="image" media="(max-width:600px) and (max-aspect-ratio:2/3)" href="/nypugardar/photos/125645004-1280p.jpg" imagesrcset="/nypugardar/photos/125645004-640p.jpg 640w, /nypugardar/photos/125645004-1280p.jpg 1280w, /nypugardar/photos/125645004-2000p.jpg 2000w, /nypugardar/photos/125645004-2600p.jpg 2600w" imagesizes="100vw" fetchpriority="high" />
+    <link rel="preload" as="image" media="not all and (max-width:600px) and (max-aspect-ratio:2/3)" href="/nypugardar/photos/125645004-2000.jpg" imagesrcset="/nypugardar/photos/125645004-640.jpg 640w, /nypugardar/photos/125645004-1280.jpg 1280w, /nypugardar/photos/125645004-2000.jpg 2000w, /nypugardar/photos/125645004-2600.jpg 2600w" imagesizes="100vw" fetchpriority="high" />
     <!-- Cloudflare Web Analytics: cookieless, stores nothing that identifies a
          visitor, so no consent banner is required. The token is injected at
          build time from VITE_NYPUGARDAR_CF_ANALYTICS_TOKEN; with no token the

@@ -159,6 +159,35 @@ export const largest = (p: Photo) => src(p.id, p.widths[p.widths.length - 1])
 /** srcset across every width that exists, so the browser picks by viewport. */
 export const srcSet = (p: Photo) => p.widths.map((w) => `${src(p.id, w)} ${w}w`).join(', ')
 
+/**
+ * PORTRAIT-PHONE CROPS (tools/lcp-image-variants.sh, 13 Nov 2026).
+ * The hero, the glacier band and the three fog plates are full-bleed,
+ * object-fit: cover pictures. On a portrait phone cover scales them to the box
+ * HEIGHT and throws the sides away, so a centred crop that keeps the same
+ * pixels at the same scale is a narrower file, not a softer picture. Every one
+ * of these pictures is framed at 50% horizontally (the hero has no
+ * object-position, the band is `center 72%`, the fog is `top`) and every crop
+ * is centred, so the phone shows the same subject.
+ *
+ * The media query is what makes it safe: a box no wider than 2:3 can never be
+ * wider than the crops (4:5 or 5:7), whatever the toolbars do to svh.
+ * Desktop, tablet and landscape keep the full frames.
+ *
+ * The `-p` srcsets reuse the ORIGINAL w descriptors (640w, 1280w, ...), not the
+ * crops' own pixel widths. The browser then picks the same size tier it picks
+ * today, so no phone gets a coarser or finer file than before; only the
+ * unseen sides are gone. Do not "correct" them to the crop widths: that would
+ * make the browser ask for a bigger tier (it would read the crop's narrowness
+ * as lower density) and cost bytes.
+ */
+export const TALL_MEDIA = '(max-width:600px) and (max-aspect-ratio:2/3)'
+/** Photos that have `-{w}p.jpg` crops on disk. */
+const TALL = new Set(['125645004', '125645011'])
+export const hasTall = (p: Photo) => TALL.has(p.id)
+export const tallSrcSet = (p: Photo) => p.widths.map((w) => `${BASE}nypugardar/photos/${p.id}-${w}p.jpg ${w}w`).join(', ')
+/** Props for the <source> in front of a full-bleed <img>. */
+export const tallSource = (p: Photo, sizes: string) => ({ media: TALL_MEDIA, srcSet: tallSrcSet(p), sizes })
+
 /** Every photo Booking has filed under a room type, in manifest order. */
 export function forRoom(key: GodoRoomKey): Photo[] {
   return PHOTOS.filter((p) => p.room?.includes(key))

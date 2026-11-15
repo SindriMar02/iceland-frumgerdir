@@ -23,7 +23,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { Img } from '../../components/Img'
 import { IMG } from './data'
-import { largest, srcSet } from './photos'
+import { largest, srcSet, tallSource, TALL_MEDIA } from './photos'
 import type { Copy } from './copy'
 import { isTouch, loadMotion, scrub } from './motion'
 
@@ -194,16 +194,23 @@ export default function Hero({ t, reduced }: { t: Copy; reduced: boolean }) {
 
       <div ref={wrapRef} className="relative h-[100svh] [transform:translateZ(0)]">
         <div className="absolute inset-0 overflow-hidden bg-[#15130F]">
-          <Img
-            src={largest(IMG.hero)}
-            srcSet={srcSet(IMG.hero)}
-            sizes="100vw"
-            alt={t.hero.alt}
-            fetchpriority="high"
-            loading="eager"
-            className="nyp-hero-photo absolute inset-0 h-full w-full object-cover"
-            style={photoStyle}
-          />
+          {/* <picture> only to hand a portrait phone the middle of the frame
+              (see TALL_MEDIA in photos.ts): the <img>, its box, classes and
+              animation are unchanged. The preload in nypugardar.html mirrors
+              this pair; the post-build check fails if they drift. */}
+          <picture>
+            <source {...tallSource(IMG.hero, '100vw')} />
+            <Img
+              src={largest(IMG.hero)}
+              srcSet={srcSet(IMG.hero)}
+              sizes="100vw"
+              alt={t.hero.alt}
+              fetchpriority="high"
+              loading="eager"
+              className="nyp-hero-photo absolute inset-0 h-full w-full object-cover"
+              style={photoStyle}
+            />
+          </picture>
           <HeroFilm reduced={reduced} on={phase !== 'hidden'} />
           {/* Low scrim at the foot for the wordmark, a lighter one at the head
               for the kicker. The top two thirds of the frame are the light on
@@ -265,13 +272,22 @@ export default function Hero({ t, reduced }: { t: Copy; reduced: boolean }) {
         </div>
 
         <div className="nyp-fog nyp-fog--far" data-fog-speed="-10%" aria-hidden="true">
-          <img src={`${BASE}nypugardar/fog/far-1920.webp`} srcSet={`${BASE}nypugardar/fog/far-960.webp 960w, ${BASE}nypugardar/fog/far-1920.webp 1920w`} sizes="100vw" alt="" width={1920} height={1080} decoding="async" />
+          <picture>
+            <source media={TALL_MEDIA} sizes="100vw" srcSet={`${BASE}nypugardar/fog/far-960p.webp 960w, ${BASE}nypugardar/fog/far-1920p.webp 1920w`} />
+            <img src={`${BASE}nypugardar/fog/far-1920.webp`} srcSet={`${BASE}nypugardar/fog/far-960.webp 960w, ${BASE}nypugardar/fog/far-1920.webp 1920w`} sizes="100vw" alt="" width={1920} height={1080} decoding="async" />
+          </picture>
         </div>
         <div className="nyp-fog nyp-fog--veil" data-fog-speed="-42%" aria-hidden="true">
-          <img src={`${BASE}nypugardar/fog/veil-1920.webp`} srcSet={`${BASE}nypugardar/fog/veil-960.webp 960w, ${BASE}nypugardar/fog/veil-1920.webp 1920w`} sizes="100vw" alt="" width={1920} height={1080} decoding="async" />
+          <picture>
+            <source media={TALL_MEDIA} sizes="100vw" srcSet={`${BASE}nypugardar/fog/veil-960p.webp 960w, ${BASE}nypugardar/fog/veil-1920p.webp 1920w`} />
+            <img src={`${BASE}nypugardar/fog/veil-1920.webp`} srcSet={`${BASE}nypugardar/fog/veil-960.webp 960w, ${BASE}nypugardar/fog/veil-1920.webp 1920w`} sizes="100vw" alt="" width={1920} height={1080} decoding="async" />
+          </picture>
         </div>
         <div className="nyp-fog nyp-fog--near" data-fog-speed="-80%" aria-hidden="true">
-          <img src={`${BASE}nypugardar/fog/near-1920.webp`} srcSet={`${BASE}nypugardar/fog/near-960.webp 960w, ${BASE}nypugardar/fog/near-1920.webp 1920w`} sizes="100vw" alt="" width={1920} height={1080} decoding="async" />
+          <picture>
+            <source media={TALL_MEDIA} sizes="100vw" srcSet={`${BASE}nypugardar/fog/near-960p.webp 960w, ${BASE}nypugardar/fog/near-1920p.webp 1920w`} />
+            <img src={`${BASE}nypugardar/fog/near-1920.webp`} srcSet={`${BASE}nypugardar/fog/near-960.webp 960w, ${BASE}nypugardar/fog/near-1920.webp 1920w`} sizes="100vw" alt="" width={1920} height={1080} decoding="async" />
+          </picture>
         </div>
       </div>
     </header>
