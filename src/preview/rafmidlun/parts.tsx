@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { LineSvg } from './Art'
 import type { CSSProperties } from 'react'
-import { CARD_PHOTO, PARTNERS, STAGES, telHref, type Person, type Service, type Shot } from './data'
+import { CARD_PHOTO, PARTNERS, SERVICES, telHref, type Person, type Service, type Shot } from './data'
 import { Arrow, to } from './ui'
 
 /* Pieces shared by the home page and the inner pages. */
@@ -42,7 +42,7 @@ export function ServiceCard({ s }: { s: Service }) {
         ) : <StationArt stage={s.art} />}
       </Link>
       <div className="rm-scard__body">
-        <p className="mono rm-scard__n">{STAGES[s.art].n} {STAGES[s.art].name}</p>
+        <p className="mono rm-scard__n">Svið {String(SERVICES.findIndex((x) => x.slug === s.slug) + 1).padStart(2, '0')}</p>
         <h3><Link to={to(`/thjonusta/${s.slug}`)}>{s.name}</Link></h3>
         <p className="rm-scard__blurb">{s.blurb}</p>
         <Link className="rm-textlink" to={to(`/thjonusta/${s.slug}`)} aria-hidden="true" tabIndex={-1}>Nánar <Arrow /></Link>
