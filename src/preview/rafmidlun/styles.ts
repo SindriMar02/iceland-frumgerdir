@@ -108,6 +108,13 @@ html:has(.rm), body:has(.rm){background-color:${C.board}}
 .rm-hero__photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 72%;animation:rm-hero-photo 1.4s cubic-bezier(.16,.8,.24,1) both}
 .rm-hero__film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 72%;opacity:0;transition:opacity .9s ease;pointer-events:none}
 .rm-hero__film.is-on{opacity:1}
+.rm-veil{position:fixed;inset:0;z-index:200;display:flex;flex-flow:column;align-items:center;justify-content:center;gap:1.6em;background:var(--paper);will-change:transform}
+.rm-veil__mark{width:min(13em,46vw);height:auto;animation:rm-veil-in .7s cubic-bezier(.16,.8,.24,1) both}
+.rm-veil__line{position:relative;display:block;width:min(13em,46vw);height:2px;background:var(--line);overflow:hidden}
+.rm-veil__line i{position:absolute;inset:0;background:var(--blue);transform:scaleX(0);transform-origin:0 50%}
+@keyframes rm-veil-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+html.rm-loading,html.rm-loading body{overflow:hidden}
+html.rm-loading .rm-hero__photo img{animation-play-state:paused}
 /* the floor under the page: the page above is opaque and slides off it at the very end */
 .rm-over{position:relative;z-index:1;background:var(--board)}
 .rm-under{position:sticky;bottom:0;z-index:0;height:min(64svh,34em);display:grid;place-items:center;padding:0 var(--gut);background:#fff}

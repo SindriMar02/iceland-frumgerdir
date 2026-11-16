@@ -13,6 +13,17 @@ import { ITEM_X, beltPoint, camera, overview } from './iso'
 gsap.registerPlugin(ScrollTrigger, SplitText, CustomEase)
 CustomEase.create('rmdb', 'M0,0 C0.65,0 0.35,1 1,1')
 CustomEase.create('rmsui', 'M0,0 C0.19,1 0.22,1 1,1')
+CustomEase.create('rmcurtain', 'M0,0 C0.76,0 0.24,1 1,1')
+
+/* the loading screen holds every reveal back until it lifts; with no loader nothing is held */
+const gate = { held: false, fns: [] as (() => void)[] }
+export const holdReveal = () => { gate.held = true; document.documentElement.classList.add('rm-loading') }
+export const releaseReveal = () => {
+  gate.held = false
+  document.documentElement.classList.remove('rm-loading')
+  gate.fns.splice(0).forEach((f) => f())
+}
+const whenRevealed = (f: () => void) => (gate.held ? gate.fns.push(f) : f())
 gsap.defaults({ ease: 'rmdb' })
 ScrollTrigger.config({ ignoreMobileResize: true })
 
@@ -83,7 +94,7 @@ function lineReveal(root: HTMLElement) {
       onEnter: () => {
         if (shown) return
         shown = true
-        gsap.to(split.lines, { yPercent: 0, rotateX: 0, opacity: 1, duration: 0.937, ease: 'rmsui', stagger: 0.08 })
+        whenRevealed(() => gsap.to(split.lines, { yPercent: 0, rotateX: 0, opacity: 1, duration: 0.937, ease: 'rmsui', stagger: 0.08 }))
       },
     })
   })
