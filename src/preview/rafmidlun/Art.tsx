@@ -85,6 +85,17 @@ export const CubeDrop = memo(function CubeDrop() {
   )
 })
 
+/* ── one form of the board on its own (the five steps on the home page) ──
+   Flat forms (the plan, the diagram) and the cabinet forms get their own tight box. */
+const FORM_BOX = ['-25 -16 50 32', '-25 -16 50 32', '-25 -16 50 32', '-22 -52 44 66', '-22 -52 44 66', '-22 -62 44 76']
+export const BoardForm = memo(function BoardForm({ form }: { form: number }) {
+  return (
+    <svg className="rm-iso rm-iso--form" viewBox={FORM_BOX[form]} aria-hidden="true" focusable="false">
+      <Paths shapes={ITEM_FORMS[form]} />
+    </svg>
+  )
+})
+
 /* ── the finished board on its plinth, still (the hero) ── */
 export const BoardArt = memo(function BoardArt({ label }: { label: string }) {
   return (

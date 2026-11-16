@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CubeDrop, LineSvg } from './Art'
+import { BoardForm, CubeDrop } from './Art'
 import { ABOUT, AIM, BADGES, CONTACT, HERO_FILM, INTRO, LEAD, PHOTOS, SERVICES, SERVICE_WORDS, STAGES, TAGLINE, WHOLE, WORK_ORDER_READY, staffCount } from './data'
-import { cubeDrop, initStack, lineField, setupMotion } from './motion'
+import { cubeDrop, lineField, setupMotion } from './motion'
 import { Partners, Photo, ReadyList, ServiceCard } from './parts'
-import { Arrow, Btn, Oval, to, useMedia, useReducedMotion } from './ui'
+import { Arrow, Btn, Oval, to, useReducedMotion } from './ui'
 
 /* The home page. The engine's section order, re-aimed at an electrical contractor: hero on the
-   conductors of their logo, the oval divider, the pinned line of their own sentence (ráðgjöf to
-   framkvæmd) where one switchboard is built, the five fields of work, the board dropping onto its
+   conductors of their logo, the oval divider, their own sentence (ráðgjöf to framkvæmd) as five
+   plain steps of one switchboard, the five fields of work, the board dropping onto its
    plinth for skápasmíði, the work order their site has lost, numbers, partners, and the close on
    their navy. */
 
@@ -25,11 +25,17 @@ export function Hero() {
     if (rm || saving) { setSrc(null); return }
     setSrc(window.matchMedia('(max-width: 767px)').matches ? HERO_FILM.narrow : HERO_FILM.wide)
   }, [rm])
+  /* the film only plays while it is on screen: off screen it would keep decoding frames behind the page */
   useEffect(() => {
     const v = film.current
     if (!v) return
-    if (paused) v.pause()
-    else v.play().catch(() => undefined)
+    let seen = true
+    const sync = () => { if (paused || !seen || document.hidden) v.pause(); else v.play().catch(() => undefined) }
+    const io = new IntersectionObserver(([e]) => { seen = e.isIntersecting; sync() })
+    io.observe(v)
+    document.addEventListener('visibilitychange', sync)
+    sync()
+    return () => { io.disconnect(); document.removeEventListener('visibilitychange', sync) }
   }, [paused, src])
   return (
     <section className="rm-hero" aria-labelledby="rm-h1">
@@ -75,87 +81,33 @@ export const Rule = () => (
   </div>
 )
 
-const Plus = ({ pos }: { pos: string }) => (
-  <span className={`rm-plus rm-plus--${pos}`} aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M6 0v12M0 6h12" stroke="currentColor" strokeWidth="1.2" /></svg></span>
-)
-
-const LINE_LABEL = 'Teikning af kapalstiga sem tafla ferðast eftir: fundarborð með uppdrætti og öryggishjálmi, skrifborð með einlínumynd á skjá, teiknivél, lagerhillur með kapalkefli og kössum, og veggur með kapalstiga, þar sem lokuð tafla stendur tilbúin'
-
+/* The whole job, one switchboard as the example: five steps side by side, each with a drawing of
+   the board as it stands at that step and a caption that says so. Nothing pinned, nothing to scroll
+   through: the visitor reads it like a row of cards (Sindri 2026-11-16: the pinned scene was unclear). */
 function Stack() {
-  const track = useRef<HTMLDivElement>(null)
-  const svg = useRef<SVGSVGElement>(null)
-  /* a pinned scene needs a tall window: a phone on its side gets the same five steps as a plain list */
-  const rm = useMedia('(prefers-reduced-motion: reduce), (max-height: 560px)')
-  useEffect(() => {
-    if (rm || !track.current || !svg.current) return
-    let off: (() => void) | undefined
-    let dead = false
-    const t = track.current, s = svg.current
-    ;(document.fonts?.ready ?? Promise.resolve()).then(() => { if (!dead) off = initStack({ track: t, svg: s }) })
-    return () => { dead = true; off?.() }
-  }, [rm])
-
-  if (rm) {
-    return (
-      <section className="rm-stack rm-stack--static" id="linan" aria-labelledby="linan-h">
-        <div className="rm-wrap">
-          <h2 id="linan-h" className="rm-h2">Frá ráðgjöf til framkvæmdar</h2>
-          <p className="rm-head__sub">{WHOLE}</p>
-          <ol className="rm-stack__list">
-            {STAGES.map((s, i) => (
-              <li key={s.id}>
-                <div className="rm-stack__panel">
-                  <p className="mono">{s.n} {s.name}</p>
-                  <p className="rm-stack__line">{s.line}</p>
-                </div>
-                <div className="rm-stack__view"><div className="rm-stack__card"><LineSvg active={i} view={i} form={i + 1} /></div></div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-    )
-  }
-
   return (
     <section className="rm-stack" id="linan" aria-labelledby="linan-h">
-      <div className="rm-wrap rm-stack__intro">
-        <h2 id="linan-h" className="rm-h2" data-lines>Frá ráðgjöf til framkvæmdar</h2>
-        <p className="rm-head__sub" data-lines>{WHOLE} Fylgdu einni töflu eftir stiganum.</p>
-      </div>
-      <div className="rm-stack__track" ref={track}>
-        <div className="rm-stack__stage">
-          <div className="rm-wrap rm-stack__wrap">
-            <div className="rm-stack__grid">
-              <div className="rm-stack__panel">
-                <Plus pos="tl" /><Plus pos="tr" /><Plus pos="bl" /><Plus pos="br" />
-                <p className="rm-stack__eyebrow">Heildarlausn</p>
-                <div className="rm-stack__heads">
-                  {STAGES.map((s) => (
-                    <div key={s.id} className="rm-stack__slide" data-slide>
-                      <p className="mono rm-stack__n" data-fade>{s.n} · {s.name}</p>
-                      <p className="rm-stack__line" data-split>{s.line}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="rm-stack__dots" aria-hidden="true">
-                  {STAGES.map((s) => <span key={s.id} className="rm-stack__dot" data-dot><span className="rm-stack__fill" data-fill /></span>)}
-                </div>
-              </div>
-              <div className="rm-stack__view">
-                <div className="rm-stack__dotgrid" aria-hidden="true" />
-                <div className="rm-stack__card">
-                  <LineSvg active={null} view="overview" form={0} svgRef={svg} label={LINE_LABEL} />
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="rm-wrap">
+        <div className="rm-stack__intro">
+          <p className="mono rm-stack__eyebrow">Heildarlausn</p>
+          <h2 id="linan-h" className="rm-h2" data-lines>Allt verkið á einum stað</h2>
+          <p className="rm-head__sub">{WHOLE} Hér er dæmi: ein rafmagnstafla, frá fyrsta fundi þar til hún er komin upp og tengd.</p>
         </div>
-      </div>
-      <div className="rm-wrap rm-steps">
-        <ol aria-label="Skrefin fimm">
-          {STAGES.map((s) => <li key={s.id}><span className="mono">{s.n}</span> {s.name}</li>)}
+        <ol className="rm-stack__row" data-grid-reveal>
+          {STAGES.map((s) => (
+            <li key={s.id} className="rm-stack__step" data-grid-item>
+              <figure className="rm-stack__fig">
+                <div className="rm-stack__art"><BoardForm form={s.form} /></div>
+                <figcaption className="mono">{s.draw}</figcaption>
+              </figure>
+              <p className="mono rm-stack__n"><span>{s.n}</span> {s.name}</p>
+              <p className="rm-stack__line">{s.line}</p>
+            </li>
+          ))}
         </ol>
+        <div className="rm-stack__cta">
+          <Link className="rm-textlink" to={`${to('/verkbeidni')}?leid=verk`}>Nýtt verk eða útboð <Arrow /></Link>
+        </div>
       </div>
     </section>
   )
