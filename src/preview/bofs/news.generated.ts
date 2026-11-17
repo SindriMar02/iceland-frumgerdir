@@ -6,14 +6,30 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-11-16T15:45:34.156Z
+ * Last synced: 2026-11-17T15:59:23.928Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 16. nóvember 2026', en: 'Updated 16 November 2026' }
+export const SYNCED_AT = { is: 'Uppfært 17. nóvember 2026', en: 'Updated 17 November 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
+  {
+    "date": "13.11.2026",
+    "source": "BOFS",
+    "topic": "barnavernd",
+    "title": {
+      "is": "Tilkynningum vegna neyslu barna á vímuefnum fækkar",
+      "en": "Tilkynningum vegna neyslu barna á vímuefnum fækkar"
+    },
+    "href": "https://island.is/s/bofs/frett/tilkynningum-vegna-neyslu-barna-a-vimuefnum-faekkar",
+    "untranslated": true,
+    "summary": {
+      "is": "Í þessari samantekt er að finna samanburð á fjölda tilkynninga til barnaverndarþjónusta samkvæmt sískráningu barnaverndar á fyrstu sex mánuðum áranna 2024, 2025 og 2026.",
+      "en": "Í þessari samantekt er að finna samanburð á fjölda tilkynninga til barnaverndarþjónusta samkvæmt sískráningu barnaverndar á fyrstu sex mánuðum áranna 2024, 2025 og 2026."
+    },
+    "summaryUntranslated": true
+  },
   {
     "date": "04.11.2026",
     "source": "Stjórnarráðið",
@@ -293,21 +309,6 @@ export const SYNCED_NEWS: NewsItem[] = [
       "is": "Fulltrúar Barnahúss og framkvæmdastjóri meðferðarsviðs funduðu með teymi ofbeldismóttöku barna á Landspítala 22. apríl 2026. Á fundinum var lögð áhersla á öflugt og samræmt samstarf og skýra ferla fyrir börn sem hafa orðið fyrir ofbeldi.",
       "en": "Representatives of Barnahús and the director of the treatment division met the child abuse response team at Landspítali on 22 April 2026. The meeting focused on strong, coordinated cooperation and clear procedures for children who have suffered violence."
     }
-  },
-  {
-    "date": "23.04.2026",
-    "source": "BOFS",
-    "topic": "barnahus",
-    "title": {
-      "is": "Heimsókn Umboðsmanns barna í Barnahús",
-      "en": "The Ombudsman for Children visits Barnahús"
-    },
-    "href": "https://island.is/s/bofs/frett/heimsokn-umbodsmanns-barna-i-barnahus",
-    "summary": {
-      "is": "Þann 22. apríl sl. tók Barnahús á móti Salvöru Nordal, umboðsmanni barna, ásamt teymi lögfræðinga og ráðgjafa frá embætti Umboðsmanns barna.",
-      "en": "Þann 22. apríl sl. tók Barnahús á móti Salvöru Nordal, umboðsmanni barna, ásamt teymi lögfræðinga og ráðgjafa frá embætti Umboðsmanns barna."
-    },
-    "summaryUntranslated": true
   },
   {
     "date": "22.04.2026",
