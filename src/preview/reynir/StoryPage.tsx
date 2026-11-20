@@ -26,6 +26,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import Chrome from './Chrome'
 import { SndrCredit } from './SndrCredit'
+import { SnowToggle } from './Christmas'
 import { PipedTitle } from './PipedTitle'
 import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
@@ -217,7 +218,7 @@ function StoryPageInner() {
       </section>
 
       {/* the quote, on the burgundy — the one colour break, as on the landing page */}
-      <section style={{ background: BURGUNDY, padding: 'clamp(72px,11vh,140px) clamp(20px,4.5vw,72px)' }}>
+      <section className="rb-st-quote" style={{ background: BURGUNDY, padding: 'clamp(72px,11vh,140px) clamp(20px,4.5vw,72px)' }}>
         <div style={{ maxWidth: 980, margin: '0 auto' }}>
           <blockquote style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(30px,4.8vw,64px)', lineHeight: 1.14, color: IVORY, margin: 0 }}>
             {lang === 'is' ? '„' : '“'}{statementQuote[lang]}{lang === 'is' ? '“' : '”'}
@@ -271,6 +272,7 @@ function StoryPageInner() {
           <Link to={P.home} className="rb-st-back">{t.storyBack}</Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}>
             <div style={{ fontSize: 13, color: FAINT }}>{mainName}</div>
+            <SnowToggle lang={lang} />
             <SndrCredit lang={lang} />
           </div>
         </div>

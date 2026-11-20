@@ -362,6 +362,25 @@ const CONTENT = [
     },
   },
   {
+    key: 'jol',
+    path: '/jol',
+    image: og('jol.jpg'),
+    is: {
+      crumb: 'Jólavörur',
+      title: 'Jólavörur: lagtertur, jólakaka og smákökur | Reynir bakarí',
+      desc:
+        'Jólavörurnar hjá Reyni bakara á Dalvegi 4 í Kópavogi: lagtertur, ensk ávaxtakaka, smákökur og butterdeigsbotnar, með verði. Allt bakað á staðnum og hægt að panta fyrirfram.',
+      imageAlt: 'Karamellulagterta með kremi frá Reyni bakara, sneidd, við jólakúlur',
+    },
+    en: {
+      crumb: 'Christmas baking',
+      title: 'Christmas baking: layer cakes, fruit cake, cookies | Reynir bakarí',
+      desc:
+        'Christmas at Reynir bakarí, Dalvegur 4 in Kópavogur: Icelandic layer cakes, English fruit cake, Christmas cookies and puff pastry bases, with prices. All baked on site and available to order ahead.',
+      imageAlt: 'A Reynir caramel layer cake with cream, sliced, beside Christmas baubles',
+    },
+  },
+  {
     key: 'legal',
     path: '/personuvernd',
     image: og('personuvernd.jpg'),

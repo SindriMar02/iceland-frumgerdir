@@ -31,7 +31,11 @@ export function brandOffsetClass(): string {
 
 /** Per-brand mobile browser chrome tint, set alongside document.title. */
 export function setThemeColor(color: string): void {
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', color)
+  // A token may be a CSS variable with a fallback (Reynir's seasonal grounds);
+  // the meta tag needs a real colour, so resolve it: the live value, else the fallback.
+  const m = color.match(/^var\((--[\w-]+)\s*,\s*([^)]+)\)$/)
+  const value = m ? (getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim() || m[2].trim()) : color
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', value)
 }
 
 /**

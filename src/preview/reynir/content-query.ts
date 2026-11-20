@@ -1,6 +1,6 @@
 /** Shared published/preview content projection; no browser or credential dependency. */
 export const QUERY = `{
-  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, orderEmail, facebook, instagram, ahaUrl, woltUrl, mainAddress, trustLine, ordersPaused, notice{text, from, to}, hidePersonalOccasions, hideCompanyOccasions, ordersPauseMessage, textOverrides[]{key,text}, partyOffer, orderExtras[]{"id": coalesce(id.current, _key), label, menuItem->{name,price}, image{asset,hotspot,crop}, step, max, kjorPrice, bulkAt}, images[]{slot, caption, image{asset,hotspot,crop}}},
+  "settings": *[_type=="siteSettings"][0]{phoneDisplay, phoneHref, email, orderEmail, facebook, instagram, ahaUrl, woltUrl, mainAddress, trustLine, ordersPaused, notice{text, from, to}, christmas{on, from, to}, hidePersonalOccasions, hideCompanyOccasions, ordersPauseMessage, textOverrides[]{key,text}, partyOffer, orderExtras[]{"id": coalesce(id.current, _key), label, menuItem->{name,price}, image{asset,hotspot,crop}, step, max, kjorPrice, bulkAt}, images[]{slot, caption, image{asset,hotspot,crop}}},
   "hours": *[_type=="openingHours"][0]{mon, tue, wed, thu, fri, sat, sun, exceptions[]{date, open, close, closed}},
   "hero": *[_type=="heroSection"][0]{heroTitle, heroSub, heroLine, heroPhotoCaption},
   "story": *[_type=="storySection"][0]{statementQuote, statementWho, storyP1, storyP2},
@@ -16,5 +16,7 @@ export const QUERY = `{
         adds, swap{"layerId": layerId.current, label}}}
   },
   "occasions": *[_type=="occasion"]|order(order asc){"id": id.current, label, audience, freeText, suggests},
-  "pickupLocations": *[_type=="pickupLocation"]|order(order asc){"id": id.current, label}
+  "pickupLocations": *[_type=="pickupLocation"]|order(order asc){"id": id.current, label},
+  "jolProducts": *[_type=="christmasProduct" && active != false]|order(order asc){group, name, desc, price, image{asset,hotspot,crop,alt}},
+  "jolTotal": count(*[_type=="christmasProduct"])
 }`

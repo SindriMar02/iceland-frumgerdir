@@ -29,6 +29,7 @@ export const HOME_PATH = STANDALONE ? '/' : '/preview/reynir'
 export const ORDER_PATH = `${PREFIX}/panta`
 export const STORY_PATH = `${PREFIX}/sagan`
 export const LEGAL_PATH = `${PREFIX}/personuvernd`
+export const JOL_PATH = `${PREFIX}/jol`
 
 /* ── Language lives in the URL ──────────────────────────────────────────────
  *
@@ -59,6 +60,7 @@ export const EN_HOME_PATH = STANDALONE ? '/en' : '/preview/reynir/en'
 export const EN_ORDER_PATH = `${EN_PREFIX}/panta`
 export const EN_STORY_PATH = `${EN_PREFIX}/sagan`
 export const EN_LEGAL_PATH = `${EN_PREFIX}/personuvernd`
+export const EN_JOL_PATH = `${EN_PREFIX}/jol`
 
 /** Every route, in both languages, in one place. */
 export const ROUTES = {
@@ -66,6 +68,8 @@ export const ROUTES = {
   order: { is: ORDER_PATH, en: EN_ORDER_PATH },
   story: { is: STORY_PATH, en: EN_STORY_PATH },
   legal: { is: LEGAL_PATH, en: EN_LEGAL_PATH },
+  /** The Christmas products page. Linked from the nav only in season. */
+  jol: { is: JOL_PATH, en: EN_JOL_PATH },
 } as const
 
 export type RouteKey = keyof typeof ROUTES
@@ -88,6 +92,7 @@ export function pathsFor(lang: Lang) {
     order: href(ROUTES.order[lang]),
     story: href(ROUTES.story[lang]),
     legal: href(ROUTES.legal[lang]),
+    jol: href(ROUTES.jol[lang]),
   }
 }
 

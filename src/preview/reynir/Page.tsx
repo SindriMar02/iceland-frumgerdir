@@ -25,6 +25,7 @@ import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { SndrCredit } from './SndrCredit'
 import { PipedTitle } from './PipedTitle'
+import { JolScript, SnowCap, SnowToggle, useChristmas } from './Christmas'
 import { useIsomorphicLayoutEffect } from './ssr'
 import { type Lang, type MenuItem, type GalleryPhoto, type Review, type MenuArt, type CakeArt, LOGO } from './data'
 import { ARCHIVAL, ARCHIVAL_LIVE, BODY, BURGUNDY, DIM, DISPLAY, EASE, FAINT, GOLD, GOLD_LIGHT, GOLD_TEXT, HAIR, HAIR_SOFT, INK, INK_DEEP, INK_WARM, IVORY, LETTERPRESS } from './tokens'
@@ -1174,6 +1175,7 @@ function ReynirPageInner() {
   /* Client-only, like the open/closed badge: both depend on today's date,
      which the prerendered HTML cannot know. */
   const noticeLive = now !== null && noticeIsActive(notice, now)
+  const season = useChristmas()
   const soonExceptions = now === null ? [] : upcomingExceptions(dateExceptions, now)
   const status = useMemo(
     () => (now === null ? staticStatus(HOURS_BY_DAY, t) : openStatus(now, lang, HOURS_BY_DAY, dateExceptions, t)),
@@ -1482,6 +1484,7 @@ function ReynirPageInner() {
           {GALLERY.length > 0 && <a href="#gallery" className="rb-navlink">{t.navGallery}</a>}
           <Link to={P.story} className="rb-navlink">{t.navStory}</Link>
           <a href="#visit" className="rb-navlink">{t.navVisit}</a>
+          {season.on && <Link to={P.jol} className="rb-navlink">{lang === 'is' ? 'Jólavörur' : 'Christmas'}</Link>}
         </nav>
         {/* The right-hand side was four unrelated things sitting at four
             different weights next to a gold button. They are now one small
@@ -1566,6 +1569,7 @@ function ReynirPageInner() {
             ...(GALLERY.length > 0 ? [{ href: '#gallery', label: t.navGallery }] : []),
             { to: P.story, label: t.navStory },
             { href: '#visit', label: t.navVisit },
+            ...(season.on ? [{ to: P.jol, label: lang === 'is' ? 'Jólavörur' : 'Christmas' }] : []),
           ].map((item, i) => {
             const inner = (
               <>
@@ -1669,8 +1673,9 @@ function ReynirPageInner() {
               {noticeLive && notice && <span style={{ color: IVORY }}>{notice.text[lang]}</span>}
             </div>
 
-            <h1 className="rb-enter-2" style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(46px, 9.5vw, 134px)', lineHeight: 0.98, letterSpacing: '.02em', margin: 'clamp(16px,3vh,30px) 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>
-              {heroTitle[lang]}
+            {season.on && <JolScript lang={lang} />}
+            <h1 className={season.on ? 'rb-enter-2 rb-snowcap' : 'rb-enter-2'} style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: 'clamp(46px, 9.5vw, 134px)', lineHeight: 0.98, letterSpacing: '.02em', margin: 'clamp(16px,3vh,30px) 0 0', ...GOLD_TEXT, ...LETTERPRESS }}>
+              {heroTitle[lang]}{season.on && <SnowCap text={heroTitle[lang]} />}
             </h1>
 
             <p className="rb-enter-3" style={{ fontStyle: 'italic', fontSize: 'clamp(17px,1.9vw,23px)', color: IVORY, margin: 'clamp(16px,2.5vh,24px) 0 0', lineHeight: 1.5, maxWidth: '30ch' }}>
@@ -1708,6 +1713,7 @@ function ReynirPageInner() {
             </p>
           </div>
         </div>
+
 
         {/* No band under the hero any more. Three things sat here over time —
             a marquee of product nouns, a rail of facts, then a black-and-white
@@ -2158,7 +2164,7 @@ function ReynirPageInner() {
             <img src={LOGO} alt="" aria-hidden="true" width={120} height={52} loading="lazy" decoding="async" style={{ width: 120, height: 'auto', display: 'block' }} />
             <div style={{ fontSize: 13, color: FAINT, marginTop: 12 }}>{t.footerTag}</div>
             {/* the studio signature, under the bakery's own mark */}
-            <div style={{ marginTop: 18 }}><SndrCredit lang={lang} /></div>
+            <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}><SndrCredit lang={lang} /><SnowToggle lang={lang} /></div>
           </div>
           <div style={{ fontSize: 13.5, color: DIM, lineHeight: 1.8, textAlign: 'right' }}>
             <div>{mainName} · {LINKS.phoneLabel}</div>

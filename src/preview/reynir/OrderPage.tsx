@@ -15,6 +15,7 @@ import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import Chrome from './Chrome'
 import { SndrCredit } from './SndrCredit'
+import { SnowToggle } from './Christmas'
 import { pathsFor } from './paths'
 import { setThemeColor } from '../../lib/preview'
 import { LOGO } from './data'
@@ -61,7 +62,7 @@ const PAGE_CSS = `
     color:${GOLD}; }
   .rb-op-foot-body { font-size:14px; color:${DIM}; line-height:1.65; margin:9px 0 0; }
   .rb-op-foot-base { max-width:1180px; margin:26px auto 0; padding-top:20px;
-    border-top:1px solid rgba(238,211,170,.1); }
+    border-top:1px solid rgba(238,211,170,.1); display:flex; align-items:center; gap:22px; flex-wrap:wrap; }
   .rb-op-foot-body a { color:${GOLD_LIGHT}; text-decoration:none; }
   .rb-op-foot-body a:hover { color:${IVORY}; }
 
@@ -147,6 +148,7 @@ function ReynirOrderPageInner() {
         </div>
         <div className="rb-op-foot-base">
           <SndrCredit lang={lang} />
+          <SnowToggle lang={lang} />
         </div>
       </footer>
 

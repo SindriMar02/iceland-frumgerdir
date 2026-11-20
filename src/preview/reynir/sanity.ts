@@ -36,6 +36,7 @@ import {
   type OrderGroup,
   type OrderProduct,
 } from './order'
+import { JOL_FALLBACK, type JolProduct } from './jol-data'
 
 /* ── Preview detection ──────────────────────────────────────────────────── */
 // Preview requests use an HttpOnly session on the dedicated preview host.
@@ -62,6 +63,32 @@ function mkGalleryPic(img: RawImg, fallback: GalleryPhoto): { src: string; srcSm
   const at = (w: number) => builder.image(img).width(w).quality(80).auto('format').url()
   const dimensions = /-(\d+)x(\d+)-/.exec(img.asset._ref)
   return { src: at(2000), srcSm: at(800), w: dimensions ? Number(dimensions[1]) : fallback.w, h: dimensions ? Number(dimensions[2]) : fallback.h }
+}
+
+/** Studio Christmas products, or the built-in list while the Studio has none
+ *  at all. All-or-nothing, like the gallery: never half Studio, half bundle.
+ *  Once the Studio has products, it is the list, even when he has hidden every
+ *  one of them (then the page says the range is on its way, it never brings
+ *  back the bundled prices). Photos are cut to the page's 4:5 frame here, on
+ *  the owner's hotspot. */
+function mkJol(list: any, total: any): JolProduct[] {
+  const studioHasAny = typeof total === 'number' && total > 0
+  if (!studioHasAny) return JOL_FALLBACK
+  if (!Array.isArray(list)) return []
+  const groups = new Set(['lagtertur', 'kokur', 'smakokur', 'annad'])
+  return list
+    .filter((p: any) => p?.name && (p.name.is || p.name.en) && groups.has(p.group))
+    .map((p: any): JolProduct => {
+      const name = biSelf(p.name)
+      const img = p.image?.asset?._ref
+        ? {
+            src: builder.image(p.image).width(1000).height(1250).fit('crop').quality(80).auto('format').url(),
+            srcSm: builder.image(p.image).width(600).height(750).fit('crop').quality(78).auto('format').url(),
+            alt: p.image.alt && (p.image.alt.is || p.image.alt.en) ? biSelf(p.image.alt) : name,
+          }
+        : undefined
+      return { group: p.group, name, desc: p.desc && (p.desc.is || p.desc.en) ? biSelf(p.desc) : undefined, price: typeof p.price === 'string' && p.price ? p.price : undefined, img }
+    })
 }
 
 /** The owner's hotspot as a CSS object-position, for photos the layout crops
@@ -182,6 +209,9 @@ export interface SiteContent {
   ordersPaused: boolean
   /** A short dated notice ("Lokað á jóladag"). Shown only between from..to. */
   notice: { text: Bilingual; from?: string; to?: string } | null
+  /** Christmas look (Stillingar > Jólin). on: shown every year from the first Advent Sunday to
+   *  6 January unless from/to override it for one season. Default on (agreed with Þorleifur 13 Nov 2026). */
+  christmas: { on: boolean; from?: string; to?: string }
   ordersPauseMessage: Bilingual
   dateExceptions: DateException[]
   mainName: string
@@ -203,6 +233,8 @@ export interface SiteContent {
   ORDER_PRODUCTS: OrderProduct[]
   OCCASIONS: Occasion[]
   PICKUP_LOCATIONS: { id: string; label: Bilingual }[]
+  /** Christmas page products (Studio > Jólin > Jólavörur), else the built-in list. */
+  JOL: JolProduct[]
 }
 
 const FALLBACK: SiteContent = {
@@ -217,6 +249,8 @@ const FALLBACK: SiteContent = {
   images: {},
   ordersPaused: false,
   notice: null,
+  christmas: { on: true },
+  JOL: JOL_FALLBACK,
   ordersPauseMessage: {is: 'Lokað er fyrir sérpantanir á vefnum í bili. Hafðu samband við okkur í síma.', en: 'Online custom orders are paused. Please call the bakery.'},
   dateExceptions: [],
   mainName: T.en.mainName,
@@ -460,6 +494,12 @@ export function merge(raw: any): SiteContent {
     hoursRows: { en: buildHoursRows(hoursByDay, 'en'), is: buildHoursRows(hoursByDay, 'is') },
     images: Object.fromEntries((Array.isArray(s?.images) ? s.images : []).filter((i: any) => i?.slot && i?.image?.asset?._ref).map((i: any) => [i.slot, {src: builder.image(i.image).width(1800).quality(84).auto('format').url(), caption: biSelf(i.caption), pos: hotspotPosition(i.image)}])),
     ordersPaused: s?.ordersPaused === true,
+    JOL: mkJol(raw?.jolProducts, raw?.jolTotal),
+    christmas: {
+      on: s?.christmas?.on !== false,
+      from: typeof s?.christmas?.from === 'string' ? s.christmas.from : undefined,
+      to: typeof s?.christmas?.to === 'string' ? s.christmas.to : undefined,
+    },
     notice: s?.notice?.text && (s.notice.text.is || s.notice.text.en)
       ? { text: biSelf(s.notice.text), from: typeof s.notice.from === 'string' ? s.notice.from : undefined, to: typeof s.notice.to === 'string' ? s.notice.to : undefined }
       : null,

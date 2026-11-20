@@ -14,6 +14,7 @@ const Page = lazy(() => import('./preview/reynir/Page'))
 const OrderPage = lazy(() => import('./preview/reynir/OrderPage'))
 const StoryPage = lazy(() => import('./preview/reynir/StoryPage'))
 const LegalPage = lazy(() => import('./preview/reynir/LegalPage'))
+const ChristmasPage = lazy(() => import('./preview/reynir/ChristmasPage'))
 
 /** Same guarded scroll reset as the catalogue's App.tsx — the hash guard
  *  matters: an arbitrary #hash that is not a valid selector makes
@@ -55,6 +56,8 @@ export function ReynirApp() {
           <Route path={ROUTES.story.en} element={<StoryPage />} />
           <Route path={ROUTES.legal.is} element={<LegalPage />} />
           <Route path={ROUTES.legal.en} element={<LegalPage />} />
+          <Route path={ROUTES.jol.is} element={<ChristmasPage />} />
+          <Route path={ROUTES.jol.en} element={<ChristmasPage />} />
           {/* anything else goes home — a bakery site has no useful 404 */}
           <Route path="*" element={<Page />} />
         </Routes>

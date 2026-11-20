@@ -32,7 +32,7 @@ let arriving = false
 /** The replayed click must not be caught a second time. */
 let passing = false
 
-const BODY = '#reynir-content, #reynir-order-content, #reynir-story-content, .rb-lg-wrap, .rb-page > footer, .rb-op-foot, .rb-lg-foot, .rb-st > footer'
+const BODY = '#reynir-content, #reynir-order-content, #reynir-story-content, #reynir-jol-content, .rb-lg-wrap, .rb-page > footer, .rb-op-foot, .rb-lg-foot, .rb-st > footer, .rb-jol > footer'
 
 const CSS = `
 @keyframes rb-route-out { to { opacity:0; transform:translateY(-8px); } }

@@ -14,6 +14,7 @@
 import { lazy, Suspense } from 'react'
 import { STANDALONE } from './paths'
 import { RouteTransition } from './RouteTransition'
+import { Christmas } from './Christmas'
 
 const PreviewShell = STANDALONE ? null : lazy(() => import('./PreviewShell'))
 
@@ -25,6 +26,8 @@ export default function Chrome() {
   return (
     <>
       <RouteTransition />
+      {/* the season's look (red velvet, snow), on every page; inert out of season */}
+      <Christmas />
       {PreviewShell && (
         <Suspense fallback={null}>
           <PreviewShell />
