@@ -16,6 +16,10 @@
  * 5. nypugardar-seo.mjs in standalone mode: per-route head, llms.txt,
  *    sitemap.xml, robots.txt at the dist root, where they belong on a domain.
  * 6. favicon-guard over the result.
+ * 6b. HERO PRELOAD GATE: the <link rel=preload> set for the hero photograph must
+ *    equal the set of sources the hero <picture> can paint (a portrait-phone
+ *    source plus the default <img>), or the preloaded file is not the painted
+ *    one and the phone downloads both. `--check-hero <dir>` runs only this gate.
  * 7. THE SEPARATION GATE: grep the emitted JS/CSS/HTML for other clients'
  *    slugs and catalogue paths. The standalone entry should make leakage
  *    impossible; this check turns "should" into a failed build.
@@ -26,6 +30,60 @@
 import { existsSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
+
+const norm = (v) => String(v ?? '').replace(/\s+/g, ' ').replace(/\s*,\s*/g, ', ').replace(/\s*:\s*/g, ':').trim()
+const attr = (tag, name) => {
+  const m = tag.match(new RegExp(`\\s${name}="([^"]*)"`, 'i'))
+  return m ? norm(m[1].replace(/&amp;/g, '&')) : ''
+}
+/** Problems with the hero preload set of one HTML page ([] when it matches). */
+export function heroPreloadProblems(html) {
+  const problems = []
+  const pre = [...html.matchAll(/<link\b[^>]*rel="preload"[^>]*>/gi)]
+    .map((m) => m[0])
+    .filter((t) => /as="image"/i.test(t) && /125645004/.test(t))
+  const img = html.match(/<img\b[^>]*nyp-hero-photo[^>]*>/i)?.[0]
+  if (!img) {
+    if (pre.length) problems.push('hero is not on this page but a hero preload is')
+    return problems
+  }
+  const pic = html.slice(Math.max(0, html.indexOf(img) - 600), html.indexOf(img))
+  const srcTag = pic.match(/<source\b[^>]*>(?![\s\S]*<source)/i)?.[0]
+  /* What the page can paint: [media, srcset, sizes]. The <img> is the answer
+     whenever the <source> does not match, i.e. the negation of its media. */
+  const want = []
+  if (srcTag && /<picture/i.test(pic)) {
+    const media = attr(srcTag, 'media')
+    want.push([media, attr(srcTag, 'srcset'), attr(srcTag, 'sizes')])
+    want.push([`not all and ${media}`, attr(img, 'srcset'), attr(img, 'sizes')])
+  } else {
+    want.push(['', attr(img, 'srcset'), attr(img, 'sizes')])
+  }
+  const have = pre.map((t) => [attr(t, 'media'), attr(t, 'imagesrcset'), attr(t, 'imagesizes')])
+  const key = (r) => r.join(' | ')
+  for (const w of want) if (!have.some((h) => key(h) === key(w))) problems.push(`no preload for painted source: ${key(w)}`)
+  for (const h of have) if (!want.some((w) => key(h) === key(w))) problems.push(`preload paints nothing: ${key(h)}`)
+  if (have.length !== want.length) problems.push(`${have.length} hero preloads for ${want.length} painted sources`)
+  return problems
+}
+function checkHeroPreloads(root) {
+  const bad = []
+  const walk = (d) => {
+    for (const f of readdirSync(d, { withFileTypes: true })) {
+      const p = join(d, f.name)
+      if (f.isDirectory()) { if (f.name !== 'assets' && f.name !== 'nypugardar') walk(p) }
+      else if (f.name === 'index.html') for (const pr of heroPreloadProblems(readFileSync(p, 'utf8'))) bad.push(`${p}: ${pr}`)
+    }
+  }
+  walk(root)
+  return bad
+}
+if (process.argv[2] === '--check-hero') {
+  const bad = checkHeroPreloads(process.argv[3] ?? 'dist-nypugardar')
+  if (bad.length) { console.error('nypugardar-post: HERO PRELOAD DIFFERS FROM HERO IMAGE SET:\n  ' + bad.join('\n  ')); process.exit(1) }
+  console.log('nypugardar-post: hero preload set equals the hero image set')
+  process.exit(0)
+}
 
 const dist = 'dist-nypugardar'
 if (!existsSync(dist)) {
@@ -153,6 +211,16 @@ execFileSync('node', ['tools/nypugardar-seo.mjs', dist, '--base=/'], {
 
 /* 6 ── icon inheritance guard */
 execFileSync('node', ['tools/favicon-guard.mjs', dist], { stdio: 'inherit' })
+
+/* 6b ── the hero preload must be the file the hero paints */
+{
+  const bad = checkHeroPreloads(dist)
+  if (bad.length) {
+    console.error('nypugardar-post: HERO PRELOAD DIFFERS FROM HERO IMAGE SET:\n  ' + bad.join('\n  '))
+    process.exit(1)
+  }
+  console.log('nypugardar-post: hero preload set equals the hero image set')
+}
 
 /* 7 ── the separation gate */
 const OTHER_CLIENTS = [

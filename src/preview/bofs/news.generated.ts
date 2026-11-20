@@ -6,14 +6,46 @@
  * translation, its pinned status or its figures, edit OVERRIDES there, not
  * this file: the next sync overwrites everything here.
  *
- * Last synced: 2026-11-12T15:14:04.533Z
+ * Last synced: 2026-11-20T15:26:57.050Z
  */
 
 import type { NewsItem } from './data'
 
-export const SYNCED_AT = { is: 'Uppfært 12. nóvember 2026', en: 'Updated 12 November 2026' }
+export const SYNCED_AT = { is: 'Uppfært 20. nóvember 2026', en: 'Updated 20 November 2026' }
 
 export const SYNCED_NEWS: NewsItem[] = [
+  {
+    "date": "20.11.2026",
+    "source": "BOFS",
+    "topic": "medferd",
+    "title": {
+      "is": "Athugasemd vegna fréttar sem ber yfirskriftina „Allt logar í Skarðshlíð út af nýju búsetuúrræði fyrir börn í þremur raðhúsum - „Við byggðum og keyptum hér fyrir aleigu okkar“",
+      "en": "Athugasemd vegna fréttar sem ber yfirskriftina „Allt logar í Skarðshlíð út af nýju búsetuúrræði fyrir börn í þremur raðhúsum - „Við byggðum og keyptum hér fyrir aleigu okkar“"
+    },
+    "href": "https://island.is/s/bofs/frett/athugasemd-vegna-frettar-sem-ber-yfirskriftina-allt-logar-i-skardshlid-ut-af-nyju-busetuurraedi-fyrir-boern-i-thremur-radhusum-vid-byggdum-og-keyptum-her-fyrir-aleigu-okkar",
+    "untranslated": true,
+    "summary": {
+      "is": "Í frétt DV þann 20. nóvember 2026 var fjallað um nýtt búsetuúrræði fyrir börn við Glimmerskarð í Hafnarfirði. Barna- og fjölskyldustofa skilur vel að íbúar vilji fá skýr svör þegar breytingar verða í nærumhverfi þeirra. Því viljum við koma á framfæri réttum upplýsingum, þar sem ákveðin atriði í umfjölluninni eru ekki rétt.",
+      "en": "Í frétt DV þann 20. nóvember 2026 var fjallað um nýtt búsetuúrræði fyrir börn við Glimmerskarð í Hafnarfirði. Barna- og fjölskyldustofa skilur vel að íbúar vilji fá skýr svör þegar breytingar verða í nærumhverfi þeirra. Því viljum við koma á framfæri réttum upplýsingum, þar sem ákveðin atriði í umfjölluninni eru ekki rétt."
+    },
+    "summaryUntranslated": true
+  },
+  {
+    "date": "13.11.2026",
+    "source": "BOFS",
+    "topic": "barnavernd",
+    "title": {
+      "is": "Tilkynningum vegna neyslu barna á vímuefnum fækkar",
+      "en": "Tilkynningum vegna neyslu barna á vímuefnum fækkar"
+    },
+    "href": "https://island.is/s/bofs/frett/tilkynningum-vegna-neyslu-barna-a-vimuefnum-faekkar",
+    "untranslated": true,
+    "summary": {
+      "is": "Í þessari samantekt er að finna samanburð á fjölda tilkynninga til barnaverndarþjónusta samkvæmt sískráningu barnaverndar á fyrstu sex mánuðum áranna 2024, 2025 og 2026.",
+      "en": "Í þessari samantekt er að finna samanburð á fjölda tilkynninga til barnaverndarþjónusta samkvæmt sískráningu barnaverndar á fyrstu sex mánuðum áranna 2024, 2025 og 2026."
+    },
+    "summaryUntranslated": true
+  },
   {
     "date": "04.11.2026",
     "source": "Stjórnarráðið",
@@ -279,35 +311,6 @@ export const SYNCED_NEWS: NewsItem[] = [
       "en": "No waiting list for places at youth treatment homes"
     },
     "href": "https://www.visir.is/g/20262880648d/engin-bid-eftir-plassi-a-medferdarheimilum-ungmenna"
-  },
-  {
-    "date": "23.04.2026",
-    "source": "BOFS",
-    "topic": "barnahus",
-    "title": {
-      "is": "Fundur Barnahúss og ofbeldismóttöku barna á Landspítala",
-      "en": "Barnahús meets the child abuse response team at Landspítali"
-    },
-    "href": "https://island.is/s/bofs/frett/fundur-barnahuss-og-ofbeldismottoeku-barna-a-landspitala",
-    "summary": {
-      "is": "Fulltrúar Barnahúss og framkvæmdastjóri meðferðarsviðs funduðu með teymi ofbeldismóttöku barna á Landspítala 22. apríl 2026. Á fundinum var lögð áhersla á öflugt og samræmt samstarf og skýra ferla fyrir börn sem hafa orðið fyrir ofbeldi.",
-      "en": "Representatives of Barnahús and the director of the treatment division met the child abuse response team at Landspítali on 22 April 2026. The meeting focused on strong, coordinated cooperation and clear procedures for children who have suffered violence."
-    }
-  },
-  {
-    "date": "23.04.2026",
-    "source": "BOFS",
-    "topic": "barnahus",
-    "title": {
-      "is": "Heimsókn Umboðsmanns barna í Barnahús",
-      "en": "The Ombudsman for Children visits Barnahús"
-    },
-    "href": "https://island.is/s/bofs/frett/heimsokn-umbodsmanns-barna-i-barnahus",
-    "summary": {
-      "is": "Þann 22. apríl sl. tók Barnahús á móti Salvöru Nordal, umboðsmanni barna, ásamt teymi lögfræðinga og ráðgjafa frá embætti Umboðsmanns barna.",
-      "en": "Þann 22. apríl sl. tók Barnahús á móti Salvöru Nordal, umboðsmanni barna, ásamt teymi lögfræðinga og ráðgjafa frá embætti Umboðsmanns barna."
-    },
-    "summaryUntranslated": true
   },
   {
     "date": "22.04.2026",

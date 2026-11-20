@@ -126,16 +126,20 @@ export interface Stage {
   id: string
   n: string
   name: string
-  /** ours: what the drawing shows at this step */
+  /** ours: what happens at this step, in one plain sentence */
   line: string
+  /** ours: what the small drawing of the board shows at this step */
+  draw: string
+  /** which form of the board (iso.ts ITEM_FORMS) the step shows */
+  form: number
 }
 
 export const STAGES: Stage[] = [
-  { id: 'radgjof', n: '01', name: 'Ráðgjöf', line: 'Verkið byrjar á þörfunum og staðnum.' },
-  { id: 'honnun', n: '02', name: 'Hönnun', line: 'Tækni- og hönnunardeild innanhúss.' },
-  { id: 'teikningar', n: '03', name: 'Teikningar', line: 'Teikningin verður að skáp á verkstæðinu.' },
-  { id: 'efnisoflun', n: '04', name: 'Efnisöflun', line: 'Rafmiðlun er líka innflutningsfyrirtæki.' },
-  { id: 'framkvaemd', n: '05', name: 'Framkvæmd', line: 'Taflan fer á sinn stað og strengirnir upp í stigann.' },
+  { id: 'radgjof', n: '01', name: 'Ráðgjöf', line: 'Verkið byrjar á fundi um þarfirnar og staðinn.', draw: 'Uppdráttur af staðnum', form: 1 },
+  { id: 'honnun', n: '02', name: 'Hönnun', line: 'Tækni- og hönnunardeild Rafmiðlunar hannar kerfið.', draw: 'Einlínumynd af töflunni', form: 2 },
+  { id: 'teikningar', n: '03', name: 'Teikningar', line: 'Teikningin fer á verkstæðið og skápurinn er smíðaður.', draw: 'Tómur skápur á verkstæðinu', form: 3 },
+  { id: 'efnisoflun', n: '04', name: 'Efnisöflun', line: 'Rafmiðlun er líka innflutningsfyrirtæki og útvegar efnið.', draw: 'Skinnur og rofar komin í skápinn', form: 4 },
+  { id: 'framkvaemd', n: '05', name: 'Framkvæmd', line: 'Taflan er sett upp á sínum stað og tengd.', draw: 'Tilbúin tafla, strengir tengdir', form: 5 },
 ]
 
 /* ── the five fields of work, each its own page ─────────────────── */

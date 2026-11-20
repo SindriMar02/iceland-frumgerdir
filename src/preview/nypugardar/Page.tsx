@@ -86,6 +86,7 @@ import {
   leadFor,
   restFor,
   srcSet,
+  tallSource,
   type Photo,
 } from "./photos";
 
@@ -1806,12 +1807,17 @@ export default function Page() {
           style={{ background: MIST }}
           image={
             <>
-              <Img
-                {...frame(IMG.glacier, "100vw")}
-                alt={t.band.alt}
-                /* a 150svh band crops a 4:3 frame hard; keep the peaks and the lit flats, not the sky */
-                className="absolute inset-0 h-full w-full object-cover object-[center_72%]"
-              />
+              {/* <picture> only to hand a portrait phone the middle of the
+                  frame (see TALL_MEDIA in photos.ts); the <img> is unchanged. */}
+              <picture>
+                <source {...tallSource(IMG.glacier, "100vw")} />
+                <Img
+                  {...frame(IMG.glacier, "100vw")}
+                  alt={t.band.alt}
+                  /* a 150svh band crops a 4:3 frame hard; keep the peaks and the lit flats, not the sky */
+                  className="absolute inset-0 h-full w-full object-cover object-[center_72%]"
+                />
+              </picture>
               <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#15130F] via-[#15130F]/80 via-55% to-[#15130F]/0 to-95% md:via-[#15130F]/45 md:via-35% md:to-65%" />
             </>
           }
